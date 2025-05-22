@@ -12,7 +12,7 @@ import {
   UserPlus,
   AlertCircle,
   CreditCard,
-  Flask,
+  Beaker,
   Pill,
   Clipboard
 } from 'lucide-react';
