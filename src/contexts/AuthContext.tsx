@@ -10,14 +10,16 @@ import { toast } from 'sonner';
 export type UserRole = 'Patient' | 'Doctor' | 'Nurse' | 'Admin' | 'Pharmacy' | 'Lab' | 'Reception';
 export type UserStatus = 'active' | 'inactive' | 'pending' | 'suspended';
 
+// Update UserProfile to match the data coming from profiles table for now
 interface UserProfile {
   id: string;
   full_name: string | null;
   role: UserRole;
+  // Add these properties to make it compatible with the ProfileMenu component
   email: string;
-  phone: string | null;
   status: UserStatus;
-  auth_id: string;
+  auth_id?: string;
+  phone?: string | null;
 }
 
 interface AuthContextType {
@@ -79,11 +81,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      // We're querying the 'users' table that we created in our migration, not the 'profiles' table
+      // Use the profiles table which is defined in the TypeScript types
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')  // Changed from 'users' to 'profiles' to match TypeScript definitions
         .select('*')
-        .eq('auth_id', userId)
+        .eq('id', userId)  // Changed from 'auth_id' to 'id' as profiles uses 'id'
         .single();
 
       if (error) {
@@ -91,8 +93,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      // Explicitly cast the data to UserProfile type
-      setProfile(data as unknown as UserProfile);
+      if (data) {
+        // Create a compatible user profile object
+        const userProfile: UserProfile = {
+          id: data.id,
+          full_name: data.full_name,
+          role: data.role,
+          // Since the profiles table doesn't have these fields, 
+          // use defaults or get them from the auth user if needed
+          email: user?.email || '',
+          status: 'active' as UserStatus, // Default status
+          auth_id: userId,
+          phone: null
+        };
+        setProfile(userProfile);
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setProfile(null);
@@ -116,17 +131,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data?.user) {
         // Defer user profile fetching to avoid auth state listener conflicts
         setTimeout(async () => {
-          const { data: userData } = await supabase
-            .from('users')
+          const { data: profileData } = await supabase
+            .from('profiles')  // Changed from 'users' to 'profiles'
             .select('*')
-            .eq('auth_id', data.user.id)
+            .eq('id', data.user.id)  // Changed from 'auth_id' to 'id'
             .single();
             
-          if (userData) {
+          if (profileData) {
             const from = location.state?.from?.pathname || '/';
             navigate(from);
             toast.success('Logged in successfully', {
-              description: `Welcome back, ${userData.full_name}!`
+              description: `Welcome back, ${profileData.full_name}!`
             });
           }
         }, 0);
