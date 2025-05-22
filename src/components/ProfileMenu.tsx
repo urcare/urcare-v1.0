@@ -18,9 +18,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, UserCog, BadgeAlert } from 'lucide-react';
+import { Badge } from './ui/badge';
 
 export function ProfileMenu() {
   const { user, profile, signOut } = useAuth();
@@ -52,6 +52,42 @@ export function ProfileMenu() {
     return user.email?.substring(0, 2).toUpperCase() || 'U';
   };
 
+  const getRoleBadgeColor = (role?: string) => {
+    switch (role) {
+      case 'Admin':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'Doctor':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'Nurse':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'Patient':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'Pharmacy':
+        return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'Lab':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case 'Reception':
+        return 'bg-teal-100 text-teal-800 border-teal-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getStatusBadgeColor = (status?: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'suspended':
+        return 'bg-red-100 text-red-800 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -67,19 +103,46 @@ export function ProfileMenu() {
               <p className="text-sm font-medium">
                 {profile?.full_name || user.email}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {profile?.role || 'User'}
-              </p>
+              <div className="flex items-center gap-2">
+                {profile?.role && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${getRoleBadgeColor(profile.role)}`}>
+                    {profile.role}
+                  </span>
+                )}
+                {profile?.status && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${getStatusBadgeColor(profile.status)}`}>
+                    {profile.status}
+                  </span>
+                )}
+              </div>
             </div>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{profile?.full_name || user.email}</p>
+              <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {profile?.role && (
+                  <Badge variant="outline" className={getRoleBadgeColor(profile.role)}>
+                    {profile.role}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>My Profile</span>
           </DropdownMenuItem>
+          {profile?.role === 'Admin' && (
+            <DropdownMenuItem>
+              <UserCog className="mr-2 h-4 w-4" />
+              <span>Admin Dashboard</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem>
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
