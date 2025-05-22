@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // We're querying the 'users' table that we created in our migration, not the 'profiles' table
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -90,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
+      // Cast the data to UserProfile type since we know the structure matches
       setProfile(data as UserProfile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
