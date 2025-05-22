@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -28,6 +29,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
                 </ProtectedRoute>
               } 
             />
