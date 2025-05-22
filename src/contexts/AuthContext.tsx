@@ -91,8 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      // Cast the data to UserProfile type since we know the structure matches
-      setProfile(data as UserProfile);
+      // Explicitly cast the data to UserProfile type
+      setProfile(data as unknown as UserProfile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setProfile(null);
