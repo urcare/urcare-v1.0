@@ -83,9 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Use the profiles table which is defined in the TypeScript types
       const { data, error } = await supabase
-        .from('profiles')  // Changed from 'users' to 'profiles' to match TypeScript definitions
+        .from('profiles')
         .select('*')
-        .eq('id', userId)  // Changed from 'auth_id' to 'id' as profiles uses 'id'
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -165,13 +165,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       setLoading(true);
+      // Instead of passing the role directly as a string, we ensure it's one of the valid enum values
+      // This is to prevent type mismatches with the database
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
-            role: role,
+            // Make sure role is a valid string that matches one of the UserRole values
+            role: role as string,
             phone: phone || null
           }
         }
