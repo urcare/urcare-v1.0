@@ -55,6 +55,7 @@ const useFormField = () => {
       formDescriptionId: "",
       formMessageId: "",
       invalid: false,
+      error: undefined,
     }
   }
 
