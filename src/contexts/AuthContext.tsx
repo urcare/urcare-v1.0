@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (hasHashParams) {
         try {
           setLoading(true);
-          const { data, error } = await supabase.auth.getSessionFromUrl();
+          // Use the standard getSession but check for URL parameters manually
+          const { data, error } = await supabase.auth.getSession();
           if (error) throw error;
           
           // Clean the URL by removing hash params
@@ -134,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: user?.email || '',
           status: 'active' as UserStatus, // Default status
           auth_id: userId,
+          // Check if phone exists in data before accessing it
           phone: data.phone || null
         };
         setProfile(userProfile);
