@@ -165,16 +165,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       setLoading(true);
-      // Instead of passing the role directly as a string, we ensure it's one of the valid enum values
-      // This is to prevent type mismatches with the database
+      
+      // Pass the role as a plain string without type conversion
+      // This avoids the "user_role does not exist" error
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
-            // Make sure role is a valid string that matches one of the UserRole values
-            role: role as string,
+            role: role,
             phone: phone || null
           }
         }
@@ -189,10 +189,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Navigate to login page after signup
       navigate('/auth');
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast.error('Registration failed', {
         description: error.message
       });
-      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
