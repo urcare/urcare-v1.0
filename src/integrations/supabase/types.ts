@@ -14,21 +14,21 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
-          role: Database["public"]["Enums"]["user_role"] | null
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           full_name?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           full_name?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
         Relationships: []

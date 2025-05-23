@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,40 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const location = useLocation();
 
   useEffect(() => {
-    // Handle magic link authentication first
-    const handleMagicLink = async () => {
-      // Check if we have a hash with tokens (magic link)
-      if (window.location.hash) {
-        try {
-          const { data, error } = await supabase.auth.getSession();
-          if (error) {
-            console.error('Error getting session from URL:', error);
-          } else if (data.session) {
-            console.log('Magic link session established:', data.session);
-            setSession(data.session);
-            setUser(data.session.user);
-            
-            // Clean up the URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Show success message
-            toast.success('Email verified successfully', {
-              description: 'You have been logged in.'
-            });
-            
-            // Navigate to dashboard
-            navigate('/');
-          }
-        } catch (error) {
-          console.error('Magic link handling error:', error);
-        }
-      }
-    };
-
-    // Handle magic link first
-    handleMagicLink();
-
-    // Set up auth state listener
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth event:', event);
@@ -109,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -164,9 +132,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Defer user profile fetching to avoid auth state listener conflicts
         setTimeout(async () => {
           const { data: profileData } = await supabase
-            .from('profiles')
+            .from('profiles')  // Changed from 'users' to 'profiles'
             .select('*')
-            .eq('id', data.user.id)
+            .eq('id', data.user.id)  // Changed from 'auth_id' to 'id'
             .single();
             
           if (profileData) {
