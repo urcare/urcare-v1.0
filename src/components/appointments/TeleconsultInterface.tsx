@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -41,7 +40,7 @@ export const TeleconsultInterface = () => {
         .select('*, doctors(*)')
         .eq('patient_id', user.id)
         .eq('status', 'scheduled')
-        .eq('type', 'teleconsult')
+        .eq('type', 'consultation')
         .gte('date_time', today.toISOString())
         .order('date_time', { ascending: true });
       
@@ -53,7 +52,7 @@ export const TeleconsultInterface = () => {
           id: 'sample-1',
           date_time: new Date(Date.now() + 86400000).toISOString(), // tomorrow
           doctors: { profile_id: 'Dr. Smith' },
-          type: 'teleconsult',
+          type: 'consultation',
           status: 'scheduled'
         }];
       }
