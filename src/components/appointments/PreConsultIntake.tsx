@@ -280,36 +280,37 @@ export const PreConsultIntake = () => {
               {intakeQuestions[section as keyof typeof intakeQuestions].map(renderQuestion)}
             </TabsContent>
           ))}
-        </CardContent>
-        <CardFooter className="flex justify-between">
+        </Tabs>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          disabled={currentSection === 'general'}
+        >
+          Previous
+        </Button>
+        
+        {currentSection === 'lifestyle' ? (
           <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentSection === 'general'}
+            onClick={handleSubmit}
+            disabled={!isCurrentSectionComplete() || isSubmitting}
+            className="flex items-center gap-2"
           >
-            Previous
+            Submit
+            <Check className="h-4 w-4" />
           </Button>
-          
-          {currentSection === 'lifestyle' ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={!isCurrentSectionComplete() || isSubmitting}
-              className="flex items-center gap-2"
-            >
-              Submit
-              <Check className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={!isCurrentSectionComplete()}
-              className="flex items-center gap-2"
-            >
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-    );
+        ) : (
+          <Button
+            onClick={handleNext}
+            disabled={!isCurrentSectionComplete()}
+            className="flex items-center gap-2"
+          >
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
 };

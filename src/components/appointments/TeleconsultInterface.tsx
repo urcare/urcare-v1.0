@@ -83,7 +83,7 @@ export const TeleconsultInterface = () => {
         {
           id: `dr-${Date.now()}`,
           sender: 'doctor',
-          text: 'I've received your message. Let me check your information.',
+          text: "I have received your message. Let me check your information.",
           timestamp: new Date()
         }
       ]);
