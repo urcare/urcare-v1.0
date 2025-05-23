@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +46,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const location = useLocation();
 
   useEffect(() => {
+    // Check for auth tokens in URL (for magic link authentication)
+    const handleAuthFromUrl = async () => {
+      const hasHashParams = window.location.hash && window.location.hash.length > 0;
+      
+      if (hasHashParams) {
+        try {
+          setLoading(true);
+          const { data, error } = await supabase.auth.getSessionFromUrl();
+          if (error) throw error;
+          
+          // Clean the URL by removing hash params
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          if (data?.session) {
+            // Redirect to home after successful authentication
+            navigate('/');
+            toast.success('Successfully authenticated!');
+          }
+        } catch (error: any) {
+          console.error('Error processing auth token from URL:', error);
+          toast.error('Authentication failed', {
+            description: error.message
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    handleAuthFromUrl();
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
@@ -77,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -86,11 +116,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle when no record exists
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        throw error;
+        // Don't throw, just log the error
       }
 
       if (data) {
@@ -104,13 +134,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: user?.email || '',
           status: 'active' as UserStatus, // Default status
           auth_id: userId,
-          phone: null
+          phone: data.phone || null
         };
         setProfile(userProfile);
+      } else if (user) {
+        // If no profile is found, create a default one
+        const defaultProfile: UserProfile = {
+          id: userId,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+          role: 'Patient' as UserRole,  // Default role
+          email: user.email || '',
+          status: 'active' as UserStatus,
+          auth_id: userId
+        };
+        setProfile(defaultProfile);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      setProfile(null);
+      // Create a default profile even on error so the app doesn't break
+      if (user) {
+        const defaultProfile: UserProfile = {
+          id: userId,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+          role: 'Patient' as UserRole,
+          email: user.email || '',
+          status: 'active' as UserStatus,
+          auth_id: userId
+        };
+        setProfile(defaultProfile);
+      }
     }
   };
 
@@ -127,24 +179,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       
-      // Fetch user profile and navigate based on role
+      // Navigate immediately after successful login
       if (data?.user) {
-        // Defer user profile fetching to avoid auth state listener conflicts
-        setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from('profiles')  // Changed from 'users' to 'profiles'
-            .select('*')
-            .eq('id', data.user.id)  // Changed from 'auth_id' to 'id'
-            .single();
-            
-          if (profileData) {
-            const from = location.state?.from?.pathname || '/';
-            navigate(from);
-            toast.success('Logged in successfully', {
-              description: `Welcome back, ${profileData.full_name}!`
-            });
-          }
-        }, 0);
+        const from = location.state?.from?.pathname || '/';
+        navigate(from);
+        toast.success('Logged in successfully', {
+          description: `Welcome back!`
+        });
       }
     } catch (error: any) {
       toast.error('Login failed', {
