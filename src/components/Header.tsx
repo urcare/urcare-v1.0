@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Bell, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ProfileMenu } from './ProfileMenu';
+import { ProfileSwitcher } from './ProfileSwitcher';
 
 export function Header() {
   return (
@@ -29,6 +30,7 @@ export function Header() {
             </span>
           </Button>
 
+          <ProfileSwitcher />
           <ProfileMenu />
         </div>
       </div>
