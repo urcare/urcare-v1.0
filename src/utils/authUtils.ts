@@ -34,7 +34,7 @@ export const fetchUserProfile = async (userId: string, user?: User): Promise<Use
         email: user?.email || '',
         status: 'active' as UserStatus,
         auth_id: userId,
-        phone: data.phone || null
+        phone: data.phone || null // We need to handle this conditionally as it might not exist
       };
       return userProfile;
     } else if (user) {
