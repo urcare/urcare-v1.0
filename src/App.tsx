@@ -14,6 +14,7 @@ import EmotionalHealth from "./pages/EmotionalHealth";
 import Appointments from "./pages/Appointments";
 import Documents from "./pages/Documents";
 import IntelligentContent from "./pages/IntelligentContent";
+import Engagement from "./pages/Engagement";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -91,6 +92,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <IntelligentContent />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/engagement" 
+              element={
+                <ProtectedRoute>
+                  <Engagement />
                 </ProtectedRoute>
               } 
             />
