@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Pill, Plus, Barcode, Bell, AlertTriangle, Clock, Calendar, Truck } from 'lucide-react';
+import { Pill, Plus, Barcode, Bell, AlertTriangle, Clock, Calendar, Truck, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarcodeScanner } from './BarcodeScanner';
 import { PharmacyIntegration } from './PharmacyIntegration';
@@ -17,6 +16,11 @@ import { AllergyChecker } from './AllergyChecker';
 import { AIScheduler } from './AIScheduler';
 import { DeliveryInterface } from './DeliveryInterface';
 import { MissedDoseTracker } from './MissedDoseTracker';
+import { MedicationExpiryWatcher } from './MedicationExpiryWatcher';
+import { FamilyMedicationLog } from './FamilyMedicationLog';
+import { PillIdentificationAI } from './PillIdentificationAI';
+import { AdherenceScoring } from './AdherenceScoring';
+import { DrugInteractionDatabase } from './DrugInteractionDatabase';
 
 interface Medication {
   id: string;
@@ -169,20 +173,21 @@ export const MedicationTracker = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Pill className="h-5 w-5" />
-            Comprehensive Medication Tracker
+            Premium Medication Management Suite
           </CardTitle>
           <CardDescription>
-            Complete medication management with smart reminders, interaction checking, and pharmacy integration
+            Complete medication management with AI-powered tools, family integration, and comprehensive safety features
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-4 w-full">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="medications">Medications</TabsTrigger>
-              <TabsTrigger value="reminders">Reminders</TabsTrigger>
-              <TabsTrigger value="pharmacy">Pharmacy</TabsTrigger>
-              <TabsTrigger value="delivery">Delivery</TabsTrigger>
+              <TabsTrigger value="premium" className="relative">
+                Premium Tools
+                <Star className="h-3 w-3 ml-1 text-yellow-500" />
+              </TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -350,32 +355,44 @@ export const MedicationTracker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="reminders">
-              <AIScheduler 
-                medications={medications}
-                onScheduleUpdate={(medicationId, times) => {
-                  setMedications(prev => prev.map(med => 
-                    med.id === medicationId ? { ...med, reminderTimes: times } : med
-                  ));
-                }}
-                smartRemindersEnabled={smartRemindersEnabled}
-              />
-              <MissedDoseTracker medications={medications} />
-            </TabsContent>
+            <TabsContent value="premium" className="space-y-6">
+              <Tabs defaultValue="expiry" className="space-y-4">
+                <TabsList className="grid grid-cols-6 w-full">
+                  <TabsTrigger value="expiry">Expiry Watcher</TabsTrigger>
+                  <TabsTrigger value="family">Family Log</TabsTrigger>
+                  <TabsTrigger value="identify">Pill ID AI</TabsTrigger>
+                  <TabsTrigger value="adherence">Adherence</TabsTrigger>
+                  <TabsTrigger value="interactions">Interactions</TabsTrigger>
+                  <TabsTrigger value="refills">Auto Refills</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="pharmacy">
-              <PharmacyIntegration 
-                medications={medications}
-                onRefillRequest={handleRefillRequest}
-              />
-            </TabsContent>
+                <TabsContent value="expiry">
+                  <MedicationExpiryWatcher />
+                </TabsContent>
 
-            <TabsContent value="delivery">
-              <DeliveryInterface 
-                medications={medications}
-                deliveryEnabled={deliveryEnabled}
-                onDeliveryToggle={setDeliveryEnabled}
-              />
+                <TabsContent value="family">
+                  <FamilyMedicationLog />
+                </TabsContent>
+
+                <TabsContent value="identify">
+                  <PillIdentificationAI />
+                </TabsContent>
+
+                <TabsContent value="adherence">
+                  <AdherenceScoring />
+                </TabsContent>
+
+                <TabsContent value="interactions">
+                  <DrugInteractionDatabase />
+                </TabsContent>
+
+                <TabsContent value="refills">
+                  <PharmacyIntegration 
+                    medications={medications}
+                    onRefillRequest={handleRefillRequest}
+                  />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-6">
