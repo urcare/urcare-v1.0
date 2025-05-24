@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarContent, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Plus, Clock, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -109,7 +108,6 @@ export const FamilyMedicationLog = () => {
             {familyMembers.map((member) => (
               <div key={member.id} className="flex items-center gap-2 p-2 border rounded-lg">
                 <Avatar className="h-8 w-8">
-                  <AvatarContent>{member.avatar}</AvatarContent>
                   <AvatarFallback>{member.avatar}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -170,10 +168,9 @@ export const FamilyMedicationLog = () => {
                 
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Avatar className="h-6 w-6">
-                    <AvatarContent>
+                    <AvatarFallback>
                       {familyMembers.find(m => m.name === log.administeredBy)?.avatar || 'U'}
-                    </AvatarContent>
-                    <AvatarFallback>U</AvatarFallback>
+                    </AvatarFallback>
                   </Avatar>
                   <span>Administered by {log.administeredBy}</span>
                 </div>
