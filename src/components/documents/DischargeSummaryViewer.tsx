@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Highlight, Download, Share, Search } from 'lucide-react';
+import { FileText, Highlighter, Download, Share, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface DischargeSummary {
@@ -207,7 +207,7 @@ export const DischargeSummaryViewer = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="highlights">
-                <Highlight className="h-4 w-4 mr-2" />
+                <Highlighter className="h-4 w-4 mr-2" />
                 Key Highlights
               </TabsTrigger>
               <TabsTrigger value="structured">
