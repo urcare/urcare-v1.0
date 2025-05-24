@@ -7,7 +7,8 @@ import { ScanRReels } from './ScanRReels';
 import { DocumentTimeline } from './DocumentTimeline';
 import { ReportSummary } from './ReportSummary';
 import { EmergencyExport } from './EmergencyExport';
-import { Camera, FolderOpen, Play, Calendar, FileText, AlertCircle } from 'lucide-react';
+import { SecureRecordsSystem } from './SecureRecordsSystem';
+import { Camera, FolderOpen, Play, Calendar, FileText, AlertCircle, Shield } from 'lucide-react';
 
 export const DocumentDashboard = () => {
   const [activeTab, setActiveTab] = useState('scanner');
@@ -22,7 +23,7 @@ export const DocumentDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-7 w-full">
           <TabsTrigger value="scanner" className="flex items-center gap-2">
             <Camera className="h-4 w-4" />
             <span className="hidden sm:inline">Scanner</span>
@@ -46,6 +47,10 @@ export const DocumentDashboard = () => {
           <TabsTrigger value="emergency" className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Emergency</span>
+          </TabsTrigger>
+          <TabsTrigger value="secure" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Secure</span>
           </TabsTrigger>
         </TabsList>
 
@@ -73,6 +78,10 @@ export const DocumentDashboard = () => {
 
         <TabsContent value="emergency" className="space-y-6">
           <EmergencyExport />
+        </TabsContent>
+
+        <TabsContent value="secure" className="space-y-6">
+          <SecureRecordsSystem />
         </TabsContent>
       </Tabs>
     </div>
