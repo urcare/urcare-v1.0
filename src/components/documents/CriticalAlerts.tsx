@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,12 @@ interface CriticalAlert {
   notificationsSent: string[];
 }
 
+interface AlertThresholds {
+  bloodPressure: { systolic: number; diastolic: number };
+  glucose: { min: number; max: number };
+  cholesterol: number;
+}
+
 interface NotificationSettings {
   enableCriticalAlerts: boolean;
   notificationMethods: {
@@ -30,11 +35,7 @@ interface NotificationSettings {
     sms: boolean;
   };
   emergencyContacts: string[];
-  alertThresholds: {
-    bloodPressure: { systolic: number; diastolic: number };
-    glucose: { min: number; max: number };
-    cholesterol: number;
-  };
+  alertThresholds: AlertThresholds;
 }
 
 const sampleAlerts: CriticalAlert[] = [
@@ -120,13 +121,13 @@ export const CriticalAlerts = () => {
     toast.success(`${method} notifications ${enabled ? 'enabled' : 'disabled'}`);
   };
 
-  const updateThreshold = (type: string, field: string, value: number) => {
+  const updateThreshold = (type: keyof AlertThresholds, field: string, value: number) => {
     setSettings(prev => ({
       ...prev,
       alertThresholds: {
         ...prev.alertThresholds,
         [type]: {
-          ...prev.alertThresholds[type as keyof typeof prev.alertThresholds],
+          ...(prev.alertThresholds[type] as any),
           [field]: value
         }
       }

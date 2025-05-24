@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -311,7 +310,6 @@ export const FamilyPermissions = () => {
                           <Switch
                             checked={member.permissions.view}
                             onCheckedChange={(checked) => updatePermission(member.id, 'view', checked)}
-                            size="sm"
                           />
                         </div>
                         <div className="flex items-center gap-2">
@@ -320,7 +318,6 @@ export const FamilyPermissions = () => {
                           <Switch
                             checked={member.permissions.edit}
                             onCheckedChange={(checked) => updatePermission(member.id, 'edit', checked)}
-                            size="sm"
                           />
                         </div>
                         <div className="flex items-center gap-2">
@@ -329,7 +326,6 @@ export const FamilyPermissions = () => {
                           <Switch
                             checked={member.permissions.share}
                             onCheckedChange={(checked) => updatePermission(member.id, 'share', checked)}
-                            size="sm"
                           />
                         </div>
                         <div className="flex items-center gap-2">
@@ -338,7 +334,6 @@ export const FamilyPermissions = () => {
                           <Switch
                             checked={member.permissions.emergency}
                             onCheckedChange={(checked) => updatePermission(member.id, 'emergency', checked)}
-                            size="sm"
                           />
                         </div>
                       </div>

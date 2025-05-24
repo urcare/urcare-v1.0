@@ -95,7 +95,12 @@ export const MultiFormatUpload = () => {
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
-    input.onchange = handleFileSelect;
+    input.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files) {
+        addFiles(target.files);
+      }
+    });
     input.click();
   };
 
