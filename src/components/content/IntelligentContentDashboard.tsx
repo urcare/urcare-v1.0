@@ -8,7 +8,7 @@ import { MedicalMythbusters } from './MedicalMythbusters';
 import { BookmarkLibrary } from './BookmarkLibrary';
 import { MoodBasedFeed } from './MoodBasedFeed';
 import { AvatarHealthReactions } from './AvatarHealthReactions';
-import { Feed, BookMarked, Heart, Brain, Users, Smile, Bot } from 'lucide-react';
+import { Rss, BookMarked, Heart, Brain, Users, Smile, Bot } from 'lucide-react';
 
 export const IntelligentContentDashboard = () => {
   const [activeTab, setActiveTab] = useState('feed');
@@ -35,7 +35,7 @@ export const IntelligentContentDashboard = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-7 w-full">
           <TabsTrigger value="feed" className="flex items-center gap-2">
-            <Feed className="h-4 w-4" />
+            <Rss className="h-4 w-4" />
             <span className="hidden sm:inline">Feed</span>
           </TabsTrigger>
           <TabsTrigger value="reels" className="flex items-center gap-2">
