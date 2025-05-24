@@ -13,6 +13,7 @@ import HealthTwin from "./pages/HealthTwin";
 import EmotionalHealth from "./pages/EmotionalHealth";
 import Appointments from "./pages/Appointments";
 import Documents from "./pages/Documents";
+import IntelligentContent from "./pages/IntelligentContent";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -82,6 +83,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Documents />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/content" 
+              element={
+                <ProtectedRoute>
+                  <IntelligentContent />
                 </ProtectedRoute>
               } 
             />
