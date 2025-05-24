@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Cloud, Wifi, WifiOff, Download, sync, HardDrive } from 'lucide-react';
+import { Cloud, Wifi, WifiOff, Download, RefreshCw, HardDrive } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SyncStatus {
@@ -111,7 +112,7 @@ export const AccessModeToggle = () => {
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <sync className="h-4 w-4 text-blue-600" />
+                  <RefreshCw className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">Auto-Sync</span>
                   <Badge variant={isAutoSync ? 'default' : 'outline'}>
                     {isAutoSync ? 'Enabled' : 'Manual'}
@@ -173,7 +174,7 @@ export const AccessModeToggle = () => {
 
               <div className="flex gap-2">
                 <Button onClick={handleManualSync} variant="outline">
-                  <sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Sync Now
                 </Button>
                 <Button onClick={handleDownloadOffline} variant="outline">
