@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -118,7 +117,7 @@ export const HabitDeclineNudges = () => {
       estimatedTime: '10 minutes',
       difficulty: 'medium'
     }
-  ];
+  ]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
