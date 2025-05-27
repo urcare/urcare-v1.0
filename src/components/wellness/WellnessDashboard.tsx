@@ -2,16 +2,23 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { AIHabitPlanner } from './AIHabitPlanner';
 import { HydrationTracker } from './HydrationTracker';
 import { NutritionLogger } from './NutritionLogger';
 import { SleepCoach } from './SleepCoach';
 import { ActivityMonitor } from './ActivityMonitor';
 import { FamilyWellnessChallenges } from './FamilyWellnessChallenges';
-import { Brain, Droplets, Apple, Moon, Activity, Users } from 'lucide-react';
+import { PremiumWellnessDashboard } from './PremiumWellnessDashboard';
+import { Brain, Droplets, Apple, Moon, Activity, Users, Crown } from 'lucide-react';
 
 export const WellnessDashboard = () => {
   const [activeTab, setActiveTab] = useState('habits');
+  const [isPremium, setIsPremium] = useState(false);
+
+  if (isPremium) {
+    return <PremiumWellnessDashboard />;
+  }
 
   return (
     <div className="space-y-6">
@@ -21,6 +28,37 @@ export const WellnessDashboard = () => {
           Your comprehensive health and wellness command center
         </p>
       </div>
+
+      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Crown className="h-5 w-5 text-purple-600" />
+                Unlock Premium Wellness Features
+              </h3>
+              <p className="text-gray-600">
+                Get achievement badges, streak tracking, AI coaching, and advanced analytics
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Health achievement badges with social sharing</li>
+                <li>• Streak system with milestone rewards</li>
+                <li>• Weekly health summaries with AI insights</li>
+                <li>• Smart nudges for habit decline intervention</li>
+                <li>• Virtual health coach chat interface</li>
+                <li>• Weight & BMI tracker with trending graphs</li>
+              </ul>
+            </div>
+            <Button 
+              onClick={() => setIsPremium(true)}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              <Crown className="h-4 w-4 mr-2" />
+              Upgrade to Premium
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-6 w-full">
