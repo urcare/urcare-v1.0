@@ -15,6 +15,7 @@ import Appointments from "./pages/Appointments";
 import Documents from "./pages/Documents";
 import IntelligentContent from "./pages/IntelligentContent";
 import Engagement from "./pages/Engagement";
+import Wellness from "./pages/Wellness";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -100,6 +101,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Engagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/wellness" 
+              element={
+                <ProtectedRoute>
+                  <Wellness />
                 </ProtectedRoute>
               } 
             />
