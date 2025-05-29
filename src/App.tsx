@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -17,6 +16,7 @@ import EmotionalHealth from '@/pages/EmotionalHealth';
 import Engagement from '@/pages/Engagement';
 import IntelligentContent from '@/pages/IntelligentContent';
 import Emergency from '@/pages/Emergency';
+import Community from '@/pages/Community';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
 import './App.css';
@@ -43,6 +43,7 @@ function App() {
                 <Route path="engagement" element={<Engagement />} />
                 <Route path="content" element={<IntelligentContent />} />
                 <Route path="emergency" element={<Emergency />} />
+                <Route path="community" element={<Community />} />
                 <Route path="unauthorized" element={<Unauthorized />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
