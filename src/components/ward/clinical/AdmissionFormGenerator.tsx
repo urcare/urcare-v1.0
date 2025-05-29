@@ -68,7 +68,7 @@ export const AdmissionFormGenerator = () => {
   const [forms, setForms] = useState<AdmissionForm[]>(mockForms);
   const [selectedForm, setSelectedForm] = useState<AdmissionForm | null>(null);
   const [newField, setNewField] = useState({
-    type: 'text' as const,
+    type: 'text' as FormField['type'],
     label: '',
     required: false,
     options: ''
@@ -193,7 +193,7 @@ export const AdmissionFormGenerator = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label htmlFor="fieldType">Field Type</Label>
-                          <Select value={newField.type} onValueChange={(value: any) => setNewField(prev => ({ ...prev, type: value }))}>
+                          <Select value={newField.type} onValueChange={(value: FormField['type']) => setNewField(prev => ({ ...prev, type: value }))}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>

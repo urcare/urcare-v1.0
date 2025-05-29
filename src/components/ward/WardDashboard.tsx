@@ -12,12 +12,35 @@ import { ConsentStatusVisualizer } from './ConsentStatusVisualizer';
 import { PostDischargeScheduler } from './PostDischargeScheduler';
 import { PremiumWardDashboard } from './premium/PremiumWardDashboard';
 import { ClinicalWorkflowDashboard } from './clinical/ClinicalWorkflowDashboard';
-import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity, Crown, Sparkles, Stethoscope } from 'lucide-react';
+import { ICUDashboard } from './icu/ICUDashboard';
+import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity, Crown, Sparkles, Stethoscope, Heart } from 'lucide-react';
 
 export const WardDashboard = () => {
   const [activeTab, setActiveTab] = useState('status');
   const [showPremium, setShowPremium] = useState(false);
   const [showClinical, setShowClinical] = useState(false);
+  const [showICU, setShowICU] = useState(false);
+
+  if (showICU) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowICU(false)}
+            className="mb-4"
+          >
+            ← Back to Standard Ward
+          </Button>
+          <Badge className="bg-red-500 text-white">
+            <Heart className="h-3 w-3 mr-1" />
+            ICU Monitoring Active
+          </Badge>
+        </div>
+        <ICUDashboard />
+      </div>
+    );
+  }
 
   if (showPremium) {
     return (
@@ -70,7 +93,7 @@ export const WardDashboard = () => {
         <p className="text-gray-600">
           Comprehensive patient care and workflow management
         </p>
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-3 flex-wrap">
           <Button 
             onClick={() => setShowPremium(true)}
             className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
@@ -85,6 +108,13 @@ export const WardDashboard = () => {
           >
             <Stethoscope className="h-4 w-4" />
             Clinical Workflow Tools
+          </Button>
+          <Button 
+            onClick={() => setShowICU(true)}
+            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white flex items-center gap-2"
+          >
+            <Heart className="h-4 w-4" />
+            ICU Monitoring Dashboard
           </Button>
         </div>
       </div>
