@@ -11,11 +11,13 @@ import { MissedVisitAlerts } from './MissedVisitAlerts';
 import { ConsentStatusVisualizer } from './ConsentStatusVisualizer';
 import { PostDischargeScheduler } from './PostDischargeScheduler';
 import { PremiumWardDashboard } from './premium/PremiumWardDashboard';
-import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity, Crown, Sparkles } from 'lucide-react';
+import { ClinicalWorkflowDashboard } from './clinical/ClinicalWorkflowDashboard';
+import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity, Crown, Sparkles, Stethoscope } from 'lucide-react';
 
 export const WardDashboard = () => {
   const [activeTab, setActiveTab] = useState('status');
   const [showPremium, setShowPremium] = useState(false);
+  const [showClinical, setShowClinical] = useState(false);
 
   if (showPremium) {
     return (
@@ -38,6 +40,27 @@ export const WardDashboard = () => {
     );
   }
 
+  if (showClinical) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowClinical(false)}
+            className="mb-4"
+          >
+            ← Back to Standard Ward
+          </Button>
+          <Badge className="bg-blue-500 text-white">
+            <Stethoscope className="h-3 w-3 mr-1" />
+            Clinical Workflow Active
+          </Badge>
+        </div>
+        <ClinicalWorkflowDashboard />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
@@ -47,14 +70,23 @@ export const WardDashboard = () => {
         <p className="text-gray-600">
           Comprehensive patient care and workflow management
         </p>
-        <Button 
-          onClick={() => setShowPremium(true)}
-          className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
-        >
-          <Crown className="h-4 w-4" />
-          Upgrade to Premium Ward
-          <Sparkles className="h-4 w-4" />
-        </Button>
+        <div className="flex justify-center gap-3">
+          <Button 
+            onClick={() => setShowPremium(true)}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
+          >
+            <Crown className="h-4 w-4" />
+            Upgrade to Premium Ward
+            <Sparkles className="h-4 w-4" />
+          </Button>
+          <Button 
+            onClick={() => setShowClinical(true)}
+            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white flex items-center gap-2"
+          >
+            <Stethoscope className="h-4 w-4" />
+            Clinical Workflow Tools
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
