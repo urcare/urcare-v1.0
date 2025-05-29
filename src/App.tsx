@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -20,6 +21,7 @@ import Community from '@/pages/Community';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
 import PatientJourney from '@/pages/PatientJourney';
+import Ward from '@/pages/Ward';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -28,8 +30,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Router>
+        <Router>
+          <AuthProvider>
             <Routes>
               <Route path="/" element={<Layout><Outlet /></Layout>}>
                 <Route index element={<Index />} />
@@ -38,6 +40,7 @@ function App() {
                 <Route path="profile" element={<ProfileManagement />} />
                 <Route path="appointments" element={<Appointments />} />
                 <Route path="patient-journey" element={<PatientJourney />} />
+                <Route path="ward" element={<Ward />} />
                 <Route path="documents" element={<Documents />} />
                 <Route path="health-twin" element={<HealthTwin />} />
                 <Route path="wellness" element={<Wellness />} />
