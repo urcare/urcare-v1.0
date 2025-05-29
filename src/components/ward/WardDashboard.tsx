@@ -2,16 +2,41 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { WardPatientStatus } from './WardPatientStatus';
 import { PreDischargeChecklist } from './PreDischargeChecklist';
 import { VisitHistoryGenerator } from './VisitHistoryGenerator';
 import { MissedVisitAlerts } from './MissedVisitAlerts';
 import { ConsentStatusVisualizer } from './ConsentStatusVisualizer';
 import { PostDischargeScheduler } from './PostDischargeScheduler';
-import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity } from 'lucide-react';
+import { PremiumWardDashboard } from './premium/PremiumWardDashboard';
+import { Bed, ClipboardCheck, History, AlertTriangle, FileCheck, Phone, Activity, Crown, Sparkles } from 'lucide-react';
 
 export const WardDashboard = () => {
   const [activeTab, setActiveTab] = useState('status');
+  const [showPremium, setShowPremium] = useState(false);
+
+  if (showPremium) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowPremium(false)}
+            className="mb-4"
+          >
+            ← Back to Standard Ward
+          </Button>
+          <Badge className="bg-yellow-500 text-white">
+            <Crown className="h-3 w-3 mr-1" />
+            Premium Active
+          </Badge>
+        </div>
+        <PremiumWardDashboard />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -22,6 +47,14 @@ export const WardDashboard = () => {
         <p className="text-gray-600">
           Comprehensive patient care and workflow management
         </p>
+        <Button 
+          onClick={() => setShowPremium(true)}
+          className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
+        >
+          <Crown className="h-4 w-4" />
+          Upgrade to Premium Ward
+          <Sparkles className="h-4 w-4" />
+        </Button>
       </div>
 
       <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
