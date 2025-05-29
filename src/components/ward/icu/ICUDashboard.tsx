@@ -11,11 +11,34 @@ import { CodeBlueSystem } from './CodeBlueSystem';
 import { OxygenSupplyDashboard } from './OxygenSupplyDashboard';
 import { ICUAdmissionChecklist } from './ICUAdmissionChecklist';
 import { PremiumICUDashboard } from './premium/PremiumICUDashboard';
-import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor, Crown, Sparkles } from 'lucide-react';
+import { CriticalCareManagement } from './critical/CriticalCareManagement';
+import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor, Crown, Sparkles, Shield } from 'lucide-react';
 
 export const ICUDashboard = () => {
   const [activeTab, setActiveTab] = useState('deterioration');
   const [showPremium, setShowPremium] = useState(false);
+  const [showCriticalCare, setShowCriticalCare] = useState(false);
+
+  if (showCriticalCare) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCriticalCare(false)}
+            className="mb-4"
+          >
+            ← Back to Standard ICU
+          </Button>
+          <Badge className="bg-purple-500 text-white">
+            <Shield className="h-3 w-3 mr-1" />
+            Critical Care Active
+          </Badge>
+        </div>
+        <CriticalCareManagement />
+      </div>
+    );
+  }
 
   if (showPremium) {
     return (
@@ -48,7 +71,7 @@ export const ICUDashboard = () => {
         <p className="text-gray-600">
           Advanced AI-powered ICU monitoring and critical care management
         </p>
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-3 flex-wrap">
           <Button 
             onClick={() => setShowPremium(true)}
             className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
@@ -56,6 +79,13 @@ export const ICUDashboard = () => {
             <Crown className="h-4 w-4" />
             Upgrade to Premium ICU
             <Sparkles className="h-4 w-4" />
+          </Button>
+          <Button 
+            onClick={() => setShowCriticalCare(true)}
+            className="bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Critical Care Management
           </Button>
         </div>
       </div>
