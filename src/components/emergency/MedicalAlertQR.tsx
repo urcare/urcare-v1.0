@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { QrCode, Download, Print, Share, User, Heart, Phone } from 'lucide-react';
+import { QrCode, Download, Printer, Share, User, Heart, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MedicalInfo {
@@ -148,7 +147,7 @@ export const MedicalAlertQR = () => {
               Download PNG
             </Button>
             <Button onClick={printQR} variant="outline">
-              <Print className="h-4 w-4 mr-2" />
+              <Printer className="h-4 w-4 mr-2" />
               Print QR
             </Button>
             <Button onClick={shareQR} variant="outline">
