@@ -10,7 +10,8 @@ import { SleepCoach } from './SleepCoach';
 import { ActivityMonitor } from './ActivityMonitor';
 import { FamilyWellnessChallenges } from './FamilyWellnessChallenges';
 import { PremiumWellnessDashboard } from './PremiumWellnessDashboard';
-import { Brain, Droplets, Apple, Moon, Activity, Users, Crown } from 'lucide-react';
+import { ConditionTrackingDashboard } from './ConditionTrackingDashboard';
+import { Brain, Droplets, Apple, Moon, Activity, Users, Crown, Stethoscope } from 'lucide-react';
 
 export const WellnessDashboard = () => {
   const [activeTab, setActiveTab] = useState('habits');
@@ -61,7 +62,7 @@ export const WellnessDashboard = () => {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-7 w-full">
           <TabsTrigger value="habits" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             <span className="hidden sm:inline">Habits</span>
@@ -85,6 +86,10 @@ export const WellnessDashboard = () => {
           <TabsTrigger value="family" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Family</span>
+          </TabsTrigger>
+          <TabsTrigger value="conditions" className="flex items-center gap-2">
+            <Stethoscope className="h-4 w-4" />
+            <span className="hidden sm:inline">Conditions</span>
           </TabsTrigger>
         </TabsList>
 
@@ -110,6 +115,10 @@ export const WellnessDashboard = () => {
 
         <TabsContent value="family" className="space-y-6">
           <FamilyWellnessChallenges />
+        </TabsContent>
+
+        <TabsContent value="conditions" className="space-y-6">
+          <ConditionTrackingDashboard />
         </TabsContent>
       </Tabs>
     </div>
