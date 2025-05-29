@@ -2,16 +2,41 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ICUDeterioration } from './ICUDeterioration';
 import { ICUVitalsBoard } from './ICUVitalsBoard';
 import { EmergencyTriage } from './EmergencyTriage';
 import { CodeBlueSystem } from './CodeBlueSystem';
 import { OxygenSupplyDashboard } from './OxygenSupplyDashboard';
 import { ICUAdmissionChecklist } from './ICUAdmissionChecklist';
-import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor } from 'lucide-react';
+import { PremiumICUDashboard } from './premium/PremiumICUDashboard';
+import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor, Crown, Sparkles } from 'lucide-react';
 
 export const ICUDashboard = () => {
   const [activeTab, setActiveTab] = useState('deterioration');
+  const [showPremium, setShowPremium] = useState(false);
+
+  if (showPremium) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowPremium(false)}
+            className="mb-4"
+          >
+            ← Back to Standard ICU
+          </Button>
+          <Badge className="bg-yellow-500 text-white">
+            <Crown className="h-3 w-3 mr-1" />
+            Premium ICU Active
+          </Badge>
+        </div>
+        <PremiumICUDashboard />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -23,6 +48,16 @@ export const ICUDashboard = () => {
         <p className="text-gray-600">
           Advanced AI-powered ICU monitoring and critical care management
         </p>
+        <div className="flex justify-center">
+          <Button 
+            onClick={() => setShowPremium(true)}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white flex items-center gap-2"
+          >
+            <Crown className="h-4 w-4" />
+            Upgrade to Premium ICU
+            <Sparkles className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
