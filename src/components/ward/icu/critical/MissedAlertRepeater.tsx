@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -251,7 +250,7 @@ export const MissedAlertRepeater = () => {
                             <Phone className="h-3 w-3 text-blue-600" />
                             <span>{staff}</span>
                             {!alert.acknowledged && (
-                              <Badge className="bg-yellow-500 text-white ml-auto" size="sm">
+                              <Badge className="bg-yellow-500 text-white ml-auto">
                                 Pending
                               </Badge>
                             )}

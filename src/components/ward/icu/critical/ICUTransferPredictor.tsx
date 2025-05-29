@@ -244,7 +244,7 @@ export const ICUTransferPredictor = () => {
                           <div key={index} className="flex items-center justify-between p-2 border rounded">
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <Badge className={getStatusColor(criteria.status)} size="sm">
+                                <Badge className={getStatusColor(criteria.status)}>
                                   {criteria.status.replace('_', ' ')}
                                 </Badge>
                                 <span className="text-sm font-medium">{criteria.name}</span>
