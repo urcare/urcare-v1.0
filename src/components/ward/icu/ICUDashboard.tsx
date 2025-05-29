@@ -12,12 +12,35 @@ import { OxygenSupplyDashboard } from './OxygenSupplyDashboard';
 import { ICUAdmissionChecklist } from './ICUAdmissionChecklist';
 import { PremiumICUDashboard } from './premium/PremiumICUDashboard';
 import { CriticalCareManagement } from './critical/CriticalCareManagement';
-import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor, Crown, Sparkles, Shield } from 'lucide-react';
+import { ICUAnalyticsDashboard } from './analytics/ICUAnalyticsDashboard';
+import { Brain, Activity, AlertTriangle, Zap, Wind, ClipboardCheck, Heart, Monitor, Crown, Sparkles, Shield, TrendingUp } from 'lucide-react';
 
 export const ICUDashboard = () => {
   const [activeTab, setActiveTab] = useState('deterioration');
   const [showPremium, setShowPremium] = useState(false);
   const [showCriticalCare, setShowCriticalCare] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+
+  if (showAnalytics) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAnalytics(false)}
+            className="mb-4"
+          >
+            ← Back to Standard ICU
+          </Button>
+          <Badge className="bg-blue-500 text-white">
+            <TrendingUp className="h-3 w-3 mr-1" />
+            Analytics Active
+          </Badge>
+        </div>
+        <ICUAnalyticsDashboard />
+      </div>
+    );
+  }
 
   if (showCriticalCare) {
     return (
@@ -86,6 +109,13 @@ export const ICUDashboard = () => {
           >
             <Shield className="h-4 w-4" />
             Critical Care Management
+          </Button>
+          <Button 
+            onClick={() => setShowAnalytics(true)}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white flex items-center gap-2"
+          >
+            <TrendingUp className="h-4 w-4" />
+            Analytics & Prediction
           </Button>
         </div>
       </div>
