@@ -2,16 +2,41 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { OTSchedulingGrid } from './OTSchedulingGrid';
 import { PreOpChecklistTracker } from './PreOpChecklistTracker';
 import { SurgeryCountdownTimer } from './SurgeryCountdownTimer';
 import { OTRoleAssignment } from './OTRoleAssignment';
 import { BatchImplantTracker } from './BatchImplantTracker';
 import { OTVideoRecordingLog } from './OTVideoRecordingLog';
-import { Calendar, CheckSquare, Timer, Users, Package, Video, Stethoscope, Activity } from 'lucide-react';
+import { OTSafetyQualityDashboard } from './safety/OTSafetyQualityDashboard';
+import { Calendar, CheckSquare, Timer, Users, Package, Video, Stethoscope, Activity, Shield } from 'lucide-react';
 
 export const OTDashboard = () => {
   const [activeTab, setActiveTab] = useState('scheduling');
+  const [showSafety, setShowSafety] = useState(false);
+
+  if (showSafety) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowSafety(false)}
+            className="mb-4"
+          >
+            ← Back to OT Management
+          </Button>
+          <Badge className="bg-red-500 text-white">
+            <Shield className="h-3 w-3 mr-1" />
+            Safety & Quality Active
+          </Badge>
+        </div>
+        <OTSafetyQualityDashboard />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -24,6 +49,15 @@ export const OTDashboard = () => {
         <p className="text-gray-600">
           Comprehensive OT management for scheduling, tracking, and documentation
         </p>
+        <div className="flex justify-center">
+          <Button 
+            onClick={() => setShowSafety(true)}
+            className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white"
+          >
+            <Shield className="h-4 w-4 mr-2" />
+            Safety & Quality Tools
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
