@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin } from "lucide-react"
 
 import {
   Sidebar,
@@ -12,12 +13,6 @@ import {
 } from "@/components/ui/sidebar"
 
 // Menu items array
-// interface Item {
-//   title: string
-//   url: string
-//   icon: any
-// }
-
 const items = [
   {
     title: "Dashboard",
@@ -28,6 +23,11 @@ const items = [
     title: "Appointments",
     url: "/appointments",
     icon: Calendar,
+  },
+  {
+    title: "Patient Journey",
+    url: "/patient-journey",
+    icon: MapPin,
   },
   {
     title: "Documents",
@@ -63,6 +63,11 @@ const items = [
     title: "Emergency",
     url: "/emergency",
     icon: Shield,
+  },
+  {
+    title: "Community",
+    url: "/community",
+    icon: Users,
   },
 ]
 

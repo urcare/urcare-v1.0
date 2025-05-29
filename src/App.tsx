@@ -19,6 +19,7 @@ import Emergency from '@/pages/Emergency';
 import Community from '@/pages/Community';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
+import PatientJourney from '@/pages/PatientJourney';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ function App() {
                 <Route path="onboarding" element={<Onboarding />} />
                 <Route path="profile" element={<ProfileManagement />} />
                 <Route path="appointments" element={<Appointments />} />
+                <Route path="patient-journey" element={<PatientJourney />} />
                 <Route path="documents" element={<Documents />} />
                 <Route path="health-twin" element={<HealthTwin />} />
                 <Route path="wellness" element={<Wellness />} />
@@ -49,8 +51,8 @@ function App() {
               </Route>
             </Routes>
             <Toaster />
-          </Router>
-        </AuthProvider>
+          </AuthProvider>
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
