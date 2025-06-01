@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,8 @@ import { ICUDashboard } from './icu/ICUDashboard';
 import { ClinicalWorkflowDashboard } from './clinical/ClinicalWorkflowDashboard';
 import { PremiumWardDashboard } from './premium/PremiumWardDashboard';
 import { OTDashboard } from './ot/OTDashboard';
-import { Users, ClipboardCheck, Calendar, FileText, Eye, AlertTriangle, Heart, Stethoscope, Crown, Activity } from 'lucide-react';
+import { NursingTaskDashboard } from './nursing/NursingTaskDashboard';
+import { Users, ClipboardCheck, Calendar, FileText, Eye, AlertTriangle, Heart, Stethoscope, Crown, Activity, Clipboard } from 'lucide-react';
 
 export const WardDashboard = () => {
   const [activeTab, setActiveTab] = useState('patients');
@@ -22,6 +22,28 @@ export const WardDashboard = () => {
   const [showClinical, setShowClinical] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showOT, setShowOT] = useState(false);
+  const [showNursing, setShowNursing] = useState(false);
+
+  if (showNursing) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowNursing(false)}
+            className="mb-4"
+          >
+            ← Back to Ward Dashboard
+          </Button>
+          <Badge className="bg-purple-500 text-white">
+            <Clipboard className="h-3 w-3 mr-1" />
+            Nursing Tasks Active
+          </Badge>
+        </div>
+        <NursingTaskDashboard />
+      </div>
+    );
+  }
 
   if (showOT) {
     return (
@@ -144,6 +166,13 @@ export const WardDashboard = () => {
           >
             <Activity className="h-4 w-4 mr-2" />
             OT Management
+          </Button>
+          <Button 
+            onClick={() => setShowNursing(true)}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+          >
+            <Clipboard className="h-4 w-4 mr-2" />
+            Nursing Tasks
           </Button>
         </div>
       </div>
