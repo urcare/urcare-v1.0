@@ -1,17 +1,41 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { NurseTaskboard } from './NurseTaskboard';
 import { EscalationAlerts } from './EscalationAlerts';
 import { ShiftHandoffLog } from './ShiftHandoffLog';
 import { MedicationTracker } from './MedicationTracker';
 import { TimeBasedTaskTracker } from './TimeBasedTaskTracker';
 import { StaffLoadMonitor } from './StaffLoadMonitor';
-import { ClipboardList, AlertTriangle, Clock, Pill, Timer, Users } from 'lucide-react';
+import { PremiumNursingDashboard } from './premium/PremiumNursingDashboard';
+import { ClipboardList, AlertTriangle, Clock, Pill, Timer, Users, Crown } from 'lucide-react';
 
 export const NursingTaskDashboard = () => {
   const [activeTab, setActiveTab] = useState('taskboard');
+  const [showPremium, setShowPremium] = useState(false);
+
+  if (showPremium) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowPremium(false)}
+            className="mb-4"
+          >
+            ← Back to Standard Nursing
+          </Button>
+          <Badge className="bg-yellow-500 text-white">
+            <Crown className="h-3 w-3 mr-1" />
+            Premium Nursing Active
+          </Badge>
+        </div>
+        <PremiumNursingDashboard />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -24,6 +48,15 @@ export const NursingTaskDashboard = () => {
         <p className="text-gray-600">
           Comprehensive task tracking, shift management, and workload monitoring for nursing staff
         </p>
+        <div className="flex justify-center">
+          <Button 
+            onClick={() => setShowPremium(true)}
+            className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white"
+          >
+            <Crown className="h-4 w-4 mr-2" />
+            Premium Nursing Features
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
