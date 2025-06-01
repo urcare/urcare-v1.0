@@ -1,5 +1,4 @@
-
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +37,11 @@ const items = [
     title: "Pharmacy System",
     url: "/pharmacy",
     icon: Pill,
+  },
+  {
+    title: "Billing System",
+    url: "/billing",
+    icon: CreditCard,
   },
   {
     title: "Documents",
