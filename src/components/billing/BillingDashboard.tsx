@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +11,7 @@ import { AdvanceDeposit } from './AdvanceDeposit';
 import { RefundEngine } from './RefundEngine';
 import { PackageReconciliation } from './PackageReconciliation';
 import { AdvancedBillingDashboard } from './AdvancedBillingDashboard';
+import { BillingAnalyticsDashboard } from './analytics/BillingAnalyticsDashboard';
 import { 
   CreditCard, 
   Receipt, 
@@ -24,7 +24,8 @@ import {
   Building,
   Plus,
   Eye,
-  Settings
+  Settings,
+  BarChart3
 } from 'lucide-react';
 
 export const BillingDashboard = () => {
@@ -100,7 +101,7 @@ export const BillingDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-9 w-full mb-6">
+          <TabsList className="grid grid-cols-10 w-full mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -136,6 +137,10 @@ export const BillingDashboard = () => {
             <TabsTrigger value="advanced" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Advanced</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
           </TabsList>
 
@@ -270,6 +275,10 @@ export const BillingDashboard = () => {
 
           <TabsContent value="advanced" className="space-y-6">
             <AdvancedBillingDashboard />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <BillingAnalyticsDashboard />
           </TabsContent>
         </Tabs>
       </div>
