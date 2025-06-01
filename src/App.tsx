@@ -23,6 +23,7 @@ import Unauthorized from '@/pages/Unauthorized';
 import PatientJourney from '@/pages/PatientJourney';
 import Ward from '@/pages/Ward';
 import Pharmacy from '@/pages/Pharmacy';
+import Billing from '@/pages/Billing';
 import './App.css';
 
 const queryClient = new QueryClient();
