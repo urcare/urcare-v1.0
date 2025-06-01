@@ -11,6 +11,7 @@ import { PharmacyBilling } from './PharmacyBilling';
 import { AdvanceDeposit } from './AdvanceDeposit';
 import { RefundEngine } from './RefundEngine';
 import { PackageReconciliation } from './PackageReconciliation';
+import { AdvancedBillingDashboard } from './AdvancedBillingDashboard';
 import { 
   CreditCard, 
   Receipt, 
@@ -22,7 +23,8 @@ import {
   User,
   Building,
   Plus,
-  Eye
+  Eye,
+  Settings
 } from 'lucide-react';
 
 export const BillingDashboard = () => {
@@ -98,7 +100,7 @@ export const BillingDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-8 w-full mb-6">
+          <TabsList className="grid grid-cols-9 w-full mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -130,6 +132,10 @@ export const BillingDashboard = () => {
             <TabsTrigger value="packages" className="flex items-center gap-2">
               <Eye className="w-4 h-4" />
               <span className="hidden sm:inline">Packages</span>
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Advanced</span>
             </TabsTrigger>
           </TabsList>
 
@@ -260,6 +266,10 @@ export const BillingDashboard = () => {
 
           <TabsContent value="packages" className="space-y-6">
             <PackageReconciliation />
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-6">
+            <AdvancedBillingDashboard />
           </TabsContent>
         </Tabs>
       </div>
