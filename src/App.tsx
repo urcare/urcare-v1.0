@@ -22,6 +22,7 @@ import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
 import PatientJourney from '@/pages/PatientJourney';
 import Ward from '@/pages/Ward';
+import Pharmacy from '@/pages/Pharmacy';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ function App() {
                 <Route path="appointments" element={<Appointments />} />
                 <Route path="patient-journey" element={<PatientJourney />} />
                 <Route path="ward" element={<Ward />} />
+                <Route path="pharmacy" element={<Pharmacy />} />
                 <Route path="documents" element={<Documents />} />
                 <Route path="health-twin" element={<HealthTwin />} />
                 <Route path="wellness" element={<Wellness />} />
