@@ -14,7 +14,8 @@ import {
   Camera,
   Wifi,
   WifiOff,
-  Download
+  Download,
+  Users
 } from 'lucide-react';
 
 export const GeoAttendanceSystem = () => {
