@@ -1,4 +1,3 @@
-
 import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard } from "lucide-react"
 
 import {
@@ -48,6 +47,11 @@ const items = [
     title: "Insurance & Payments",
     url: "/insurance",
     icon: Shield,
+  },
+  {
+    title: "HR & Staff Management",
+    url: "/hr-management",
+    icon: Users,
   },
   {
     title: "Documents",
