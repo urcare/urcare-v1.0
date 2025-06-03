@@ -24,6 +24,7 @@ import PatientJourney from '@/pages/PatientJourney';
 import Ward from '@/pages/Ward';
 import Pharmacy from '@/pages/Pharmacy';
 import Billing from '@/pages/Billing';
+import Insurance from '@/pages/Insurance';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ function App() {
                 <Route path="ward" element={<Ward />} />
                 <Route path="pharmacy" element={<Pharmacy />} />
                 <Route path="billing" element={<Billing />} />
+                <Route path="insurance" element={<Insurance />} />
                 <Route path="documents" element={<Documents />} />
                 <Route path="health-twin" element={<HealthTwin />} />
                 <Route path="wellness" element={<Wellness />} />

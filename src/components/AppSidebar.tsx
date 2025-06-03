@@ -1,3 +1,4 @@
+
 import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard } from "lucide-react"
 
 import {
@@ -42,6 +43,11 @@ const items = [
     title: "Billing System",
     url: "/billing",
     icon: CreditCard,
+  },
+  {
+    title: "Insurance & Payments",
+    url: "/insurance",
+    icon: Shield,
   },
   {
     title: "Documents",
