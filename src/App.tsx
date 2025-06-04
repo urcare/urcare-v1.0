@@ -63,6 +63,7 @@ function App() {
                   <Route path="mental-health-ai" element={<MentalHealthAI />} />
                   <Route path="clinical-decision-support" element={<ClinicalDecisionSupport />} />
                   <Route path="treatment-protocol-ai" element={<TreatmentProtocolAI />} />
+                  <Route path="clinical-optimization" element={<ClinicalOptimization />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />

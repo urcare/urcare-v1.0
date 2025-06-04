@@ -80,6 +80,12 @@ const items = [
     description: "Comprehensive care management with intelligent protocol guidance"
   },
   {
+    title: "Clinical Optimization AI",
+    url: "/clinical-optimization",
+    icon: TrendingUp,
+    description: "Resource and outcome enhancement with intelligent optimization"
+  },
+  {
     title: "HR & Staff Management",
     icon: Users,
     url: "/hr-management",
