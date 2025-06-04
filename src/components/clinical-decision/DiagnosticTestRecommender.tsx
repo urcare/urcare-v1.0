@@ -220,7 +220,7 @@ export const DiagnosticTestRecommender = () => {
                           {selectedRecommendation.recommendedTests.map((test, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <div className="flex items-center gap-2">
-                                <Badge className={getPriorityColor(test.priority)} size="sm">
+                                <Badge className={getPriorityColor(test.priority)}>
                                   {test.priority.toUpperCase()}
                                 </Badge>
                                 <span className="font-medium">{test.name}</span>
