@@ -280,7 +280,7 @@ export const VisitorCategoryManager = () => {
                   <div className="bg-gray-50 p-3 rounded-lg space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Access Level:</span>
-                      <Badge className={getAccessLevelBadge(category.permissions.accessLevel)}>
+                      <Badge className={getAccessLevelBadge(category.accessLevel)}>
                         {category.accessLevel}
                       </Badge>
                     </div>
