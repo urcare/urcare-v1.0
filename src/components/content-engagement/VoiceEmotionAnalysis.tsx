@@ -56,7 +56,7 @@ const mockAnalyses: VoiceAnalysis[] = [
     confidenceLevel: 89,
     keyEmotions: ['calm', 'focused', 'slightly concerned'],
     escalationRisk: 'low',
-    transcript: 'I've been taking my medication as prescribed, but I'm a bit worried about the side effects...',
+    transcript: 'I\'ve been taking my medication as prescribed, but I\'m a bit worried about the side effects...',
     recommendations: ['Acknowledge concerns', 'Provide reassurance', 'Schedule follow-up']
   },
   {
