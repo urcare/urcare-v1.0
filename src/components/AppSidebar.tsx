@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target } from "lucide-react"
 
 import {
   Sidebar,
@@ -85,6 +86,24 @@ const items = [
     description: "Resource and outcome enhancement with intelligent optimization"
   },
   {
+    title: "Workflow Automation AI",
+    url: "/workflow-automation-ai",
+    icon: Workflow,
+    description: "Intelligent process management and workflow orchestration"
+  },
+  {
+    title: "Advanced Workflow AI",
+    url: "/advanced-workflow-ai",
+    icon: Bot,
+    description: "Premium process automation with intelligent optimization"
+  },
+  {
+    title: "Process Optimization AI",
+    url: "/process-optimization-ai",
+    icon: Target,
+    description: "Operational excellence enhancement and performance optimization"
+  },
+  {
     title: "HR & Staff Management",
     icon: Users,
     url: "/hr-management",
@@ -147,18 +166,6 @@ const items = [
     title: "Community",
     url: "/community",
     icon: Users,
-  },
-  {
-    title: "Workflow Automation AI",
-    url: "/workflow-automation-ai",
-    icon: Workflow,
-    description: "Intelligent process management and workflow orchestration"
-  },
-  {
-    title: "Advanced Workflow AI",
-    url: "/advanced-workflow-ai",
-    icon: Bot,
-    description: "Premium process automation with intelligent optimization"
   },
 ]
 
