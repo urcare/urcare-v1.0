@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -28,6 +29,7 @@ import Insurance from '@/pages/Insurance';
 import BioWasteManagement from '@/pages/BioWasteManagement';
 import PredictiveClinicalAI from '@/pages/PredictiveClinicalAI';
 import MentalHealthAI from '@/pages/MentalHealthAI';
+import ClinicalDecisionSupport from '@/pages/ClinicalDecisionSupport';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
@@ -58,6 +60,7 @@ function App() {
                   <Route path="bio-waste" element={<BioWasteManagement />} />
                   <Route path="predictive-ai" element={<PredictiveClinicalAI />} />
                   <Route path="mental-health-ai" element={<MentalHealthAI />} />
+                  <Route path="clinical-decision-support" element={<ClinicalDecisionSupport />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />

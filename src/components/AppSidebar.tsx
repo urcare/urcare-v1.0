@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb } from "lucide-react"
 
 import {
   Sidebar,
@@ -65,6 +66,12 @@ const items = [
     url: "/mental-health-ai",
     icon: Activity,
     description: "Psychological wellness monitoring and intervention systems"
+  },
+  {
+    title: "Clinical Decision Support",
+    url: "/clinical-decision-support",
+    icon: Lightbulb,
+    description: "AI-powered treatment guidance and decision support"
   },
   {
     title: "HR & Staff Management",
