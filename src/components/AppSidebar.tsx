@@ -1,4 +1,3 @@
-
 import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target } from "lucide-react"
 
 import {
@@ -102,6 +101,12 @@ const items = [
     url: "/process-optimization-ai",
     icon: Target,
     description: "Operational excellence enhancement and performance optimization"
+  },
+  {
+    title: "Emotional & Retention AI",
+    url: "/emotional-retention-ai",
+    icon: Heart,
+    description: "Patient engagement intelligence with mood analysis and retention optimization"
   },
   {
     title: "HR & Staff Management",
