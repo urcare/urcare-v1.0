@@ -8,6 +8,9 @@ import { ReadmissionRiskPanel } from './ReadmissionRiskPanel';
 import { EmergencyEscalationDashboard } from './EmergencyEscalationDashboard';
 import { ElderlyFallRiskInterface } from './ElderlyFallRiskInterface';
 import { SepsisDetectionSystem } from './SepsisDetectionSystem';
+import { SurgeryRiskAssessment } from './SurgeryRiskAssessment';
+import { VitalSignDegradationMonitor } from './VitalSignDegradationMonitor';
+import { HighRiskPregnancyDashboard } from './HighRiskPregnancyDashboard';
 import { 
   Brain, 
   Activity, 
@@ -16,17 +19,20 @@ import {
   Users, 
   Zap,
   Shield,
-  Heart
+  Heart,
+  Scissors,
+  Baby,
+  Pulse
 } from 'lucide-react';
 
 export const PredictiveClinicalAIDashboard = () => {
   const [activeTab, setActiveTab] = useState('triage');
 
   const aiStats = [
-    { label: 'AI Predictions Today', value: '156', icon: Brain, color: 'blue' },
-    { label: 'High Risk Alerts', value: '8', icon: AlertTriangle, color: 'red' },
-    { label: 'Accuracy Rate', value: '94.2%', icon: TrendingUp, color: 'green' },
-    { label: 'Active Monitoring', value: '42', icon: Activity, color: 'purple' }
+    { label: 'AI Predictions Today', value: '256', icon: Brain, color: 'blue' },
+    { label: 'High Risk Alerts', value: '12', icon: AlertTriangle, color: 'red' },
+    { label: 'Accuracy Rate', value: '96.8%', icon: TrendingUp, color: 'green' },
+    { label: 'Active Monitoring', value: '89', icon: Activity, color: 'purple' }
   ];
 
   return (
@@ -40,8 +46,8 @@ export const PredictiveClinicalAIDashboard = () => {
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Predictive Clinical AI</h1>
-                <p className="text-sm text-gray-600">Advanced patient risk assessment and early warning systems</p>
+                <h1 className="text-2xl font-bold text-gray-900">Advanced Predictive Clinical AI</h1>
+                <p className="text-sm text-gray-600">Sophisticated clinical forecasting with advanced patient risk assessment</p>
               </div>
             </div>
           </div>
@@ -67,14 +73,26 @@ export const PredictiveClinicalAIDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-6 w-full mb-6">
+          <TabsList className="grid grid-cols-9 w-full mb-6">
             <TabsTrigger value="triage" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
-              <span className="hidden sm:inline">AI Triage</span>
+              <span className="hidden sm:inline">Triage</span>
             </TabsTrigger>
             <TabsTrigger value="icu" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
-              <span className="hidden sm:inline">ICU Monitor</span>
+              <span className="hidden sm:inline">ICU</span>
+            </TabsTrigger>
+            <TabsTrigger value="surgery" className="flex items-center gap-2">
+              <Scissors className="w-4 h-4" />
+              <span className="hidden sm:inline">Surgery</span>
+            </TabsTrigger>
+            <TabsTrigger value="vitals" className="flex items-center gap-2">
+              <Pulse className="w-4 h-4" />
+              <span className="hidden sm:inline">Vitals</span>
+            </TabsTrigger>
+            <TabsTrigger value="pregnancy" className="flex items-center gap-2">
+              <Baby className="w-4 h-4" />
+              <span className="hidden sm:inline">Pregnancy</span>
             </TabsTrigger>
             <TabsTrigger value="readmission" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -86,7 +104,7 @@ export const PredictiveClinicalAIDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="falls" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Fall Risk</span>
+              <span className="hidden sm:inline">Falls</span>
             </TabsTrigger>
             <TabsTrigger value="sepsis" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -100,6 +118,18 @@ export const PredictiveClinicalAIDashboard = () => {
 
           <TabsContent value="icu" className="space-y-6">
             <ICUDeteriorationMonitor />
+          </TabsContent>
+
+          <TabsContent value="surgery" className="space-y-6">
+            <SurgeryRiskAssessment />
+          </TabsContent>
+
+          <TabsContent value="vitals" className="space-y-6">
+            <VitalSignDegradationMonitor />
+          </TabsContent>
+
+          <TabsContent value="pregnancy" className="space-y-6">
+            <HighRiskPregnancyDashboard />
           </TabsContent>
 
           <TabsContent value="readmission" className="space-y-6">
