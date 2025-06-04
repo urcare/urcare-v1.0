@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -175,7 +174,7 @@ export const PatientFlowVisualization = () => {
                           <div className="text-sm font-medium">{stage.stage}</div>
                           <div className="text-2xl font-bold text-blue-600">{stage.currentPatients}</div>
                           <div className="text-xs text-gray-500">{stage.averageWaitTime} min</div>
-                          <Badge className={`mt-1 ${getStatusColor(stage.status)}`} size="sm">
+                          <Badge className={`mt-1 ${getStatusColor(stage.status)}`}>
                             {stage.status}
                           </Badge>
                         </div>

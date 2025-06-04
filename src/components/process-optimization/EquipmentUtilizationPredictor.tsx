@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +10,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
-  Settings,
-  Tool
+  Settings
 } from 'lucide-react';
 
 interface EquipmentData {
@@ -205,7 +203,7 @@ export const EquipmentUtilizationPredictor = () => {
                             <span>Next: {item.maintenanceSchedule}</span>
                           </div>
                           <div className={`flex items-center gap-1 ${getMaintenanceTypeColor(item.maintenanceType)}`}>
-                            <Tool className="h-3 w-3" />
+                            <Wrench className="h-3 w-3" />
                             <span>{item.maintenanceType}</span>
                           </div>
                         </div>
