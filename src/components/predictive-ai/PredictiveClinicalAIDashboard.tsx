@@ -21,8 +21,7 @@ import {
   Shield,
   Heart,
   Scissors,
-  Baby,
-  Pulse
+  Baby
 } from 'lucide-react';
 
 export const PredictiveClinicalAIDashboard = () => {
@@ -87,7 +86,7 @@ export const PredictiveClinicalAIDashboard = () => {
               <span className="hidden sm:inline">Surgery</span>
             </TabsTrigger>
             <TabsTrigger value="vitals" className="flex items-center gap-2">
-              <Pulse className="w-4 h-4" />
+              <Activity className="w-4 h-4" />
               <span className="hidden sm:inline">Vitals</span>
             </TabsTrigger>
             <TabsTrigger value="pregnancy" className="flex items-center gap-2">
