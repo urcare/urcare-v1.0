@@ -1,4 +1,4 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow } from "lucide-react"
 
 import {
   Sidebar,
@@ -147,6 +147,12 @@ const items = [
     title: "Community",
     url: "/community",
     icon: Users,
+  },
+  {
+    title: "Workflow Automation AI",
+    url: "/workflow-automation-ai",
+    icon: Workflow,
+    description: "Intelligent process management and workflow orchestration"
   },
 ]
 

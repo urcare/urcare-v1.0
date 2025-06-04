@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -36,6 +35,7 @@ import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
 import AdvancedAccessControl from '@/pages/AdvancedAccessControl';
+import WorkflowAutomationAI from '@/pages/WorkflowAutomationAI';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -65,6 +65,7 @@ function App() {
                   <Route path="clinical-decision-support" element={<ClinicalDecisionSupport />} />
                   <Route path="treatment-protocol-ai" element={<TreatmentProtocolAI />} />
                   <Route path="clinical-optimization" element={<ClinicalOptimization />} />
+                  <Route path="workflow-automation-ai" element={<WorkflowAutomationAI />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
