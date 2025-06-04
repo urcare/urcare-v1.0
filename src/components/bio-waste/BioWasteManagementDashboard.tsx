@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,6 @@ import {
   FileText,
   ClipboardCheck,
   Award,
-  Certificate,
   AlertTriangle,
   TrendingUp
 } from 'lucide-react';
@@ -27,7 +25,7 @@ export const BioWasteManagementDashboard = () => {
     { label: 'Today\'s Pickups', value: '24', icon: Trash2, color: 'blue' },
     { label: 'Pending Collection', value: '8', icon: AlertTriangle, color: 'yellow' },
     { label: 'Compliance Score', value: '98%', icon: TrendingUp, color: 'green' },
-    { label: 'Active Certificates', value: '12', icon: Certificate, color: 'purple' }
+    { label: 'Active Certificates', value: '12', icon: Award, color: 'purple' }
   ];
 
   return (
@@ -90,7 +88,7 @@ export const BioWasteManagementDashboard = () => {
               <span className="hidden sm:inline">Audit Reports</span>
             </TabsTrigger>
             <TabsTrigger value="certificates" className="flex items-center gap-2">
-              <Certificate className="w-4 h-4" />
+              <Award className="w-4 h-4" />
               <span className="hidden sm:inline">Certificates</span>
             </TabsTrigger>
           </TabsList>

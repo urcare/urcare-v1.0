@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Certificate, 
+  Award, 
   Calendar, 
   AlertTriangle, 
   CheckCircle,
@@ -171,7 +170,7 @@ export const CertificateManagement = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Certificate className="w-5 h-5" />
+            <Award className="w-5 h-5" />
             Organization Certificates
           </CardTitle>
           <CardDescription>Regulatory compliance and quality certifications</CardDescription>
