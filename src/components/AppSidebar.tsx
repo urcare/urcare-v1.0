@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity } from "lucide-react"
 
 import {
   Sidebar,
@@ -53,6 +54,18 @@ const items = [
     url: "/bio-waste",
     icon: Trash,
     description: "Complete waste tracking and compliance system"
+  },
+  {
+    title: "Predictive Clinical AI",
+    url: "/predictive-ai",
+    icon: Brain,
+    description: "Advanced patient risk assessment and early warning systems"
+  },
+  {
+    title: "Mental Health AI",
+    url: "/mental-health-ai",
+    icon: Activity,
+    description: "Psychological wellness monitoring and intervention systems"
   },
   {
     title: "HR & Staff Management",

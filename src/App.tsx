@@ -27,6 +27,8 @@ import Pharmacy from '@/pages/Pharmacy';
 import Billing from '@/pages/Billing';
 import Insurance from '@/pages/Insurance';
 import BioWasteManagement from '@/pages/BioWasteManagement';
+import PredictiveClinicalAI from '@/pages/PredictiveClinicalAI';
+import MentalHealthAI from '@/pages/MentalHealthAI';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
