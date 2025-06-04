@@ -29,6 +29,7 @@ import Insurance from '@/pages/Insurance';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
+import AdvancedAccessControl from '@/pages/AdvancedAccessControl';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -65,6 +66,11 @@ function App() {
                   <Route path="visitor-control" element={
                     <ProtectedRoute>
                       <VisitorControl />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="advanced-access-control" element={
+                    <ProtectedRoute>
+                      <AdvancedAccessControl />
                     </ProtectedRoute>
                   } />
                   <Route path="documents" element={<Documents />} />

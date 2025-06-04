@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { VisitorRegistrationSystem } from './VisitorRegistrationSystem';
 import { QREntrySystem } from './QREntrySystem';
 import { VisitorCategoryManager } from './VisitorCategoryManager';
@@ -16,7 +17,8 @@ import {
   MapPin,
   Moon,
   UserCheck,
-  AlertTriangle
+  AlertTriangle,
+  Star
 } from 'lucide-react';
 
 export const VisitorControlDashboard = () => {
@@ -36,6 +38,17 @@ export const VisitorControlDashboard = () => {
                 <h1 className="text-2xl font-bold text-gray-900">Visitor & Access Control</h1>
                 <p className="text-sm text-gray-600">Smart entry management and security monitoring</p>
               </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/advanced-access-control'}
+                className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Premium Features
+              </Button>
             </div>
           </div>
         </div>

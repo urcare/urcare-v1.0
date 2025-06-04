@@ -1,5 +1,5 @@
 
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3 } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star } from "lucide-react"
 
 import {
   Sidebar,
@@ -66,6 +66,12 @@ const items = [
     icon: Shield,
     url: "/visitor-control",
     description: "Smart entry management and security systems"
+  },
+  {
+    title: "Advanced Access Control",
+    icon: Star,
+    url: "/advanced-access-control",
+    description: "Premium security features with intelligent monitoring"
   },
   {
     title: "Documents",
