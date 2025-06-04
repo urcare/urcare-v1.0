@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -15,6 +16,7 @@ import HealthTwin from '@/pages/HealthTwin';
 import Wellness from '@/pages/Wellness';
 import EmotionalHealth from '@/pages/EmotionalHealth';
 import EmotionalRetentionAI from '@/pages/EmotionalRetentionAI';
+import ContentEngagementAI from '@/pages/ContentEngagementAI';
 import Engagement from '@/pages/Engagement';
 import IntelligentContent from '@/pages/IntelligentContent';
 import Emergency from '@/pages/Emergency';
@@ -72,6 +74,7 @@ function App() {
                   <Route path="advanced-workflow-ai" element={<AdvancedWorkflowAI />} />
                   <Route path="process-optimization-ai" element={<ProcessOptimizationAI />} />
                   <Route path="emotional-retention-ai" element={<EmotionalRetentionAI />} />
+                  <Route path="content-engagement-ai" element={<ContentEngagementAI />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />

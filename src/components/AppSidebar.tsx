@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen } from "lucide-react"
 
 import {
   Sidebar,
@@ -107,6 +108,12 @@ const items = [
     url: "/emotional-retention-ai",
     icon: Heart,
     description: "Patient engagement intelligence with mood analysis and retention optimization"
+  },
+  {
+    title: "Content & Engagement AI",
+    url: "/content-engagement-ai",
+    icon: BookOpen,
+    description: "Personalized patient experience with intelligent content optimization"
   },
   {
     title: "HR & Staff Management",
