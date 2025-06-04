@@ -7,6 +7,7 @@ import { BurnoutRiskTracker } from './BurnoutRiskTracker';
 import { LeaveConflictManager } from './LeaveConflictManager';
 import { PayrollAutoCalculator } from './PayrollAutoCalculator';
 import { ComplianceTrainingTracker } from './ComplianceTrainingTracker';
+import { HRAdvancedDashboard } from './HRAdvancedDashboard';
 import { 
   Users, 
   MapPin, 
@@ -14,7 +15,8 @@ import {
   Heart,
   Plane,
   Calculator,
-  GraduationCap
+  GraduationCap,
+  Shield
 } from 'lucide-react';
 
 export const HRManagementDashboard = () => {
@@ -42,7 +44,7 @@ export const HRManagementDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-6 w-full mb-6">
+          <TabsList className="grid grid-cols-7 w-full mb-6">
             <TabsTrigger value="attendance" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               <span className="hidden sm:inline">Attendance</span>
@@ -66,6 +68,10 @@ export const HRManagementDashboard = () => {
             <TabsTrigger value="training" className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4" />
               <span className="hidden sm:inline">Training</span>
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Advanced</span>
             </TabsTrigger>
           </TabsList>
 
@@ -91,6 +97,10 @@ export const HRManagementDashboard = () => {
 
           <TabsContent value="training" className="space-y-6">
             <ComplianceTrainingTracker />
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-6">
+            <HRAdvancedDashboard />
           </TabsContent>
         </Tabs>
       </div>
