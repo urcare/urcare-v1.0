@@ -26,6 +26,7 @@ import Ward from '@/pages/Ward';
 import Pharmacy from '@/pages/Pharmacy';
 import Billing from '@/pages/Billing';
 import Insurance from '@/pages/Insurance';
+import BioWasteManagement from '@/pages/BioWasteManagement';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
@@ -53,6 +54,7 @@ function App() {
                   <Route path="pharmacy" element={<Pharmacy />} />
                   <Route path="billing" element={<Billing />} />
                   <Route path="insurance" element={<Insurance />} />
+                  <Route path="bio-waste" element={<BioWasteManagement />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
