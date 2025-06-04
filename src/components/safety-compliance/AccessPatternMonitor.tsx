@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +40,7 @@ interface SecurityAlert {
   userName: string;
   description: string;
   timestamp: string;
-  status: 'active' | 'investigating' | 'resolved';
+  status: 'active' | 'investigating' | 'resolved' | 'escalated';
   investigator?: string;
 }
 
