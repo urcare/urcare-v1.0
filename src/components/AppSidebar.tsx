@@ -1,4 +1,4 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3 } from "lucide-react"
 
 import {
   Sidebar,
@@ -50,8 +50,15 @@ const items = [
   },
   {
     title: "HR & Staff Management",
-    url: "/hr-management",
     icon: Users,
+    url: "/hr-management",
+    description: "Comprehensive workforce management tools"
+  },
+  {
+    title: "HR Analytics & Compliance",
+    icon: BarChart3,
+    url: "/hr-analytics",
+    description: "Data-driven HR insights and compliance tracking"
   },
   {
     title: "Documents",

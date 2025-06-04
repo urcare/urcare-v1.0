@@ -25,6 +25,7 @@ import Pharmacy from '@/pages/Pharmacy';
 import Billing from '@/pages/Billing';
 import Insurance from '@/pages/Insurance';
 import HRManagement from '@/pages/HRManagement';
+import HRAnalytics from '@/pages/HRAnalytics';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -33,36 +34,51 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Layout><Outlet /></Layout>}>
-                <Route index element={<Index />} />
-                <Route path="auth" element={<Auth />} />
-                <Route path="onboarding" element={<Onboarding />} />
-                <Route path="profile" element={<ProfileManagement />} />
-                <Route path="appointments" element={<Appointments />} />
-                <Route path="patient-journey" element={<PatientJourney />} />
-                <Route path="ward" element={<Ward />} />
-                <Route path="pharmacy" element={<Pharmacy />} />
-                <Route path="billing" element={<Billing />} />
-                <Route path="insurance" element={<Insurance />} />
-                <Route path="hr-management" element={<HRManagement />} />
-                <Route path="documents" element={<Documents />} />
-                <Route path="health-twin" element={<HealthTwin />} />
-                <Route path="wellness" element={<Wellness />} />
-                <Route path="emotional-health" element={<EmotionalHealth />} />
-                <Route path="engagement" element={<Engagement />} />
-                <Route path="content" element={<IntelligentContent />} />
-                <Route path="emergency" element={<Emergency />} />
-                <Route path="community" element={<Community />} />
-                <Route path="unauthorized" element={<Unauthorized />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-            <Toaster />
-          </AuthProvider>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <div className="App">
+              <Routes>
+                <Route path="/" element={<Layout><Outlet /></Layout>}>
+                  <Route index element={<Index />} />
+                  <Route path="auth" element={<Auth />} />
+                  <Route path="onboarding" element={<Onboarding />} />
+                  <Route path="profile" element={<ProfileManagement />} />
+                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="patient-journey" element={<PatientJourney />} />
+                  <Route path="ward" element={<Ward />} />
+                  <Route path="pharmacy" element={<Pharmacy />} />
+                  <Route path="billing" element={<Billing />} />
+                  <Route path="insurance" element={<Insurance />} />
+                  <Route path="hr-management" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <HRManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="hr-analytics" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <HRAnalytics />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="documents" element={<Documents />} />
+                  <Route path="health-twin" element={<HealthTwin />} />
+                  <Route path="wellness" element={<Wellness />} />
+                  <Route path="emotional-health" element={<EmotionalHealth />} />
+                  <Route path="engagement" element={<Engagement />} />
+                  <Route path="content" element={<IntelligentContent />} />
+                  <Route path="emergency" element={<Emergency />} />
+                  <Route path="community" element={<Community />} />
+                  <Route path="unauthorized" element={<Unauthorized />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+              <Toaster />
+            </div>
+          </Router>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
