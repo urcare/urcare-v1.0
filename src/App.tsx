@@ -17,6 +17,7 @@ import Wellness from '@/pages/Wellness';
 import EmotionalHealth from '@/pages/EmotionalHealth';
 import EmotionalRetentionAI from '@/pages/EmotionalRetentionAI';
 import ContentEngagementAI from '@/pages/ContentEngagementAI';
+import SafetyComplianceAI from '@/pages/SafetyComplianceAI';
 import Engagement from '@/pages/Engagement';
 import IntelligentContent from '@/pages/IntelligentContent';
 import Emergency from '@/pages/Emergency';
@@ -75,6 +76,7 @@ function App() {
                   <Route path="process-optimization-ai" element={<ProcessOptimizationAI />} />
                   <Route path="emotional-retention-ai" element={<EmotionalRetentionAI />} />
                   <Route path="content-engagement-ai" element={<ContentEngagementAI />} />
+                  <Route path="safety-compliance-ai" element={<SafetyComplianceAI />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />

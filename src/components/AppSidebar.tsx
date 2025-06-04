@@ -116,6 +116,12 @@ const items = [
     description: "Personalized patient experience with intelligent content optimization"
   },
   {
+    title: "Safety & Compliance AI",
+    url: "/safety-compliance-ai",
+    icon: Shield,
+    description: "Comprehensive risk management with access monitoring, fraud detection, and compliance oversight"
+  },
+  {
     title: "HR & Staff Management",
     icon: Users,
     url: "/hr-management",
