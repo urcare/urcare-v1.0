@@ -31,6 +31,7 @@ import PredictiveClinicalAI from '@/pages/PredictiveClinicalAI';
 import MentalHealthAI from '@/pages/MentalHealthAI';
 import ClinicalDecisionSupport from '@/pages/ClinicalDecisionSupport';
 import TreatmentProtocolAI from '@/pages/TreatmentProtocolAI';
+import ClinicalOptimization from '@/pages/ClinicalOptimization';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
