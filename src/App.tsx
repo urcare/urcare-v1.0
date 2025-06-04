@@ -37,8 +37,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Router>
+        <Router>
+          <AuthProvider>
             <div className="App">
               <Routes>
                 <Route path="/" element={<Layout><Outlet /></Layout>}>
@@ -81,8 +81,8 @@ function App() {
               </Routes>
               <Toaster />
             </div>
-          </Router>
-        </AuthProvider>
+          </AuthProvider>
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
