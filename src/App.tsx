@@ -36,6 +36,7 @@ import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
 import AdvancedAccessControl from '@/pages/AdvancedAccessControl';
 import WorkflowAutomationAI from '@/pages/WorkflowAutomationAI';
+import AdvancedWorkflowAI from '@/pages/AdvancedWorkflowAI';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ function App() {
                   <Route path="treatment-protocol-ai" element={<TreatmentProtocolAI />} />
                   <Route path="clinical-optimization" element={<ClinicalOptimization />} />
                   <Route path="workflow-automation-ai" element={<WorkflowAutomationAI />} />
+                  <Route path="advanced-workflow-ai" element={<AdvancedWorkflowAI />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
