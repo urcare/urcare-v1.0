@@ -1,5 +1,5 @@
 
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList } from "lucide-react"
 
 import {
   Sidebar,
@@ -72,6 +72,12 @@ const items = [
     url: "/clinical-decision-support",
     icon: Lightbulb,
     description: "AI-powered treatment guidance and decision support"
+  },
+  {
+    title: "Treatment Protocol AI",
+    url: "/treatment-protocol-ai",
+    icon: ClipboardList,
+    description: "Comprehensive care management with intelligent protocol guidance"
   },
   {
     title: "HR & Staff Management",

@@ -30,6 +30,7 @@ import BioWasteManagement from '@/pages/BioWasteManagement';
 import PredictiveClinicalAI from '@/pages/PredictiveClinicalAI';
 import MentalHealthAI from '@/pages/MentalHealthAI';
 import ClinicalDecisionSupport from '@/pages/ClinicalDecisionSupport';
+import TreatmentProtocolAI from '@/pages/TreatmentProtocolAI';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
 import VisitorControl from '@/pages/VisitorControl';
@@ -61,6 +62,7 @@ function App() {
                   <Route path="predictive-ai" element={<PredictiveClinicalAI />} />
                   <Route path="mental-health-ai" element={<MentalHealthAI />} />
                   <Route path="clinical-decision-support" element={<ClinicalDecisionSupport />} />
+                  <Route path="treatment-protocol-ai" element={<TreatmentProtocolAI />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
