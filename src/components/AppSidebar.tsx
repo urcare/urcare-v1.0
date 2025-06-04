@@ -1,3 +1,4 @@
+
 import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3 } from "lucide-react"
 
 import {
@@ -59,6 +60,12 @@ const items = [
     icon: BarChart3,
     url: "/hr-analytics",
     description: "Data-driven HR insights and compliance tracking"
+  },
+  {
+    title: "Visitor & Access Control",
+    icon: Shield,
+    url: "/visitor-control",
+    description: "Smart entry management and security systems"
   },
   {
     title: "Documents",

@@ -1,8 +1,10 @@
+
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
@@ -26,6 +28,7 @@ import Billing from '@/pages/Billing';
 import Insurance from '@/pages/Insurance';
 import HRManagement from '@/pages/HRManagement';
 import HRAnalytics from '@/pages/HRAnalytics';
+import VisitorControl from '@/pages/VisitorControl';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -51,16 +54,17 @@ function App() {
                   <Route path="insurance" element={<Insurance />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
-                      <Layout>
-                        <HRManagement />
-                      </Layout>
+                      <HRManagement />
                     </ProtectedRoute>
                   } />
                   <Route path="hr-analytics" element={
                     <ProtectedRoute>
-                      <Layout>
-                        <HRAnalytics />
-                      </Layout>
+                      <HRAnalytics />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="visitor-control" element={
+                    <ProtectedRoute>
+                      <VisitorControl />
                     </ProtectedRoute>
                   } />
                   <Route path="documents" element={<Documents />} />
