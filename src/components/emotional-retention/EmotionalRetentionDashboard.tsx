@@ -14,7 +14,7 @@ import {
   Activity,
   Bell,
   Smile,
-  Trending-up
+  TrendingUp
 } from 'lucide-react';
 import { MoodPatternAnalyzer } from './MoodPatternAnalyzer';
 import { AvatarFeedbackSystem } from './AvatarFeedbackSystem';
@@ -56,7 +56,7 @@ export const EmotionalRetentionDashboard = () => {
 
   const getMoodTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'improving': return Trending-up;
+      case 'improving': return TrendingUp;
       case 'stable': return Activity;
       case 'declining': return TrendingDown;
       default: return Activity;
@@ -182,7 +182,7 @@ export const EmotionalRetentionDashboard = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Trending-up className="h-5 w-5 text-green-600" />
+                      <TrendingUp className="h-5 w-5 text-green-600" />
                       <span className="font-medium">Engagement improving</span>
                     </div>
                     <Badge className="bg-green-500 text-white">+12%</Badge>
