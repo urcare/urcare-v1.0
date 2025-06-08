@@ -1,5 +1,4 @@
-
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen, FlaskConical, Microscope } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen, FlaskConical, Microscope, Globe } from "lucide-react"
 
 export interface MenuItem {
   title: string;
@@ -203,5 +202,11 @@ export const menuItems: MenuItem[] = [
     title: "Community",
     url: "/community",
     icon: Users,
+  },
+  {
+    title: "Public Health Integration",
+    url: "/public-health-integration",
+    icon: Globe,
+    description: "Disease surveillance, outbreak detection, and epidemiological analysis"
   },
 ];

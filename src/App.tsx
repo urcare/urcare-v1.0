@@ -85,6 +85,7 @@ function App() {
                   <Route path="clinical-analytics" element={<ClinicalAnalytics />} />
                   <Route path="research-data-management" element={<ResearchDataManagement />} />
                   <Route path="advanced-research-tools" element={<AdvancedResearchTools />} />
+                  <Route path="public-health-integration" element={<PublicHealthIntegration />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
