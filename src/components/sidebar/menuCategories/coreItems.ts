@@ -1,66 +1,99 @@
 
-import { Calendar, FileText, Stethoscope, Heart, Users, MapPin, Bed, Pill, CreditCard, Shield, Monitor } from "lucide-react"
-import { MenuItem } from "../menuItems"
+import { 
+  Calendar, 
+  CreditCard, 
+  FileText, 
+  Users, 
+  Stethoscope,
+  TestTube,
+  Camera,
+  Microscope,
+  MapPin,
+  Building,
+  UserCheck,
+  Trash2,
+  Shield,
+  DollarSign
+} from 'lucide-react';
+import { MenuItem } from '../menuItems';
 
 export const coreMenuItems: MenuItem[] = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Heart,
-  },
   {
     title: "Appointments",
     url: "/appointments",
     icon: Calendar,
+    description: "Schedule and manage patient appointments"
   },
   {
-    title: "Patient Journey",
-    url: "/patient-journey",
-    icon: MapPin,
-  },
-  {
-    title: "Ward Management",
-    url: "/ward",
-    icon: Bed,
-  },
-  {
-    title: "Pharmacy System",
-    url: "/pharmacy",
-    icon: Pill,
-  },
-  {
-    title: "Billing System",
+    title: "Billing",
     url: "/billing",
     icon: CreditCard,
-  },
-  {
-    title: "Insurance & Payments",
-    url: "/insurance",
-    icon: Shield,
-  },
-  {
-    title: "LIMS",
-    url: "/lims",
-    icon: Stethoscope,
-  },
-  {
-    title: "Radiology (RIS)",
-    url: "/ris",
-    icon: Monitor,
+    description: "Comprehensive billing and payment management"
   },
   {
     title: "Documents",
     url: "/documents",
     icon: FileText,
+    description: "Medical records and document management"
   },
   {
-    title: "Emergency",
-    url: "/emergency",
+    title: "Patient Journey",
+    url: "/patient-journey",
+    icon: MapPin,
+    description: "Track patient flow through hospital systems"
+  },
+  {
+    title: "Ward Management",
+    url: "/ward",
+    icon: Building,
+    description: "Hospital ward and bed management"
+  },
+  {
+    title: "Pharmacy",
+    url: "/pharmacy",
+    icon: Stethoscope,
+    description: "Medication management and dispensing"
+  },
+  {
+    title: "LIMS",
+    url: "/lims",
+    icon: TestTube,
+    description: "Laboratory Information Management System"
+  },
+  {
+    title: "RIS",
+    url: "/ris",
+    icon: Camera,
+    description: "Radiology Information System"
+  },
+  {
+    title: "Pathology",
+    url: "/pathology",
+    icon: Microscope,
+    description: "Pathology management and digital pathology"
+  },
+  {
+    title: "TPA Management",
+    url: "/tpa",
     icon: Shield,
+    description: "Third Party Administrator workflow"
   },
   {
-    title: "Community",
-    url: "/community",
-    icon: Users,
+    title: "Insurance",
+    url: "/insurance",
+    icon: DollarSign,
+    description: "Insurance verification and claims"
   },
+  {
+    title: "Visitor Control",
+    url: "/visitor-control",
+    icon: UserCheck,
+    description: "Hospital visitor management system"
+  },
+  {
+    title: "Bio-waste Management",
+    url: "/bio-waste",
+    icon: Trash2,
+    description: "Medical waste tracking and compliance"
+  }
 ];

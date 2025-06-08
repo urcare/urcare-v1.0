@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import {
   WifiOff,
   Download,
   Upload,
-  Sync,
+  RefreshCw,
   Settings,
   Eye,
   MessageSquare,
@@ -113,7 +112,7 @@ export const MobileOptimized = () => {
             Mobile Settings
           </Button>
           <Button variant="outline" className="flex items-center gap-2">
-            <Sync className="h-4 w-4" />
+            <RefreshCw className="h-4 w-4" />
             Sync Now
           </Button>
         </div>
@@ -400,6 +399,10 @@ export const MobileOptimized = () => {
               <Button size="sm" variant="outline" className="w-full flex items-center gap-2">
                 <Wifi className="h-3 w-3" />
                 Connection Test
+              </Button>
+              <Button size="sm" variant="outline" className="w-full flex items-center gap-2">
+                <RefreshCw className="h-3 w-3" />
+                Sync When Online
               </Button>
             </CardContent>
           </Card>
