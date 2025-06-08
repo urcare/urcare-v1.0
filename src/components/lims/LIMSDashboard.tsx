@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +15,10 @@ import {
   Settings,
   FileText,
   Scan,
-  Target
+  Target,
+  Bell,
+  TrendingUp,
+  Package
 } from 'lucide-react';
 import { SampleTracking } from './SampleTracking';
 import { TestRequisition } from './TestRequisition';
@@ -24,6 +26,11 @@ import { SpecimenCollection } from './SpecimenCollection';
 import { QualityControl } from './QualityControl';
 import { ResultEntry } from './ResultEntry';
 import { EquipmentManagement } from './EquipmentManagement';
+import { CriticalValueAlerts } from './CriticalValueAlerts';
+import { ReportGeneration } from './ReportGeneration';
+import { ReferenceRangeManagement } from './ReferenceRangeManagement';
+import { LabEfficiencyDashboard } from './LabEfficiencyDashboard';
+import { InventoryManagement } from './InventoryManagement';
 
 export const LIMSDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -93,7 +100,7 @@ export const LIMSDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-12 gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="samples">Samples</TabsTrigger>
           <TabsTrigger value="requisition">Requisition</TabsTrigger>
@@ -101,6 +108,11 @@ export const LIMSDashboard = () => {
           <TabsTrigger value="quality">Quality</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
           <TabsTrigger value="equipment">Equipment</TabsTrigger>
+          <TabsTrigger value="alerts">Critical Alerts</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="ranges">Ref Ranges</TabsTrigger>
+          <TabsTrigger value="efficiency">Efficiency</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -273,6 +285,26 @@ export const LIMSDashboard = () => {
 
         <TabsContent value="equipment">
           <EquipmentManagement />
+        </TabsContent>
+
+        <TabsContent value="alerts">
+          <CriticalValueAlerts />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <ReportGeneration />
+        </TabsContent>
+
+        <TabsContent value="ranges">
+          <ReferenceRangeManagement />
+        </TabsContent>
+
+        <TabsContent value="efficiency">
+          <LabEfficiencyDashboard />
+        </TabsContent>
+
+        <TabsContent value="inventory">
+          <InventoryManagement />
         </TabsContent>
       </Tabs>
     </div>
