@@ -1,0 +1,207 @@
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen, FlaskConical, Microscope } from "lucide-react"
+
+export interface MenuItem {
+  title: string;
+  url: string;
+  icon: any;
+  description?: string;
+}
+
+export const menuItems: MenuItem[] = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: Heart,
+  },
+  {
+    title: "Appointments",
+    url: "/appointments",
+    icon: Calendar,
+  },
+  {
+    title: "Patient Journey",
+    url: "/patient-journey",
+    icon: MapPin,
+  },
+  {
+    title: "Ward Management",
+    url: "/ward",
+    icon: Bed,
+  },
+  {
+    title: "Pharmacy System",
+    url: "/pharmacy",
+    icon: Pill,
+  },
+  {
+    title: "Billing System",
+    url: "/billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Insurance & Payments",
+    url: "/insurance",
+    icon: Shield,
+  },
+  {
+    title: "Hospital Analytics",
+    url: "/hospital-analytics",
+    icon: BarChart3,
+    description: "Comprehensive data visualization and performance monitoring dashboard"
+  },
+  {
+    title: "Clinical Analytics",
+    url: "/clinical-analytics",
+    icon: Stethoscope,
+    description: "Medical performance monitoring and clinical outcome analysis"
+  },
+  {
+    title: "Research Data Management",
+    url: "/research-data-management",
+    icon: FlaskConical,
+    description: "Clinical research platform with protocol management and compliance"
+  },
+  {
+    title: "Advanced Research Tools",
+    url: "/advanced-research-tools",
+    icon: Microscope,
+    description: "Publication tracking, grant management, and research collaboration tools"
+  },
+  {
+    title: "Bio-Waste Management",
+    url: "/bio-waste",
+    icon: Trash,
+    description: "Complete waste tracking and compliance system"
+  },
+  {
+    title: "Predictive Clinical AI",
+    url: "/predictive-ai",
+    icon: Brain,
+    description: "Advanced patient risk assessment and early warning systems"
+  },
+  {
+    title: "Mental Health AI",
+    url: "/mental-health-ai",
+    icon: Activity,
+    description: "Psychological wellness monitoring and intervention systems"
+  },
+  {
+    title: "Clinical Decision Support",
+    url: "/clinical-decision-support",
+    icon: Lightbulb,
+    description: "AI-powered treatment guidance and decision support"
+  },
+  {
+    title: "Treatment Protocol AI",
+    url: "/treatment-protocol-ai",
+    icon: ClipboardList,
+    description: "Comprehensive care management with intelligent protocol guidance"
+  },
+  {
+    title: "Clinical Optimization AI",
+    url: "/clinical-optimization",
+    icon: TrendingUp,
+    description: "Resource and outcome enhancement with intelligent optimization"
+  },
+  {
+    title: "Workflow Automation AI",
+    url: "/workflow-automation-ai",
+    icon: Workflow,
+    description: "Intelligent process management and workflow orchestration"
+  },
+  {
+    title: "Advanced Workflow AI",
+    url: "/advanced-workflow-ai",
+    icon: Bot,
+    description: "Premium process automation with intelligent optimization"
+  },
+  {
+    title: "Process Optimization AI",
+    url: "/process-optimization-ai",
+    icon: Target,
+    description: "Operational excellence enhancement and performance optimization"
+  },
+  {
+    title: "Emotional & Retention AI",
+    url: "/emotional-retention-ai",
+    icon: Heart,
+    description: "Patient engagement intelligence with mood analysis and retention optimization"
+  },
+  {
+    title: "Content & Engagement AI",
+    url: "/content-engagement-ai",
+    icon: BookOpen,
+    description: "Personalized patient experience with intelligent content optimization"
+  },
+  {
+    title: "Safety & Compliance AI",
+    url: "/safety-compliance-ai",
+    icon: Shield,
+    description: "Comprehensive risk management with access monitoring, fraud detection, and compliance oversight"
+  },
+  {
+    title: "HR & Staff Management",
+    icon: Users,
+    url: "/hr-management",
+    description: "Comprehensive workforce management tools"
+  },
+  {
+    title: "HR Analytics & Compliance",
+    icon: BarChart3,
+    url: "/hr-analytics",
+    description: "Data-driven HR insights and compliance tracking"
+  },
+  {
+    title: "Visitor & Access Control",
+    icon: Shield,
+    url: "/visitor-control",
+    description: "Smart entry management and security systems"
+  },
+  {
+    title: "Advanced Access Control",
+    icon: Star,
+    url: "/advanced-access-control",
+    description: "Premium security features with intelligent monitoring"
+  },
+  {
+    title: "Documents",
+    url: "/documents",
+    icon: FileText,
+  },
+  {
+    title: "Health Twin",
+    url: "/health-twin",
+    icon: Stethoscope,
+  },
+  {
+    title: "Wellness",
+    url: "/wellness",
+    icon: Heart,
+  },
+  {
+    title: "Emotional Health",
+    url: "/emotional-health",
+    icon: Brain,
+  },
+  {
+    title: "Engagement",
+    url: "/engagement",
+    icon: Trophy,
+  },
+  {
+    title: "Content",
+    url: "/content",
+    icon: Bookmark,
+  },
+  {
+    title: "Emergency",
+    url: "/emergency",
+    icon: Shield,
+  },
+  {
+    title: "Community",
+    url: "/community",
+    icon: Users,
+  },
+];
