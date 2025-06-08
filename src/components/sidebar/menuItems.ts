@@ -68,6 +68,12 @@ export const menuItems: MenuItem[] = [
     description: "Publication tracking, grant management, and research collaboration tools"
   },
   {
+    title: "Laboratory Information System",
+    url: "/lims",
+    icon: FlaskConical,
+    description: "Comprehensive lab management with sample tracking, quality control, and result processing"
+  },
+  {
     title: "Bio-Waste Management",
     url: "/bio-waste",
     icon: Trash,

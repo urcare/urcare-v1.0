@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -47,6 +46,7 @@ import ClinicalAnalytics from '@/pages/ClinicalAnalytics';
 import ResearchDataManagement from '@/pages/ResearchDataManagement';
 import AdvancedResearchTools from '@/pages/AdvancedResearchTools';
 import PublicHealthIntegration from '@/pages/PublicHealthIntegration';
+import LIMS from '@/pages/LIMS';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -87,6 +87,7 @@ function App() {
                   <Route path="research-data-management" element={<ResearchDataManagement />} />
                   <Route path="advanced-research-tools" element={<AdvancedResearchTools />} />
                   <Route path="public-health-integration" element={<PublicHealthIntegration />} />
+                  <Route path="lims" element={<LIMS />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
