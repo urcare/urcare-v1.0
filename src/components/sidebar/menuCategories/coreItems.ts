@@ -13,7 +13,8 @@ import {
   UserCheck,
   Trash2,
   Shield,
-  DollarSign
+  DollarSign,
+  Network
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -71,6 +72,12 @@ export const coreMenuItems: MenuItem[] = [
     url: "/pathology",
     icon: Microscope,
     description: "Pathology management and digital pathology"
+  },
+  {
+    title: "System Integration",
+    url: "/system-integration",
+    icon: Network,
+    description: "Centralized integration hub for all systems"
   },
   {
     title: "TPA Management",

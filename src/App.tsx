@@ -25,6 +25,7 @@ import Pharmacy from "./pages/Pharmacy";
 import LIMS from "./pages/LIMS";
 import RIS from "./pages/RIS";
 import Pathology from "./pages/Pathology";
+import SystemIntegration from "./pages/SystemIntegration";
 import PatientJourney from "./pages/PatientJourney";
 import HRManagement from "./pages/HRManagement";
 import HRAnalytics from "./pages/HRAnalytics";
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/lims" element={<ProtectedRoute><LIMS /></ProtectedRoute>} />
               <Route path="/ris" element={<ProtectedRoute><RIS /></ProtectedRoute>} />
               <Route path="/pathology" element={<ProtectedRoute><Pathology /></ProtectedRoute>} />
+              <Route path="/system-integration" element={<ProtectedRoute><SystemIntegration /></ProtectedRoute>} />
               <Route path="/patient-journey" element={<ProtectedRoute><PatientJourney /></ProtectedRoute>} />
               <Route path="/hr-management" element={<ProtectedRoute><HRManagement /></ProtectedRoute>} />
               <Route path="/hr-analytics" element={<ProtectedRoute><HRAnalytics /></ProtectedRoute>} />
