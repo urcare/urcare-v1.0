@@ -1,3 +1,4 @@
+
 import { 
   Calendar, 
   CreditCard, 
@@ -14,7 +15,8 @@ import {
   Shield,
   DollarSign,
   Network,
-  Monitor
+  Monitor,
+  MessageSquare
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -108,5 +110,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/device-integration",
     icon: Monitor,
     description: "Medical device management and IoT integration"
+  },
+  {
+    title: "Communication Systems",
+    url: "/communication-systems",
+    icon: MessageSquare,
+    description: "Comprehensive communication and telemedicine platform"
   }
 ];

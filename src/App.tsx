@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -51,6 +52,7 @@ import SafetyComplianceAI from "./pages/SafetyComplianceAI";
 import ResearchDataManagement from "./pages/ResearchDataManagement";
 import AdvancedResearchTools from "./pages/AdvancedResearchTools";
 import PublicHealthIntegration from "./pages/PublicHealthIntegration";
+import CommunicationSystems from "./pages/CommunicationSystems";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -109,6 +111,7 @@ const App = () => (
               <Route path="/research-data-management" element={<ProtectedRoute><ResearchDataManagement /></ProtectedRoute>} />
               <Route path="/advanced-research-tools" element={<ProtectedRoute><AdvancedResearchTools /></ProtectedRoute>} />
               <Route path="/public-health-integration" element={<ProtectedRoute><PublicHealthIntegration /></ProtectedRoute>} />
+              <Route path="/communication-systems" element={<ProtectedRoute><CommunicationSystems /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
