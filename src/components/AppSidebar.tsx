@@ -1,4 +1,5 @@
-import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen } from "lucide-react"
+
+import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen, FlaskConical } from "lucide-react"
 
 import {
   Sidebar,
@@ -59,6 +60,12 @@ const items = [
     url: "/clinical-analytics",
     icon: Stethoscope,
     description: "Medical performance monitoring and clinical outcome analysis"
+  },
+  {
+    title: "Research Data Management",
+    url: "/research-data-management",
+    icon: FlaskConical,
+    description: "Clinical research platform with protocol management and compliance"
   },
   {
     title: "Bio-Waste Management",

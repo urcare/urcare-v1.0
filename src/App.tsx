@@ -43,6 +43,7 @@ import AdvancedWorkflowAI from '@/pages/AdvancedWorkflowAI';
 import ProcessOptimizationAI from '@/pages/ProcessOptimizationAI';
 import HospitalAnalytics from '@/pages/HospitalAnalytics';
 import ClinicalAnalytics from '@/pages/ClinicalAnalytics';
+import ResearchDataManagement from '@/pages/ResearchDataManagement';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ function App() {
                   <Route path="safety-compliance-ai" element={<SafetyComplianceAI />} />
                   <Route path="hospital-analytics" element={<HospitalAnalytics />} />
                   <Route path="clinical-analytics" element={<ClinicalAnalytics />} />
+                  <Route path="research-data-management" element={<ResearchDataManagement />} />
                   <Route path="hr-management" element={
                     <ProtectedRoute>
                       <HRManagement />
