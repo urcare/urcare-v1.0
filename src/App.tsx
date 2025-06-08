@@ -58,10 +58,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <SidebarProvider>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -108,8 +108,8 @@ const App = () => (
               <Route path="/public-health-integration" element={<ProtectedRoute><PublicHealthIntegration /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </SidebarProvider>
   </QueryClientProvider>
