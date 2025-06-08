@@ -55,6 +55,12 @@ const items = [
     description: "Comprehensive data visualization and performance monitoring dashboard"
   },
   {
+    title: "Clinical Analytics",
+    url: "/clinical-analytics",
+    icon: Stethoscope,
+    description: "Medical performance monitoring and clinical outcome analysis"
+  },
+  {
     title: "Bio-Waste Management",
     url: "/bio-waste",
     icon: Trash,
