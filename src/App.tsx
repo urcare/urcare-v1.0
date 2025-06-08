@@ -46,6 +46,7 @@ import HospitalAnalytics from '@/pages/HospitalAnalytics';
 import ClinicalAnalytics from '@/pages/ClinicalAnalytics';
 import ResearchDataManagement from '@/pages/ResearchDataManagement';
 import AdvancedResearchTools from '@/pages/AdvancedResearchTools';
+import PublicHealthIntegration from '@/pages/PublicHealthIntegration';
 import './App.css';
 
 const queryClient = new QueryClient();
