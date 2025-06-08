@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,13 +17,22 @@ import {
   Image,
   Activity,
   Camera,
-  Stethoscope
+  Stethoscope,
+  Brain,
+  Siren,
+  Eye,
+  Smartphone
 } from 'lucide-react';
 import { RadiologyScheduling } from './RadiologyScheduling';
 import { DICOMViewer } from './DICOMViewer';
 import { RadiologistReporting } from './RadiologistReporting';
 import { ImageSharing } from './ImageSharing';
 import { EquipmentTracking } from './EquipmentTracking';
+import { AIAssistedAnalysis } from './AIAssistedAnalysis';
+import { AdvancedReporting } from './AdvancedReporting';
+import { EmergencyRadiology } from './EmergencyRadiology';
+import { QualityAssurance } from './QualityAssurance';
+import { MobileOptimized } from './MobileOptimized';
 
 export const RISDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -116,13 +124,17 @@ export const RISDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
           <TabsTrigger value="dicom">DICOM Viewer</TabsTrigger>
           <TabsTrigger value="reporting">Reporting</TabsTrigger>
-          <TabsTrigger value="sharing">Image Sharing</TabsTrigger>
-          <TabsTrigger value="equipment">Equipment</TabsTrigger>
+          <TabsTrigger value="advanced-reporting">Advanced Reporting</TabsTrigger>
+          <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
+          <TabsTrigger value="emergency">Emergency</TabsTrigger>
+          <TabsTrigger value="qa">Quality Assurance</TabsTrigger>
+          <TabsTrigger value="mobile">Mobile</TabsTrigger>
+          <TabsTrigger value="sharing">Sharing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -325,12 +337,28 @@ export const RISDashboard = () => {
           <RadiologistReporting />
         </TabsContent>
 
-        <TabsContent value="sharing">
-          <ImageSharing />
+        <TabsContent value="advanced-reporting">
+          <AdvancedReporting />
         </TabsContent>
 
-        <TabsContent value="equipment">
-          <EquipmentTracking />
+        <TabsContent value="ai-analysis">
+          <AIAssistedAnalysis />
+        </TabsContent>
+
+        <TabsContent value="emergency">
+          <EmergencyRadiology />
+        </TabsContent>
+
+        <TabsContent value="qa">
+          <QualityAssurance />
+        </TabsContent>
+
+        <TabsContent value="mobile">
+          <MobileOptimized />
+        </TabsContent>
+
+        <TabsContent value="sharing">
+          <ImageSharing />
         </TabsContent>
       </Tabs>
     </div>

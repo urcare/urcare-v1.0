@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ import {
   Settings,
   Layers,
   Contrast,
-  Brightness,
+  Sun,
   Play,
   Pause,
   SkipBack,
@@ -251,7 +250,7 @@ export const DICOMViewer = () => {
                     <Contrast className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" size="sm">
-                    <Brightness className="h-4 w-4" />
+                    <Sun className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
