@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,320 +10,247 @@ import {
   CheckCircle, 
   Clock, 
   FileText, 
+  Download,
+  Calendar,
+  TrendingUp,
   Users,
-  Database,
-  Lock,
-  Eye,
-  Download
+  Activity
 } from 'lucide-react';
 
 export const ComplianceMonitor = () => {
-  const [selectedRegulation, setSelectedRegulation] = useState('21cfr11');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('month');
 
-  const complianceOverview = {
+  const complianceMetrics = {
     overallScore: 96,
-    criticalIssues: 2,
-    warnings: 8,
-    passed: 142,
-    lastAudit: '2024-01-20',
-    nextAudit: '2024-04-20'
+    protocolAdherence: 94,
+    dataQuality: 98,
+    auditReadiness: 92,
+    documentationScore: 95
   };
 
-  const regulatoryFrameworks = [
+  const violations = [
     {
-      id: '21cfr11',
-      name: '21 CFR Part 11',
-      description: 'Electronic records and signatures',
-      score: 95,
-      status: 'compliant',
-      requirements: 15,
-      passed: 14,
-      issues: 1
+      id: 'VIO-001',
+      type: 'Protocol Deviation',
+      severity: 'minor',
+      study: 'CARDIO-001',
+      description: 'Visit window exceeded by 2 days',
+      status: 'resolved',
+      reportedDate: '2024-01-20',
+      resolvedDate: '2024-01-22'
     },
     {
-      id: 'gcp',
-      name: 'Good Clinical Practice (GCP)',
-      description: 'International ethical and scientific standards',
-      score: 98,
-      status: 'compliant',
-      requirements: 25,
-      passed: 24,
-      issues: 1
+      id: 'VIO-002',
+      type: 'Data Entry Error',
+      severity: 'major',
+      study: 'NEURO-002',
+      description: 'Incorrect dosage recorded',
+      status: 'investigating',
+      reportedDate: '2024-01-18',
+      resolvedDate: null
     },
     {
-      id: 'hipaa',
-      name: 'HIPAA',
-      description: 'Health Insurance Portability and Accountability',
-      score: 92,
-      status: 'compliant',
-      requirements: 18,
-      passed: 16,
-      issues: 2
-    },
-    {
-      id: 'gdpr',
-      name: 'GDPR',
-      description: 'General Data Protection Regulation',
-      score: 94,
-      status: 'compliant',
-      requirements: 12,
-      passed: 11,
-      issues: 1
+      id: 'VIO-003',
+      type: 'Consent Issue',
+      severity: 'critical',
+      study: 'ONCO-003',
+      description: 'Expired consent form used',
+      status: 'corrective_action',
+      reportedDate: '2024-01-15',
+      resolvedDate: null
     }
   ];
 
-  const complianceChecks = {
-    '21cfr11': [
-      {
-        category: 'Electronic Signatures',
-        requirement: 'Unique user identification',
-        status: 'passed',
-        description: 'Each user has unique login credentials',
-        lastChecked: '2024-01-25'
-      },
-      {
-        category: 'Electronic Signatures',
-        requirement: 'Multi-factor authentication',
-        status: 'passed',
-        description: 'MFA implemented for all users',
-        lastChecked: '2024-01-25'
-      },
-      {
-        category: 'Audit Trail',
-        requirement: 'Complete audit trail',
-        status: 'warning',
-        description: 'Some historical data missing audit entries',
-        lastChecked: '2024-01-25'
-      },
-      {
-        category: 'Data Integrity',
-        requirement: 'Tamper-evident records',
-        status: 'passed',
-        description: 'Digital signatures and checksums implemented',
-        lastChecked: '2024-01-25'
-      },
-      {
-        category: 'Access Controls',
-        requirement: 'Role-based access',
-        status: 'passed',
-        description: 'Proper role-based permissions in place',
-        lastChecked: '2024-01-25'
-      }
-    ]
-  };
-
-  const securityMetrics = [
+  const auditHistory = [
     {
-      category: 'Data Encryption',
-      score: 100,
-      description: 'All data encrypted at rest and in transit',
-      icon: Lock
+      id: 'AUD-001',
+      date: '2024-01-15',
+      type: 'Internal Audit',
+      scope: 'Data Quality Review',
+      findings: 3,
+      status: 'completed',
+      auditor: 'Internal QA Team'
     },
     {
-      category: 'Access Monitoring',
-      score: 94,
-      description: 'User access continuously monitored',
-      icon: Eye
+      id: 'AUD-002',
+      date: '2023-12-10',
+      type: 'FDA Inspection',
+      scope: 'Protocol Compliance',
+      findings: 1,
+      status: 'closed',
+      auditor: 'FDA Inspector'
     },
     {
-      category: 'Backup & Recovery',
-      score: 96,
-      description: 'Regular backups with tested recovery',
-      icon: Database
-    },
-    {
-      category: 'User Training',
-      score: 89,
-      description: 'Staff compliance training up to date',
-      icon: Users
+      id: 'AUD-003',
+      date: '2023-11-20',
+      type: 'Sponsor Audit',
+      scope: 'Site Qualification',
+      findings: 0,
+      status: 'completed',
+      auditor: 'Sponsor QA'
     }
   ];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'passed': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'failed': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-500';
+      case 'major': return 'bg-orange-500';
+      case 'minor': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
     }
   };
 
   const getStatusColor = (status: string) => {
-    const colorMap = {
-      compliant: 'bg-green-500',
-      warning: 'bg-yellow-500',
-      'non-compliant': 'bg-red-500'
-    };
-    return colorMap[status as keyof typeof colorMap] || 'bg-gray-500';
+    switch (status) {
+      case 'resolved': return 'bg-green-500';
+      case 'investigating': return 'bg-blue-500';
+      case 'corrective_action': return 'bg-orange-500';
+      case 'completed': return 'bg-green-500';
+      case 'closed': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Compliance Monitor</h2>
-          <p className="text-gray-600">21 CFR Part 11 and regulatory compliance tracking</p>
+          <h2 className="text-2xl font-bold text-gray-900">Compliance Monitoring</h2>
+          <p className="text-gray-600">21 CFR Part 11 compliance and audit management</p>
         </div>
         <div className="flex gap-3">
+          <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Select timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Compliance Report
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Run Audit
+            Export Report
           </Button>
         </div>
       </div>
 
-      {/* Compliance Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-4 text-center">
-            <Shield className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-900">{complianceOverview.overallScore}%</p>
-            <p className="text-sm text-green-700">Overall Score</p>
-          </CardContent>
-        </Card>
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-red-900">{complianceOverview.criticalIssues}</p>
-            <p className="text-sm text-red-700">Critical Issues</p>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-yellow-900">{complianceOverview.warnings}</p>
-            <p className="text-sm text-yellow-700">Warnings</p>
-          </CardContent>
-        </Card>
+      {/* Compliance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4 text-center">
-            <CheckCircle className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-blue-900">{complianceOverview.passed}</p>
-            <p className="text-sm text-blue-700">Passed Checks</p>
+            <Shield className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-blue-900">{complianceMetrics.overallScore}%</p>
+            <p className="text-sm text-blue-700">Overall Score</p>
+          </CardContent>
+        </Card>
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4 text-center">
+            <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-green-900">{complianceMetrics.protocolAdherence}%</p>
+            <p className="text-sm text-green-700">Protocol Adherence</p>
           </CardContent>
         </Card>
         <Card className="border-purple-200 bg-purple-50">
           <CardContent className="p-4 text-center">
-            <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-lg font-bold text-purple-900">{complianceOverview.lastAudit}</p>
-            <p className="text-sm text-purple-700">Last Audit</p>
+            <TrendingUp className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-purple-900">{complianceMetrics.dataQuality}%</p>
+            <p className="text-sm text-purple-700">Data Quality</p>
+          </CardContent>
+        </Card>
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="p-4 text-center">
+            <Activity className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-orange-900">{complianceMetrics.auditReadiness}%</p>
+            <p className="text-sm text-orange-700">Audit Readiness</p>
           </CardContent>
         </Card>
         <Card className="border-teal-200 bg-teal-50">
           <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 text-teal-600 mx-auto mb-2" />
-            <p className="text-lg font-bold text-teal-900">{complianceOverview.nextAudit}</p>
-            <p className="text-sm text-teal-700">Next Audit</p>
+            <FileText className="h-8 w-8 text-teal-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-teal-900">{complianceMetrics.documentationScore}%</p>
+            <p className="text-sm text-teal-700">Documentation</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Regulatory Frameworks */}
+        {/* Protocol Violations */}
         <Card>
           <CardHeader>
-            <CardTitle>Regulatory Frameworks</CardTitle>
-            <CardDescription>Compliance status across different regulations</CardDescription>
+            <CardTitle>Protocol Violations & Deviations</CardTitle>
+            <CardDescription>Recent compliance issues and their resolution status</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {regulatoryFrameworks.map((framework) => (
-              <div key={framework.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-900">{framework.name}</h4>
-                  <Badge className={`${getStatusColor(framework.status)} text-white`}>
-                    {framework.score}%
-                  </Badge>
+          <CardContent>
+            <div className="space-y-4">
+              {violations.map((violation) => (
+                <div key={violation.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <Badge className={`${getSeverityColor(violation.severity)} text-white`}>
+                        {violation.severity.charAt(0).toUpperCase() + violation.severity.slice(1)}
+                      </Badge>
+                      <span className="font-medium text-gray-900">{violation.type}</span>
+                    </div>
+                    <Badge className={`${getStatusColor(violation.status)} text-white`}>
+                      {violation.status.replace('_', ' ').charAt(0).toUpperCase() + violation.status.replace('_', ' ').slice(1)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">{violation.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span>Study: {violation.study}</span>
+                    <span>Reported: {violation.reportedDate}</span>
+                    {violation.resolvedDate && <span>Resolved: {violation.resolvedDate}</span>}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{framework.description}</p>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    {framework.passed}/{framework.requirements} requirements
-                  </span>
-                  <span className="text-red-600">
-                    {framework.issues} issue{framework.issues !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <Progress value={framework.score} className="mt-2" />
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Security Metrics */}
+        {/* Audit History */}
         <Card>
           <CardHeader>
-            <CardTitle>Security Metrics</CardTitle>
-            <CardDescription>Data protection and security measures</CardDescription>
+            <CardTitle>Audit History</CardTitle>
+            <CardDescription>Recent audits and inspection records</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {securityMetrics.map((metric, index) => {
-              const IconComponent = metric.icon;
-              return (
-                <div key={index} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50">
-                  <IconComponent className="h-8 w-8 text-blue-600" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-gray-900">{metric.category}</h4>
-                      <span className="text-sm font-medium text-gray-900">{metric.score}%</span>
+          <CardContent>
+            <div className="space-y-4">
+              {auditHistory.map((audit) => (
+                <div key={audit.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{audit.type}</h4>
+                      <p className="text-sm text-gray-600">{audit.scope}</p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{metric.description}</p>
-                    <Progress value={metric.score} className="h-2" />
+                    <Badge className={`${getStatusColor(audit.status)} text-white`}>
+                      {audit.status.charAt(0).toUpperCase() + audit.status.slice(1)}
+                    </Badge>
                   </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {audit.date}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {audit.auditor}
+                    </span>
+                  </div>
+                  {audit.findings > 0 && (
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm text-orange-700">{audit.findings} findings identified</span>
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Detailed Compliance Checks */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Detailed Compliance Checks</CardTitle>
-              <CardDescription>Specific requirement compliance status</CardDescription>
-            </div>
-            <Select value={selectedRegulation} onValueChange={setSelectedRegulation}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select regulation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="21cfr11">21 CFR Part 11</SelectItem>
-                <SelectItem value="gcp">Good Clinical Practice</SelectItem>
-                <SelectItem value="hipaa">HIPAA</SelectItem>
-                <SelectItem value="gdpr">GDPR</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {complianceChecks[selectedRegulation as keyof typeof complianceChecks]?.map((check, index) => (
-              <div key={index} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50">
-                {getStatusIcon(check.status)}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">{check.requirement}</h4>
-                    <Badge variant="outline" className="text-xs">
-                      {check.category}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">{check.description}</p>
-                  <p className="text-xs text-gray-500">Last checked: {check.lastChecked}</p>
-                </div>
-                <Button variant="ghost" size="sm">
-                  View Details
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
