@@ -1,4 +1,3 @@
-
 import { Calendar, FileText, Stethoscope, Heart, Brain, Trophy, Bookmark, Shield, Users, MapPin, Bed, Pill, CreditCard, BarChart3, Star, Trash, Activity, Lightbulb, ClipboardList, TrendingUp, Workflow, Bot, Target, BookOpen } from "lucide-react"
 
 import {
@@ -48,6 +47,12 @@ const items = [
     title: "Insurance & Payments",
     url: "/insurance",
     icon: Shield,
+  },
+  {
+    title: "Hospital Analytics",
+    url: "/hospital-analytics",
+    icon: BarChart3,
+    description: "Comprehensive data visualization and performance monitoring dashboard"
   },
   {
     title: "Bio-Waste Management",
