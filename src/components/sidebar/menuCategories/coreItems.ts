@@ -1,5 +1,5 @@
 
-import { Calendar, FileText, Stethoscope, Heart, Users, MapPin, Bed, Pill, CreditCard, Shield } from "lucide-react"
+import { Calendar, FileText, Stethoscope, Heart, Users, MapPin, Bed, Pill, CreditCard, Shield, Monitor } from "lucide-react"
 import { MenuItem } from "../menuItems"
 
 export const coreMenuItems: MenuItem[] = [
@@ -37,6 +37,16 @@ export const coreMenuItems: MenuItem[] = [
     title: "Insurance & Payments",
     url: "/insurance",
     icon: Shield,
+  },
+  {
+    title: "LIMS",
+    url: "/lims",
+    icon: Stethoscope,
+  },
+  {
+    title: "Radiology (RIS)",
+    url: "/ris",
+    icon: Monitor,
   },
   {
     title: "Documents",
