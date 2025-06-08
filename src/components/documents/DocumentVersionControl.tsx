@@ -1,41 +1,48 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   GitBranch, 
+  GitMerge, 
+  GitCommit,
   History, 
-  Eye, 
-  Download, 
-  RotateCcw, 
   FileText, 
-  User, 
-  Calendar,
-  Compare,
-  Plus,
-  Minus,
-  Edit
+  Download, 
+  Upload,
+  Eye,
+  Rewind,
+  FastForward,
+  Users,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  MoreHorizontal
 } from 'lucide-react';
 
 interface DocumentVersion {
   id: string;
   version: string;
+  documentName: string;
   author: string;
   timestamp: string;
-  changes: string;
-  size: string;
+  changes: string[];
   status: 'current' | 'archived' | 'draft';
-  changeCount: number;
-  comment: string;
+  size: string;
+  checksum: string;
+  comments: string;
+  isMinor: boolean;
 }
 
-interface DocumentComparison {
+interface VersionComparison {
+  id: string;
   lineNumber: number;
-  type: 'added' | 'removed' | 'modified' | 'unchanged';
-  oldContent?: string;
-  newContent?: string;
+  type: 'added' | 'removed' | 'modified';
+  oldContent: string;
+  newContent: string;
 }
 
 export const DocumentVersionControl = () => {
@@ -44,99 +51,98 @@ export const DocumentVersionControl = () => {
 
   const documentVersions: DocumentVersion[] = [
     {
-      id: 'v1',
+      id: 'v-1',
       version: '3.2.1',
+      documentName: 'Patient Consent Form - Surgery Protocol',
       author: 'Dr. Smith',
       timestamp: '2024-01-22 14:30',
-      changes: 'Updated medication dosage in section 4',
-      size: '2.4 MB',
+      changes: ['Updated risk disclosure section', 'Added new signature field', 'Modified consent language'],
       status: 'current',
-      changeCount: 3,
-      comment: 'Revised based on latest clinical guidelines'
+      size: '2.4 MB',
+      checksum: 'a1b2c3d4e5f6',
+      comments: 'Updated based on legal review feedback',
+      isMinor: false
     },
     {
-      id: 'v2',
+      id: 'v-2',
       version: '3.2.0',
-      author: 'Nurse Johnson',
-      timestamp: '2024-01-21 11:15',
-      changes: 'Added patient allergy information',
+      documentName: 'Patient Consent Form - Surgery Protocol',
+      author: 'Legal Team',
+      timestamp: '2024-01-21 16:45',
+      changes: ['Legal compliance review', 'Updated terms and conditions'],
+      status: 'archived',
       size: '2.3 MB',
-      status: 'archived',
-      changeCount: 7,
-      comment: 'Emergency update for allergy documentation'
+      checksum: 'f6e5d4c3b2a1',
+      comments: 'Legal review complete',
+      isMinor: false
     },
     {
-      id: 'v3',
-      version: '3.1.5',
-      author: 'Dr. Williams',
-      timestamp: '2024-01-20 16:45',
-      changes: 'Initial discharge summary draft',
-      size: '2.1 MB',
+      id: 'v-3',
+      version: '3.1.2',
+      documentName: 'Patient Consent Form - Surgery Protocol',
+      author: 'Nurse Johnson',
+      timestamp: '2024-01-20 10:15',
+      changes: ['Minor formatting fixes', 'Corrected typos'],
       status: 'archived',
-      changeCount: 12,
-      comment: 'First complete draft'
-    },
-    {
-      id: 'v4',
-      version: '3.1.4',
-      author: 'Admin User',
-      timestamp: '2024-01-20 09:30',
-      changes: 'Template structure created',
-      size: '1.8 MB',
-      status: 'archived',
-      changeCount: 0,
-      comment: 'Initial template setup'
+      size: '2.3 MB',
+      checksum: 'b2a1f6e5d4c3',
+      comments: 'Formatting and typo corrections',
+      isMinor: true
     }
   ];
 
-  const comparisonData: DocumentComparison[] = [
-    { lineNumber: 1, type: 'unchanged', newContent: 'Patient Name: John Doe' },
-    { lineNumber: 2, type: 'unchanged', newContent: 'Date of Birth: 1985-05-15' },
-    { lineNumber: 3, type: 'modified', oldContent: 'Allergies: None known', newContent: 'Allergies: Penicillin, Shellfish' },
-    { lineNumber: 4, type: 'unchanged', newContent: 'Admission Date: 2024-01-18' },
-    { lineNumber: 5, type: 'added', newContent: 'Emergency Contact: Jane Doe (555-0123)' },
-    { lineNumber: 6, type: 'unchanged', newContent: 'Primary Diagnosis: Acute appendicitis' },
-    { lineNumber: 7, type: 'modified', oldContent: 'Medication: Ibuprofen 400mg', newContent: 'Medication: Ibuprofen 600mg' },
-    { lineNumber: 8, type: 'removed', oldContent: 'Previous medication: Aspirin' },
-    { lineNumber: 9, type: 'unchanged', newContent: 'Discharge Instructions: Rest and follow-up' }
+  const versionComparisons: VersionComparison[] = [
+    {
+      id: 'comp-1',
+      lineNumber: 15,
+      type: 'modified',
+      oldContent: 'I understand the risks associated with this procedure.',
+      newContent: 'I understand and acknowledge the risks associated with this medical procedure.'
+    },
+    {
+      id: 'comp-2',
+      lineNumber: 23,
+      type: 'added',
+      oldContent: '',
+      newContent: 'Patient signature must be witnessed by a qualified medical professional.'
+    },
+    {
+      id: 'comp-3',
+      lineNumber: 31,
+      type: 'removed',
+      oldContent: 'This consent is valid for 30 days from signing.',
+      newContent: ''
+    }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'current': return 'bg-green-100 text-green-800';
       case 'archived': return 'bg-gray-100 text-gray-800';
-      case 'draft': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getChangeTypeColor = (type: string) => {
     switch (type) {
-      case 'added': return 'bg-green-50 border-l-4 border-green-500 text-green-800';
-      case 'removed': return 'bg-red-50 border-l-4 border-red-500 text-red-800';
-      case 'modified': return 'bg-blue-50 border-l-4 border-blue-500 text-blue-800';
-      case 'unchanged': return 'bg-gray-50 border-l-4 border-gray-300 text-gray-600';
-      default: return 'bg-gray-50';
+      case 'added': return 'bg-green-50 border-l-4 border-green-400';
+      case 'removed': return 'bg-red-50 border-l-4 border-red-400';
+      case 'modified': return 'bg-blue-50 border-l-4 border-blue-400';
+      default: return 'bg-gray-50 border-l-4 border-gray-400';
     }
   };
 
-  const getChangeIcon = (type: string) => {
-    switch (type) {
-      case 'added': return Plus;
-      case 'removed': return Minus;
-      case 'modified': return Edit;
-      default: return FileText;
-    }
-  };
-
-  const handleVersionSelect = (versionId: string) => {
-    if (selectedVersions.includes(versionId)) {
-      setSelectedVersions(selectedVersions.filter(id => id !== versionId));
-    } else if (selectedVersions.length < 2) {
-      setSelectedVersions([...selectedVersions, versionId]);
-    } else {
-      setSelectedVersions([selectedVersions[1], versionId]);
-    }
+  const handleVersionSelection = (versionId: string) => {
+    setSelectedVersions(prev => {
+      if (prev.includes(versionId)) {
+        return prev.filter(id => id !== versionId);
+      } else if (prev.length < 2) {
+        return [...prev, versionId];
+      } else {
+        return [prev[1], versionId];
+      }
+    });
   };
 
   return (
@@ -147,17 +153,17 @@ export const DocumentVersionControl = () => {
           <p className="text-gray-600">Track changes, compare versions, and manage document history</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            disabled={selectedVersions.length !== 2}
-          >
-            <Compare className="h-4 w-4" />
-            Compare Selected
+          <Button variant="outline" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Version
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
             Create Branch
+          </Button>
+          <Button className="flex items-center gap-2">
+            <GitCommit className="h-4 w-4" />
+            New Version
           </Button>
         </div>
       </div>
@@ -165,188 +171,227 @@ export const DocumentVersionControl = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="versions">Version History</TabsTrigger>
-          <TabsTrigger value="compare">Document Comparison</TabsTrigger>
-          <TabsTrigger value="branches">Branches</TabsTrigger>
-          <TabsTrigger value="merge">Merge Requests</TabsTrigger>
+          <TabsTrigger value="compare">Compare Versions</TabsTrigger>
+          <TabsTrigger value="branches">Branch Management</TabsTrigger>
+          <TabsTrigger value="analytics">Version Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="versions">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Version History
-              </CardTitle>
-              <CardDescription>
-                Complete revision history with automated versioning and change tracking
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {documentVersions.map(version => (
-                  <div 
-                    key={version.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedVersions.includes(version.id) ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => handleVersionSelect(version.id)}
-                  >
+          <div className="space-y-4">
+            {documentVersions.map(version => (
+              <Card key={version.id} className={`transition-all ${selectedVersions.includes(version.id) ? 'ring-2 ring-blue-500' : ''}`}>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedVersions.includes(version.id)}
+                          onChange={() => handleVersionSelection(version.id)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <div>
+                          <h3 className="font-medium">{version.documentName}</h3>
+                          <p className="text-sm text-gray-600">Version {version.version}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(version.status)}>
+                          {version.status}
+                        </Badge>
+                        {!version.isMinor && (
+                          <Badge variant="outline">Major</Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <GitBranch className="h-5 w-5 text-gray-600" />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">v{version.version}</span>
-                              <Badge className={getStatusColor(version.status)}>
-                                {version.status}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-600">{version.changes}</p>
-                          </div>
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback>{version.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{version.author}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Clock className="h-4 w-4" />
+                          {version.timestamp}
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="text-right text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {version.author}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {version.timestamp}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{version.changeCount} changes</Badge>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-3 w-3" />
-                          </Button>
-                          {version.status !== 'current' && (
-                            <Button size="sm" variant="outline">
-                              <RotateCcw className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
+                      <div className="space-y-1 text-sm">
+                        <p><span className="font-medium">Size:</span> {version.size}</p>
+                        <p><span className="font-medium">Checksum:</span> {version.checksum}</p>
+                        <p><span className="font-medium">Changes:</span> {version.changes.length}</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Comments:</p>
+                        <p className="text-sm text-gray-600">{version.comments}</p>
                       </div>
                     </div>
-                    
-                    {version.comment && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
-                        <strong>Comment:</strong> {version.comment}
+
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Changes in this version:</h4>
+                      <div className="space-y-1">
+                        {version.changes.map((change, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <GitCommit className="h-3 w-3 text-blue-600" />
+                            <span>{change}</span>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        View
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                        <Download className="h-3 w-3" />
+                        Download
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                        <Rewind className="h-3 w-3" />
+                        Revert
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {selectedVersions.length === 2 && (
+            <div className="fixed bottom-6 right-6">
+              <Button className="flex items-center gap-2 shadow-lg">
+                <GitMerge className="h-4 w-4" />
+                Compare Selected Versions
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="compare">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Compare className="h-5 w-5" />
-                Document Comparison
-              </CardTitle>
-              <CardDescription>
-                Side-by-side comparison with change highlighting
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Comparing v3.2.1 (current) with v3.2.0</span>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="flex items-center gap-1">
-                      <Plus className="h-3 w-3 text-green-600" />
-                      2 additions
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Minus className="h-3 w-3 text-red-600" />
-                      1 deletion
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Edit className="h-3 w-3 text-blue-600" />
-                      2 modifications
-                    </span>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Version Comparison</CardTitle>
+                <CardDescription>Compare changes between document versions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Version A</label>
+                    <select className="w-full px-3 py-2 border rounded-md">
+                      <option>v3.2.1 (Current)</option>
+                      <option>v3.2.0</option>
+                      <option>v3.1.2</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Version B</label>
+                    <select className="w-full px-3 py-2 border rounded-md">
+                      <option>v3.2.0</option>
+                      <option>v3.1.2</option>
+                      <option>v3.1.1</option>
+                    </select>
                   </div>
                 </div>
                 
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {comparisonData.map((change, index) => {
-                    const ChangeIcon = getChangeIcon(change.type);
-                    return (
-                      <div key={index} className={`p-3 rounded ${getChangeTypeColor(change.type)}`}>
-                        <div className="flex items-start gap-3">
-                          <div className="flex items-center gap-2 min-w-[60px]">
-                            <ChangeIcon className="h-4 w-4" />
-                            <span className="text-xs font-mono">{change.lineNumber}</span>
-                          </div>
-                          
-                          <div className="flex-1 space-y-1">
-                            {change.type === 'modified' && change.oldContent && (
-                              <div className="text-sm line-through text-red-600">
-                                - {change.oldContent}
-                              </div>
-                            )}
-                            {change.type === 'removed' && change.oldContent && (
-                              <div className="text-sm line-through text-red-600">
-                                - {change.oldContent}
-                              </div>
-                            )}
-                            {change.newContent && (
-                              <div className={`text-sm ${
-                                change.type === 'added' ? 'text-green-600' : 
-                                change.type === 'modified' ? 'text-blue-600' : 
-                                'text-gray-600'
-                              }`}>
-                                {change.type !== 'unchanged' && change.type !== 'removed' ? '+ ' : '  '}
-                                {change.newContent}
-                              </div>
-                            )}
-                          </div>
+                <div className="space-y-4">
+                  <h4 className="font-medium">Changes Detected:</h4>
+                  <div className="space-y-3">
+                    {versionComparisons.map(comparison => (
+                      <div key={comparison.id} className={`p-4 rounded ${getChangeTypeColor(comparison.type)}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">Line {comparison.lineNumber}</span>
+                          <Badge variant="outline" className={
+                            comparison.type === 'added' ? 'bg-green-100 text-green-800' :
+                            comparison.type === 'removed' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }>
+                            {comparison.type}
+                          </Badge>
                         </div>
+                        
+                        {comparison.type === 'modified' && (
+                          <div className="space-y-2">
+                            <div className="bg-red-50 p-2 rounded text-sm">
+                              <span className="text-red-600 font-medium">- </span>
+                              {comparison.oldContent}
+                            </div>
+                            <div className="bg-green-50 p-2 rounded text-sm">
+                              <span className="text-green-600 font-medium">+ </span>
+                              {comparison.newContent}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {comparison.type === 'added' && (
+                          <div className="bg-green-50 p-2 rounded text-sm">
+                            <span className="text-green-600 font-medium">+ </span>
+                            {comparison.newContent}
+                          </div>
+                        )}
+                        
+                        {comparison.type === 'removed' && (
+                          <div className="bg-red-50 p-2 rounded text-sm">
+                            <span className="text-red-600 font-medium">- </span>
+                            {comparison.oldContent}
+                          </div>
+                        )}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="branches">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { name: 'main', status: 'active', commits: 23, lastUpdate: '2 hours ago' },
-              { name: 'emergency-updates', status: 'active', commits: 5, lastUpdate: '1 day ago' },
-              { name: 'template-revision', status: 'merged', commits: 8, lastUpdate: '3 days ago' },
-              { name: 'compliance-update', status: 'draft', commits: 2, lastUpdate: '5 days ago' }
+              { name: 'main', status: 'active', commits: 15, lastCommit: '2 hours ago' },
+              { name: 'legal-review', status: 'pending', commits: 3, lastCommit: '1 day ago' },
+              { name: 'format-updates', status: 'merged', commits: 7, lastCommit: '3 days ago' }
             ].map((branch, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow">
+              <Card key={index}>
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <GitBranch className="h-8 w-8 text-blue-600" />
-                      <Badge className={getStatusColor(branch.status)}>
+                      <div className="flex items-center gap-2">
+                        <GitBranch className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">{branch.name}</span>
+                      </div>
+                      <Badge className={
+                        branch.status === 'active' ? 'bg-green-100 text-green-800' :
+                        branch.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }>
                         {branch.status}
                       </Badge>
                     </div>
-                    <div>
-                      <h3 className="font-medium">{branch.name}</h3>
-                      <p className="text-sm text-gray-600">{branch.commits} commits</p>
-                      <p className="text-xs text-gray-500">Updated {branch.lastUpdate}</p>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Commits:</span>
+                        <span>{branch.commits}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Last commit:</span>
+                        <span>{branch.lastCommit}</span>
+                      </div>
                     </div>
+                    
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        Switch
+                      <Button size="sm" className="flex-1">
+                        {branch.status === 'pending' ? 'Merge' : 'Switch'}
                       </Button>
                       <Button size="sm" variant="outline">
                         <Eye className="h-3 w-3" />
@@ -359,54 +404,29 @@ export const DocumentVersionControl = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="merge">
-          <Card>
-            <CardHeader>
-              <CardTitle>Merge Requests</CardTitle>
-              <CardDescription>Review and manage branch merge requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { 
-                    title: 'Emergency allergy update merge', 
-                    from: 'emergency-updates', 
-                    to: 'main', 
-                    status: 'pending', 
-                    author: 'Nurse Johnson',
-                    changes: 5,
-                    created: '2 hours ago'
-                  },
-                  { 
-                    title: 'Template compliance updates', 
-                    from: 'compliance-update', 
-                    to: 'main', 
-                    status: 'approved', 
-                    author: 'Dr. Smith',
-                    changes: 3,
-                    created: '1 day ago'
-                  }
-                ].map((request, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { title: 'Total Versions', value: '47', icon: History },
+              { title: 'Active Branches', value: '3', icon: GitBranch },
+              { title: 'Contributors', value: '8', icon: Users }
+            ].map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={index}>
+                  <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">{request.title}</h4>
-                        <p className="text-sm text-gray-600">
-                          {request.from} → {request.to} • {request.changes} changes • by {request.author}
-                        </p>
+                        <p className="text-sm text-gray-600">{stat.title}</p>
+                        <p className="text-2xl font-bold">{stat.value}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(request.status)}>
-                          {request.status}
-                        </Badge>
-                        <Button size="sm" variant="outline">Review</Button>
-                      </div>
+                      <Icon className="h-8 w-8 text-blue-600" />
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
