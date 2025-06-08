@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   Search,
   Download,
-  Play
+  Play,
+  Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 
