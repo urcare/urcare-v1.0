@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,6 +32,7 @@ import { ReportGeneration } from './ReportGeneration';
 import { ReferenceRangeManagement } from './ReferenceRangeManagement';
 import { LabEfficiencyDashboard } from './LabEfficiencyDashboard';
 import { InventoryManagement } from './InventoryManagement';
+import { LabAnalyticsDashboard } from './analytics/LabAnalyticsDashboard';
 
 export const LIMSDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -100,7 +102,7 @@ export const LIMSDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-12 gap-1">
+        <TabsList className="grid w-full grid-cols-13 gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="samples">Samples</TabsTrigger>
           <TabsTrigger value="requisition">Requisition</TabsTrigger>
@@ -113,6 +115,7 @@ export const LIMSDashboard = () => {
           <TabsTrigger value="ranges">Ref Ranges</TabsTrigger>
           <TabsTrigger value="efficiency">Efficiency</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -305,6 +308,10 @@ export const LIMSDashboard = () => {
 
         <TabsContent value="inventory">
           <InventoryManagement />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <LabAnalyticsDashboard />
         </TabsContent>
       </Tabs>
     </div>

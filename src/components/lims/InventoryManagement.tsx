@@ -3,363 +3,334 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   Package, 
   AlertTriangle, 
   TrendingDown, 
-  Truck,
   ShoppingCart,
   BarChart3,
-  Calendar,
+  Clock,
   DollarSign,
-  Bell,
+  Truck,
   Settings,
-  Plus,
-  Filter,
   Download
 } from 'lucide-react';
 
 export const InventoryManagement = () => {
-  const [selectedCategory, setSelectedCategory] = useState('reagents');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const inventoryOverview = {
+    totalItems: 1247,
+    lowStockItems: 23,
+    expiringSoon: 15,
+    totalValue: 485600,
+    monthlyConsumption: 89450,
+    reorderAlerts: 12
+  };
 
   const inventoryItems = [
     {
       id: 'REG001',
-      name: 'Glucose Reagent Kit',
+      name: 'Chemistry Reagent Kit A',
       category: 'reagents',
-      currentStock: 45,
-      minStock: 50,
-      maxStock: 200,
-      unit: 'kits',
-      cost: 125.50,
-      supplier: 'LabCorp Supplies',
-      expiryDate: '2024-08-15',
-      lastOrdered: '2024-01-10',
-      usage: { daily: 8, weekly: 56, monthly: 240 },
-      status: 'low_stock'
+      currentStock: 15,
+      minimumStock: 20,
+      maximumStock: 100,
+      unitCost: 125.50,
+      supplier: 'BioChem Solutions',
+      expiryDate: '2024-06-15',
+      consumption: 8.5,
+      status: 'low'
     },
     {
       id: 'REG002',
-      name: 'Hemoglobin Analyzer Reagent',
-      category: 'reagents',
-      currentStock: 89,
-      minStock: 30,
-      maxStock: 150,
-      unit: 'bottles',
-      cost: 89.75,
-      supplier: 'MediTech Inc',
-      expiryDate: '2024-06-20',
-      lastOrdered: '2024-01-05',
-      usage: { daily: 4, weekly: 28, monthly: 120 },
-      status: 'adequate'
+      name: 'Hematology Control Serum',
+      category: 'controls',
+      currentStock: 45,
+      minimumStock: 30,
+      maximumStock: 80,
+      unitCost: 85.25,
+      supplier: 'Lab Supplies Inc',
+      expiryDate: '2024-08-20',
+      consumption: 12.3,
+      status: 'normal'
     },
     {
-      id: 'CON001',
+      id: 'SUP001',
       name: 'Sample Collection Tubes',
-      category: 'consumables',
-      currentStock: 2340,
-      minStock: 500,
-      maxStock: 5000,
-      unit: 'pieces',
-      cost: 0.45,
-      supplier: 'Medical Supplies Co',
+      category: 'supplies',
+      currentStock: 8,
+      minimumStock: 50,
+      maximumStock: 500,
+      unitCost: 0.75,
+      supplier: 'MedSupply Co',
       expiryDate: '2025-12-31',
-      lastOrdered: '2024-01-15',
-      usage: { daily: 150, weekly: 1050, monthly: 4500 },
-      status: 'adequate'
-    },
-    {
-      id: 'CON002',
-      name: 'Pipette Tips (1000μL)',
-      category: 'consumables',
-      currentStock: 89,
-      minStock: 200,
-      maxStock: 2000,
-      unit: 'boxes',
-      cost: 24.99,
-      supplier: 'Lab Equipment Pro',
-      expiryDate: 'N/A',
-      lastOrdered: '2023-12-20',
-      usage: { daily: 12, weekly: 84, monthly: 360 },
+      consumption: 45.2,
       status: 'critical'
     },
     {
-      id: 'EQP001',
-      name: 'Centrifuge Maintenance Kit',
-      category: 'equipment',
-      currentStock: 3,
-      minStock: 2,
-      maxStock: 10,
-      unit: 'kits',
-      cost: 450.00,
-      supplier: 'Equipment Services Ltd',
-      expiryDate: '2026-01-15',
-      lastOrdered: '2024-01-08',
-      usage: { daily: 0.1, weekly: 0.7, monthly: 3 },
-      status: 'adequate'
+      id: 'CAL001',
+      name: 'Multi-Parameter Calibrator',
+      category: 'calibrators',
+      currentStock: 12,
+      minimumStock: 10,
+      maximumStock: 25,
+      unitCost: 240.00,
+      supplier: 'Precision Labs',
+      expiryDate: '2024-04-30',
+      consumption: 3.8,
+      status: 'expiring'
+    },
+    {
+      id: 'REG003',
+      name: 'Immunoassay Buffer Solution',
+      category: 'reagents',
+      currentStock: 67,
+      minimumStock: 40,
+      maximumStock: 120,
+      unitCost: 95.75,
+      supplier: 'ImmunoTech Ltd',
+      expiryDate: '2024-09-15',
+      consumption: 15.7,
+      status: 'normal'
     }
   ];
 
   const suppliers = [
     {
-      name: 'LabCorp Supplies',
-      items: 15,
-      totalValue: 12450.50,
-      performance: 94.5,
-      avgDelivery: '3-5 days',
-      reliability: 'excellent'
+      name: 'BioChem Solutions',
+      contact: 'orders@biochemsol.com',
+      phone: '+1-555-0101',
+      rating: 4.8,
+      leadTime: 3,
+      reliability: 98.5,
+      totalOrders: 45,
+      averageDelivery: 2.8
     },
     {
-      name: 'MediTech Inc',
-      items: 8,
-      totalValue: 8920.25,
-      performance: 89.2,
-      avgDelivery: '5-7 days',
-      reliability: 'good'
+      name: 'Lab Supplies Inc',
+      contact: 'sales@labsupplies.com',
+      phone: '+1-555-0102',
+      rating: 4.6,
+      leadTime: 5,
+      reliability: 96.2,
+      totalOrders: 32,
+      averageDelivery: 4.2
     },
     {
-      name: 'Medical Supplies Co',
-      items: 22,
-      totalValue: 6780.90,
-      performance: 96.8,
-      avgDelivery: '2-4 days',
-      reliability: 'excellent'
+      name: 'MedSupply Co',
+      contact: 'support@medsupply.com',
+      phone: '+1-555-0103',
+      rating: 4.4,
+      leadTime: 7,
+      reliability: 94.8,
+      totalOrders: 28,
+      averageDelivery: 6.5
     },
     {
-      name: 'Lab Equipment Pro',
-      items: 12,
-      totalValue: 4560.75,
-      performance: 87.1,
-      avgDelivery: '7-10 days',
-      reliability: 'fair'
+      name: 'Precision Labs',
+      contact: 'info@precisionlabs.com',
+      phone: '+1-555-0104',
+      rating: 4.9,
+      leadTime: 2,
+      reliability: 99.1,
+      totalOrders: 18,
+      averageDelivery: 1.9
     }
   ];
 
-  const reorderAlerts = [
+  const consumptionAnalysis = [
+    { month: 'Jan', reagents: 78500, supplies: 12300, controls: 8900, calibrators: 15400 },
+    { month: 'Feb', reagents: 82100, supplies: 13800, controls: 9400, calibrators: 16200 },
+    { month: 'Mar', reagents: 89450, supplies: 15200, controls: 10100, calibrators: 17800 }
+  ];
+
+  const reorderRecommendations = [
     {
-      item: 'Pipette Tips (1000μL)',
-      currentStock: 89,
-      minStock: 200,
+      item: 'Sample Collection Tubes',
+      currentStock: 8,
+      recommendedOrder: 450,
+      estimatedCost: 337.50,
       urgency: 'critical',
-      estimatedRunout: '3 days',
-      suggestedOrder: 500,
-      cost: 12495.00
+      leadTime: 7,
+      supplier: 'MedSupply Co'
     },
     {
-      item: 'Glucose Reagent Kit',
-      currentStock: 45,
-      minStock: 50,
+      item: 'Chemistry Reagent Kit A',
+      currentStock: 15,
+      recommendedOrder: 85,
+      estimatedCost: 10667.50,
       urgency: 'high',
-      estimatedRunout: '6 days',
-      suggestedOrder: 100,
-      cost: 12550.00
+      leadTime: 3,
+      supplier: 'BioChem Solutions'
     },
     {
-      item: 'CBC Analyzer Reagent',
-      currentStock: 28,
-      minStock: 25,
+      item: 'Multi-Parameter Calibrator',
+      currentStock: 12,
+      recommendedOrder: 13,
+      estimatedCost: 3120.00,
       urgency: 'medium',
-      estimatedRunout: '12 days',
-      suggestedOrder: 75,
-      cost: 8925.00
+      leadTime: 2,
+      supplier: 'Precision Labs'
     }
   ];
 
-  const inventoryMetrics = {
-    totalValue: 156780.50,
-    lowStockItems: 8,
-    criticalItems: 3,
-    expiringItems: 5,
-    pendingOrders: 12,
-    monthlyConsumption: 45680.25
-  };
-
-  const costAnalytics = {
-    monthlySpend: 45680.25,
-    yearlyProjection: 548163.00,
-    topCategories: [
-      { name: 'Reagents', spend: 28450.50, percentage: 62.3 },
-      { name: 'Consumables', spend: 12890.75, percentage: 28.2 },
-      { name: 'Equipment', spend: 4339.00, percentage: 9.5 }
-    ]
-  };
+  const expiryAlerts = [
+    {
+      item: 'Multi-Parameter Calibrator',
+      expiryDate: '2024-04-30',
+      daysRemaining: 35,
+      currentStock: 12,
+      estimatedUsage: 15,
+      action: 'Increase usage rate'
+    },
+    {
+      item: 'Quality Control Serum',
+      expiryDate: '2024-05-15',
+      daysRemaining: 50,
+      currentStock: 8,
+      estimatedUsage: 6,
+      action: 'Stock will expire - use first'
+    },
+    {
+      item: 'Buffer Solution Type B',
+      expiryDate: '2024-06-15',
+      daysRemaining: 81,
+      currentStock: 25,
+      estimatedUsage: 30,
+      action: 'Normal consumption'
+    }
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
-          <p className="text-gray-600">Track supplies, manage reorders, and optimize inventory costs</p>
+          <p className="text-gray-600">Laboratory supply chain and inventory optimization</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export
+            Export Inventory
           </Button>
           <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Item
+            <ShoppingCart className="h-4 w-4" />
+            Create Purchase Order
           </Button>
         </div>
       </div>
 
-      {/* Inventory Metrics */}
+      {/* Inventory Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4 text-center">
             <Package className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-blue-900">${inventoryMetrics.totalValue.toLocaleString()}</p>
-            <p className="text-sm text-blue-700">Total Value</p>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-yellow-900">{inventoryMetrics.lowStockItems}</p>
-            <p className="text-sm text-yellow-700">Low Stock</p>
+            <p className="text-2xl font-bold text-blue-900">{inventoryOverview.totalItems}</p>
+            <p className="text-sm text-blue-700">Total Items</p>
           </CardContent>
         </Card>
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-4 text-center">
-            <TrendingDown className="h-8 w-8 text-red-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-red-900">{inventoryMetrics.criticalItems}</p>
-            <p className="text-sm text-red-700">Critical</p>
+            <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-red-900">{inventoryOverview.lowStockItems}</p>
+            <p className="text-sm text-red-700">Low Stock</p>
           </CardContent>
         </Card>
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-orange-900">{inventoryMetrics.expiringItems}</p>
+            <Clock className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-orange-900">{inventoryOverview.expiringSoon}</p>
             <p className="text-sm text-orange-700">Expiring Soon</p>
-          </CardContent>
-        </Card>
-        <Card className="border-purple-200 bg-purple-50">
-          <CardContent className="p-4 text-center">
-            <Truck className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-purple-900">{inventoryMetrics.pendingOrders}</p>
-            <p className="text-sm text-purple-700">Pending Orders</p>
           </CardContent>
         </Card>
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4 text-center">
             <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-900">${inventoryMetrics.monthlyConsumption.toLocaleString()}</p>
-            <p className="text-sm text-green-700">Monthly Usage</p>
+            <p className="text-2xl font-bold text-green-900">${inventoryOverview.totalValue.toLocaleString()}</p>
+            <p className="text-sm text-green-700">Total Value</p>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-200 bg-purple-50">
+          <CardContent className="p-4 text-center">
+            <TrendingDown className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-purple-900">${inventoryOverview.monthlyConsumption.toLocaleString()}</p>
+            <p className="text-sm text-purple-700">Monthly Usage</p>
+          </CardContent>
+        </Card>
+        <Card className="border-indigo-200 bg-indigo-50">
+          <CardContent className="p-4 text-center">
+            <ShoppingCart className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-indigo-900">{inventoryOverview.reorderAlerts}</p>
+            <p className="text-sm text-indigo-700">Reorder Alerts</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="inventory" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="inventory">Inventory Items</TabsTrigger>
-          <TabsTrigger value="reorders">Reorder Alerts</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="inventory">Current Inventory</TabsTrigger>
+          <TabsTrigger value="reorder">Reorder Alerts</TabsTrigger>
           <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
-          <TabsTrigger value="analytics">Cost Analytics</TabsTrigger>
+          <TabsTrigger value="consumption">Consumption</TabsTrigger>
+          <TabsTrigger value="expiry">Expiry Tracking</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-4">
-          {/* Category Filter */}
-          <div className="flex gap-2 mb-4">
-            {['reagents', 'consumables', 'equipment'].map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className="capitalize"
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-
           <Card>
             <CardHeader>
-              <CardTitle>Inventory Items</CardTitle>
-              <CardDescription>Current stock levels and item details</CardDescription>
+              <CardTitle>Current Inventory Status</CardTitle>
+              <CardDescription>Real-time inventory levels and stock status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {inventoryItems
-                  .filter(item => selectedCategory === 'all' || item.category === selectedCategory)
-                  .map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4">
+                {inventoryItems.map((item, index) => (
+                  <div key={index} className={`border rounded-lg p-4 ${
+                    item.status === 'critical' ? 'border-red-200 bg-red-50' :
+                    item.status === 'low' ? 'border-yellow-200 bg-yellow-50' :
+                    item.status === 'expiring' ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'
+                  }`}>
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Package className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                          <p className="text-sm text-gray-600">{item.id} • {item.supplier}</p>
-                        </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                        <p className="text-sm text-gray-600">{item.id} • {item.supplier}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`${
-                          item.status === 'critical' ? 'bg-red-500' :
-                          item.status === 'low_stock' ? 'bg-yellow-500' : 'bg-green-500'
-                        } text-white`}>
-                          {item.status.replace('_', ' ')}
-                        </Badge>
-                        <span className="text-lg font-bold text-gray-900">{item.currentStock} {item.unit}</span>
-                      </div>
+                      <Badge className={`${
+                        item.status === 'critical' ? 'bg-red-500' :
+                        item.status === 'low' ? 'bg-yellow-500' :
+                        item.status === 'expiring' ? 'bg-orange-500' : 'bg-green-500'
+                      } text-white`}>
+                        {item.status}
+                      </Badge>
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                       <div>
-                        <p className="text-sm text-gray-600">Min Stock</p>
-                        <p className="font-medium">{item.minStock} {item.unit}</p>
+                        <p className="text-sm text-gray-600">Current Stock</p>
+                        <p className="text-lg font-bold text-gray-900">{item.currentStock}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Max Stock</p>
-                        <p className="font-medium">{item.maxStock} {item.unit}</p>
+                        <p className="text-sm text-gray-600">Min Stock</p>
+                        <p className="text-sm font-medium text-gray-700">{item.minimumStock}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Unit Cost</p>
-                        <p className="font-medium">${item.cost}</p>
+                        <p className="text-sm font-medium text-gray-700">${item.unitCost}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Monthly Usage</p>
-                        <p className="font-medium">{item.usage.monthly} {item.unit}</p>
+                        <p className="text-sm text-gray-600">Expiry Date</p>
+                        <p className="text-sm font-medium text-gray-700">{item.expiryDate}</p>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Expires</p>
-                        <p className="font-medium">{item.expiryDate}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Stock Level</span>
-                        <span>{Math.round((item.currentStock / item.maxStock) * 100)}%</span>
-                      </div>
-                      <Progress 
-                        value={(item.currentStock / item.maxStock) * 100} 
-                        className={`h-2 ${
-                          item.currentStock <= item.minStock ? 'text-red-600' : 'text-green-600'
-                        }`} 
-                      />
                     </div>
 
-                    <div className="flex gap-2">
-                      {item.status !== 'adequate' && (
-                        <Button size="sm" variant="outline">
-                          <ShoppingCart className="h-4 w-4 mr-1" />
-                          Reorder
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline">
-                        <BarChart3 className="h-4 w-4 mr-1" />
-                        Usage History
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Stock Level</span>
+                        <span>{item.currentStock}/{item.maximumStock}</span>
+                      </div>
+                      <Progress value={(item.currentStock / item.maximumStock) * 100} className="h-2" />
                     </div>
                   </div>
                 ))}
@@ -368,75 +339,55 @@ export const InventoryManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="reorders" className="space-y-4">
+        <TabsContent value="reorder" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Reorder Alerts</CardTitle>
-              <CardDescription>Items requiring immediate or upcoming reorders</CardDescription>
+              <CardTitle>Reorder Recommendations</CardTitle>
+              <CardDescription>AI-powered reorder suggestions based on consumption patterns</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {reorderAlerts.map((alert, index) => (
-                  <div key={index} className={`border-l-4 p-4 rounded ${
-                    alert.urgency === 'critical' ? 'border-l-red-500 bg-red-50' :
-                    alert.urgency === 'high' ? 'border-l-yellow-500 bg-yellow-50' : 'border-l-blue-500 bg-blue-50'
+                {reorderRecommendations.map((rec, index) => (
+                  <div key={index} className={`border rounded-lg p-4 ${
+                    rec.urgency === 'critical' ? 'border-red-200 bg-red-50' :
+                    rec.urgency === 'high' ? 'border-yellow-200 bg-yellow-50' : 'border-blue-200 bg-blue-50'
                   }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{alert.item}</h4>
-                        <p className="text-sm text-gray-600">Current: {alert.currentStock} | Min: {alert.minStock}</p>
+                        <h4 className="font-semibold text-gray-900">{rec.item}</h4>
+                        <p className="text-sm text-gray-600">Supplier: {rec.supplier}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={`${
-                          alert.urgency === 'critical' ? 'bg-red-500' :
-                          alert.urgency === 'high' ? 'bg-yellow-500' : 'bg-blue-500'
-                        } text-white`}>
-                          {alert.urgency}
+                          rec.urgency === 'critical' ? 'bg-red-500' :
+                          rec.urgency === 'high' ? 'bg-yellow-500' : 'bg-blue-500'
+                        } text-white text-xs`}>
+                          {rec.urgency}
                         </Badge>
-                        <Bell className={`h-5 w-5 ${
-                          alert.urgency === 'critical' ? 'text-red-600' :
-                          alert.urgency === 'high' ? 'text-yellow-600' : 'text-blue-600'
-                        }`} />
+                        <Button size="sm">
+                          <ShoppingCart className="h-4 w-4 mr-1" />
+                          Order Now
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Estimated Runout</p>
-                        <p className="font-bold text-red-600">{alert.estimatedRunout}</p>
+                        <p className="text-sm text-gray-600">Current Stock</p>
+                        <p className="text-lg font-bold text-gray-900">{rec.currentStock}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Suggested Order</p>
-                        <p className="font-medium">{alert.suggestedOrder} units</p>
+                        <p className="text-sm text-gray-600">Recommended Order</p>
+                        <p className="text-lg font-bold text-blue-600">{rec.recommendedOrder}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Estimated Cost</p>
-                        <p className="font-medium">${alert.cost.toLocaleString()}</p>
+                        <p className="text-lg font-bold text-green-600">${rec.estimatedCost}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Priority</p>
-                        <p className={`font-bold ${
-                          alert.urgency === 'critical' ? 'text-red-600' :
-                          alert.urgency === 'high' ? 'text-yellow-600' : 'text-blue-600'
-                        }`}>
-                          {alert.urgency.toUpperCase()}
-                        </p>
+                        <p className="text-sm text-gray-600">Lead Time</p>
+                        <p className="text-sm font-medium text-gray-700">{rec.leadTime} days</p>
                       </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Order Now
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Schedule Order
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Adjust Thresholds
-                      </Button>
                     </div>
                   </div>
                 ))}
@@ -448,8 +399,8 @@ export const InventoryManagement = () => {
         <TabsContent value="suppliers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Supplier Performance</CardTitle>
-              <CardDescription>Track supplier reliability and performance metrics</CardDescription>
+              <CardTitle>Supplier Management</CardTitle>
+              <CardDescription>Supplier performance and contact information</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -458,59 +409,36 @@ export const InventoryManagement = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="font-semibold text-gray-900">{supplier.name}</h4>
-                        <p className="text-sm text-gray-600">{supplier.items} items • ${supplier.totalValue.toLocaleString()} total value</p>
+                        <p className="text-sm text-gray-600">{supplier.contact} • {supplier.phone}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={`${
-                          supplier.reliability === 'excellent' ? 'bg-green-500' :
-                          supplier.reliability === 'good' ? 'bg-blue-500' : 'bg-yellow-500'
-                        } text-white`}>
-                          {supplier.reliability}
+                        <Badge variant="outline" className="text-green-700 border-green-500">
+                          {supplier.rating}/5.0
                         </Badge>
-                        <span className="text-lg font-bold text-gray-900">{supplier.performance}%</span>
+                        <Button size="sm" variant="outline">
+                          <Truck className="h-4 w-4 mr-1" />
+                          Contact
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Items Supplied</p>
-                        <p className="text-xl font-bold text-blue-600">{supplier.items}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Value</p>
-                        <p className="text-xl font-bold text-green-600">${supplier.totalValue.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600">Lead Time</p>
+                        <p className="text-lg font-bold text-gray-900">{supplier.leadTime} days</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Performance</p>
-                        <p className="text-xl font-bold text-purple-600">{supplier.performance}%</p>
+                        <p className="text-sm text-gray-600">Reliability</p>
+                        <p className="text-lg font-bold text-green-600">{supplier.reliability}%</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Delivery Time</p>
-                        <p className="text-xl font-bold text-orange-600">{supplier.avgDelivery}</p>
+                        <p className="text-sm text-gray-600">Total Orders</p>
+                        <p className="text-lg font-bold text-blue-600">{supplier.totalOrders}</p>
                       </div>
-                    </div>
-                    
-                    <div className="mb-2">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Performance Score</span>
-                        <span>{supplier.performance}%</span>
+                      <div>
+                        <p className="text-sm text-gray-600">Avg Delivery</p>
+                        <p className="text-sm font-medium text-gray-700">{supplier.averageDelivery} days</p>
                       </div>
-                      <Progress value={supplier.performance} className="h-2" />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Place Order
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <BarChart3 className="h-4 w-4 mr-1" />
-                        View History
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Edit Details
-                      </Button>
                     </div>
                   </div>
                 ))}
@@ -519,77 +447,97 @@ export const InventoryManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cost Analysis</CardTitle>
-                <CardDescription>Spending breakdown and trends</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-3xl font-bold text-blue-900">${costAnalytics.monthlySpend.toLocaleString()}</p>
-                    <p className="text-sm text-blue-700">Monthly Spend</p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-3xl font-bold text-green-900">${costAnalytics.yearlyProjection.toLocaleString()}</p>
-                    <p className="text-sm text-green-700">Yearly Projection</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Spending by Category</h4>
-                    <div className="space-y-2">
-                      {costAnalytics.topCategories.map((category, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">{category.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">${category.spend.toLocaleString()}</span>
-                            <span className="text-xs text-gray-500">({category.percentage}%)</span>
-                          </div>
-                        </div>
-                      ))}
+        <TabsContent value="consumption" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Consumption Analysis</CardTitle>
+              <CardDescription>Monthly consumption trends by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {consumptionAnalysis.map((month, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-4">{month.month} 2024</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Reagents</p>
+                        <p className="text-xl font-bold text-blue-600">${month.reagents.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Supplies</p>
+                        <p className="text-xl font-bold text-green-600">${month.supplies.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Controls</p>
+                        <p className="text-xl font-bold text-purple-600">${month.controls.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Calibrators</p>
+                        <p className="text-xl font-bold text-orange-600">${month.calibrators.toLocaleString()}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Optimization Opportunities</CardTitle>
-                <CardDescription>Cost-saving recommendations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-1">Bulk Order Savings</h4>
-                    <p className="text-sm text-green-700">Consolidate orders to save 12% on shipping costs</p>
-                    <p className="text-xs text-green-600">Potential saving: $2,450/month</p>
+        <TabsContent value="expiry" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Expiry Tracking</CardTitle>
+              <CardDescription>Items approaching expiration and recommended actions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {expiryAlerts.map((alert, index) => (
+                  <div key={index} className={`border rounded-lg p-4 ${
+                    alert.daysRemaining < 30 ? 'border-red-200 bg-red-50' :
+                    alert.daysRemaining < 60 ? 'border-yellow-200 bg-yellow-50' : 'border-blue-200 bg-blue-50'
+                  }`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{alert.item}</h4>
+                        <p className="text-sm text-gray-600">Expires: {alert.expiryDate}</p>
+                      </div>
+                      <Badge className={`${
+                        alert.daysRemaining < 30 ? 'bg-red-500' :
+                        alert.daysRemaining < 60 ? 'bg-yellow-500' : 'bg-blue-500'
+                      } text-white text-xs`}>
+                        {alert.daysRemaining} days
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Current Stock</p>
+                        <p className="text-lg font-bold text-gray-900">{alert.currentStock}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Est. Usage</p>
+                        <p className="text-lg font-bold text-blue-600">{alert.estimatedUsage}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Days Remaining</p>
+                        <p className={`text-lg font-bold ${
+                          alert.daysRemaining < 30 ? 'text-red-600' :
+                          alert.daysRemaining < 60 ? 'text-yellow-600' : 'text-blue-600'
+                        }`}>
+                          {alert.daysRemaining}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 bg-white rounded border">
+                      <p className="text-sm font-medium text-gray-700">Recommended Action:</p>
+                      <p className="text-sm text-gray-600">{alert.action}</p>
+                    </div>
                   </div>
-                  
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-1">Alternative Suppliers</h4>
-                    <p className="text-sm text-blue-700">Switch to competitive suppliers for 3 items</p>
-                    <p className="text-xs text-blue-600">Potential saving: $1,890/month</p>
-                  </div>
-                  
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-900 mb-1">Expiry Reduction</h4>
-                    <p className="text-sm text-yellow-700">Optimize order quantities to reduce waste</p>
-                    <p className="text-xs text-yellow-600">Potential saving: $890/month</p>
-                  </div>
-                  
-                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-1">Usage Optimization</h4>
-                    <p className="text-sm text-purple-700">Implement lean inventory practices</p>
-                    <p className="text-xs text-purple-600">Potential saving: $1,230/month</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
