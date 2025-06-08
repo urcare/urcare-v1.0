@@ -1,4 +1,3 @@
-
 import { 
   Calendar, 
   CreditCard, 
@@ -14,7 +13,8 @@ import {
   Trash2,
   Shield,
   DollarSign,
-  Network
+  Network,
+  Monitor
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -102,5 +102,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/bio-waste",
     icon: Trash2,
     description: "Medical waste tracking and compliance"
+  },
+  {
+    title: "Device Integration",
+    url: "/device-integration",
+    icon: Monitor,
+    description: "Medical device management and IoT integration"
   }
 ];
