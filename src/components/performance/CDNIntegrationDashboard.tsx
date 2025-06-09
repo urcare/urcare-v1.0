@@ -83,7 +83,7 @@ export const CDNIntegrationDashboard = () => {
       hitRate: 87.1,
       traffic: 18
     }
-  ];
+  ]);
 
   const optimizeCDN = async () => {
     setIsOptimizing(true);
