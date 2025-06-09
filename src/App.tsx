@@ -56,6 +56,7 @@ import CommunicationSystems from "./pages/CommunicationSystems";
 import MobileOptimization from './pages/MobileOptimization';
 import PerformanceOptimization from "./pages/PerformanceOptimization";
 import AdvancedMobileFeatures from "./pages/AdvancedMobileFeatures";
+import CrossPlatformCompatibility from "./pages/CrossPlatformCompatibility";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -118,6 +119,7 @@ const App = () => (
               <Route path="/mobile-optimization" element={<MobileOptimization />} />
               <Route path="/performance-optimization" element={<PerformanceOptimization />} />
               <Route path="/advanced-mobile-features" element={<AdvancedMobileFeatures />} />
+              <Route path="/cross-platform-compatibility" element={<CrossPlatformCompatibility />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
