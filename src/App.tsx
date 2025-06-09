@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,6 +58,7 @@ import PerformanceOptimization from "./pages/PerformanceOptimization";
 import AdvancedMobileFeatures from "./pages/AdvancedMobileFeatures";
 import CrossPlatformCompatibility from "./pages/CrossPlatformCompatibility";
 import AdvancedSecurityFeatures from "./pages/AdvancedSecurityFeatures";
+import ComplianceManagement from "./pages/ComplianceManagement";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -121,6 +123,7 @@ const App = () => (
               <Route path="/advanced-mobile-features" element={<AdvancedMobileFeatures />} />
               <Route path="/cross-platform-compatibility" element={<CrossPlatformCompatibility />} />
               <Route path="/advanced-security-features" element={<AdvancedSecurityFeatures />} />
+              <Route path="/compliance-management" element={<ProtectedRoute><ComplianceManagement /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
