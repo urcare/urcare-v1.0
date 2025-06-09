@@ -53,6 +53,7 @@ import AdvancedResearchTools from "./pages/AdvancedResearchTools";
 import PublicHealthIntegration from "./pages/PublicHealthIntegration";
 import CommunicationSystems from "./pages/CommunicationSystems";
 import MobileOptimization from './pages/MobileOptimization';
+import PerformanceOptimization from "./pages/PerformanceOptimization";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -113,6 +114,7 @@ const App = () => (
               <Route path="/public-health-integration" element={<ProtectedRoute><PublicHealthIntegration /></ProtectedRoute>} />
               <Route path="/communication-systems" element={<ProtectedRoute><CommunicationSystems /></ProtectedRoute>} />
               <Route path="/mobile-optimization" element={<MobileOptimization />} />
+              <Route path="/performance-optimization" element={<PerformanceOptimization />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

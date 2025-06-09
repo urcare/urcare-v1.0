@@ -16,7 +16,8 @@ import {
   Network,
   Monitor,
   MessageSquare,
-  Smartphone
+  Smartphone,
+  Zap
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -122,5 +123,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/mobile-optimization",
     icon: Smartphone,
     description: "PWA, offline functionality, and mobile features"
+  },
+  {
+    title: "Performance Optimization",
+    url: "/performance-optimization",
+    icon: Zap,
+    description: "Intelligent optimization, caching, and performance monitoring"
   }
 ];
