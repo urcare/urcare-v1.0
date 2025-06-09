@@ -19,7 +19,7 @@ import {
   Watch,
   Shield,
   BarChart3,
-  Sync
+  RefreshCw
 } from 'lucide-react';
 
 export const CrossPlatformDashboard = () => {
@@ -108,7 +108,7 @@ export const CrossPlatformDashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Sync className="h-6 w-6 text-blue-600" />
+        <RefreshCw className="h-6 w-6 text-blue-600" />
         <h1 className="text-2xl font-bold">Cross-Platform Compatibility</h1>
       </div>
 

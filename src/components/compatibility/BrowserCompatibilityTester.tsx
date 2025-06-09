@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Chrome, 
-  Firefox, 
-  Edge, 
-  Safari, 
-  Globe,
+  Globe, 
+  Monitor,
   CheckCircle,
   XCircle,
   AlertTriangle,
@@ -57,7 +54,7 @@ export const BrowserCompatibilityTester = () => {
       id: 'firefox',
       name: 'Firefox',
       version: '120.0',
-      icon: Firefox,
+      icon: Globe,
       compatibility: 95,
       status: 'passed',
       issues: ['Minor CSS grid issues'],
@@ -73,7 +70,7 @@ export const BrowserCompatibilityTester = () => {
       id: 'safari',
       name: 'Safari',
       version: '17.0',
-      icon: Safari,
+      icon: Monitor,
       compatibility: 88,
       status: 'warning',
       issues: ['WebRTC limitations', 'Service Worker restrictions'],
@@ -89,7 +86,7 @@ export const BrowserCompatibilityTester = () => {
       id: 'edge',
       name: 'Edge',
       version: '119.0',
-      icon: Edge,
+      icon: Globe,
       compatibility: 96,
       status: 'passed',
       issues: ['Minor video codec issues'],

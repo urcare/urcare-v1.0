@@ -7,7 +7,7 @@ import {
   Eye,
   Watch,
   Workflow,
-  Sync
+  RefreshCw
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -21,7 +21,7 @@ export const mobileMenuItems: MenuItem[] = [
   {
     title: "Cross-Platform Compatibility",
     url: "/cross-platform-compatibility",
-    icon: Sync,
+    icon: RefreshCw,
     description: "Browser testing, mobile apps, tablets, kiosk mode, smart TV, smartwatch"
   }
 ];
