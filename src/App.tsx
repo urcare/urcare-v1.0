@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -63,6 +62,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import RiskManagement from "./pages/RiskManagement";
 import DataGovernance from "./pages/DataGovernance";
 import AdvancedAIDiagnostics from "./pages/AdvancedAIDiagnostics";
+import PredictiveMaintenanceAI from "./pages/PredictiveMaintenanceAI";
 
 const queryClient = new QueryClient();
 
@@ -130,6 +130,7 @@ const App = () => (
               <Route path="/risk-management" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />
               <Route path="/data-governance" element={<ProtectedRoute><DataGovernance /></ProtectedRoute>} />
               <Route path="/advanced-ai-diagnostics" element={<ProtectedRoute><AdvancedAIDiagnostics /></ProtectedRoute>} />
+              <Route path="/predictive-maintenance-ai" element={<ProtectedRoute><PredictiveMaintenanceAI /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
