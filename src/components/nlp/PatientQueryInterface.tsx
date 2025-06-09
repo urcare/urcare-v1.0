@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,9 +15,19 @@ import {
   Heart
 } from 'lucide-react';
 
+interface ChatMessage {
+  id: number;
+  type: 'patient' | 'ai';
+  message: string;
+  timestamp: string;
+  sentiment?: string;
+  confidence?: number;
+  escalated?: boolean;
+}
+
 export const PatientQueryInterface = () => {
   const [currentMessage, setCurrentMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState([
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       id: 1,
       type: 'patient',
@@ -76,7 +85,7 @@ export const PatientQueryInterface = () => {
   const sendMessage = () => {
     if (!currentMessage.trim()) return;
     
-    const newMessage = {
+    const newMessage: ChatMessage = {
       id: chatHistory.length + 1,
       type: 'patient',
       message: currentMessage,
@@ -89,18 +98,19 @@ export const PatientQueryInterface = () => {
     
     // Simulate AI response
     setTimeout(() => {
-      const aiResponse = {
+      const aiResponse: ChatMessage = {
         id: chatHistory.length + 2,
         type: 'ai',
         message: 'Thank you for your message. I\'m analyzing your query and will provide assistance shortly.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        confidence: 92.3
+        confidence: 92.3,
+        escalated: false
       };
       setChatHistory(prev => [...prev, aiResponse]);
     }, 1500);
   };
 
-  const getSentimentColor = (sentiment) => {
+  const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-green-600';
       case 'concerned': return 'text-red-600';
@@ -109,7 +119,7 @@ export const PatientQueryInterface = () => {
     }
   };
 
-  const getUrgencyColor = (urgency) => {
+  const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case 'high': return 'bg-red-100 text-red-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';

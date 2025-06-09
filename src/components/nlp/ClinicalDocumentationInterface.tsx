@@ -164,7 +164,7 @@ export const ClinicalDocumentationInterface = () => {
                       <div className="font-medium text-sm text-blue-600 uppercase tracking-wide mb-1">
                         {key.replace(/_/g, ' ')}
                       </div>
-                      <div className="text-gray-700">{value}</div>
+                      <div className="text-gray-700">{String(value)}</div>
                     </div>
                   ))}
                 </div>
