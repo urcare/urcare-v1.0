@@ -27,10 +27,12 @@ export const useOfflineSync = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Register for background sync if supported
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+    // Register service worker for background sync if supported
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
-        return registration.sync.register('background-sync');
+        // Note: Background sync is not yet widely supported
+        // This is a placeholder for when it becomes available
+        console.log('Service Worker ready for background sync');
       });
     }
 

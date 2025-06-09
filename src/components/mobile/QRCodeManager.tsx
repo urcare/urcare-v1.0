@@ -17,9 +17,11 @@ import {
 import { BarcodeScanner } from '@/components/documents/BarcodeScanner';
 import { toast } from 'sonner';
 
+type QRCodeType = 'patient' | 'medication' | 'equipment' | 'document';
+
 interface QRScanResult {
   id: string;
-  type: 'patient' | 'medication' | 'equipment' | 'document';
+  type: QRCodeType;
   data: any;
   timestamp: number;
   verified: boolean;
@@ -63,7 +65,7 @@ export const QRCodeManager = () => {
     }
   };
 
-  const processQRCode = async (qrData: string): Promise<{type: string, data: any, verified: boolean}> => {
+  const processQRCode = async (qrData: string): Promise<{type: QRCodeType, data: any, verified: boolean}> => {
     // Simulate QR code processing
     await new Promise(resolve => setTimeout(resolve, 1500));
     
@@ -125,7 +127,7 @@ export const QRCodeManager = () => {
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: QRCodeType) => {
     switch (type) {
       case 'patient': return User;
       case 'medication': return Pill;
@@ -135,7 +137,7 @@ export const QRCodeManager = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: QRCodeType) => {
     switch (type) {
       case 'patient': return 'bg-blue-100 text-blue-800';
       case 'medication': return 'bg-green-100 text-green-800';
