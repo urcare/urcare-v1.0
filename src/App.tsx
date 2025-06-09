@@ -64,6 +64,7 @@ import DataGovernance from "./pages/DataGovernance";
 import AdvancedAIDiagnostics from "./pages/AdvancedAIDiagnostics";
 import PredictiveMaintenanceAI from "./pages/PredictiveMaintenanceAI";
 import NaturalLanguageProcessing from "./pages/NaturalLanguageProcessing";
+import AdvancedAutomation from "./pages/AdvancedAutomation";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +134,7 @@ const App = () => (
               <Route path="/advanced-ai-diagnostics" element={<ProtectedRoute><AdvancedAIDiagnostics /></ProtectedRoute>} />
               <Route path="/predictive-maintenance-ai" element={<ProtectedRoute><PredictiveMaintenanceAI /></ProtectedRoute>} />
               <Route path="/natural-language-processing" element={<ProtectedRoute><NaturalLanguageProcessing /></ProtectedRoute>} />
+              <Route path="/advanced-automation" element={<ProtectedRoute><AdvancedAutomation /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
