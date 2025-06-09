@@ -60,6 +60,7 @@ import AdvancedSecurityFeatures from "./pages/AdvancedSecurityFeatures";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import RiskManagement from "./pages/RiskManagement";
+import DataGovernance from "./pages/DataGovernance";
 
 const queryClient = new QueryClient();
 
@@ -125,6 +126,7 @@ const App = () => (
               <Route path="/advanced-security-features" element={<AdvancedSecurityFeatures />} />
               <Route path="/compliance-management" element={<ProtectedRoute><ComplianceManagement /></ProtectedRoute>} />
               <Route path="/risk-management" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />
+              <Route path="/data-governance" element={<ProtectedRoute><DataGovernance /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
