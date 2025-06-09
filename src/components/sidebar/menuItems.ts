@@ -1,4 +1,3 @@
-
 import { LucideIcon } from "lucide-react"
 import { coreMenuItems } from './menuCategories/coreItems'
 import { analyticsMenuItems } from './menuCategories/analyticsItems'
@@ -8,6 +7,7 @@ import { aiMenuItems } from './menuCategories/aiItems'
 import { hrMenuItems } from './menuCategories/hrItems'
 import { patientWellnessMenuItems } from './menuCategories/patientWellnessItems'
 import { mobileMenuItems } from './menuCategories/mobileItems'
+import { securityMenuItems } from './menuCategories/securityItems'
 
 export interface MenuItem {
   title: string;
@@ -24,5 +24,9 @@ export const menuItems: MenuItem[] = [
   ...aiMenuItems,
   ...hrMenuItems,
   ...patientWellnessMenuItems,
+  {
+    category: "Security & Compliance",
+    items: securityMenuItems
+  },
   ...mobileMenuItems,
 ];
