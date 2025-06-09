@@ -1,4 +1,3 @@
-
 import { 
   Calendar, 
   CreditCard, 
@@ -16,7 +15,8 @@ import {
   DollarSign,
   Network,
   Monitor,
-  MessageSquare
+  MessageSquare,
+  Smartphone
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -116,5 +116,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/communication-systems",
     icon: MessageSquare,
     description: "Comprehensive communication and telemedicine platform"
+  },
+  {
+    title: "Mobile Optimization",
+    url: "/mobile-optimization",
+    icon: Smartphone,
+    description: "PWA, offline functionality, and mobile features"
   }
 ];
