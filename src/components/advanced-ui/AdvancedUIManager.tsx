@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,7 @@ import {
   Accessibility, 
   Globe, 
   Mic,
-  Gesture,
+  Hand,
   Layout,
   Sparkles
 } from 'lucide-react';
@@ -24,7 +23,7 @@ export const AdvancedUIManager = () => {
     { id: 'accessibility', name: 'Accessibility', icon: Accessibility, status: 'active', completion: 87 },
     { id: 'language', name: 'Multi-Language', icon: Globe, status: 'active', completion: 92 },
     { id: 'voice', name: 'Voice Navigation', icon: Mic, status: 'beta', completion: 78 },
-    { id: 'gesture', name: 'Gesture Controls', icon: Gesture, status: 'planned', completion: 0 },
+    { id: 'gesture', name: 'Gesture Controls', icon: Hand, status: 'planned', completion: 0 },
     { id: 'dashboard', name: 'Custom Dashboards', icon: Layout, status: 'planned', completion: 0 }
   ];
 
