@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -54,6 +55,7 @@ import PublicHealthIntegration from "./pages/PublicHealthIntegration";
 import CommunicationSystems from "./pages/CommunicationSystems";
 import MobileOptimization from './pages/MobileOptimization';
 import PerformanceOptimization from "./pages/PerformanceOptimization";
+import AdvancedMobileFeatures from "./pages/AdvancedMobileFeatures";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -115,6 +117,7 @@ const App = () => (
               <Route path="/communication-systems" element={<ProtectedRoute><CommunicationSystems /></ProtectedRoute>} />
               <Route path="/mobile-optimization" element={<MobileOptimization />} />
               <Route path="/performance-optimization" element={<PerformanceOptimization />} />
+              <Route path="/advanced-mobile-features" element={<AdvancedMobileFeatures />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

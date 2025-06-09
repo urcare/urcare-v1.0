@@ -7,6 +7,7 @@ import { wasteAndSafetyMenuItems } from './menuCategories/wasteAndSafetyItems'
 import { aiMenuItems } from './menuCategories/aiItems'
 import { hrMenuItems } from './menuCategories/hrItems'
 import { patientWellnessMenuItems } from './menuCategories/patientWellnessItems'
+import { mobileMenuItems } from './menuCategories/mobileItems'
 
 export interface MenuItem {
   title: string;
@@ -23,4 +24,5 @@ export const menuItems: MenuItem[] = [
   ...aiMenuItems,
   ...hrMenuItems,
   ...patientWellnessMenuItems,
+  ...mobileMenuItems,
 ];
