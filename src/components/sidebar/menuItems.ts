@@ -1,3 +1,4 @@
+
 import { LucideIcon } from "lucide-react"
 import { coreMenuItems } from './menuCategories/coreItems'
 import { analyticsMenuItems } from './menuCategories/analyticsItems'
@@ -24,9 +25,6 @@ export const menuItems: MenuItem[] = [
   ...aiMenuItems,
   ...hrMenuItems,
   ...patientWellnessMenuItems,
-  {
-    category: "Security & Compliance",
-    items: securityMenuItems
-  },
+  ...securityMenuItems,
   ...mobileMenuItems,
 ];
