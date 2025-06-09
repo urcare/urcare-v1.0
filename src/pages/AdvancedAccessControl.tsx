@@ -1,9 +1,12 @@
 
 import React from 'react';
-import { AdvancedAccessControlDashboard } from '@/components/visitor/advanced/AdvancedAccessControlDashboard';
+import { Layout } from '@/components/Layout';
+import { AdvancedAccessControlDashboard } from '@/components/access-control/AdvancedAccessControlDashboard';
 
-const AdvancedAccessControl = () => {
-  return <AdvancedAccessControlDashboard />;
-};
-
-export default AdvancedAccessControl;
+export default function AdvancedAccessControl() {
+  return (
+    <Layout>
+      <AdvancedAccessControlDashboard />
+    </Layout>
+  );
+}

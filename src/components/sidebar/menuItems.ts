@@ -11,6 +11,7 @@ import { mobileMenuItems } from './menuCategories/mobileItems'
 import { securityMenuItems } from './menuCategories/securityItems'
 import { complianceMenuItems } from './menuCategories/complianceItems'
 import { riskManagementMenuItems } from './menuCategories/riskManagementItems'
+import { accessControlMenuItems } from './menuCategories/accessControlItems'
 
 export interface MenuItem {
   title: string;
@@ -30,5 +31,6 @@ export const menuItems: MenuItem[] = [
   ...securityMenuItems,
   ...complianceMenuItems,
   ...riskManagementMenuItems,
+  ...accessControlMenuItems,
   ...mobileMenuItems,
 ];
