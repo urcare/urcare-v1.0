@@ -17,11 +17,18 @@ import {
   Monitor,
   MessageSquare,
   Smartphone,
-  Zap
+  Zap,
+  BarChart3
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
 export const coreMenuItems: MenuItem[] = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: BarChart3,
+    description: "Main overview and key metrics"
+  },
   {
     title: "Appointments",
     url: "/appointments",
@@ -129,5 +136,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/performance-optimization",
     icon: Zap,
     description: "Intelligent optimization, caching, and performance monitoring"
+  },
+  {
+    title: "Performance Monitoring",
+    url: "/performance-monitoring", 
+    icon: Monitor,
+    description: "Real-time system monitoring with comprehensive analytics and alerting"
   }
 ];

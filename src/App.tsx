@@ -1,163 +1,90 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import ProfileManagement from "./pages/ProfileManagement";
-import NotFound from "./pages/NotFound";
-import Appointments from "./pages/Appointments";
-import Billing from "./pages/Billing";
-import Documents from "./pages/Documents";
-import Emergency from "./pages/Emergency";
-import Community from "./pages/Community";
-import Engagement from "./pages/Engagement";
-import HealthTwin from "./pages/HealthTwin";
-import Wellness from "./pages/Wellness";
-import EmotionalHealth from "./pages/EmotionalHealth";
-import Onboarding from "./pages/Onboarding";
-import Ward from "./pages/Ward";
-import Pharmacy from "./pages/Pharmacy";
-import LIMS from "./pages/LIMS";
-import RIS from "./pages/RIS";
-import Pathology from "./pages/Pathology";
-import SystemIntegration from "./pages/SystemIntegration";
-import DeviceIntegration from "./pages/DeviceIntegration";
-import PatientJourney from "./pages/PatientJourney";
-import HRManagement from "./pages/HRManagement";
-import HRAnalytics from "./pages/HRAnalytics";
-import BioWasteManagement from "./pages/BioWasteManagement";
-import TPA from "./pages/TPA";
-import Insurance from "./pages/Insurance";
-import VisitorControl from "./pages/VisitorControl";
-import AdvancedAccessControl from "./pages/AdvancedAccessControl";
-import HospitalAnalytics from "./pages/HospitalAnalytics";
-import ClinicalAnalytics from "./pages/ClinicalAnalytics";
-import PredictiveClinicalAI from "./pages/PredictiveClinicalAI";
-import ClinicalDecisionSupport from "./pages/ClinicalDecisionSupport";
-import ClinicalOptimization from "./pages/ClinicalOptimization";
-import TreatmentProtocolAI from "./pages/TreatmentProtocolAI";
-import WorkflowAutomationAI from "./pages/WorkflowAutomationAI";
-import AdvancedWorkflowAI from "./pages/AdvancedWorkflowAI";
-import ProcessOptimizationAI from "./pages/ProcessOptimizationAI";
-import MentalHealthAI from "./pages/MentalHealthAI";
-import EmotionalRetentionAI from "./pages/EmotionalRetentionAI";
-import ContentEngagementAI from "./pages/ContentEngagementAI";
-import IntelligentContent from "./pages/IntelligentContent";
-import SafetyComplianceAI from "./pages/SafetyComplianceAI";
-import ResearchDataManagement from "./pages/ResearchDataManagement";
-import AdvancedResearchTools from "./pages/AdvancedResearchTools";
-import PublicHealthIntegration from "./pages/PublicHealthIntegration";
-import CommunicationSystems from "./pages/CommunicationSystems";
-import MobileOptimization from './pages/MobileOptimization';
-import PerformanceOptimization from "./pages/PerformanceOptimization";
-import AdvancedMobileFeatures from "./pages/AdvancedMobileFeatures";
-import CrossPlatformCompatibility from "./pages/CrossPlatformCompatibility";
-import AdvancedSecurityFeatures from "./pages/AdvancedSecurityFeatures";
-import ComplianceManagement from "./pages/ComplianceManagement";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import RiskManagement from "./pages/RiskManagement";
-import DataGovernance from "./pages/DataGovernance";
-import AdvancedAIDiagnostics from "./pages/AdvancedAIDiagnostics";
-import PredictiveMaintenanceAI from "./pages/PredictiveMaintenanceAI";
-import NaturalLanguageProcessing from "./pages/NaturalLanguageProcessing";
-import AdvancedAutomation from "./pages/AdvancedAutomation";
-import Telemedicine from "./pages/Telemedicine";
-import PediatricCare from "./pages/PediatricCare";
-import MentalHealth from "./pages/MentalHealth";
-import GeriatricCare from "./pages/GeriatricCare";
-import OncologyCare from "./pages/OncologyCare";
-import EmergencyMedicine from "./pages/EmergencyMedicine";
-import SurgicalServices from "./pages/SurgicalServices";
-import RehabilitationServices from "./pages/RehabilitationServices";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ThemeProvider } from './components/ui/theme-provider';
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from './context/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import HospitalAnalytics from './pages/HospitalAnalytics';
+import ClinicalAnalytics from './pages/ClinicalAnalytics';
+import HRAnalytics from './pages/HRAnalytics';
+import DataSecurityCompliance from './pages/DataSecurityCompliance';
+import RiskAssessmentManagement from './pages/RiskAssessmentManagement';
+import AccessControl from './pages/AccessControl';
+import DataGovernance from './pages/DataGovernance';
+import AIAdoptionRoadmap from './pages/AIAdoptionRoadmap';
+import AIDiagnostics from './pages/AIDiagnostics';
+import PredictiveMaintenance from './pages/PredictiveMaintenance';
+import NaturalLanguageProcessing from './pages/NaturalLanguageProcessing';
+import AdvancedAutomation from './pages/AdvancedAutomation';
+import TelemedicineSolutions from './pages/TelemedicineSolutions';
+import PediatricCare from './pages/PediatricCare';
+import MentalHealthSupport from './pages/MentalHealthSupport';
+import GeriatricCare from './pages/GeriatricCare';
+import OncologyCare from './pages/OncologyCare';
+import EmergencyMedicine from './pages/EmergencyMedicine';
+import SurgicalServices from './pages/SurgicalServices';
+import RehabilitationServices from './pages/RehabilitationServices';
+import MobileHealthSolutions from './pages/MobileHealthSolutions';
+import WasteManagement from './pages/WasteManagement';
+import SecurityAudits from './pages/SecurityAudits';
+import ComplianceTraining from './pages/ComplianceTraining';
+import PerformanceOptimization from './pages/PerformanceOptimization';
+import { QueryClient } from '@tanstack/react-query';
+import PerformanceMonitoring from './pages/PerformanceMonitoring';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SidebarProvider>
-      <TooltipProvider>
+function App() {
+  return (
+    <QueryClient>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
+        <AuthProvider>
+          <Router>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>} />
-              <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
-              <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-              <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-              <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
-              <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-              <Route path="/engagement" element={<ProtectedRoute><Engagement /></ProtectedRoute>} />
-              <Route path="/health-twin" element={<ProtectedRoute><HealthTwin /></ProtectedRoute>} />
-              <Route path="/wellness" element={<ProtectedRoute><Wellness /></ProtectedRoute>} />
-              <Route path="/emotional-health" element={<ProtectedRoute><EmotionalHealth /></ProtectedRoute>} />
-              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-              <Route path="/ward" element={<ProtectedRoute><Ward /></ProtectedRoute>} />
-              <Route path="/pharmacy" element={<ProtectedRoute><Pharmacy /></ProtectedRoute>} />
-              <Route path="/lims" element={<ProtectedRoute><LIMS /></ProtectedRoute>} />
-              <Route path="/ris" element={<ProtectedRoute><RIS /></ProtectedRoute>} />
-              <Route path="/pathology" element={<ProtectedRoute><Pathology /></ProtectedRoute>} />
-              <Route path="/system-integration" element={<ProtectedRoute><SystemIntegration /></ProtectedRoute>} />
-              <Route path="/device-integration" element={<ProtectedRoute><DeviceIntegration /></ProtectedRoute>} />
-              <Route path="/patient-journey" element={<ProtectedRoute><PatientJourney /></ProtectedRoute>} />
-              <Route path="/hr-management" element={<ProtectedRoute><HRManagement /></ProtectedRoute>} />
-              <Route path="/hr-analytics" element={<ProtectedRoute><HRAnalytics /></ProtectedRoute>} />
-              <Route path="/bio-waste" element={<ProtectedRoute><BioWasteManagement /></ProtectedRoute>} />
-              <Route path="/tpa" element={<ProtectedRoute><TPA /></ProtectedRoute>} />
-              <Route path="/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
-              <Route path="/visitor-control" element={<ProtectedRoute><VisitorControl /></ProtectedRoute>} />
-              <Route path="/advanced-access-control" element={<ProtectedRoute><AdvancedAccessControl /></ProtectedRoute>} />
-              <Route path="/hospital-analytics" element={<ProtectedRoute><HospitalAnalytics /></ProtectedRoute>} />
-              <Route path="/clinical-analytics" element={<ProtectedRoute><ClinicalAnalytics /></ProtectedRoute>} />
-              <Route path="/predictive-clinical-ai" element={<ProtectedRoute><PredictiveClinicalAI /></ProtectedRoute>} />
-              <Route path="/clinical-decision-support" element={<ProtectedRoute><ClinicalDecisionSupport /></ProtectedRoute>} />
-              <Route path="/clinical-optimization" element={<ProtectedRoute><ClinicalOptimization /></ProtectedRoute>} />
-              <Route path="/treatment-protocol-ai" element={<ProtectedRoute><TreatmentProtocolAI /></ProtectedRoute>} />
-              <Route path="/workflow-automation-ai" element={<ProtectedRoute><WorkflowAutomationAI /></ProtectedRoute>} />
-              <Route path="/advanced-workflow-ai" element={<ProtectedRoute><AdvancedWorkflowAI /></ProtectedRoute>} />
-              <Route path="/process-optimization-ai" element={<ProtectedRoute><ProcessOptimizationAI /></ProtectedRoute>} />
-              <Route path="/mental-health-ai" element={<ProtectedRoute><MentalHealthAI /></ProtectedRoute>} />
-              <Route path="/emotional-retention-ai" element={<ProtectedRoute><EmotionalRetentionAI /></ProtectedRoute>} />
-              <Route path="/content-engagement-ai" element={<ProtectedRoute><ContentEngagementAI /></ProtectedRoute>} />
-              <Route path="/intelligent-content" element={<ProtectedRoute><IntelligentContent /></ProtectedRoute>} />
-              <Route path="/safety-compliance-ai" element={<ProtectedRoute><SafetyComplianceAI /></ProtectedRoute>} />
-              <Route path="/research-data-management" element={<ProtectedRoute><ResearchDataManagement /></ProtectedRoute>} />
-              <Route path="/advanced-research-tools" element={<ProtectedRoute><AdvancedResearchTools /></ProtectedRoute>} />
-              <Route path="/public-health-integration" element={<ProtectedRoute><PublicHealthIntegration /></ProtectedRoute>} />
-              <Route path="/communication-systems" element={<ProtectedRoute><CommunicationSystems /></ProtectedRoute>} />
-              <Route path="/mobile-optimization" element={<MobileOptimization />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/hospital-analytics" element={<HospitalAnalytics />} />
+              <Route path="/clinical-analytics" element={<ClinicalAnalytics />} />
+              <Route path="/hr-analytics" element={<HRAnalytics />} />
+              <Route path="/data-security-compliance" element={<DataSecurityCompliance />} />
+              <Route path="/risk-assessment-management" element={<RiskAssessmentManagement />} />
+              <Route path="/access-control" element={<AccessControl />} />
+              <Route path="/data-governance" element={<DataGovernance />} />
+              <Route path="/ai-adoption-roadmap" element={<AIAdoptionRoadmap />} />
+              <Route path="/ai-diagnostics" element={<AIDiagnostics />} />
+              <Route path="/predictive-maintenance" element={<PredictiveMaintenance />} />
+              <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />
+              <Route path="/advanced-automation" element={<AdvancedAutomation />} />
+              <Route path="/telemedicine-solutions" element={<TelemedicineSolutions />} />
+              <Route path="/pediatric-care" element={<PediatricCare />} />
+              <Route path="/mental-health-support" element={<MentalHealthSupport />} />
+              <Route path="/geriatric-care" element={<GeriatricCare />} />
+              <Route path="/oncology-care" element={<OncologyCare />} />
+              <Route path="/emergency-medicine" element={<EmergencyMedicine />} />
+              <Route path="/surgical-services" element={<SurgicalServices />} />
+              <Route path="/rehabilitation-services" element={<RehabilitationServices />} />
+              <Route path="/mobile-health-solutions" element={<MobileHealthSolutions />} />
+              <Route path="/waste-management" element={<WasteManagement />} />
+              <Route path="/security-audits" element={<SecurityAudits />} />
+              <Route path="/compliance-training" element={<ComplianceTraining />} />
               <Route path="/performance-optimization" element={<PerformanceOptimization />} />
-              <Route path="/advanced-mobile-features" element={<AdvancedMobileFeatures />} />
-              <Route path="/cross-platform-compatibility" element={<CrossPlatformCompatibility />} />
-              <Route path="/advanced-security-features" element={<AdvancedSecurityFeatures />} />
-              <Route path="/compliance-management" element={<ProtectedRoute><ComplianceManagement /></ProtectedRoute>} />
-              <Route path="/risk-management" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />
-              <Route path="/data-governance" element={<ProtectedRoute><DataGovernance /></ProtectedRoute>} />
-              <Route path="/advanced-ai-diagnostics" element={<ProtectedRoute><AdvancedAIDiagnostics /></ProtectedRoute>} />
-              <Route path="/predictive-maintenance-ai" element={<ProtectedRoute><PredictiveMaintenanceAI /></ProtectedRoute>} />
-              <Route path="/natural-language-processing" element={<ProtectedRoute><NaturalLanguageProcessing /></ProtectedRoute>} />
-              <Route path="/advanced-automation" element={<ProtectedRoute><AdvancedAutomation /></ProtectedRoute>} />
-              <Route path="/telemedicine" element={<ProtectedRoute><Telemedicine /></ProtectedRoute>} />
-              <Route path="/mental-health" element={<ProtectedRoute><MentalHealth /></ProtectedRoute>} />
-              <Route path="/pediatric-care" element={<ProtectedRoute><PediatricCare /></ProtectedRoute>} />
-              <Route path="/geriatric-care" element={<ProtectedRoute><GeriatricCare /></ProtectedRoute>} />
-              <Route path="/oncology-care" element={<ProtectedRoute><OncologyCare /></ProtectedRoute>} />
-              <Route path="/emergency-medicine" element={<ProtectedRoute><EmergencyMedicine /></ProtectedRoute>} />
-              <Route path="/surgical-services" element={<ProtectedRoute><SurgicalServices /></ProtectedRoute>} />
-              <Route path="/rehabilitation-services" element={<ProtectedRoute><RehabilitationServices /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
             </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </SidebarProvider>
-  </QueryClientProvider>
-);
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClient>
+  );
+}
 
 export default App;
