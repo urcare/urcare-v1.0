@@ -24,6 +24,7 @@ import { geriatricItems } from './menuCategories/geriatricItems'
 import { oncologyItems } from './menuCategories/oncologyItems'
 import { emergencyMedicineItems } from './menuCategories/emergencyMedicineItems'
 import { surgicalItems } from './menuCategories/surgicalItems'
+import { rehabilitationItems } from './menuCategories/rehabilitationItems'
 
 export interface MenuItem {
   title: string;
@@ -56,5 +57,6 @@ export const menuItems: MenuItem[] = [
   ...oncologyItems,
   ...emergencyMedicineItems,
   ...surgicalItems,
+  ...rehabilitationItems,
   ...mobileMenuItems,
 ];

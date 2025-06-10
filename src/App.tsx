@@ -72,6 +72,7 @@ import GeriatricCare from "./pages/GeriatricCare";
 import OncologyCare from "./pages/OncologyCare";
 import EmergencyMedicine from "./pages/EmergencyMedicine";
 import SurgicalServices from "./pages/SurgicalServices";
+import RehabilitationServices from "./pages/RehabilitationServices";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,7 @@ const App = () => (
               <Route path="/oncology-care" element={<ProtectedRoute><OncologyCare /></ProtectedRoute>} />
               <Route path="/emergency-medicine" element={<ProtectedRoute><EmergencyMedicine /></ProtectedRoute>} />
               <Route path="/surgical-services" element={<ProtectedRoute><SurgicalServices /></ProtectedRoute>} />
+              <Route path="/rehabilitation-services" element={<ProtectedRoute><RehabilitationServices /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
