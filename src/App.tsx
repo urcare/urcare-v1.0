@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -67,6 +68,8 @@ import NaturalLanguageProcessing from "./pages/NaturalLanguageProcessing";
 import AdvancedAutomation from "./pages/AdvancedAutomation";
 import Telemedicine from "./pages/Telemedicine";
 import PediatricCare from "./pages/PediatricCare";
+import MentalHealth from "./pages/MentalHealth";
+import GeriatricCare from "./pages/GeriatricCare";
 
 const queryClient = new QueryClient();
 
@@ -140,6 +143,7 @@ const App = () => (
               <Route path="/telemedicine" element={<ProtectedRoute><Telemedicine /></ProtectedRoute>} />
               <Route path="/mental-health" element={<ProtectedRoute><MentalHealth /></ProtectedRoute>} />
               <Route path="/pediatric-care" element={<ProtectedRoute><PediatricCare /></ProtectedRoute>} />
+              <Route path="/geriatric-care" element={<ProtectedRoute><GeriatricCare /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
