@@ -66,6 +66,7 @@ import PredictiveMaintenanceAI from "./pages/PredictiveMaintenanceAI";
 import NaturalLanguageProcessing from "./pages/NaturalLanguageProcessing";
 import AdvancedAutomation from "./pages/AdvancedAutomation";
 import Telemedicine from "./pages/Telemedicine";
+import PediatricCare from "./pages/PediatricCare";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,8 @@ const App = () => (
               <Route path="/natural-language-processing" element={<ProtectedRoute><NaturalLanguageProcessing /></ProtectedRoute>} />
               <Route path="/advanced-automation" element={<ProtectedRoute><AdvancedAutomation /></ProtectedRoute>} />
               <Route path="/telemedicine" element={<ProtectedRoute><Telemedicine /></ProtectedRoute>} />
+              <Route path="/mental-health" element={<ProtectedRoute><MentalHealth /></ProtectedRoute>} />
+              <Route path="/pediatric-care" element={<ProtectedRoute><PediatricCare /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
