@@ -5,6 +5,7 @@ import { ThemeProvider } from './components/ui/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import PerformanceMonitoring from './pages/PerformanceMonitoring';
+import ScalabilityManagement from './pages/ScalabilityManagement';
 import HRAnalytics from './pages/HRAnalytics';
 import DataGovernance from './pages/DataGovernance';
 import NaturalLanguageProcessing from './pages/NaturalLanguageProcessing';
@@ -57,6 +58,7 @@ function App() {
           <Routes>
             <Route path="/" element={<PerformanceMonitoring />} />
             <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
+            <Route path="/scalability-management" element={<ScalabilityManagement />} />
             <Route path="/hr-analytics" element={<HRAnalytics />} />
             <Route path="/data-governance" element={<DataGovernance />} />
             <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />

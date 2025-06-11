@@ -1,3 +1,4 @@
+
 import { 
   Calendar, 
   CreditCard, 
@@ -18,7 +19,8 @@ import {
   MessageSquare,
   Smartphone,
   Zap,
-  BarChart3
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -142,5 +144,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/performance-monitoring", 
     icon: Monitor,
     description: "Real-time system monitoring with comprehensive analytics and alerting"
+  },
+  {
+    title: "Scalability Management",
+    url: "/scalability-management", 
+    icon: Activity,
+    description: "Auto-scaling, load balancing, and resource optimization"
   }
 ];
