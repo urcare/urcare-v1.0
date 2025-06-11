@@ -81,10 +81,14 @@ export const GlobalTrafficManagement = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      case 'critical': return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default: return <AlertTriangle className="h-4 w-4 text-gray-600" />;
+      case 'healthy': 
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'warning': 
+        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      case 'critical': 
+        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+      default: 
+        return <AlertTriangle className="h-4 w-4 text-gray-600" />;
     }
   };
 
@@ -274,7 +278,7 @@ export const GlobalTrafficManagement = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Failover Time:</span>
-                  <span className="font-medium">< 60 seconds</span>
+                  <span className="font-medium">&lt; 60 seconds</span>
                 </div>
               </div>
             </div>

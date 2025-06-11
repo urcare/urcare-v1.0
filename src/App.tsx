@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/contexts/AuthContext';
 import PerformanceMonitoring from './pages/PerformanceMonitoring';
 import ScalabilityManagement from './pages/ScalabilityManagement';
 import HRAnalytics from './pages/HRAnalytics';
@@ -54,52 +55,54 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Toaster />
-        <Router>
-          <Routes>
-            <Route path="/" element={<PerformanceMonitoring />} />
-            <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
-            <Route path="/scalability-management" element={<ScalabilityManagement />} />
-            <Route path="/hr-analytics" element={<HRAnalytics />} />
-            <Route path="/data-governance" element={<DataGovernance />} />
-            <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />
-            <Route path="/pediatric-care" element={<PediatricCare />} />
-            <Route path="/geriatric-care" element={<GeriatricCare />} />
-            <Route path="/oncology-care" element={<OncologyCare />} />
-            <Route path="/emergency-medicine" element={<EmergencyMedicine />} />
-            <Route path="/surgical-services" element={<SurgicalServices />} />
-            <Route path="/rehabilitation-services" element={<RehabilitationServices />} />
-            <Route path="/performance-optimization" element={<PerformanceOptimization />} />
-            <Route path="/ris" element={<RIS />} />
-            <Route path="/tpa" element={<TPA />} />
-            <Route path="/lims" element={<LIMS />} />
-            <Route path="/pharmacy" element={<Pharmacy />} />
-            <Route path="/insurance" element={<Insurance />} />
-            <Route path="/visitor-control" element={<VisitorControl />} />
-            <Route path="/mental-health-ai" element={<MentalHealthAI />} />
-            <Route path="/public-health-integration" element={<PublicHealthIntegration />} />
-            <Route path="/safety-compliance-ai" element={<SafetyComplianceAI />} />
-            <Route path="/treatment-protocol-ai" element={<TreatmentProtocolAI />} />
-            <Route path="/predictive-clinical-ai" element={<PredictiveClinicalAI />} />
-            <Route path="/workflow-automation-ai" element={<WorkflowAutomationAI />} />
-            <Route path="/process-optimization-ai" element={<ProcessOptimizationAI />} />
-            <Route path="/research-data-management" element={<ResearchDataManagement />} />
-            <Route path="/wellness" element={<Wellness />} />
-            <Route path="/pathology" element={<Pathology />} />
-            <Route path="/telemedicine" element={<Telemedicine />} />
-            <Route path="/mental-health" element={<MentalHealth />} />
-            <Route path="/risk-management" element={<RiskManagement />} />
-            <Route path="/mobile-optimization" element={<MobileOptimization />} />
-            <Route path="/intelligent-content" element={<IntelligentContent />} />
-            <Route path="/system-integration" element={<SystemIntegration />} />
-            <Route path="/predictive-maintenance-ai" element={<PredictiveMaintenanceAI />} />
-            <Route path="/profile-management" element={<ProfileManagement />} />
-            <Route path="/ward" element={<Ward />} />
-            <Route path="/patient-journey" element={<PatientJourney />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<PerformanceMonitoring />} />
+              <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
+              <Route path="/scalability-management" element={<ScalabilityManagement />} />
+              <Route path="/hr-analytics" element={<HRAnalytics />} />
+              <Route path="/data-governance" element={<DataGovernance />} />
+              <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />
+              <Route path="/pediatric-care" element={<PediatricCare />} />
+              <Route path="/geriatric-care" element={<GeriatricCare />} />
+              <Route path="/oncology-care" element={<OncologyCare />} />
+              <Route path="/emergency-medicine" element={<EmergencyMedicine />} />
+              <Route path="/surgical-services" element={<SurgicalServices />} />
+              <Route path="/rehabilitation-services" element={<RehabilitationServices />} />
+              <Route path="/performance-optimization" element={<PerformanceOptimization />} />
+              <Route path="/ris" element={<RIS />} />
+              <Route path="/tpa" element={<TPA />} />
+              <Route path="/lims" element={<LIMS />} />
+              <Route path="/pharmacy" element={<Pharmacy />} />
+              <Route path="/insurance" element={<Insurance />} />
+              <Route path="/visitor-control" element={<VisitorControl />} />
+              <Route path="/mental-health-ai" element={<MentalHealthAI />} />
+              <Route path="/public-health-integration" element={<PublicHealthIntegration />} />
+              <Route path="/safety-compliance-ai" element={<SafetyComplianceAI />} />
+              <Route path="/treatment-protocol-ai" element={<TreatmentProtocolAI />} />
+              <Route path="/predictive-clinical-ai" element={<PredictiveClinicalAI />} />
+              <Route path="/workflow-automation-ai" element={<WorkflowAutomationAI />} />
+              <Route path="/process-optimization-ai" element={<ProcessOptimizationAI />} />
+              <Route path="/research-data-management" element={<ResearchDataManagement />} />
+              <Route path="/wellness" element={<Wellness />} />
+              <Route path="/pathology" element={<Pathology />} />
+              <Route path="/telemedicine" element={<Telemedicine />} />
+              <Route path="/mental-health" element={<MentalHealth />} />
+              <Route path="/risk-management" element={<RiskManagement />} />
+              <Route path="/mobile-optimization" element={<MobileOptimization />} />
+              <Route path="/intelligent-content" element={<IntelligentContent />} />
+              <Route path="/system-integration" element={<SystemIntegration />} />
+              <Route path="/predictive-maintenance-ai" element={<PredictiveMaintenanceAI />} />
+              <Route path="/profile-management" element={<ProfileManagement />} />
+              <Route path="/ward" element={<Ward />} />
+              <Route path="/patient-journey" element={<PatientJourney />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
