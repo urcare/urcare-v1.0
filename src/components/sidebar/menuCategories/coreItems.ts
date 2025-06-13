@@ -1,4 +1,3 @@
-
 import { 
   Calendar, 
   CreditCard, 
@@ -20,7 +19,8 @@ import {
   Smartphone,
   Zap,
   BarChart3,
-  Activity
+  Activity,
+  Wrench
 } from 'lucide-react';
 import { MenuItem } from '../menuItems';
 
@@ -150,5 +150,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/scalability-management", 
     icon: Activity,
     description: "Auto-scaling, load balancing, and resource optimization"
+  },
+  {
+    title: "System Maintenance",
+    url: "/system-maintenance",
+    icon: Wrench,
+    description: "Maintenance scheduling, updates, backup, and disaster recovery"
   }
 ];

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './components/ui/theme-provider';
@@ -46,6 +45,7 @@ import PatientJourney from './pages/PatientJourney';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
 import Onboarding from './pages/Onboarding';
+import SystemMaintenance from './pages/SystemMaintenance';
 
 // Create QueryClient instance
 const queryClient = new QueryClient();
@@ -61,6 +61,7 @@ function App() {
               <Route path="/" element={<PerformanceMonitoring />} />
               <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
               <Route path="/scalability-management" element={<ScalabilityManagement />} />
+              <Route path="/system-maintenance" element={<SystemMaintenance />} />
               <Route path="/hr-analytics" element={<HRAnalytics />} />
               <Route path="/data-governance" element={<DataGovernance />} />
               <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />
