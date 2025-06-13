@@ -156,5 +156,11 @@ export const coreMenuItems: MenuItem[] = [
     url: "/system-maintenance",
     icon: Wrench,
     description: "Maintenance scheduling, updates, backup, and disaster recovery"
+  },
+  {
+    title: "Quality Assurance",
+    url: "/quality-assurance", 
+    icon: Shield,
+    description: "Comprehensive testing, bug tracking, code quality, and security scanning"
   }
 ];

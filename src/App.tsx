@@ -46,6 +46,7 @@ import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
 import Onboarding from './pages/Onboarding';
 import SystemMaintenance from './pages/SystemMaintenance';
+import QualityAssurance from './pages/QualityAssurance';
 
 // Create QueryClient instance
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ function App() {
               <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
               <Route path="/scalability-management" element={<ScalabilityManagement />} />
               <Route path="/system-maintenance" element={<SystemMaintenance />} />
+              <Route path="/quality-assurance" element={<QualityAssurance />} />
               <Route path="/hr-analytics" element={<HRAnalytics />} />
               <Route path="/data-governance" element={<DataGovernance />} />
               <Route path="/natural-language-processing" element={<NaturalLanguageProcessing />} />
