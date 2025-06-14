@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
+import Landing from './pages/Landing';
 import PerformanceMonitoring from './pages/PerformanceMonitoring';
 import ScalabilityManagement from './pages/ScalabilityManagement';
 import HRAnalytics from './pages/HRAnalytics';
@@ -59,7 +61,8 @@ function App() {
         <Router>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<PerformanceMonitoring />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<PerformanceMonitoring />} />
               <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
               <Route path="/scalability-management" element={<ScalabilityManagement />} />
               <Route path="/system-maintenance" element={<SystemMaintenance />} />
