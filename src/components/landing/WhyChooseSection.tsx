@@ -6,23 +6,23 @@ export const WhyChooseSection = () => {
   const benefits = [
     {
       icon: Clock,
-      title: "Instant medical help, 24/7",
-      description: "Get immediate health insights anytime, anywhere, without waiting."
+      title: "No more late-night panic googling",
+      description: "Get reliable medical guidance instantly instead of falling down internet rabbit holes."
     },
     {
       icon: Calendar,
-      title: "No waiting, no appointments",
-      description: "Skip the waiting room and get answers to your health questions instantly."
+      title: "Faster than waiting rooms",
+      description: "Skip the waiting room and get answers to your health questions in seconds."
     },
     {
       icon: Award,
-      title: "Backed by cutting-edge AI and real doctors",
-      description: "Combine the power of AI with human medical expertise for the best care."
+      title: "Get clarity before you visit a clinic",
+      description: "Understand your symptoms and be prepared for more productive doctor visits."
     },
     {
       icon: Smartphone,
-      title: "Works on mobile & desktop",
-      description: "Access your health assistant from any device, wherever you are."
+      title: "Built with doctors and AI researchers",
+      description: "Developed in collaboration with medical professionals and leading AI experts."
     }
   ];
 

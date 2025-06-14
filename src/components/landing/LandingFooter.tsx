@@ -7,20 +7,8 @@ export const LandingFooter = () => {
     company: [
       { name: 'About', href: '#' },
       { name: 'Contact', href: '#' },
-      { name: 'Careers', href: '#' },
-      { name: 'Blog', href: '#' }
-    ],
-    legal: [
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
-      { name: 'HIPAA Compliance', href: '#' },
-      { name: 'Cookies', href: '#' }
-    ],
-    support: [
-      { name: 'Help Center', href: '#' },
-      { name: 'API Documentation', href: '#' },
-      { name: 'Status', href: '#' },
-      { name: 'Community', href: '#' }
+      { name: 'Terms', href: '#' },
+      { name: 'Privacy', href: '#' }
     ]
   };
 
@@ -33,9 +21,9 @@ export const LandingFooter = () => {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid lg:grid-cols-5 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
           {/* Brand */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                 <Heart className="w-6 h-6 text-white" />
@@ -49,7 +37,24 @@ export const LandingFooter = () => {
             <p className="text-gray-400 leading-relaxed max-w-md">
               Revolutionizing healthcare through AI-powered diagnosis and connecting patients with qualified medical professionals instantly.
             </p>
+          </div>
+          
+          {/* Links and Social */}
+          <div className="flex flex-col sm:flex-row gap-8 justify-between items-start sm:items-center">
+            {/* Links */}
+            <div className="flex gap-8">
+              {footerLinks.company.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.href}
+                  className="text-gray-400 hover:text-white transition-colors duration-300"
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
             
+            {/* Social */}
             <div className="flex gap-4">
               {socialLinks.map((social, index) => (
                 <a
@@ -63,58 +68,12 @@ export const LandingFooter = () => {
               ))}
             </div>
           </div>
-          
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link, index) => (
-                <li key={index}>
-                  <a href={link.href} className="text-gray-400 hover:text-white transition-colors duration-300">
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link, index) => (
-                <li key={index}>
-                  <a href={link.href} className="text-gray-400 hover:text-white transition-colors duration-300">
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4">Support</h4>
-            <ul className="space-y-3">
-              {footerLinks.support.map((link, index) => (
-                <li key={index}>
-                  <a href={link.href} className="text-gray-400 hover:text-white transition-colors duration-300">
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
         
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center">
           <p className="text-gray-400 text-sm">
             © 2025 Urcare Technologies. All rights reserved.
           </p>
-          
-          <div className="flex items-center gap-6 text-sm text-gray-400">
-            <span>🔒 HIPAA Compliant</span>
-            <span>🛡️ SOC 2 Certified</span>
-            <span>⚡ 99.9% Uptime</span>
-          </div>
         </div>
       </div>
     </footer>

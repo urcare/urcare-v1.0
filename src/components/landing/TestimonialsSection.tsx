@@ -8,21 +8,21 @@ export const TestimonialsSection = () => {
     {
       name: "Sarah Johnson",
       role: "Working Mother",
-      content: "Saved me a hospital visit! The AI caught my symptoms early and recommended exactly what I needed.",
+      content: "Better than Google, feels like magic! Urcare caught my symptoms early and recommended exactly what I needed.",
       rating: 5,
       avatar: "SJ"
     },
     {
       name: "Michael Chen",
       role: "Software Engineer",
-      content: "It caught what I had better than Google ever could. The accuracy is incredible and the doctors are real professionals.",
+      content: "Caught my real issue when I was unsure. The accuracy is incredible and saved me from unnecessary worry.",
       rating: 5,
       avatar: "MC"
     },
     {
       name: "Emily Rodriguez",
       role: "College Student",
-      content: "Great for late-night questions when no doctor is around. Perfect for a broke college student like me!",
+      content: "Helped me avoid a panic ER trip. Perfect for late-night health questions when no doctor is around!",
       rating: 5,
       avatar: "ER"
     },
@@ -32,13 +32,6 @@ export const TestimonialsSection = () => {
       content: "As someone with multiple health concerns, this platform gives me peace of mind. The AI is remarkably accurate.",
       rating: 5,
       avatar: "DT"
-    },
-    {
-      name: "Lisa Wang",
-      role: "Busy Executive",
-      content: "No more waiting rooms! I can get medical advice during my lunch break. Absolutely game-changing.",
-      rating: 5,
-      avatar: "LW"
     }
   ];
 

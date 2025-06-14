@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const CTASection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
       {/* Background Elements */}
@@ -23,17 +26,18 @@ export const CTASection = () => {
           </div>
           
           <h2 className="text-4xl lg:text-6xl font-bold text-white leading-tight">
-            Your Health,
-            <span className="block text-blue-200">Smarter.</span>
+            Smarter Healthcare
+            <span className="block text-blue-200">Starts Now.</span>
           </h2>
           
           <p className="text-xl lg:text-2xl text-blue-100 leading-relaxed max-w-3xl mx-auto">
-            Start your AI-powered medical journey now and experience healthcare like never before.
+            Get your first AI health checkup in seconds. It's free and private.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
             <Button 
               size="lg" 
+              onClick={() => navigate('/login')}
               className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               Get Started for Free

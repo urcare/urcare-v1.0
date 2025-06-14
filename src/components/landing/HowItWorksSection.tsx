@@ -6,19 +6,19 @@ export const HowItWorksSection = () => {
   const steps = [
     {
       icon: MessageSquare,
-      title: "Describe Your Symptoms",
+      title: "Speak or Type Your Symptoms",
       description: "Tell us about your symptoms through our intuitive chat interface or voice input.",
       step: "01"
     },
     {
       icon: Brain,
-      title: "AI Analyzes and Gives Suggestions",
+      title: "Our AI Analyzes and Gives Instant Guidance",
       description: "Our advanced AI processes your information and provides preliminary assessments.",
       step: "02"
     },
     {
       icon: UserCheck,
-      title: "Connect to a Real Doctor if Needed",
+      title: "Connect to a Verified Doctor if Needed",
       description: "Get connected with qualified healthcare professionals for further consultation.",
       step: "03"
     }

@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 overflow-hidden">
       {/* Background Pattern */}
@@ -32,15 +35,16 @@ export const HeroSection = () => {
             </h1>
             
             <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-              Get preliminary health assessments, smart triage, and connect with doctors — all in one place.
+              Describe symptoms, get smart suggestions, and connect to real doctors — all in one place.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 size="lg" 
+                onClick={() => navigate('/login')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
-                Try Urcare Free
+                Get Started for Free
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               
