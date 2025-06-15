@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +14,7 @@ const Index = lazy(() => import("./pages/Index"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
 
