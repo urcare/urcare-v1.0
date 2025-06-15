@@ -27,6 +27,7 @@ export interface MenuItem {
   icon: any;
   badge?: string;
   roles?: string[];
+  description?: string;
 }
 
 export interface MenuSection {
