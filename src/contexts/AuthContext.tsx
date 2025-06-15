@@ -15,13 +15,21 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, role: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
-  isInitialized: false
+  isInitialized: false,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+  resetPassword: async () => {}
 });
 
 export const useAuth = () => {
@@ -97,8 +105,91 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signIn = async (email: string, password: string, rememberMe?: boolean) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+      
+      if (data?.user) {
+        setUser(data.user);
+        await fetchUserProfile(data.user.id);
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role
+          }
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      setProfile(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isInitialized }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      isInitialized,
+      signIn,
+      signUp,
+      signOut,
+      resetPassword
+    }}>
       {children}
     </AuthContext.Provider>
   );
