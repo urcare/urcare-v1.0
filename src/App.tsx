@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import PerformanceMonitoring from './pages/PerformanceMonitoring';
 import ScalabilityManagement from './pages/ScalabilityManagement';
 import HRAnalytics from './pages/HRAnalytics';
@@ -63,6 +64,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<PerformanceMonitoring />} />
               <Route path="/performance-monitoring" element={<PerformanceMonitoring />} />
               <Route path="/scalability-management" element={<ScalabilityManagement />} />
