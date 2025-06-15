@@ -1,106 +1,105 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { UserProfile, UserRole } from '@/types/auth';
-import { useAuthOperations } from '@/hooks/useAuthOperations';
-import { fetchUserProfile, handleAuthFromUrl } from '@/utils/authUtils';
+import { User } from '@supabase/supabase-js';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
 
 interface AuthContextType {
-  session: Session | null;
   user: User | null;
   profile: UserProfile | null;
-  signIn: (email: string, password: string, rememberMe: boolean) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, role: UserRole, phone?: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
   loading: boolean;
   isInitialized: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  loading: true,
+  isInitialized: false
+});
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
-  const navigate = useNavigate();
-  
-  const { signIn, signUp, signOut, resetPassword, loading } = useAuthOperations();
 
   useEffect(() => {
-    // Check for auth tokens in URL (for magic link authentication)
-    const handleAuthFromUrlEffect = async () => {
+    // Get initial session
+    const initializeAuth = async () => {
       try {
-        const session = await handleAuthFromUrl();
-        if (session) {
-          navigate('/');
-          toast.success('Successfully authenticated!');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        } else if (session?.user) {
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
         }
-      } catch (error: any) {
-        console.error('Error processing auth token from URL:', error);
-        toast.error('Authentication failed', {
-          description: error.message
-        });
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
       }
     };
-    
-    handleAuthFromUrlEffect();
-    
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth event:', event);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          // Defer fetching profile with setTimeout to avoid potential deadlocks
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id, currentSession.user).then(setProfile);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+    initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       
-      if (currentSession?.user) {
-        fetchUserProfile(currentSession.user.id, currentSession.user).then(setProfile);
+      if (session?.user) {
+        setUser(session.user);
+        await fetchUserProfile(session.user.id);
+      } else {
+        setUser(null);
+        setProfile(null);
       }
+      
+      setLoading(false);
       setIsInitialized(true);
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
-  const value = {
-    session,
-    user,
-    profile,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    loading,
-    isInitialized
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+      } else if (data) {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return (
+    <AuthContext.Provider value={{ user, profile, loading, isInitialized }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
