@@ -10,7 +10,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export function Header() {
   return (
-    <header className="border-b bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm sticky top-0 z-50 transition-colors duration-300">
+    <header className="border-b bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm sticky top-0 z-40 transition-colors duration-300">
       <div className="flex items-center justify-between px-4 md:px-6 py-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="md:hidden" />

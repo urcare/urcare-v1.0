@@ -1,62 +1,194 @@
 
-import { LucideIcon } from "lucide-react"
-import { coreMenuItems } from './menuCategories/coreItems'
-import { analyticsMenuItems } from './menuCategories/analyticsItems'
-import { researchMenuItems } from './menuCategories/researchItems'
-import { wasteAndSafetyMenuItems } from './menuCategories/wasteAndSafetyItems'
-import { aiMenuItems } from './menuCategories/aiItems'
-import { hrMenuItems } from './menuCategories/hrItems'
-import { patientWellnessMenuItems } from './menuCategories/patientWellnessItems'
-import { mobileMenuItems } from './menuCategories/mobileItems'
-import { securityMenuItems } from './menuCategories/securityItems'
-import { complianceMenuItems } from './menuCategories/complianceItems'
-import { riskManagementMenuItems } from './menuCategories/riskManagementItems'
-import { accessControlMenuItems } from './menuCategories/accessControlItems'
-import { dataGovernanceItems } from './menuCategories/dataGovernanceItems'
-import { aiDiagnosticsItems } from './menuCategories/aiDiagnosticsItems'
-import { predictiveMaintenanceItems } from './menuCategories/predictiveMaintenanceItems'
-import { nlpItems } from './menuCategories/nlpItems'
-import { advancedAutomationItems } from './menuCategories/advancedAutomationItems'
-import { telemedicineItems } from './menuCategories/telemedicineItems'
-import { pediatricItems } from './menuCategories/pediatricItems'
-import { mentalHealthItems } from './menuCategories/mentalHealthItems'
-import { geriatricItems } from './menuCategories/geriatricItems'
-import { oncologyItems } from './menuCategories/oncologyItems'
-import { emergencyMedicineItems } from './menuCategories/emergencyMedicineItems'
-import { surgicalItems } from './menuCategories/surgicalItems'
-import { rehabilitationItems } from './menuCategories/rehabilitationItems'
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  FileText, 
+  Users, 
+  Heart, 
+  MessageSquare, 
+  Settings, 
+  Shield,
+  Activity,
+  Stethoscope,
+  Pill,
+  TestTube,
+  UserCheck,
+  TrendingUp,
+  CreditCard,
+  AlertTriangle,
+  Moon,
+  LogOut,
+  User
+} from 'lucide-react';
 
 export interface MenuItem {
   title: string;
   url: string;
-  icon: LucideIcon;
-  description?: string;
+  icon: any;
+  badge?: string;
+  roles?: string[];
 }
 
-export const menuItems: MenuItem[] = [
-  ...coreMenuItems,
-  ...analyticsMenuItems,
-  ...researchMenuItems,
-  ...wasteAndSafetyMenuItems,
-  ...aiMenuItems,
-  ...aiDiagnosticsItems,
-  ...hrMenuItems,
-  ...patientWellnessMenuItems,
-  ...securityMenuItems,
-  ...complianceMenuItems,
-  ...riskManagementMenuItems,
-  ...accessControlMenuItems,
-  ...dataGovernanceItems,
-  ...predictiveMaintenanceItems,
-  ...nlpItems,
-  ...advancedAutomationItems,
-  ...telemedicineItems,
-  ...pediatricItems,
-  ...mentalHealthItems,
-  ...geriatricItems,
-  ...oncologyItems,
-  ...emergencyMedicineItems,
-  ...surgicalItems,
-  ...rehabilitationItems,
-  ...mobileMenuItems,
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+export const mainMenuSections: MenuSection[] = [
+  {
+    title: "Dashboard",
+    items: [
+      {
+        title: "Overview",
+        url: "/",
+        icon: LayoutDashboard,
+        roles: ["all"]
+      },
+      {
+        title: "Analytics",
+        url: "/analytics",
+        icon: TrendingUp,
+        roles: ["doctor", "admin", "nurse"]
+      }
+    ]
+  },
+  {
+    title: "Appointments",
+    items: [
+      {
+        title: "Schedule",
+        url: "/appointments",
+        icon: Calendar,
+        roles: ["all"]
+      },
+      {
+        title: "Book Appointment",
+        url: "/appointments/book",
+        icon: UserCheck,
+        roles: ["patient", "receptionist"]
+      }
+    ]
+  },
+  {
+    title: "Medical Records",
+    items: [
+      {
+        title: "Patient Records",
+        url: "/records",
+        icon: FileText,
+        roles: ["doctor", "nurse", "admin"]
+      },
+      {
+        title: "My Records",
+        url: "/my-records",
+        icon: FileText,
+        roles: ["patient"]
+      },
+      {
+        title: "Documents",
+        url: "/documents",
+        icon: FileText,
+        roles: ["all"]
+      }
+    ]
+  },
+  {
+    title: "Healthcare",
+    items: [
+      {
+        title: "Prescriptions",
+        url: "/pharmacy",
+        icon: Pill,
+        roles: ["doctor", "pharmacy", "patient"]
+      },
+      {
+        title: "Lab Results",
+        url: "/lab",
+        icon: TestTube,
+        roles: ["doctor", "lab", "patient"]
+      },
+      {
+        title: "Wellness",
+        url: "/wellness",
+        icon: Heart,
+        roles: ["patient", "doctor"]
+      }
+    ]
+  },
+  {
+    title: "Communication",
+    items: [
+      {
+        title: "Messages",
+        url: "/messages",
+        icon: MessageSquare,
+        badge: "3",
+        roles: ["all"]
+      },
+      {
+        title: "Community",
+        url: "/community",
+        icon: Users,
+        roles: ["patient", "doctor"]
+      }
+    ]
+  },
+  {
+    title: "Emergency",
+    items: [
+      {
+        title: "Emergency",
+        url: "/emergency",
+        icon: AlertTriangle,
+        roles: ["all"]
+      },
+      {
+        title: "ICU/Ward",
+        url: "/ward",
+        icon: Activity,
+        roles: ["doctor", "nurse", "admin"]
+      }
+    ]
+  },
+  {
+    title: "Administration",
+    items: [
+      {
+        title: "User Management",
+        url: "/admin/users",
+        icon: Shield,
+        roles: ["admin"]
+      },
+      {
+        title: "Billing",
+        url: "/billing",
+        icon: CreditCard,
+        roles: ["admin", "receptionist"]
+      },
+      {
+        title: "HR Management",
+        url: "/hr",
+        icon: Users,
+        roles: ["admin"]
+      }
+    ]
+  }
 ];
+
+export const bottomMenuItems: MenuItem[] = [
+  {
+    title: "Profile",
+    url: "/profile",
+    icon: User,
+    roles: ["all"]
+  },
+  {
+    title: "Settings",
+    url: "/settings", 
+    icon: Settings,
+    roles: ["all"]
+  }
+];
+
+// Legacy export for backward compatibility
+export const menuItems = mainMenuSections.flatMap(section => section.items);
