@@ -14,9 +14,11 @@ const Index = lazy(() => import("./pages/Index"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
-const Dashboard = lazy(() => import("./components/Dashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
+
+// Import Dashboard directly since it's a component, not a page
+import { Dashboard } from '@/components/Dashboard';
 
 const queryClient = new QueryClient();
 
