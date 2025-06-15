@@ -1,118 +1,89 @@
 
-import React, { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Plus, Settings, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-
-interface Profile {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  isActive: boolean;
-}
+import { Badge } from '@/components/ui/badge';
+import { ChevronsUpDown, User, Stethoscope, Shield } from 'lucide-react';
 
 export function ProfileSwitcher() {
-  const { profile } = useAuth();
-  const [activeProfile, setActiveProfile] = useState<Profile>({
-    id: '1',
-    name: profile?.full_name || 'Current User',
-    role: profile?.role || 'Patient',
-    isActive: true
-  });
-
-  // Mock additional profiles - in real app, fetch from backend
-  const [profiles] = useState<Profile[]>([
+  const profiles = [
     {
-      id: '1',
-      name: profile?.full_name || 'Current User',
-      role: profile?.role || 'Patient',
-      isActive: true
+      id: 'doctor',
+      name: 'Dr. Sarah Wilson',
+      role: 'Cardiologist',
+      status: 'Active',
+      icon: Stethoscope,
     },
     {
-      id: '2',
-      name: 'Child Profile',
-      role: 'Patient',
-      isActive: false
+      id: 'admin',
+      name: 'Admin Dashboard',
+      role: 'System Administrator',
+      status: 'Available',
+      icon: Shield,
     },
     {
-      id: '3',
-      name: 'Elderly Parent',
-      role: 'Patient',
-      isActive: false
-    }
-  ]);
+      id: 'patient',
+      name: 'Patient View',
+      role: 'Test Patient',
+      status: 'Demo',
+      icon: User,
+    },
+  ];
 
-  const handleProfileSwitch = (profileId: string) => {
-    const newProfile = profiles.find(p => p.id === profileId);
-    if (newProfile) {
-      setActiveProfile(newProfile);
-      // In real app, update context and backend
-      console.log('Switching to profile:', newProfile.name);
-    }
-  };
+  const [activeProfile, setActiveProfile] = React.useState(profiles[0]);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 p-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={activeProfile.avatar} />
-            <AvatarFallback>
-              {activeProfile.name.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col items-start text-left">
-            <span className="text-sm font-medium">{activeProfile.name}</span>
-            <span className="text-xs text-muted-foreground">{activeProfile.role}</span>
+        <Button
+          variant="ghost"
+          className="h-9 px-3 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+        >
+          <div className="flex items-center gap-2">
+            <activeProfile.icon className="h-4 w-4" />
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium">{activeProfile.name}</span>
+              <span className="text-xs text-muted-foreground">{activeProfile.role}</span>
+            </div>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </div>
-          <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end">
-        <DropdownMenuLabel>Switch Profile</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent 
+        className="w-64 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700"
+        align="start"
+      >
         {profiles.map((profile) => (
-          <DropdownMenuItem
-            key={profile.id}
-            onClick={() => handleProfileSwitch(profile.id)}
-            className={`flex items-center gap-3 p-3 ${
-              profile.isActive ? 'bg-accent' : ''
-            }`}
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile.avatar} />
-              <AvatarFallback>
-                {profile.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{profile.name}</span>
-              <span className="text-xs text-muted-foreground">{profile.role}</span>
-            </div>
-            {profile.isActive && (
-              <div className="ml-auto h-2 w-2 bg-green-500 rounded-full" />
+          <React.Fragment key={profile.id}>
+            <DropdownMenuItem
+              onClick={() => setActiveProfile(profile)}
+              className={`flex items-center gap-3 p-3 cursor-pointer dark:text-white dark:hover:bg-slate-700 ${
+                activeProfile.id === profile.id ? 'bg-accent' : ''
+              }`}
+            >
+              <profile.icon className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="font-medium">{profile.name}</span>
+                <span className="text-sm text-muted-foreground dark:text-slate-400">{profile.role}</span>
+              </div>
+              <Badge 
+                variant={profile.status === 'Active' ? 'default' : 'secondary'}
+                className="ml-auto"
+              >
+                {profile.status}
+              </Badge>
+            </DropdownMenuItem>
+            {profile.id !== profiles[profiles.length - 1].id && (
+              <DropdownMenuSeparator className="dark:bg-slate-700" />
             )}
-          </DropdownMenuItem>
+          </React.Fragment>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem className="flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Manage Profiles
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
