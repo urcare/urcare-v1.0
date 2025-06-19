@@ -12,6 +12,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 
 // Lazy load pages
 const Index = lazy(() => import("./pages/Index"));
+const MobileLanding = lazy(() => import("./pages/MobileLanding"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
@@ -41,6 +42,7 @@ function App() {
               }>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/mobile" element={<MobileLanding />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
