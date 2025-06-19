@@ -28,7 +28,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider defaultTheme="system" enableSystem>
+        <ThemeProvider defaultTheme="system">
           <TooltipProvider>
             <Toaster />
             <BrowserRouter>
