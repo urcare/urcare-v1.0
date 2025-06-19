@@ -7,7 +7,7 @@ import { HealthRecordsHub } from './health-records/HealthRecordsHub';
 import { AppointmentManagement } from './appointments/AppointmentManagement';
 import { MedicationHub } from './medications/MedicationHub';
 import { WellnessHub } from './wellness/WellnessHub';
-import { EmergencyDashboard } from './emergency/EmergencyDashboard';
+import { EmergencyDashboard } from '../emergency/EmergencyDashboard';
 import { CommunityHub } from './community/CommunityHub';
 import { FamilyCareHub } from './family/FamilyCareHub';
 import { PatientProfile } from './profile/PatientProfile';
