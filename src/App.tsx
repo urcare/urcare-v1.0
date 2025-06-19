@@ -28,14 +28,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider defaultTheme="system" enableSystem>
           <TooltipProvider>
             <Toaster />
             <BrowserRouter>
               <div className="min-h-screen w-full">
                 <Suspense fallback={
                   <div className="min-h-screen flex items-center justify-center bg-background">
-                    <div className="text-center space-medical-md">
+                    <div className="text-center space-y-4">
                       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                       <p className="text-body text-muted-foreground">Loading UrCare...</p>
                     </div>
