@@ -18,6 +18,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
+const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 
 // Import Dashboard directly since it's a component, not a page
 import { Dashboard } from '@/components/Dashboard';
@@ -50,6 +51,7 @@ function App() {
                     
                     {/* Protected Routes */}
                     <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/patient-dashboard/*" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
                     <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
                   </Routes>

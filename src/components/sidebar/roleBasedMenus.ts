@@ -16,11 +16,13 @@ import {
   TrendingUp,
   CreditCard,
   AlertTriangle,
-  ClipboardList,
-  Microscope,
-  Bed,
-  Building2,
-  User
+  User,
+  UserPlus,
+  Home,
+  Phone,
+  Clock,
+  Bell,
+  MapPin
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -28,6 +30,7 @@ export interface MenuItem {
   url: string;
   icon: any;
   badge?: string;
+  roles?: string[];
   description?: string;
 }
 
@@ -36,22 +39,108 @@ export interface MenuSection {
   items: MenuItem[];
 }
 
-// Doctor Menu Configuration
-export const doctorMenuSections: MenuSection[] = [
+const patientMenuSections: MenuSection[] = [
+  {
+    title: "Dashboard",
+    items: [
+      {
+        title: "Home",
+        url: "/patient-dashboard",
+        icon: Home,
+        description: "AI insights & quick actions"
+      },
+      {
+        title: "Overview",
+        url: "/",
+        icon: LayoutDashboard,
+        description: "Main dashboard"
+      }
+    ]
+  },
+  {
+    title: "Health Management",
+    items: [
+      {
+        title: "Health Records",
+        url: "/patient-dashboard/health-records",
+        icon: FileText,
+        description: "Documents & timeline"
+      },
+      {
+        title: "Appointments",
+        url: "/patient-dashboard/appointments",
+        icon: Calendar,
+        description: "Booking & teleconsults"
+      },
+      {
+        title: "Medications",
+        url: "/patient-dashboard/medications",
+        icon: Pill,
+        description: "Prescriptions & reminders"
+      },
+      {
+        title: "Wellness Hub",
+        url: "/patient-dashboard/wellness",
+        icon: Heart,
+        description: "AI coaching & tracking"
+      }
+    ]
+  },
+  {
+    title: "Support & Community",
+    items: [
+      {
+        title: "Community",
+        url: "/patient-dashboard/community",
+        icon: Users,
+        description: "Support & social health"
+      },
+      {
+        title: "Family Care",
+        url: "/patient-dashboard/family",
+        icon: UserPlus,
+        description: "Guardian & family mode"
+      },
+      {
+        title: "Emergency",
+        url: "/patient-dashboard/emergency",
+        icon: AlertTriangle,
+        description: "Safety & crisis tools"
+      }
+    ]
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        title: "Profile",
+        url: "/patient-dashboard/profile",
+        icon: User,
+        description: "Settings & preferences"
+      },
+      {
+        title: "Settings",
+        url: "/settings",
+        icon: Settings,
+        description: "App preferences"
+      }
+    ]
+  }
+];
+
+const doctorMenuSections: MenuSection[] = [
   {
     title: "Dashboard",
     items: [
       {
         title: "Overview",
-        url: "/doctor/dashboard",
-        icon: LayoutDashboard,
-        description: "Clinical overview and metrics"
+        url: "/",
+        icon: LayoutDashboard
       },
       {
         title: "Analytics",
-        url: "/doctor/analytics",
-        icon: TrendingUp,
-        description: "Patient analytics and insights"
+        url: "/analytics",
+        icon: TrendingUp
       }
     ]
   },
@@ -60,358 +149,86 @@ export const doctorMenuSections: MenuSection[] = [
     items: [
       {
         title: "Appointments",
-        url: "/doctor/appointments",
-        icon: Calendar,
-        description: "Manage patient appointments"
+        url: "/appointments",
+        icon: Calendar
       },
       {
         title: "Patient Records",
-        url: "/doctor/records",
-        icon: FileText,
-        description: "View and update patient records"
+        url: "/records",
+        icon: FileText
       },
       {
         title: "Prescriptions",
-        url: "/doctor/prescriptions",
-        icon: Pill,
-        description: "Manage prescriptions"
-      }
-    ]
-  },
-  {
-    title: "Clinical",
-    items: [
-      {
-        title: "Lab Results",
-        url: "/doctor/lab-results",
-        icon: TestTube,
-        description: "Review laboratory results"
-      },
-      {
-        title: "Ward Rounds",
-        url: "/doctor/ward-rounds",
-        icon: Bed,
-        description: "Daily ward rounds"
-      }
-    ]
-  },
-  {
-    title: "Communication",
-    items: [
-      {
-        title: "Messages",
-        url: "/doctor/messages",
-        icon: MessageSquare,
-        badge: "3",
-        description: "Internal messaging"
+        url: "/pharmacy",
+        icon: Pill
       }
     ]
   }
 ];
 
-// Nurse Menu Configuration
-export const nurseMenuSections: MenuSection[] = [
+const adminMenuSections: MenuSection[] = [
   {
     title: "Dashboard",
     items: [
       {
         title: "Overview",
-        url: "/nurse/dashboard",
-        icon: LayoutDashboard,
-        description: "Nursing dashboard overview"
-      }
-    ]
-  },
-  {
-    title: "Patient Care",
-    items: [
-      {
-        title: "Patient List",
-        url: "/nurse/patients",
-        icon: Users,
-        description: "Assigned patients"
-      },
-      {
-        title: "Medications",
-        url: "/nurse/medications",
-        icon: Pill,
-        description: "Medication administration"
-      },
-      {
-        title: "Vital Signs",
-        url: "/nurse/vitals",
-        icon: Activity,
-        description: "Record vital signs"
-      }
-    ]
-  },
-  {
-    title: "Tasks",
-    items: [
-      {
-        title: "Care Plans",
-        url: "/nurse/care-plans",
-        icon: ClipboardList,
-        description: "Patient care plans"
-      },
-      {
-        title: "Shift Reports",
-        url: "/nurse/shift-reports",
-        icon: FileText,
-        description: "Shift handover reports"
-      }
-    ]
-  }
-];
-
-// Lab Staff Menu Configuration
-export const labMenuSections: MenuSection[] = [
-  {
-    title: "Dashboard",
-    items: [
-      {
-        title: "Lab Dashboard",
-        url: "/lab/dashboard",
-        icon: LayoutDashboard,
-        description: "Laboratory overview"
-      }
-    ]
-  },
-  {
-    title: "Laboratory",
-    items: [
-      {
-        title: "Test Queue",
-        url: "/lab/test-queue",
-        icon: TestTube,
-        description: "Pending tests"
-      },
-      {
-        title: "Results Entry",
-        url: "/lab/results",
-        icon: Microscope,
-        description: "Enter test results"
-      },
-      {
-        title: "Sample Tracking",
-        url: "/lab/samples",
-        icon: FileText,
-        description: "Track sample status"
-      }
-    ]
-  },
-  {
-    title: "Quality Control",
-    items: [
-      {
-        title: "QC Reports",
-        url: "/lab/qc-reports",
-        icon: Shield,
-        description: "Quality control reports"
-      }
-    ]
-  }
-];
-
-// Pharmacy Menu Configuration
-export const pharmacyMenuSections: MenuSection[] = [
-  {
-    title: "Dashboard",
-    items: [
-      {
-        title: "Pharmacy Dashboard",
-        url: "/pharmacy/dashboard",
-        icon: LayoutDashboard,
-        description: "Pharmacy overview"
-      }
-    ]
-  },
-  {
-    title: "Medications",
-    items: [
-      {
-        title: "Prescription Queue",
-        url: "/pharmacy/prescriptions",
-        icon: Pill,
-        badge: "12",
-        description: "Pending prescriptions"
-      },
-      {
-        title: "Inventory",
-        url: "/pharmacy/inventory",
-        icon: Building2,
-        description: "Drug inventory management"
-      },
-      {
-        title: "Dispensing",
-        url: "/pharmacy/dispensing",
-        icon: UserCheck,
-        description: "Medication dispensing"
-      }
-    ]
-  }
-];
-
-// Patient Menu Configuration
-export const patientMenuSections: MenuSection[] = [
-  {
-    title: "My Health",
-    items: [
-      {
-        title: "Dashboard",
-        url: "/patient/dashboard",
-        icon: LayoutDashboard,
-        description: "Health overview"
-      },
-      {
-        title: "Health Records",
-        url: "/patient/records",
-        icon: FileText,
-        description: "My medical records"
-      }
-    ]
-  },
-  {
-    title: "Appointments",
-    items: [
-      {
-        title: "My Appointments",
-        url: "/patient/appointments",
-        icon: Calendar,
-        description: "View appointments"
-      },
-      {
-        title: "Book Appointment",
-        url: "/patient/book-appointment",
-        icon: UserCheck,
-        description: "Schedule new appointment"
-      }
-    ]
-  },
-  {
-    title: "Wellness",
-    items: [
-      {
-        title: "Wellness Tracker",
-        url: "/patient/wellness",
-        icon: Heart,
-        description: "Track health metrics"
-      },
-      {
-        title: "Lab Results",
-        url: "/patient/lab-results",
-        icon: TestTube,
-        description: "View test results"
-      }
-    ]
-  },
-  {
-    title: "Communication",
-    items: [
-      {
-        title: "Messages",
-        url: "/patient/messages",
-        icon: MessageSquare,
-        description: "Chat with healthcare team"
-      }
-    ]
-  }
-];
-
-// Admin Menu Configuration
-export const adminMenuSections: MenuSection[] = [
-  {
-    title: "Dashboard",
-    items: [
-      {
-        title: "Admin Dashboard",
-        url: "/admin/dashboard",
-        icon: LayoutDashboard,
-        description: "System overview"
+        url: "/",
+        icon: LayoutDashboard
       },
       {
         title: "Analytics",
-        url: "/admin/analytics",
-        icon: TrendingUp,
-        description: "Hospital analytics"
+        url: "/analytics",
+        icon: TrendingUp
       }
     ]
   },
   {
-    title: "User Management",
+    title: "Management",
     items: [
       {
-        title: "Staff Management",
-        url: "/admin/staff",
-        icon: Users,
-        description: "Manage hospital staff"
+        title: "User Management",
+        url: "/admin/users",
+        icon: Shield
       },
-      {
-        title: "Patient Management",
-        url: "/admin/patients",
-        icon: User,
-        description: "Manage patients"
-      },
-      {
-        title: "Roles & Permissions",
-        url: "/admin/roles",
-        icon: Shield,
-        description: "Configure access control"
-      }
-    ]
-  },
-  {
-    title: "Operations",
-    items: [
       {
         title: "Billing",
-        url: "/admin/billing",
-        icon: CreditCard,
-        description: "Financial management"
+        url: "/billing",
+        icon: CreditCard
       },
       {
-        title: "Emergency",
-        url: "/admin/emergency",
-        icon: AlertTriangle,
-        description: "Emergency protocols"
+        title: "HR Management",
+        url: "/hr",
+        icon: Users
       }
     ]
   }
 ];
 
-// Bottom menu items (common across all roles)
+export function getMenuSectionsByRole(role: string = 'patient'): MenuSection[] {
+  switch (role.toLowerCase()) {
+    case 'doctor':
+    case 'physician':
+      return doctorMenuSections;
+    case 'admin':
+    case 'administrator':
+      return adminMenuSections;
+    case 'patient':
+    default:
+      return patientMenuSections;
+  }
+}
+
 export const bottomMenuItems: MenuItem[] = [
   {
     title: "Profile",
-    url: "/profile",
+    url: "/patient-dashboard/profile",
     icon: User,
-    description: "User profile settings"
+    roles: ["all"]
   },
   {
     title: "Settings",
     url: "/settings", 
     icon: Settings,
-    description: "Application settings"
+    roles: ["all"]
   }
 ];
-
-// Function to get menu sections based on user role
-export const getMenuSectionsByRole = (role: string): MenuSection[] => {
-  switch (role?.toLowerCase()) {
-    case 'doctor':
-      return doctorMenuSections;
-    case 'nurse':
-      return nurseMenuSections;
-    case 'lab':
-    case 'laboratory':
-      return labMenuSections;
-    case 'pharmacy':
-      return pharmacyMenuSections;
-    case 'patient':
-      return patientMenuSections;
-    case 'admin':
-      return adminMenuSections;
-    default:
-      return patientMenuSections; // Default to patient menu
-  }
-};

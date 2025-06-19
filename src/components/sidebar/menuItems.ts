@@ -18,7 +18,9 @@ import {
   AlertTriangle,
   Moon,
   LogOut,
-  User
+  User,
+  UserPlus,
+  Home
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -46,10 +48,43 @@ export const mainMenuSections: MenuSection[] = [
         roles: ["all"]
       },
       {
+        title: "Patient Dashboard",
+        url: "/patient-dashboard",
+        icon: Home,
+        roles: ["patient", "admin"],
+        description: "Personal health dashboard"
+      },
+      {
         title: "Analytics",
         url: "/analytics",
         icon: TrendingUp,
         roles: ["doctor", "admin", "nurse"]
+      }
+    ]
+  },
+  {
+    title: "Health Management",
+    items: [
+      {
+        title: "Health Records",
+        url: "/patient-dashboard/health-records",
+        icon: FileText,
+        roles: ["patient", "doctor", "nurse"],
+        description: "Medical documents & timeline"
+      },
+      {
+        title: "Medications",
+        url: "/patient-dashboard/medications",
+        icon: Pill,
+        roles: ["patient", "doctor", "pharmacy"],
+        description: "Prescriptions & reminders"
+      },
+      {
+        title: "Wellness Hub",
+        url: "/patient-dashboard/wellness",
+        icon: Heart,
+        roles: ["patient", "doctor"],
+        description: "AI coaching & tracking"
       }
     ]
   },
@@ -63,10 +98,67 @@ export const mainMenuSections: MenuSection[] = [
         roles: ["all"]
       },
       {
+        title: "My Appointments",
+        url: "/patient-dashboard/appointments",
+        icon: UserCheck,
+        roles: ["patient"],
+        description: "Booking & teleconsults"
+      },
+      {
         title: "Book Appointment",
         url: "/appointments/book",
         icon: UserCheck,
         roles: ["patient", "receptionist"]
+      }
+    ]
+  },
+  {
+    title: "Community & Support",
+    items: [
+      {
+        title: "Community Hub",
+        url: "/patient-dashboard/community",
+        icon: Users,
+        roles: ["patient", "doctor"],
+        description: "Support & social health"
+      },
+      {
+        title: "Family Care",
+        url: "/patient-dashboard/family",
+        icon: UserPlus,
+        roles: ["patient"],
+        description: "Guardian & family mode"
+      },
+      {
+        title: "Messages",
+        url: "/messages",
+        icon: MessageSquare,
+        badge: "3",
+        roles: ["all"]
+      }
+    ]
+  },
+  {
+    title: "Emergency",
+    items: [
+      {
+        title: "Emergency Dashboard",
+        url: "/patient-dashboard/emergency",
+        icon: AlertTriangle,
+        roles: ["patient"],
+        description: "Safety & crisis tools"
+      },
+      {
+        title: "Emergency",
+        url: "/emergency",
+        icon: AlertTriangle,
+        roles: ["all"]
+      },
+      {
+        title: "ICU/Ward",
+        url: "/ward",
+        icon: Activity,
+        roles: ["doctor", "nurse", "admin"]
       }
     ]
   },
@@ -107,47 +199,6 @@ export const mainMenuSections: MenuSection[] = [
         url: "/lab",
         icon: TestTube,
         roles: ["doctor", "lab", "patient"]
-      },
-      {
-        title: "Wellness",
-        url: "/wellness",
-        icon: Heart,
-        roles: ["patient", "doctor"]
-      }
-    ]
-  },
-  {
-    title: "Communication",
-    items: [
-      {
-        title: "Messages",
-        url: "/messages",
-        icon: MessageSquare,
-        badge: "3",
-        roles: ["all"]
-      },
-      {
-        title: "Community",
-        url: "/community",
-        icon: Users,
-        roles: ["patient", "doctor"]
-      }
-    ]
-  },
-  {
-    title: "Emergency",
-    items: [
-      {
-        title: "Emergency",
-        url: "/emergency",
-        icon: AlertTriangle,
-        roles: ["all"]
-      },
-      {
-        title: "ICU/Ward",
-        url: "/ward",
-        icon: Activity,
-        roles: ["doctor", "nurse", "admin"]
       }
     ]
   },
@@ -179,9 +230,10 @@ export const mainMenuSections: MenuSection[] = [
 export const bottomMenuItems: MenuItem[] = [
   {
     title: "Profile",
-    url: "/profile",
+    url: "/patient-dashboard/profile",
     icon: User,
-    roles: ["all"]
+    roles: ["all"],
+    description: "Settings & preferences"
   },
   {
     title: "Settings",
