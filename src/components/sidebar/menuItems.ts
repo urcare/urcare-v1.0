@@ -100,6 +100,7 @@ export interface MenuItem {
   url: string;
   icon: any;
   badge?: string;
+  description?: string;
 }
 
 export interface MenuSection {
