@@ -123,7 +123,7 @@ export function AppSidebar() {
                   Dr. Sarah Wilson
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  Cardiologist
+                  Healthcare Professional
                 </p>
               </div>
             </div>
