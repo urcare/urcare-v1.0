@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Heart, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import all step components
-import ProfileSetup from '@/components/onboarding/ProfileSetup';
+import ProfilePhotoUpload from '@/components/onboarding/ProfilePhotoUpload';
 import MedicalConditions from '@/components/onboarding/MedicalConditions';
 import CurrentMedications from '@/components/onboarding/CurrentMedications';
 import LifestyleInsights from '@/components/onboarding/LifestyleInsights';
@@ -19,7 +19,7 @@ import HealthGoals from '@/components/onboarding/HealthGoals';
 import OnboardingComplete from '@/components/onboarding/OnboardingComplete';
 
 const steps = [
-  { id: 'profile', title: 'Profile Setup', component: ProfileSetup },
+  { id: 'profile', title: 'Profile Setup', component: ProfilePhotoUpload },
   { id: 'conditions', title: 'Medical Conditions', component: MedicalConditions },
   { id: 'medications', title: 'Current Medications', component: CurrentMedications },
   { id: 'lifestyle', title: 'Lifestyle Insights', component: LifestyleInsights },
@@ -32,14 +32,20 @@ const steps = [
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   console.log('Onboarding component rendered, currentStep:', currentStep);
   console.log('User:', user);
   
-  const handleNext = () => {
+  const handleNext = async () => {
     console.log('handleNext called, currentStep:', currentStep);
+    setIsLoading(true);
+    
+    // Simulate a brief loading for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -49,6 +55,8 @@ const Onboarding = () => {
       });
       navigate('/dashboard');
     }
+    
+    setIsLoading(false);
   };
   
   const handlePrevious = () => {
@@ -122,14 +130,21 @@ const Onboarding = () => {
           </CardHeader>
           
           <CardContent className="px-8 py-6">
-            <CurrentStepComponent onDataChange={handleStepData} />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <span className="ml-3 text-gray-600">Loading...</span>
+              </div>
+            ) : (
+              <CurrentStepComponent onDataChange={handleStepData} />
+            )}
           </CardContent>
           
           <CardFooter className="flex justify-between px-8 py-6 bg-gray-50/50">
             <Button 
               variant="outline" 
               onClick={handlePrevious}
-              disabled={currentStep === 0}
+              disabled={currentStep === 0 || isLoading}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -141,6 +156,7 @@ const Onboarding = () => {
                 <Button 
                   variant="ghost" 
                   onClick={handleSkip}
+                  disabled={isLoading}
                   className="text-gray-600 hover:text-gray-800"
                 >
                   Skip for now
@@ -149,9 +165,12 @@ const Onboarding = () => {
               
               <Button 
                 onClick={handleNext}
+                disabled={isLoading}
                 className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white flex items-center gap-2"
               >
-                {currentStep === steps.length - 1 ? (
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : currentStep === steps.length - 1 ? (
                   <>
                     <Check className="w-4 h-4" />
                     Go to Dashboard

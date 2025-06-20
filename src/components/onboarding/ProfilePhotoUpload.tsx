@@ -1,177 +1,146 @@
 
-import { useState, useRef, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
-import { Camera, Pencil, Trash, User } from 'lucide-react';
-import { toast } from 'sonner';
+import { Camera, User } from 'lucide-react';
 
-const ProfilePhotoUpload = () => {
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+interface ProfilePhotoUploadProps {
+  onDataChange: (data: any) => void;
+}
+
+const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({ onDataChange }) => {
+  const [profileData, setProfileData] = useState({
+    profilePhoto: '',
+    firstName: '',
+    lastName: '',
+    age: '',
+    height: '',
+    weight: '',
+    gender: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    const newData = { ...profileData, [field]: value };
+    setProfileData(newData);
+    onDataChange(newData);
+  };
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
-        setIsUploading(true);
-        
-        // Simulate file processing delay
-        setTimeout(() => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            setPhoto(reader.result as string);
-            setIsUploading(false);
-            toast.success('Profile photo uploaded');
-          };
-          reader.readAsDataURL(file);
-        }, 1000);
-      } else {
-        toast.error('Please select an image file');
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleInputChange('profilePhoto', reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
-  
-  const handleRemovePhoto = () => {
-    setPhoto(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    toast.info('Profile photo removed');
-  };
-  
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-  
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-  
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        setIsUploading(true);
-        
-        // Simulate file processing delay
-        setTimeout(() => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            setPhoto(reader.result as string);
-            setIsUploading(false);
-            toast.success('Profile photo uploaded');
-          };
-          reader.readAsDataURL(file);
-        }, 1000);
-      } else {
-        toast.error('Please drop an image file');
-      }
-    }
-  };
-  
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-  
+
   return (
     <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold tracking-tight">Profile Photo</h2>
-        <p className="text-muted-foreground mt-2">
-          Add a photo to personalize your profile.
-        </p>
-      </div>
-      
-      <div className="flex flex-col items-center">
-        <div className="mb-6 relative group">
-          <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-            {isUploading ? (
-              <div className="w-full h-full flex items-center justify-center bg-slate-200 animate-pulse">
-                <span className="text-sm text-slate-600">Loading...</span>
-              </div>
-            ) : (
-              <>
-                <AvatarImage src={photo || ''} alt="Profile" />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  <User className="h-12 w-12" />
-                </AvatarFallback>
-              </>
-            )}
+      {/* Profile Photo */}
+      <div className="flex flex-col items-center space-y-4">
+        <div className="relative">
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={profileData.profilePhoto} />
+            <AvatarFallback className="bg-gradient-to-r from-teal-100 to-blue-100">
+              <User className="w-8 h-8 text-teal-600" />
+            </AvatarFallback>
           </Avatar>
-          
-          {photo && (
-            <div className="absolute -bottom-3 right-0 flex space-x-2">
-              <Button 
-                size="icon" 
-                variant="outline" 
-                className="h-8 w-8 rounded-full bg-background shadow-md"
-                onClick={triggerFileInput}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="icon" 
-                variant="outline" 
-                className="h-8 w-8 rounded-full bg-background shadow-md"
-                onClick={handleRemovePhoto}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept="image/*"
-          className="hidden"
-        />
-        
-        {!photo && !isUploading && (
-          <Card
-            className={`w-full max-w-md p-6 border-dashed cursor-pointer hover:border-primary transition-colors ${isDragging ? 'border-primary bg-primary/5' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={triggerFileInput}
+          <Button
+            size="sm"
+            className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-gradient-to-r from-teal-500 to-blue-500"
+            onClick={() => document.getElementById('photo-upload')?.click()}
           >
-            <CardContent className="flex flex-col items-center justify-center py-6 text-center">
-              <Camera className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-medium text-lg mb-2">Upload Profile Photo</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Drag & drop an image here, or click to select a file
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Supported formats: JPG, PNG, GIF (Max 5MB)
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        
-        {isUploading && (
-          <div className="mt-4">
-            <p className="text-center text-sm text-muted-foreground">Processing your photo...</p>
-          </div>
-        )}
-      </div>
-      
-      {photo && (
-        <div className="text-center space-y-4">
-          <h3 className="font-medium">Looking good!</h3>
-          <p className="text-sm text-muted-foreground">
-            Your profile photo has been uploaded and will be visible to your healthcare providers.
-          </p>
+            <Camera className="w-4 h-4" />
+          </Button>
+          <input
+            id="photo-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
         </div>
-      )}
+        <p className="text-sm text-gray-600">Upload your profile photo (optional)</p>
+      </div>
+
+      {/* Name Fields */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            value={profileData.firstName}
+            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            placeholder="John"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            value={profileData.lastName}
+            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            placeholder="Doe"
+          />
+        </div>
+      </div>
+
+      {/* Age */}
+      <div className="space-y-2">
+        <Label htmlFor="age">Age</Label>
+        <Input
+          id="age"
+          type="number"
+          value={profileData.age}
+          onChange={(e) => handleInputChange('age', e.target.value)}
+          placeholder="25"
+        />
+      </div>
+
+      {/* Height and Weight */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="height">Height (cm)</Label>
+          <Input
+            id="height"
+            type="number"
+            value={profileData.height}
+            onChange={(e) => handleInputChange('height', e.target.value)}
+            placeholder="170"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="weight">Weight (kg)</Label>
+          <Input
+            id="weight"
+            type="number"
+            value={profileData.weight}
+            onChange={(e) => handleInputChange('weight', e.target.value)}
+            placeholder="70"
+          />
+        </div>
+      </div>
+
+      {/* Gender */}
+      <div className="space-y-2">
+        <Label>Gender</Label>
+        <Select value={profileData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 };
