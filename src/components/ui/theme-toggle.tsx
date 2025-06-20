@@ -22,16 +22,29 @@ export function ThemeToggle() {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-        <DropdownMenuItem onClick={() => setTheme('light')} className="dark:text-white dark:hover:bg-slate-700">
+      <DropdownMenuContent 
+        align="end" 
+        className="dropdown-content bg-popover border-border"
+        style={{ background: 'hsl(var(--popover))' }}
+      >
+        <DropdownMenuItem 
+          onClick={() => setTheme('light')} 
+          className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
+        >
           <Sun className="mr-2 h-4 w-4" />
           <span>Light</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')} className="dark:text-white dark:hover:bg-slate-700">
+        <DropdownMenuItem 
+          onClick={() => setTheme('dark')} 
+          className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
+        >
           <Moon className="mr-2 h-4 w-4" />
           <span>Dark</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')} className="dark:text-white dark:hover:bg-slate-700">
+        <DropdownMenuItem 
+          onClick={() => setTheme('system')} 
+          className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
+        >
           <Monitor className="mr-2 h-4 w-4" />
           <span>System</span>
         </DropdownMenuItem>
