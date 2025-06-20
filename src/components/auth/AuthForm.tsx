@@ -53,7 +53,8 @@ export const AuthForm = () => {
     { value: 'admin', label: 'Administrator', icon: Shield, description: 'System management' },
     { value: 'pharmacy', label: 'Pharmacy', icon: Heart, description: 'Medication management' },
     { value: 'lab', label: 'Laboratory', icon: Heart, description: 'Test results management' },
-    { value: 'reception', label: 'Reception', icon: Users, description: 'Patient registration' }
+    { value: 'reception', label: 'Reception', icon: Users, description: 'Patient registration' },
+    { value: 'hr', label: 'HR', icon: Users, description: 'Human resources management' }
   ];
 
   return (
