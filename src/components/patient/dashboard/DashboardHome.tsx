@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,24 +25,38 @@ import {
 } from 'lucide-react';
 
 export const DashboardHome = () => {
+  const navigate = useNavigate();
+
   const handleBookAppointment = () => {
-    console.log('Book appointment clicked');
-    // Add routing logic here
+    navigate('/appointments');
   };
 
   const handleTeleconsult = () => {
-    console.log('Start teleconsultation clicked');
-    // Add teleconsult logic here
+    navigate('/telemedicine');
   };
 
   const handleEmergency = () => {
-    console.log('Emergency clicked');
-    // Add emergency logic here
+    navigate('/emergency');
   };
 
   const handleUploadRecords = () => {
-    console.log('Upload records clicked');
-    // Add upload logic here
+    navigate('/documents');
+  };
+
+  const handleReschedule = () => {
+    navigate('/appointments');
+  };
+
+  const handleViewProfile = () => {
+    navigate('/profile');
+  };
+
+  const handleViewSettings = () => {
+    navigate('/settings');
+  };
+
+  const handleViewWellness = () => {
+    navigate('/wellness');
   };
 
   return (
@@ -86,6 +101,7 @@ export const DashboardHome = () => {
                 variant="outline" 
                 size="sm"
                 className="border-green-200 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950/50"
+                onClick={handleReschedule}
               >
                 Reschedule
               </Button>
@@ -186,21 +202,30 @@ export const DashboardHome = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+            <div 
+              className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+              onClick={handleViewWellness}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 <span className="text-sm text-gray-700 dark:text-gray-300">Sleep Quality</span>
               </div>
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Good (7.5h)</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+            <div 
+              className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors"
+              onClick={() => navigate('/pharmacy')}
+            >
               <div className="flex items-center gap-2">
                 <Pill className="w-4 h-4 text-green-500" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">Medications</span>
               </div>
               <span className="text-sm font-medium text-green-600 dark:text-green-400">2 Active</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+            <div 
+              className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-950/50 transition-colors"
+              onClick={handleViewWellness}
+            >
               <div className="flex items-center gap-2">
                 <Heart className="w-4 h-4 text-yellow-500" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">Heart Rate</span>
@@ -226,14 +251,20 @@ export const DashboardHome = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">Lisinopril 10mg - 8:00 AM</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div 
+              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleUploadRecords}
+            >
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Blood pressure logged</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">120/80 mmHg - Yesterday</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div 
+              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleUploadRecords}
+            >
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Lab results uploaded</p>
