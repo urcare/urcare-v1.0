@@ -1,117 +1,117 @@
 
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { UserRole } from '@/types/auth';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { getAuthRedirectURL } from '@/utils/authUtils';
 
 export const useAuthOperations = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const signIn = async (email: string, password: string, rememberMe: boolean) => {
+  const signIn = async (email: string, password: string, rememberMe = false) => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          captchaToken: undefined
-        }
       });
 
-      if (error) throw error;
-      
-      if (data?.user) {
-        const from = location.state?.from?.pathname || '/';
-        navigate(from);
-        toast.success('Logged in successfully', {
-          description: `Welcome back!`
+      if (error) {
+        toast.error('Sign in failed', {
+          description: error.message
         });
+        return { error };
       }
+
+      if (data.user) {
+        toast.success('Welcome back!', {
+          description: 'You have been signed in successfully.'
+        });
+        
+        // Check if user needs onboarding or go to dashboard
+        navigate('/dashboard');
+      }
+
+      return { data };
     } catch (error: any) {
-      toast.error('Login failed', {
+      toast.error('An unexpected error occurred', {
         description: error.message
       });
-      console.error('Login error:', error);
+      return { error };
     } finally {
       setLoading(false);
     }
   };
 
-  const signUp = async (
-    email: string, 
-    password: string, 
-    fullName: string, 
-    role: UserRole, 
-    phone?: string
-  ) => {
+  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
+      const redirectUrl = getAuthRedirectURL();
       
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-            role: role,
-            phone: phone || null
+            role: role
           }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        toast.error('Sign up failed', {
+          description: error.message
+        });
+        return { error };
+      }
 
-      toast.success('Account created successfully', {
-        description: 'Please check your email for verification instructions.'
-      });
-      
-      navigate('/auth');
+      if (data.user) {
+        toast.success('Account created successfully!', {
+          description: 'Please check your email to verify your account.'
+        });
+        
+        // Redirect to onboarding for new users
+        navigate('/onboarding');
+      }
+
+      return { data };
     } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error('Registration failed', {
+      toast.error('An unexpected error occurred', {
         description: error.message
       });
+      return { error };
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      await supabase.auth.signOut();
-      navigate('/auth');
-      toast.success('Logged out successfully');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast.error('Sign out failed', {
+          description: error.message
+        });
+        return { error };
+      }
+
+      toast.success('Signed out successfully');
+      navigate('/');
+      
+      return { success: true };
     } catch (error: any) {
-      toast.error('Error signing out', {
+      toast.error('An unexpected error occurred', {
         description: error.message
       });
-      console.error('Logout error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
-
-      if (error) throw error;
-
-      toast.success('Password reset email sent', {
-        description: 'Check your email for the reset link.'
-      });
-    } catch (error: any) {
-      toast.error('Failed to send reset email', {
-        description: error.message
-      });
-      console.error('Reset password error:', error);
+      return { error };
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,6 @@ export const useAuthOperations = () => {
     signIn,
     signUp,
     signOut,
-    resetPassword,
     loading
   };
 };
