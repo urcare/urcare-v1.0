@@ -9,9 +9,9 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import './App.css';
 
-// Lazy load components for better performance
-const Dashboard = lazy(() => import('@/components/Dashboard'));
-const PatientDashboardLayout = lazy(() => import('@/components/patient/PatientDashboardLayout'));
+// Lazy load components for better performance - using correct syntax for named exports
+const Dashboard = lazy(() => import('@/components/Dashboard').then(module => ({ default: module.Dashboard || module.default })));
+const PatientDashboardLayout = lazy(() => import('@/components/patient/PatientDashboardLayout').then(module => ({ default: module.PatientDashboardLayout || module.default })));
 const Appointments = lazy(() => import('@/pages/Appointments'));
 const Documents = lazy(() => import('@/pages/Documents'));
 const Emergency = lazy(() => import('@/pages/Emergency'));
@@ -83,6 +83,31 @@ function App() {
                       <Route path="/admin" element={<div className="p-6">Admin Dashboard</div>} />
                       <Route path="/compliance" element={<div className="p-6">Compliance Management</div>} />
                       <Route path="/security" element={<div className="p-6">Security Dashboard</div>} />
+                      
+                      {/* Laboratory & Diagnostics */}
+                      <Route path="/lims" element={<div className="p-6">Lab Management</div>} />
+                      <Route path="/pathology" element={<div className="p-6">Pathology Services</div>} />
+                      <Route path="/imaging" element={<div className="p-6">Medical Imaging</div>} />
+                      
+                      {/* Operations */}
+                      <Route path="/quality" element={<div className="p-6">Quality Management</div>} />
+                      
+                      {/* AI & Analytics */}
+                      <Route path="/ai-diagnostics" element={<div className="p-6">AI-powered Diagnostics</div>} />
+                      
+                      {/* Communication */}
+                      <Route path="/messaging" element={<div className="p-6">Messaging & Communication</div>} />
+                      <Route path="/public-health" element={<div className="p-6">Public Health Initiatives</div>} />
+                      
+                      {/* Technology & Security */}
+                      <Route path="/integration" element={<div className="p-6">System Integrations</div>} />
+                      <Route path="/performance" element={<div className="p-6">System Performance</div>} />
+                      <Route path="/mobile" element={<div className="p-6">Mobile App Management</div>} />
+                      
+                      {/* Data & Governance */}
+                      <Route path="/data-governance" element={<div className="p-6">Data Management & Governance</div>} />
+                      <Route path="/backup" element={<div className="p-6">Data Backup Systems</div>} />
+                      <Route path="/process-optimization" element={<div className="p-6">Workflow Optimization</div>} />
                       
                       {/* Catch all route */}
                       <Route path="*" element={<div className="p-6">Page Not Found</div>} />
