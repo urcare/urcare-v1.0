@@ -16,40 +16,54 @@ import {
   TrendingUp,
   CreditCard,
   AlertTriangle,
+  Moon,
+  LogOut,
   User,
   UserPlus,
   Home,
-  Phone,
-  Clock,
-  Bell,
-  MapPin,
   Brain,
-  Video,
-  Search,
-  Building,
-  Briefcase,
-  BookOpen,
-  Database,
-  Lock,
-  Zap,
-  Smartphone,
-  Globe,
-  BarChart3,
-  Monitor,
-  Wrench,
-  CircuitBoard,
-  FlaskConical,
   Microscope,
-  Syringe,
-  Headphones,
-  Archive,
-  CheckCircle,
-  Target,
-  Lightbulb,
+  Building2,
+  Truck,
+  Search,
+  Zap,
+  BarChart3,
+  Globe,
+  Smartphone,
+  Lock,
+  Database,
+  Workflow,
+  Wrench,
+  MonitorSpeaker,
+  Layers,
   Cpu,
-  HardDrive,
+  Target,
   Network,
-  CloudCog
+  Languages,
+  CloudCog,
+  Sparkles,
+  Accessibility,
+  FlaskConical,
+  Blocks,
+  BookOpen,
+  Camera,
+  Phone,
+  Palette,
+  Gamepad2,
+  Baby,
+  Gem,
+  HandHeart,
+  Siren,
+  Eye,
+  ShieldCheck,
+  CheckCircle,
+  Cog,
+  Gauge,
+  Scale,
+  HeartHandshake,
+  Combine,
+  Bot,
+  FlaskRound
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -57,6 +71,7 @@ export interface MenuItem {
   url: string;
   icon: any;
   badge?: string;
+  roles?: string[];
   description?: string;
 }
 
@@ -73,95 +88,165 @@ export const mainMenuSections: MenuSection[] = [
         title: "Overview",
         url: "/",
         icon: LayoutDashboard,
-        description: "Main dashboard overview"
+        roles: ["all"]
       },
       {
-        title: "Patient Portal",
+        title: "Patient Dashboard",
         url: "/patient-dashboard",
-        icon: User,
-        description: "Patient-focused dashboard"
+        icon: Home,
+        roles: ["patient", "admin"],
+        description: "Personal health dashboard"
       },
       {
         title: "Analytics",
         url: "/analytics",
         icon: TrendingUp,
-        description: "Data insights & metrics"
+        roles: ["doctor", "admin", "nurse"]
+      },
+      {
+        title: "Hospital Analytics",
+        url: "/hospital-analytics",
+        icon: BarChart3,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Clinical Analytics",
+        url: "/clinical-analytics",
+        icon: Activity,
+        roles: ["doctor", "admin"]
       }
     ]
   },
   {
-    title: "Patient Care",
+    title: "Health Management",
     items: [
-      {
-        title: "Appointments",
-        url: "/appointments",
-        icon: Calendar,
-        description: "Schedule & manage appointments"
-      },
-      {
-        title: "Teleconsultation",
-        url: "/teleconsult",
-        icon: Video,
-        description: "Virtual consultations"
-      },
       {
         title: "Health Records",
-        url: "/records",
+        url: "/patient-dashboard/health-records",
         icon: FileText,
-        description: "Medical documents & history"
+        roles: ["patient", "doctor", "nurse"],
+        description: "Medical documents & timeline"
       },
       {
-        title: "Documents",
-        url: "/documents",
-        icon: Archive,
-        description: "Document management system"
-      },
-      {
-        title: "Pharmacy",
-        url: "/pharmacy",
+        title: "Medications",
+        url: "/patient-dashboard/medications",
         icon: Pill,
-        description: "Medication management"
+        roles: ["patient", "doctor", "pharmacy"],
+        description: "Prescriptions & reminders"
+      },
+      {
+        title: "Wellness Hub",
+        url: "/patient-dashboard/wellness",
+        icon: Heart,
+        roles: ["patient", "doctor"],
+        description: "AI coaching & tracking"
+      },
+      {
+        title: "Wellness",
+        url: "/wellness",
+        icon: Heart,
+        roles: ["all"]
+      },
+      {
+        title: "Health Twin",
+        url: "/health-twin",
+        icon: User,
+        roles: ["patient", "doctor"]
+      },
+      {
+        title: "Emotional Health",
+        url: "/emotional-health",
+        icon: Brain,
+        roles: ["patient", "doctor"]
       }
     ]
   },
   {
-    title: "Clinical Services",
+    title: "Appointments & Scheduling",
     items: [
       {
-        title: "Emergency",
-        url: "/emergency",
-        icon: AlertTriangle,
-        description: "Emergency care & crisis support"
+        title: "Schedule",
+        url: "/appointments",
+        icon: Calendar,
+        roles: ["all"]
+      },
+      {
+        title: "My Appointments",
+        url: "/patient-dashboard/appointments",
+        icon: UserCheck,
+        roles: ["patient"],
+        description: "Booking & teleconsults"
+      },
+      {
+        title: "Book Appointment",
+        url: "/appointments/book",
+        icon: UserCheck,
+        roles: ["patient", "receptionist"]
+      }
+    ]
+  },
+  {
+    title: "Medical Services",
+    items: [
+      {
+        title: "Telemedicine",
+        url: "/telemedicine",
+        icon: Phone,
+        roles: ["doctor", "patient"]
+      },
+      {
+        title: "Emergency Medicine",
+        url: "/emergency-medicine",
+        icon: Siren,
+        roles: ["doctor", "nurse"]
+      },
+      {
+        title: "Surgical Services",
+        url: "/surgical-services",
+        icon: Stethoscope,
+        roles: ["doctor", "nurse"]
+      },
+      {
+        title: "Pathology",
+        url: "/pathology",
+        icon: Microscope,
+        roles: ["doctor", "lab"]
       },
       {
         title: "Mental Health",
         url: "/mental-health",
         icon: Brain,
-        description: "Psychological care & support"
+        roles: ["doctor", "patient"]
       },
       {
-        title: "Oncology",
-        url: "/oncology",
-        icon: Target,
-        description: "Cancer care & treatment"
+        title: "Mental Health AI",
+        url: "/mental-health-ai",
+        icon: Bot,
+        roles: ["doctor", "patient"]
       },
       {
         title: "Pediatric Care",
-        url: "/pediatric",
-        icon: Heart,
-        description: "Children's healthcare"
+        url: "/pediatric-care",
+        icon: Baby,
+        roles: ["doctor", "patient"]
       },
       {
         title: "Geriatric Care",
-        url: "/geriatric",
-        icon: UserCheck,
-        description: "Elderly care services"
+        url: "/geriatric-care",
+        icon: HandHeart,
+        roles: ["doctor", "patient"]
       },
       {
-        title: "Rehabilitation",
-        url: "/rehabilitation",
-        icon: Activity,
-        description: "Recovery & therapy services"
+        title: "Oncology Care",
+        url: "/oncology-care",
+        icon: Heart,
+        roles: ["doctor", "patient"]
+      },
+      {
+        title: "Rehabilitation Services",
+        url: "/rehabilitation-services",
+        icon: HeartHandshake,
+        roles: ["doctor", "patient"]
       }
     ]
   },
@@ -169,74 +254,22 @@ export const mainMenuSections: MenuSection[] = [
     title: "Laboratory & Diagnostics",
     items: [
       {
-        title: "Lab Management",
+        title: "LIMS",
         url: "/lims",
         icon: TestTube,
-        description: "Laboratory information system"
+        roles: ["lab", "doctor"]
       },
       {
-        title: "Pathology",
-        url: "/pathology",
-        icon: Microscope,
-        description: "Pathology services"
+        title: "RIS",
+        url: "/ris",
+        icon: Eye,
+        roles: ["radiologist", "doctor"]
       },
       {
-        title: "Medical Imaging",
-        url: "/imaging",
-        icon: Monitor,
-        description: "Radiology & imaging"
-      }
-    ]
-  },
-  {
-    title: "Operations",
-    items: [
-      {
-        title: "Billing",
-        url: "/billing",
-        icon: CreditCard,
-        description: "Financial management"
-      },
-      {
-        title: "HR Management",
-        url: "/hr",
-        icon: Users,
-        description: "Human resources"
-      },
-      {
-        title: "Compliance",
-        url: "/compliance",
-        icon: CheckCircle,
-        description: "Regulatory compliance"
-      },
-      {
-        title: "Quality Assurance",
-        url: "/quality",
-        icon: Shield,
-        description: "Quality management"
-      }
-    ]
-  },
-  {
-    title: "Research & Development",
-    items: [
-      {
-        title: "Research",
-        url: "/research",
-        icon: BookOpen,
-        description: "Research management"
-      },
-      {
-        title: "Clinical Trials",
-        url: "/clinical-trials",
-        icon: FlaskConical,
-        description: "Clinical trial management"
-      },
-      {
-        title: "AI & Analytics",
-        url: "/ai-diagnostics",
-        icon: Brain,
-        description: "AI-powered diagnostics"
+        title: "Lab Results",
+        url: "/lab",
+        icon: TestTube,
+        roles: ["doctor", "lab", "patient"]
       }
     ]
   },
@@ -244,74 +277,410 @@ export const mainMenuSections: MenuSection[] = [
     title: "Community & Support",
     items: [
       {
+        title: "Community Hub",
+        url: "/patient-dashboard/community",
+        icon: Users,
+        roles: ["patient", "doctor"],
+        description: "Support & social health"
+      },
+      {
         title: "Community",
         url: "/community",
         icon: Users,
-        description: "Patient community & support"
+        roles: ["all"]
       },
       {
-        title: "Communication",
-        url: "/messaging",
+        title: "Family Care",
+        url: "/patient-dashboard/family",
+        icon: UserPlus,
+        roles: ["patient"],
+        description: "Guardian & family mode"
+      },
+      {
+        title: "Messages",
+        url: "/messages",
         icon: MessageSquare,
-        description: "Messaging & communication"
+        badge: "3",
+        roles: ["all"]
       },
       {
-        title: "Public Health",
-        url: "/public-health",
-        icon: Globe,
-        description: "Public health initiatives"
+        title: "Communication Systems",
+        url: "/communication-systems",
+        icon: MessageSquare,
+        roles: ["all"]
       }
     ]
   },
   {
-    title: "Technology & Security",
+    title: "Emergency & Safety",
     items: [
       {
-        title: "Security",
-        url: "/security",
-        icon: Lock,
-        description: "Security management"
+        title: "Emergency Dashboard",
+        url: "/patient-dashboard/emergency",
+        icon: AlertTriangle,
+        roles: ["patient"],
+        description: "Safety & crisis tools"
+      },
+      {
+        title: "Emergency",
+        url: "/emergency",
+        icon: AlertTriangle,
+        roles: ["all"]
+      },
+      {
+        title: "ICU/Ward",
+        url: "/ward",
+        icon: Activity,
+        roles: ["doctor", "nurse", "admin"]
+      }
+    ]
+  },
+  {
+    title: "Documents & Records",
+    items: [
+      {
+        title: "Documents",
+        url: "/documents",
+        icon: FileText,
+        roles: ["all"]
+      },
+      {
+        title: "Patient Records",
+        url: "/records",
+        icon: FileText,
+        roles: ["doctor", "nurse", "admin"]
+      },
+      {
+        title: "My Records",
+        url: "/my-records",
+        icon: FileText,
+        roles: ["patient"]
+      }
+    ]
+  },
+  {
+    title: "Pharmacy & Prescriptions",
+    items: [
+      {
+        title: "Pharmacy",
+        url: "/pharmacy",
+        icon: Pill,
+        roles: ["doctor", "pharmacy", "patient"]
+      },
+      {
+        title: "Prescriptions",
+        url: "/prescriptions",
+        icon: Pill,
+        roles: ["doctor", "pharmacy", "patient"]
+      }
+    ]
+  },
+  {
+    title: "AI & Advanced Features",
+    items: [
+      {
+        title: "Advanced AI Diagnostics",
+        url: "/advanced-ai-diagnostics",
+        icon: Bot,
+        roles: ["doctor", "admin"]
+      },
+      {
+        title: "Clinical Decision Support",
+        url: "/clinical-decision-support",
+        icon: Brain,
+        roles: ["doctor", "nurse"]
+      },
+      {
+        title: "Predictive Clinical AI",
+        url: "/predictive-clinical-ai",
+        icon: TrendingUp,
+        roles: ["doctor", "admin"]
+      },
+      {
+        title: "Treatment Protocol AI",
+        url: "/treatment-protocol-ai",
+        icon: Workflow,
+        roles: ["doctor", "admin"]
+      },
+      {
+        title: "Advanced Workflow AI",
+        url: "/advanced-workflow-ai",
+        icon: Workflow,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Workflow Automation AI",
+        url: "/workflow-automation-ai",
+        icon: Zap,
+        roles: ["admin"]
+      },
+      {
+        title: "Process Optimization AI",
+        url: "/process-optimization-ai",
+        icon: Target,
+        roles: ["admin"]
+      },
+      {
+        title: "Content Engagement AI",
+        url: "/content-engagement-ai",
+        icon: Sparkles,
+        roles: ["admin"]
+      },
+      {
+        title: "Emotional Retention AI",
+        url: "/emotional-retention-ai",
+        icon: Heart,
+        roles: ["admin"]
+      },
+      {
+        title: "Natural Language Processing",
+        url: "/natural-language-processing",
+        icon: Languages,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Predictive Maintenance AI",
+        url: "/predictive-maintenance-ai",
+        icon: Wrench,
+        roles: ["admin"]
+      }
+    ]
+  },
+  {
+    title: "Administration & Management",
+    items: [
+      {
+        title: "User Management",
+        url: "/admin/users",
+        icon: Shield,
+        roles: ["admin"]
+      },
+      {
+        title: "Billing",
+        url: "/billing",
+        icon: CreditCard,
+        roles: ["admin", "receptionist"]
+      },
+      {
+        title: "HR Management",
+        url: "/hr",
+        icon: Users,
+        roles: ["admin"]
+      },
+      {
+        title: "HR Analytics",
+        url: "/hr-analytics",
+        icon: BarChart3,
+        roles: ["admin"]
+      },
+      {
+        title: "Insurance",
+        url: "/insurance",
+        icon: Shield,
+        roles: ["admin", "patient"]
+      },
+      {
+        title: "TPA",
+        url: "/tpa",
+        icon: Building2,
+        roles: ["admin"]
+      },
+      {
+        title: "Visitor Control",
+        url: "/visitor-control",
+        icon: UserCheck,
+        roles: ["admin", "security"]
+      }
+    ]
+  },
+  {
+    title: "Research & Development",
+    items: [
+      {
+        title: "Advanced Research Tools",
+        url: "/advanced-research-tools",
+        icon: FlaskConical,
+        roles: ["researcher", "doctor"]
+      },
+      {
+        title: "Research Data Management",
+        url: "/research-data-management",
+        icon: Database,
+        roles: ["researcher", "admin"]
+      },
+      {
+        title: "Clinical Optimization",
+        url: "/clinical-optimization",
+        icon: Target,
+        roles: ["doctor", "admin"]
+      }
+    ]
+  },
+  {
+    title: "Quality & Compliance",
+    items: [
+      {
+        title: "Quality Assurance",
+        url: "/quality-assurance",
+        icon: CheckCircle,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Compliance Management",
+        url: "/compliance-management",
+        icon: ShieldCheck,
+        roles: ["admin"]
+      },
+      {
+        title: "Safety Compliance AI",
+        url: "/safety-compliance-ai",
+        icon: Shield,
+        roles: ["admin"]
+      },
+      {
+        title: "Risk Management",
+        url: "/risk-management",
+        icon: AlertTriangle,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Bio Waste Management",
+        url: "/bio-waste-management",
+        icon: Truck,
+        roles: ["admin", "environmental"]
+      }
+    ]
+  },
+  {
+    title: "Technology & Integration",
+    items: [
+      {
+        title: "Device Integration",
+        url: "/device-integration",
+        icon: Smartphone,
+        roles: ["admin", "technician"]
       },
       {
         title: "System Integration",
-        url: "/integration",
+        url: "/system-integration",
         icon: Network,
-        description: "System integrations"
+        roles: ["admin", "it"]
       },
       {
-        title: "Performance",
-        url: "/performance",
-        icon: Zap,
-        description: "System performance"
+        title: "Advanced Security Features",
+        url: "/advanced-security-features",
+        icon: Lock,
+        roles: ["admin", "security"]
       },
       {
-        title: "Mobile Optimization",
-        url: "/mobile",
-        icon: Smartphone,
-        description: "Mobile app management"
-      }
-    ]
-  },
-  {
-    title: "Data & Governance",
-    items: [
+        title: "Advanced Access Control",
+        url: "/advanced-access-control",
+        icon: Shield,
+        roles: ["admin"]
+      },
       {
         title: "Data Governance",
         url: "/data-governance",
         icon: Database,
-        description: "Data management & governance"
+        roles: ["admin"]
       },
       {
-        title: "Backup & Recovery",
-        url: "/backup",
-        icon: HardDrive,
-        description: "Data backup systems"
+        title: "Cross Platform Compatibility",
+        url: "/cross-platform-compatibility",
+        icon: Layers,
+        roles: ["admin", "it"]
+      }
+    ]
+  },
+  {
+    title: "Mobile & Accessibility",
+    items: [
+      {
+        title: "Advanced Mobile Features",
+        url: "/advanced-mobile-features",
+        icon: Smartphone,
+        roles: ["all"]
       },
       {
-        title: "Process Optimization",
-        url: "/process-optimization",
-        icon: Cpu,
-        description: "Workflow optimization"
+        title: "Mobile Optimization",
+        url: "/mobile-optimization",
+        icon: Smartphone,
+        roles: ["admin"]
+      },
+      {
+        title: "Advanced UI",
+        url: "/advanced-ui",
+        icon: Palette,
+        roles: ["admin"]
+      }
+    ]
+  },
+  {
+    title: "Performance & Monitoring",
+    items: [
+      {
+        title: "Performance Monitoring",
+        url: "/performance-monitoring",
+        icon: MonitorSpeaker,
+        roles: ["admin", "it"]
+      },
+      {
+        title: "Performance Optimization",
+        url: "/performance-optimization",
+        icon: Gauge,
+        roles: ["admin", "it"]
+      },
+      {
+        title: "System Maintenance",
+        url: "/system-maintenance",
+        icon: Wrench,
+        roles: ["admin", "it"]
+      },
+      {
+        title: "Scalability Management",
+        url: "/scalability-management",
+        icon: Scale,
+        roles: ["admin", "it"]
+      }
+    ]
+  },
+  {
+    title: "Automation & Optimization",
+    items: [
+      {
+        title: "Advanced Automation",
+        url: "/advanced-automation",
+        icon: Zap,
+        roles: ["admin"]
+      },
+      {
+        title: "Intelligent Content",
+        url: "/intelligent-content",
+        icon: BookOpen,
+        roles: ["admin", "content"]
+      },
+      {
+        title: "Engagement",
+        url: "/engagement",
+        icon: Gamepad2,
+        roles: ["admin", "marketing"]
+      }
+    ]
+  },
+  {
+    title: "Specialized Services",
+    items: [
+      {
+        title: "Patient Journey",
+        url: "/patient-journey",
+        icon: Users,
+        roles: ["admin", "doctor"]
+      },
+      {
+        title: "Public Health Integration",
+        url: "/public-health-integration",
+        icon: Globe,
+        roles: ["admin", "public-health"]
       }
     ]
   }
@@ -320,20 +689,18 @@ export const mainMenuSections: MenuSection[] = [
 export const bottomMenuItems: MenuItem[] = [
   {
     title: "Profile",
-    url: "/profile",
+    url: "/patient-dashboard/profile",
     icon: User,
-    description: "User profile & settings"
+    roles: ["all"],
+    description: "Settings & preferences"
   },
   {
     title: "Settings",
     url: "/settings", 
     icon: Settings,
-    description: "System settings"
-  },
-  {
-    title: "Admin",
-    url: "/admin",
-    icon: Shield,
-    description: "Admin dashboard"
+    roles: ["all"]
   }
 ];
+
+// Legacy export for backward compatibility
+export const menuItems = mainMenuSections.flatMap(section => section.items);
