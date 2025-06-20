@@ -1,11 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Heart, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Heart, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import all step components
@@ -32,16 +32,33 @@ const steps = [
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initializationTimeout, setInitializationTimeout] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading, isInitialized } = useAuth();
 
-  console.log('Onboarding component rendered, currentStep:', currentStep);
-  console.log('User:', user);
-  
+  console.log('Onboarding render - user:', !!user, 'loading:', loading, 'isInitialized:', isInitialized);
+
+  // Set timeout for initialization to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setInitializationTimeout(true);
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Handle authentication check
+  useEffect(() => {
+    if (isInitialized && !user && !loading) {
+      console.log('No user found after initialization, redirecting to auth');
+      navigate('/auth');
+    }
+  }, [user, loading, isInitialized, navigate]);
+
   const handleNext = async () => {
     console.log('handleNext called, currentStep:', currentStep);
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     // Simulate a brief loading for better UX
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -56,7 +73,7 @@ const Onboarding = () => {
       navigate('/dashboard');
     }
     
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
   
   const handlePrevious = () => {
@@ -80,6 +97,42 @@ const Onboarding = () => {
       [steps[currentStep].id]: stepData
     }));
   };
+
+  // Show loading state only briefly during initial auth check
+  if (!isInitialized && loading && !initializationTimeout) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-6 h-6 text-white" />
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Setting up your health profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if initialization failed
+  if (initializationTimeout && !isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Connection Issue</h2>
+          <p className="text-gray-600 mb-4">We're having trouble loading your profile.</p>
+          <Button onClick={() => window.location.reload()} className="bg-teal-600 hover:bg-teal-700">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth if not authenticated (handled by useEffect above)
+  if (isInitialized && !user) {
+    return null; // Will redirect via useEffect
+  }
   
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const CurrentStepComponent = steps[currentStep].component;
@@ -130,10 +183,10 @@ const Onboarding = () => {
           </CardHeader>
           
           <CardContent className="px-8 py-6">
-            {isLoading ? (
+            {isSubmitting ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <span className="ml-3 text-gray-600">Loading...</span>
+                <span className="ml-3 text-gray-600">Processing...</span>
               </div>
             ) : (
               <CurrentStepComponent onDataChange={handleStepData} />
@@ -144,7 +197,7 @@ const Onboarding = () => {
             <Button 
               variant="outline" 
               onClick={handlePrevious}
-              disabled={currentStep === 0 || isLoading}
+              disabled={currentStep === 0 || isSubmitting}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -156,7 +209,7 @@ const Onboarding = () => {
                 <Button 
                   variant="ghost" 
                   onClick={handleSkip}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className="text-gray-600 hover:text-gray-800"
                 >
                   Skip for now
@@ -165,10 +218,10 @@ const Onboarding = () => {
               
               <Button 
                 onClick={handleNext}
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white flex items-center gap-2"
               >
-                {isLoading ? (
+                {isSubmitting ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 ) : currentStep === steps.length - 1 ? (
                   <>

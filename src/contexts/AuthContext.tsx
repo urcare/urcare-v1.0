@@ -26,7 +26,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
-  loading: true,
+  loading: false,
   isInitialized: false,
   signIn: async () => {},
   signUp: async () => {},
@@ -50,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let initializationTimeout: NodeJS.Timeout;
 
     // Handle OAuth callback and hash fragments
     const handleOAuthCallback = async () => {
@@ -84,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Get initial session
+    // Get initial session with timeout
     const initializeAuth = async () => {
       try {
         // Handle OAuth callback first
@@ -110,6 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    // Set timeout to prevent infinite loading
+    initializationTimeout = setTimeout(() => {
+      if (mounted && !isInitialized) {
+        console.log('Auth initialization timeout, setting initialized to true');
+        setLoading(false);
+        setIsInitialized(true);
+      }
+    }, 3000); // 3 second timeout
+
     initializeAuth();
 
     // Listen for auth changes
@@ -118,7 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user && mounted) {
         setUser(session.user);
-        await fetchUserProfile(session.user.id);
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
       } else if (mounted) {
         setUser(null);
         setProfile(null);
@@ -132,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      clearTimeout(initializationTimeout);
       subscription.unsubscribe();
     };
   }, []);
