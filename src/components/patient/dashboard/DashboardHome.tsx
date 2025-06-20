@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,25 @@ import {
   Plus,
   FileText,
   Phone,
-  MessageSquare
+  MessageSquare,
+  Building2,
+  DollarSign,
+  FlaskConical,
+  UserPlus,
+  BarChart3,
+  Microscope,
+  Truck,
+  Settings,
+  CreditCard,
+  Headphones,
+  Baby,
+  UserCheck,
+  Briefcase,
+  Database,
+  Globe,
+  Smartphone,
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
 
 export const DashboardHome = () => {
@@ -57,6 +74,46 @@ export const DashboardHome = () => {
 
   const handleViewWellness = () => {
     navigate('/wellness');
+  };
+
+  const handleWardManagement = () => {
+    navigate('/ward');
+  };
+
+  const handleBilling = () => {
+    navigate('/billing');
+  };
+
+  const handleLIMS = () => {
+    navigate('/lims');
+  };
+
+  const handleCommunity = () => {
+    navigate('/community');
+  };
+
+  const handleHRManagement = () => {
+    navigate('/hr-management');
+  };
+
+  const handleAnalytics = () => {
+    navigate('/hospital-analytics');
+  };
+
+  const handlePathology = () => {
+    navigate('/pathology');
+  };
+
+  const handleInsurance = () => {
+    navigate('/insurance');
+  };
+
+  const handleMentalHealth = () => {
+    navigate('/mental-health');
+  };
+
+  const handleAIDiagnostics = () => {
+    navigate('/advanced-ai-diagnostics');
   };
 
   return (
@@ -118,7 +175,7 @@ export const DashboardHome = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
+      {/* Primary Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Button
           onClick={handleBookAppointment}
@@ -155,6 +212,133 @@ export const DashboardHome = () => {
         </Button>
       </div>
 
+      {/* Healthcare System Quick Access */}
+      <Card className="border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-400">
+            <Building2 className="w-5 h-5" />
+            Healthcare System Access
+          </CardTitle>
+          <CardDescription>Quick access to hospital departments and services</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <Button
+              onClick={handleWardManagement}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400"
+            >
+              <Building2 className="w-5 h-5" />
+              <span className="text-xs">Ward Management</span>
+            </Button>
+
+            <Button
+              onClick={handleBilling}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-green-200 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400"
+            >
+              <DollarSign className="w-5 h-5" />
+              <span className="text-xs">Billing</span>
+            </Button>
+
+            <Button
+              onClick={handleLIMS}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-700 dark:text-cyan-400"
+            >
+              <FlaskConical className="w-5 h-5" />
+              <span className="text-xs">Lab (LIMS)</span>
+            </Button>
+
+            <Button
+              onClick={handlePathology}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-pink-200 text-pink-700 hover:bg-pink-50 dark:border-pink-700 dark:text-pink-400"
+            >
+              <Microscope className="w-5 h-5" />
+              <span className="text-xs">Pathology</span>
+            </Button>
+
+            <Button
+              onClick={handleCommunity}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400"
+            >
+              <Users className="w-5 h-5" />
+              <span className="text-xs">Community</span>
+            </Button>
+
+            <Button
+              onClick={handleHRManagement}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-400"
+            >
+              <UserPlus className="w-5 h-5" />
+              <span className="text-xs">HR Management</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Specialized Services */}
+      <Card className="border-purple-100 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-400">
+            <Brain className="w-5 h-5" />
+            AI & Specialized Services
+          </CardTitle>
+          <CardDescription>Advanced AI diagnostics and specialized healthcare services</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <Button
+              onClick={handleAIDiagnostics}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-400"
+            >
+              <Brain className="w-5 h-5" />
+              <span className="text-xs">AI Diagnostics</span>
+            </Button>
+
+            <Button
+              onClick={handleMentalHealth}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 dark:border-teal-700 dark:text-teal-400"
+            >
+              <Headphones className="w-5 h-5" />
+              <span className="text-xs">Mental Health</span>
+            </Button>
+
+            <Button
+              onClick={handleAnalytics}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-xs">Analytics</span>
+            </Button>
+
+            <Button
+              onClick={() => navigate('/pediatric-care')}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-yellow-200 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-700 dark:text-yellow-400"
+            >
+              <Baby className="w-5 h-5" />
+              <span className="text-xs">Pediatric Care</span>
+            </Button>
+
+            <Button
+              onClick={() => navigate('/geriatric-care')}
+              variant="outline"
+              className="h-20 flex-col gap-1 border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400"
+            >
+              <UserCheck className="w-5 h-5" />
+              <span className="text-xs">Geriatric Care</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Dashboard Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* My Doctors */}
@@ -174,7 +358,11 @@ export const DashboardHome = () => {
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Dr. Michael Chen</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Cardiology</p>
               </div>
-              <Button size="sm" variant="ghost">
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => navigate('/communication-systems')}
+              >
                 <MessageSquare className="w-4 h-4" />
               </Button>
             </div>
@@ -186,7 +374,11 @@ export const DashboardHome = () => {
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Dr. Sarah Johnson</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">General Medicine</p>
               </div>
-              <Button size="sm" variant="ghost">
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={handleTeleconsult}
+              >
                 <Phone className="w-4 h-4" />
               </Button>
             </div>
@@ -235,45 +427,134 @@ export const DashboardHome = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* System Management */}
         <Card className="shadow-sm border border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-500" />
-              Recent Activity
+              <Settings className="w-5 h-5 text-gray-500" />
+              System Access
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div 
+              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleInsurance}
+            >
+              <CreditCard className="w-4 h-4 text-green-500" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Medication taken</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Lisinopril 10mg - 8:00 AM</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Insurance & Claims</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Manage insurance verification</p>
               </div>
             </div>
             <div 
               className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              onClick={handleUploadRecords}
+              onClick={() => navigate('/tpa')}
             >
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <Briefcase className="w-4 h-4 text-blue-500" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Blood pressure logged</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">120/80 mmHg - Yesterday</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">TPA Management</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Third-party administration</p>
               </div>
             </div>
             <div 
               className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              onClick={handleUploadRecords}
+              onClick={() => navigate('/bio-waste-management')}
             >
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <Truck className="w-4 h-4 text-red-500" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Lab results uploaded</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Blood work - 2 days ago</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Bio Waste Management</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Waste tracking & disposal</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Activity */}
+      <Card className="shadow-sm border border-gray-200 dark:border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-purple-500" />
+            Recent Activity & Quick Links
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900 dark:text-white">Recent Activities</h4>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Medication taken</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Lisinopril 10mg - 8:00 AM</p>
+                </div>
+              </div>
+              <div 
+                className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                onClick={handleLIMS}
+              >
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Blood pressure logged</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">120/80 mmHg - Yesterday</p>
+                </div>
+              </div>
+              <div 
+                className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                onClick={handleUploadRecords}
+              >
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Lab results uploaded</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Blood work - 2 days ago</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900 dark:text-white">Advanced Features</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => navigate('/advanced-research-tools')}
+                  variant="outline"
+                  size="sm"
+                  className="h-16 flex-col gap-1"
+                >
+                  <Database className="w-4 h-4" />
+                  <span className="text-xs">Research Tools</span>
+                </Button>
+                <Button
+                  onClick={() => navigate('/public-health-integration')}
+                  variant="outline"
+                  size="sm"
+                  className="h-16 flex-col gap-1"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span className="text-xs">Public Health</span>
+                </Button>
+                <Button
+                  onClick={() => navigate('/mobile-optimization')}
+                  variant="outline"
+                  size="sm"
+                  className="h-16 flex-col gap-1"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span className="text-xs">Mobile App</span>
+                </Button>
+                <Button
+                  onClick={() => navigate('/emergency-medicine')}
+                  variant="outline"
+                  size="sm"
+                  className="h-16 flex-col gap-1"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-xs">Emergency Medicine</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
