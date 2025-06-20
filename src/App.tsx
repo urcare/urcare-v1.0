@@ -12,6 +12,7 @@ import { PatientLandingPage } from '@/components/landing/PatientLandingPage';
 // Lazy load components
 const Dashboard = React.lazy(() => import('@/components/Dashboard').then(module => ({ default: module.Dashboard })));
 const Auth = React.lazy(() => import('@/pages/Auth'));
+const Onboarding = React.lazy(() => import('@/pages/Onboarding'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'));
 
@@ -37,6 +38,15 @@ function App() {
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <Unauthorized />
                   </Suspense>
+                } />
+
+                {/* Onboarding route */}
+                <Route path="/onboarding" element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                      <Onboarding />
+                    </Suspense>
+                  </ProtectedRoute>
                 } />
 
                 {/* Protected routes */}
