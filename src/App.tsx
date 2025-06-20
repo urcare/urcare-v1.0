@@ -9,9 +9,9 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import './App.css';
 
-// Lazy load components for better performance - using correct syntax for named exports
-const Dashboard = lazy(() => import('@/components/Dashboard').then(module => ({ default: module.Dashboard || module.default })));
-const PatientDashboardLayout = lazy(() => import('@/components/patient/PatientDashboardLayout').then(module => ({ default: module.PatientDashboardLayout || module.default })));
+// Lazy load components for better performance - handling named exports correctly
+const Dashboard = lazy(() => import('@/components/Dashboard').then(module => ({ default: module.Dashboard })));
+const PatientDashboardLayout = lazy(() => import('@/components/patient/PatientDashboardLayout').then(module => ({ default: module.PatientDashboardLayout })));
 const Appointments = lazy(() => import('@/pages/Appointments'));
 const Documents = lazy(() => import('@/pages/Documents'));
 const Emergency = lazy(() => import('@/pages/Emergency'));
