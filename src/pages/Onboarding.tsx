@@ -34,8 +34,12 @@ const Onboarding = () => {
   const [onboardingData, setOnboardingData] = useState({});
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  console.log('Onboarding component rendered, currentStep:', currentStep);
+  console.log('User:', user);
   
   const handleNext = () => {
+    console.log('handleNext called, currentStep:', currentStep);
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -48,18 +52,21 @@ const Onboarding = () => {
   };
   
   const handlePrevious = () => {
+    console.log('handlePrevious called, currentStep:', currentStep);
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSkip = () => {
+    console.log('handleSkip called, currentStep:', currentStep);
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleStepData = (stepData: any) => {
+    console.log('handleStepData called with:', stepData);
     setOnboardingData(prev => ({
       ...prev,
       [steps[currentStep].id]: stepData
@@ -68,6 +75,8 @@ const Onboarding = () => {
   
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const CurrentStepComponent = steps[currentStep].component;
+
+  console.log('About to render CurrentStepComponent:', CurrentStepComponent.name);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">

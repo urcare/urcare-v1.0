@@ -12,6 +12,8 @@ interface ProfileSetupProps {
 }
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onDataChange }) => {
+  console.log('ProfileSetup component rendered');
+  
   const [profileData, setProfileData] = useState({
     profilePhoto: '',
     firstName: '',
@@ -23,6 +25,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onDataChange }) => {
   });
 
   const handleInputChange = (field: string, value: string) => {
+    console.log('ProfileSetup input change:', field, value);
     const newData = { ...profileData, [field]: value };
     setProfileData(newData);
     onDataChange(newData);
