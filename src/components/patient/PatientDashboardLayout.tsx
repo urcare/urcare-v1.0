@@ -56,7 +56,7 @@ export const PatientDashboardLayout = () => {
       case 'community':
         return <CommunityHub />;
       case 'family':
-        return <Famil***areHub />;
+        return <FamilyCareHub />;
       case 'profile':
         return <PatientProfile />;
       default:
