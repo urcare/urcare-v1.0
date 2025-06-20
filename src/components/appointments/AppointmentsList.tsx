@@ -21,11 +21,11 @@ interface AppointmentWithDetails {
   doctor_profile?: {
     full_name: string;
     phone?: string;
-  };
+  } | null;
   patient_profile?: {
     full_name: string;
     phone?: string;
-  };
+  } | null;
 }
 
 export const AppointmentsList = () => {
@@ -36,19 +36,11 @@ export const AppointmentsList = () => {
     queryFn: async () => {
       if (!user) return [];
 
+      console.log('Fetching appointments for user:', user.id, 'with role:', profile?.role);
+
       let query = supabase
         .from('appointments')
-        .select(`
-          id,
-          date_time,
-          type,
-          status,
-          reason,
-          notes,
-          duration_minutes,
-          doctor_profile:doctor_id(full_name, phone),
-          patient_profile:patient_id(full_name, phone)
-        `);
+        .select('*');
 
       // Filter based on user role
       if (profile?.role === 'patient') {
@@ -59,14 +51,64 @@ export const AppointmentsList = () => {
 
       query = query.order('date_time', { ascending: true });
 
-      const { data, error } = await query;
+      const { data: appointmentsData, error: appointmentsError } = await query;
       
-      if (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        throw appointmentsError;
       }
 
-      return data as AppointmentWithDetails[];
+      console.log('Raw appointments data:', appointmentsData);
+
+      if (!appointmentsData || appointmentsData.length === 0) {
+        return [];
+      }
+
+      // Get unique user IDs to fetch profiles
+      const userIds = new Set<string>();
+      appointmentsData.forEach(apt => {
+        if (apt.doctor_id) userIds.add(apt.doctor_id);
+        if (apt.patient_id) userIds.add(apt.patient_id);
+      });
+
+      // Fetch user profiles
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, phone')
+        .in('id', Array.from(userIds));
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+      }
+
+      console.log('User profiles:', userProfiles);
+
+      // Combine appointments with profile data
+      const appointmentsWithDetails: AppointmentWithDetails[] = appointmentsData.map(appointment => {
+        const doctorProfile = userProfiles?.find(p => p.id === appointment.doctor_id);
+        const patientProfile = userProfiles?.find(p => p.id === appointment.patient_id);
+
+        return {
+          id: appointment.id,
+          date_time: appointment.date_time,
+          type: appointment.type,
+          status: appointment.status,
+          reason: appointment.reason,
+          notes: appointment.notes,
+          duration_minutes: appointment.duration_minutes,
+          doctor_profile: doctorProfile ? {
+            full_name: doctorProfile.full_name || 'Unknown Doctor',
+            phone: doctorProfile.phone || undefined
+          } : null,
+          patient_profile: patientProfile ? {
+            full_name: patientProfile.full_name || 'Unknown Patient',
+            phone: patientProfile.phone || undefined
+          } : null
+        };
+      });
+
+      console.log('Appointments with details:', appointmentsWithDetails);
+      return appointmentsWithDetails;
     },
     enabled: !!user && !!profile
   });

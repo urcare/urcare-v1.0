@@ -5,13 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import QRCode from 'qrcode.react';
 
 export const QRCheckIn = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [qrValue, setQrValue] = useState<string>('');
 
   // Fetch user's upcoming appointment
@@ -21,21 +20,36 @@ export const QRCheckIn = () => {
       if (!user?.id) return null;
       
       const today = new Date();
-      const { data, error } = await supabase
+      const { data: appointmentsData, error } = await supabase
         .from('appointments')
-        .select('*, doctors(*)')
+        .select('*')
         .eq('patient_id', user.id)
         .eq('status', 'scheduled')
         .gte('date_time', today.toISOString())
         .order('date_time', { ascending: true })
-        .limit(1)
-        .single();
+        .limit(1);
       
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
       
-      return data;
+      if (!appointmentsData || appointmentsData.length === 0) {
+        return null;
+      }
+
+      const appointmentData = appointmentsData[0];
+
+      // Get doctor profile
+      const { data: doctorProfile } = await supabase
+        .from('user_profiles')
+        .select('full_name, phone')
+        .eq('id', appointmentData.doctor_id)
+        .single();
+
+      return {
+        ...appointmentData,
+        doctor_profile: doctorProfile
+      };
     },
     enabled: !!user?.id
   });
@@ -55,8 +69,7 @@ export const QRCheckIn = () => {
   }, [appointment, user?.id]);
 
   const handleCheckIn = () => {
-    toast({
-      title: "Check-In Successful",
+    toast.success("Check-In Successful", {
       description: "You've successfully checked in for your appointment.",
     });
   };
@@ -113,7 +126,7 @@ export const QRCheckIn = () => {
           <p className="font-medium text-lg">Appointment Details</p>
           <p>Date: {formattedDate}</p>
           <p>Time: {formattedTime}</p>
-          <p>Doctor: {appointment.doctors?.profile_id || 'Unknown'}</p>
+          <p>Doctor: {appointment.doctor_profile?.full_name || 'Unknown Doctor'}</p>
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">
