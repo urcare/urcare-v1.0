@@ -1,68 +1,67 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Shield, Phone, Camera, Stethoscope, Plus, X } from 'lucide-react';
+import { Plus, Calendar, Video, Upload, Phone, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const quickActions = [
+  const actions = [
     {
-      icon: Shield,
-      label: 'Emergency SOS',
-      color: 'bg-destructive hover:bg-destructive/90',
-      action: () => console.log('Emergency SOS triggered')
+      icon: Calendar,
+      label: 'Book Appointment',
+      color: 'bg-blue-500 hover:bg-blue-600',
+      action: () => console.log('Book appointment')
     },
     {
-      icon: Stethoscope,
-      label: 'Symptom Check',
-      color: 'bg-primary hover:bg-primary/90',
-      action: () => console.log('Symptom checker opened')
+      icon: Video,
+      label: 'Start Teleconsult',
+      color: 'bg-green-500 hover:bg-green-600',
+      action: () => console.log('Start teleconsult')
     },
     {
-      icon: Camera,
-      label: 'Scan Document',
-      color: 'bg-secondary hover:bg-secondary/90',
-      action: () => console.log('Document scanner opened')
+      icon: Upload,
+      label: 'Upload Records',
+      color: 'bg-purple-500 hover:bg-purple-600',
+      action: () => console.log('Upload records')
     },
     {
       icon: Phone,
-      label: 'Call Doctor',
-      color: 'bg-accent hover:bg-accent/90',
-      action: () => console.log('Call doctor initiated')
+      label: 'Emergency Call',
+      color: 'bg-red-500 hover:bg-red-600',
+      action: () => console.log('Emergency call')
     }
   ];
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Quick Action Buttons */}
+      {/* Action Buttons */}
       <div className={cn(
-        "absolute bottom-16 right-0 space-y-3 transition-all duration-300",
+        "flex flex-col-reverse gap-3 mb-3 transition-all duration-300",
         isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
       )}>
-        {quickActions.map((action, index) => {
+        {actions.map((action, index) => {
           const IconComponent = action.icon;
           return (
-            <div
-              key={index}
-              className="flex items-center gap-3"
-              style={{ transitionDelay: `${index * 50}ms` }}
-            >
-              <div className="bg-background border border-border rounded-lg px-3 py-2 shadow-lg">
-                <span className="text-sm font-medium text-foreground whitespace-nowrap">
+            <div key={index} className="flex items-center gap-3">
+              <div className="bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                   {action.label}
                 </span>
               </div>
               <Button
                 size="icon"
                 className={cn(
-                  "w-12 h-12 rounded-full shadow-lg transition-all duration-200",
+                  "w-12 h-12 rounded-full shadow-lg text-white",
                   action.color
                 )}
-                onClick={action.action}
+                onClick={() => {
+                  action.action();
+                  setIsOpen(false);
+                }}
               >
-                <IconComponent className="w-6 h-6" />
+                <IconComponent className="w-5 h-5" />
               </Button>
             </div>
           );
@@ -75,15 +74,15 @@ export const FloatingActionButton = () => {
         className={cn(
           "w-14 h-14 rounded-full shadow-lg transition-all duration-300",
           isOpen 
-            ? "bg-muted hover:bg-muted/90 rotate-45" 
-            : "bg-gradient-to-br from-primary to-secondary hover:scale-110"
+            ? "bg-gray-500 hover:bg-gray-600 rotate-45" 
+            : "bg-blue-500 hover:bg-blue-600"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-white" />
         ) : (
-          <Plus className="w-6 h-6" />
+          <Plus className="w-6 h-6 text-white" />
         )}
       </Button>
     </div>

@@ -17,12 +17,21 @@ type DashboardSection =
   | 'home' 
   | 'health-records' 
   | 'appointments' 
+  | 'teleconsult'
   | 'medications' 
   | 'wellness' 
   | 'emergency' 
   | 'community' 
   | 'family' 
   | 'profile';
+
+// Placeholder components for missing sections
+const TeleconsultHub = () => (
+  <div className="p-6 text-center">
+    <h2 className="text-2xl font-bold mb-4">Teleconsultation Hub</h2>
+    <p className="text-gray-600">Video consultation features coming soon...</p>
+  </div>
+);
 
 export const PatientDashboardLayout = () => {
   const [activeSection, setActiveSection] = useState<DashboardSection>('home');
@@ -36,6 +45,8 @@ export const PatientDashboardLayout = () => {
         return <HealthRecordsHub />;
       case 'appointments':
         return <AppointmentManagement />;
+      case 'teleconsult':
+        return <TeleconsultHub />;
       case 'medications':
         return <MedicationHub />;
       case 'wellness':
@@ -45,7 +56,7 @@ export const PatientDashboardLayout = () => {
       case 'community':
         return <CommunityHub />;
       case 'family':
-        return <FamilyCareHub />;
+        return <Famil***areHub />;
       case 'profile':
         return <PatientProfile />;
       default:
@@ -54,7 +65,7 @@ export const PatientDashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -72,7 +83,7 @@ export const PatientDashboardLayout = () => {
       />
 
       {/* Main Content */}
-      <div className="lg:ml-280">
+      <div className="lg:ml-80">
         <PatientHeader
           activeSection={activeSection}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
