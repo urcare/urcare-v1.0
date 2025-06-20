@@ -17,7 +17,7 @@ export const getBaseURL = () => {
 
 export const getAuthRedirectURL = () => {
   const baseURL = getBaseURL();
-  return `${baseURL}/onboarding`;
+  return `${baseURL}/dashboard`;
 };
 
 // Helper to get the post-login redirect URL
@@ -32,7 +32,7 @@ export const getPostLoginRedirectURL = () => {
   }
   
   // Default redirect after successful login
-  return `${baseURL}/onboarding`;
+  return `${baseURL}/dashboard`;
 };
 
 // Helper to store where user was trying to go before login

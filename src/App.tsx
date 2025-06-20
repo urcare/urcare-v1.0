@@ -11,6 +11,7 @@ import { PatientLandingPage } from '@/components/landing/PatientLandingPage';
 
 // Lazy load components
 const Dashboard = React.lazy(() => import('@/components/Dashboard').then(module => ({ default: module.Dashboard })));
+const PatientDashboard = React.lazy(() => import('@/pages/PatientDashboard'));
 const Auth = React.lazy(() => import('@/pages/Auth'));
 const Onboarding = React.lazy(() => import('@/pages/Onboarding'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
@@ -49,8 +50,16 @@ function App() {
                   </ProtectedRoute>
                 } />
 
-                {/* Protected routes */}
+                {/* Protected dashboard routes */}
                 <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                      <PatientDashboard />
+                    </Suspense>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/dashboard/admin" element={
                   <ProtectedRoute>
                     <Layout>
                       <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
