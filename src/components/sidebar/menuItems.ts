@@ -1,4 +1,3 @@
-
 import { 
   Home, 
   Calendar, 
@@ -76,7 +75,7 @@ import {
   Bookmark, 
   Tag, 
   Filter, 
-  Sort, 
+  ArrowUpDown, 
   Grid, 
   List, 
   Menu, 
