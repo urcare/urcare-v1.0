@@ -1,9 +1,14 @@
 
 import React from 'react';
 import { InsurancePaymentDashboard } from '@/components/insurance/InsurancePaymentDashboard';
+import { ThemeWrapper } from '@/components/ThemeWrapper';
 
 const Insurance = () => {
-  return <InsurancePaymentDashboard />;
+  return (
+    <ThemeWrapper>
+      <InsurancePaymentDashboard />
+    </ThemeWrapper>
+  );
 };
 
 export default Insurance;

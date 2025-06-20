@@ -1,9 +1,14 @@
 
 import React from 'react';
 import { PatientDashboardLayout } from '@/components/patient/PatientDashboardLayout';
+import { ThemeWrapper } from '@/components/ThemeWrapper';
 
 const PatientDashboard = () => {
-  return <PatientDashboardLayout />;
+  return (
+    <ThemeWrapper>
+      <PatientDashboardLayout />
+    </ThemeWrapper>
+  );
 };
 
 export default PatientDashboard;
