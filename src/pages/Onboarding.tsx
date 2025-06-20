@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboardingData } from '@/hooks/useOnboardingData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -32,10 +33,10 @@ const steps = [
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [initializationTimeout, setInitializationTimeout] = useState(false);
   const navigate = useNavigate();
   const { user, loading, isInitialized } = useAuth();
+  const { saveOnboardingData, isSubmitting } = useOnboardingData();
 
   console.log('Onboarding render - user:', !!user, 'loading:', loading, 'isInitialized:', isInitialized);
 
@@ -58,22 +59,23 @@ const Onboarding = () => {
 
   const handleNext = async () => {
     console.log('handleNext called, currentStep:', currentStep);
-    setIsSubmitting(true);
-    
-    // Simulate a brief loading for better UX
-    await new Promise(resolve => setTimeout(resolve, 300));
     
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding
-      toast.success('Welcome to UrCare!', {
-        description: 'Your personalized health journey begins now.'
-      });
-      navigate('/dashboard');
+      // This is the final step - save all onboarding data
+      console.log('Saving onboarding data:', onboardingData);
+      
+      const result = await saveOnboardingData(onboardingData);
+      
+      if (result.success) {
+        toast.success('Welcome to UrCare!', {
+          description: 'Your personalized health journey begins now.'
+        });
+        navigate('/dashboard');
+      }
+      // Error handling is done in the hook
     }
-    
-    setIsSubmitting(false);
   };
   
   const handlePrevious = () => {
@@ -186,7 +188,7 @@ const Onboarding = () => {
             {isSubmitting ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <span className="ml-3 text-gray-600">Processing...</span>
+                <span className="ml-3 text-gray-600">Saving your information...</span>
               </div>
             ) : (
               <CurrentStepComponent onDataChange={handleStepData} />
@@ -226,7 +228,7 @@ const Onboarding = () => {
                 ) : currentStep === steps.length - 1 ? (
                   <>
                     <Check className="w-4 h-4" />
-                    Go to Dashboard
+                    Complete Setup
                   </>
                 ) : (
                   <>

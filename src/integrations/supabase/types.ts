@@ -293,6 +293,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding: {
+        Row: {
+          age: number | null
+          created_at: string | null
+          full_name: string | null
+          gender: string | null
+          health_goals: string[] | null
+          height_cm: number | null
+          id: string
+          medical_conditions: string[] | null
+          medications: string[] | null
+          profile_photo_url: string | null
+          records_uploaded: boolean | null
+          sleep_quality: string | null
+          stress_level: string | null
+          updated_at: string | null
+          user_id: string
+          wearable_connected: boolean | null
+          weight_kg: number | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gender?: string | null
+          health_goals?: string[] | null
+          height_cm?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          profile_photo_url?: string | null
+          records_uploaded?: boolean | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          updated_at?: string | null
+          user_id: string
+          wearable_connected?: boolean | null
+          weight_kg?: number | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gender?: string | null
+          health_goals?: string[] | null
+          height_cm?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          profile_photo_url?: string | null
+          records_uploaded?: boolean | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          updated_at?: string | null
+          user_id?: string
+          wearable_connected?: boolean | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
