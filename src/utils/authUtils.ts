@@ -17,5 +17,25 @@ export const getBaseURL = () => {
 
 export const getAuthRedirectURL = () => {
   const baseURL = getBaseURL();
-  return `${baseURL}/dashboard`;
+  return `${baseURL}/onboarding`;
+};
+
+// Helper to get the post-login redirect URL
+export const getPostLoginRedirectURL = () => {
+  const baseURL = getBaseURL();
+  
+  // Check if there's a stored redirect URL from before login
+  const storedRedirect = localStorage.getItem('auth_redirect_url');
+  if (storedRedirect && storedRedirect.startsWith(baseURL)) {
+    localStorage.removeItem('auth_redirect_url'); // Clean up
+    return storedRedirect;
+  }
+  
+  // Default redirect after successful login
+  return `${baseURL}/onboarding`;
+};
+
+// Helper to store where user was trying to go before login
+export const storeRedirectURL = (url: string) => {
+  localStorage.setItem('auth_redirect_url', url);
 };

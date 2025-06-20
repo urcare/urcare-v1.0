@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { getAuthRedirectURL } from '@/utils/authUtils';
+import { getAuthRedirectURL, getPostLoginRedirectURL } from '@/utils/authUtils';
 
 export const useAuthOperations = () => {
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,41 @@ export const useAuthOperations = () => {
           description: 'You have been signed in successfully.'
         });
         
-        // Check if user needs onboarding or go to dashboard
-        navigate('/dashboard');
+        // Get the appropriate redirect URL
+        const redirectURL = getPostLoginRedirectURL();
+        const path = new URL(redirectURL).pathname;
+        navigate(path);
+      }
+
+      return { data };
+    } catch (error: any) {
+      toast.error('An unexpected error occurred', {
+        description: error.message
+      });
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    
+    try {
+      const redirectUrl = getAuthRedirectURL();
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl
+        }
+      });
+
+      if (error) {
+        toast.error('Google sign in failed', {
+          description: error.message
+        });
+        return { error };
       }
 
       return { data };
@@ -119,6 +152,7 @@ export const useAuthOperations = () => {
 
   return {
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     loading
