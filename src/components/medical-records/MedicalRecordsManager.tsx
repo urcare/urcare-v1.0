@@ -19,6 +19,7 @@ import {
   Trash2, 
   Calendar, 
   User, 
+  Users,
   Tag,
   CheckCircle,
   AlertCircle,
@@ -26,7 +27,9 @@ import {
   Shield,
   Heart,
   Brain,
-  Activity
+  Activity,
+  Archive,
+  Scan
 } from 'lucide-react';
 import { toast } from 'sonner';
 
