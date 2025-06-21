@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -66,6 +65,7 @@ import PredictiveClinicalAI from '@/pages/PredictiveClinicalAI';
 import MentalHealthAI from '@/pages/MentalHealthAI';
 import TreatmentProtocolAI from '@/pages/TreatmentProtocolAI';
 import PublicHealthIntegration from '@/pages/PublicHealthIntegration';
+import AIDiagnostics from '@/pages/AIDiagnostics';
 
 // Specialized care pages
 import MentalHealth from '@/pages/MentalHealth';
