@@ -14,52 +14,40 @@ import {
   Bot, 
   User, 
   Heart, 
-  AlertTriangle, 
+  Brain, 
+  AlertTriangle,
   Phone,
   Clock,
-  Brain,
-  Lightbulb,
-  Shield,
-  Activity
+  CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface ChatMessage {
+interface Message {
   id: string;
+  type: 'user' | 'bot';
   content: string;
-  sender: 'user' | 'assistant';
   timestamp: Date;
-  type: 'text' | 'symptom-check' | 'emergency' | 'education' | 'coaching';
-  metadata?: {
-    confidence?: number;
-    urgency?: 'low' | 'medium' | 'high' | 'emergency';
-    suggestions?: string[];
-    followUp?: string[];
-  };
+  category?: 'symptom' | 'education' | 'wellness' | 'emergency';
+  confidence?: number;
+  suggestions?: string[];
 }
 
-interface QuickAction {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  action: string;
-  category: 'symptom' | 'medication' | 'appointment' | 'wellness' | 'emergency';
-}
-
-interface ConversationSuggestion {
-  id: string;
-  text: string;
-  category: string;
+interface HealthContext {
+  conditions: string[];
+  medications: string[];
+  allergies: string[];
+  recentSymptoms: string[];
+  riskFactors: string[];
 }
 
 export const HealthAssistantChatbot = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your AI Health Assistant. I can help you with symptoms, medication questions, health education, and wellness coaching. How can I assist you today?",
-      sender: 'assistant',
+      type: 'bot',
+      content: 'Hello! I\'m your AI Health Assistant. I can help with symptoms, health education, wellness coaching, and emergency guidance. How can I assist you today?',
       timestamp: new Date(),
-      type: 'text'
+      category: 'education'
     }
   ]);
 
@@ -67,422 +55,396 @@ export const HealthAssistantChatbot = () => {
   const [isListening, setIsListening] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const quickActions: QuickAction[] = [
-    {
-      id: '1',
-      label: 'Symptom Check',
-      icon: <Heart className="h-4 w-4" />,
-      action: 'I have symptoms I want to discuss',
-      category: 'symptom'
-    },
-    {
-      id: '2',
-      label: 'Medication Help',
-      icon: <Activity className="h-4 w-4" />,
-      action: 'I have questions about my medications',
-      category: 'medication'
-    },
-    {
-      id: '3',
-      label: 'Emergency',
-      icon: <AlertTriangle className="h-4 w-4" />,
-      action: 'This is an emergency',
-      category: 'emergency'
-    },
-    {
-      id: '4',
-      label: 'Wellness Tips',
-      icon: <Lightbulb className="h-4 w-4" />,
-      action: 'Give me wellness tips for today',
-      category: 'wellness'
-    }
-  ];
+  const [healthContext] = useState<HealthContext>({
+    conditions: ['Hypertension', 'Type 2 Diabetes'],
+    medications: ['Lisinopril', 'Metformin'],
+    allergies: ['Penicillin'],
+    recentSymptoms: ['Headache', 'Fatigue'],
+    riskFactors: ['Family history of heart disease', 'Sedentary lifestyle']
+  });
 
-  const suggestions: ConversationSuggestion[] = [
-    { id: '1', text: 'What does my blood test mean?', category: 'education' },
-    { id: '2', text: 'How to manage my blood pressure?', category: 'coaching' },
-    { id: '3', text: 'Side effects of my medication?', category: 'medication' },
-    { id: '4', text: 'When should I see a doctor?', category: 'guidance' }
-  ];
-
+  // Scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim()) return;
+  const quickActions = [
+    { id: 'symptoms', label: 'Symptom Check', icon: Heart, color: 'bg-red-100 text-red-700' },
+    { id: 'medication', label: 'Medication Info', icon: Brain, color: 'bg-blue-100 text-blue-700' },
+    { id: 'wellness', label: 'Wellness Tips', icon: CheckCircle, color: 'bg-green-100 text-green-700' },
+    { id: 'emergency', label: 'Emergency Help', icon: AlertTriangle, color: 'bg-orange-100 text-orange-700' }
+  ];
 
-    // Add user message
-    const userMessage: ChatMessage = {
+  const generateBotResponse = (userMessage: string, category: string = 'education'): Message => {
+    const responses = {
+      symptom: [
+        'Based on your symptoms, I recommend monitoring them closely. If they persist or worsen, please consult your healthcare provider.',
+        'I understand you\'re experiencing symptoms. Let me help you assess the severity and provide guidance.',
+        'Symptom tracking is important. I\'ll help you understand what to watch for and when to seek care.'
+      ],
+      education: [
+        'That\'s a great health question! Here\'s what you should know...',
+        'Health education is key to wellness. Let me explain this topic for you.',
+        'Understanding your health is empowering. Here\'s some helpful information...'
+      ],
+      wellness: [
+        'Excellent focus on wellness! Small daily habits can make a big difference.',
+        'Wellness is a journey, not a destination. Here are some personalized tips for you.',
+        'Your commitment to health is admirable. Let\'s build healthy habits together.'
+      ],
+      emergency: [
+        'This seems urgent. If you\'re experiencing a medical emergency, please call emergency services immediately.',
+        'Your safety is paramount. For immediate medical emergencies, contact emergency services.',
+        'I\'m here to help, but for urgent medical situations, please seek immediate professional care.'
+      ]
+    };
+
+    const categoryResponses = responses[category as keyof typeof responses] || responses.education;
+    const randomResponse = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+
+    return {
       id: Date.now().toString(),
-      content: content,
-      sender: 'user',
+      type: 'bot',
+      content: randomResponse,
       timestamp: new Date(),
-      type: 'text'
+      category: category as Message['category'],
+      confidence: Math.round(85 + Math.random() * 10),
+      suggestions: getSuggestions(category)
+    };
+  };
+
+  const getSuggestions = (category: string): string[] => {
+    const suggestionMap = {
+      symptom: ['Track symptoms', 'Check temperature', 'Monitor vital signs'],
+      education: ['Read more', 'Watch video', 'Schedule consultation'],
+      wellness: ['Set reminder', 'Track progress', 'Join challenge'],
+      emergency: ['Call emergency', 'Contact doctor', 'Visit ER']
+    };
+    return suggestionMap[category as keyof typeof suggestionMap] || [];
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: inputMessage,
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI response
+    // Simulate AI processing time
     setTimeout(() => {
-      const response = generateAIResponse(content);
-      setMessages(prev => [...prev, response]);
+      const category = detectCategory(inputMessage);
+      const botResponse = generateBotResponse(inputMessage, category);
+      setMessages(prev => [...prev, botResponse]);
       setIsTyping(false);
     }, 1500);
   };
 
-  const generateAIResponse = (userInput: string): ChatMessage => {
-    const input = userInput.toLowerCase();
-    
-    // Emergency detection
-    if (input.includes('emergency') || input.includes('urgent') || input.includes('chest pain') || input.includes('can\'t breathe')) {
-      return {
-        id: Date.now().toString(),
-        content: "🚨 This sounds like a medical emergency. Please call 911 immediately or go to the nearest emergency room. I'm also notifying your emergency contacts.",
-        sender: 'assistant',
-        timestamp: new Date(),
-        type: 'emergency',
-        metadata: {
-          urgency: 'emergency',
-          suggestions: ['Call 911', 'Go to ER', 'Contact emergency contact']
-        }
-      };
+  const detectCategory = (message: string): string => {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('pain') || lowerMessage.includes('hurt') || lowerMessage.includes('symptom')) {
+      return 'symptom';
     }
-
-    // Symptom checking
-    if (input.includes('symptom') || input.includes('pain') || input.includes('fever') || input.includes('headache')) {
-      return {
-        id: Date.now().toString(),
-        content: "I'd be happy to help you understand your symptoms. Based on what you've described, here are some possible considerations:\n\n• Monitor your symptoms closely\n• Consider when they started and any triggers\n• Note any associated symptoms\n\nWould you like me to help you prepare questions for your doctor or check if this warrants immediate attention?",
-        sender: 'assistant',
-        timestamp: new Date(),
-        type: 'symptom-check',
-        metadata: {
-          confidence: 75,
-          urgency: 'medium',
-          suggestions: ['Schedule doctor visit', 'Monitor symptoms', 'Take temperature'],
-          followUp: ['How long have you had these symptoms?', 'Any other symptoms?', 'Taking any medications?']
-        }
-      };
+    if (lowerMessage.includes('emergency') || lowerMessage.includes('urgent') || lowerMessage.includes('help')) {
+      return 'emergency';
     }
-
-    // Medication questions
-    if (input.includes('medication') || input.includes('drug') || input.includes('pill') || input.includes('side effect')) {
-      return {
-        id: Date.now().toString(),
-        content: "I can help with medication information. For your safety, I recommend:\n\n• Always consult your pharmacist or doctor for specific advice\n• Check for drug interactions with your current medications\n• Report any side effects to your healthcare provider\n\nWhat specific medication question do you have? I can provide general information and help you prepare questions for your pharmacist.",
-        sender: 'assistant',
-        timestamp: new Date(),
-        type: 'coaching',
-        metadata: {
-          confidence: 90,
-          urgency: 'low',
-          suggestions: ['Contact pharmacist', 'Check drug interactions', 'Review medication list']
-        }
-      };
+    if (lowerMessage.includes('exercise') || lowerMessage.includes('diet') || lowerMessage.includes('wellness')) {
+      return 'wellness';
     }
+    return 'education';
+  };
 
-    // General health education
-    return {
-      id: Date.now().toString(),
-      content: "That's a great health question! Based on current medical guidelines and your health profile, here's what I can share:\n\n• General health information based on medical evidence\n• Personalized suggestions based on your health data\n• Recommendations for next steps\n\nRemember, this information is educational and doesn't replace professional medical advice. Would you like me to help you find relevant resources or prepare questions for your healthcare provider?",
-      sender: 'assistant',
-      timestamp: new Date(),
-      type: 'education',
-      metadata: {
-        confidence: 85,
-        urgency: 'low',
-        suggestions: ['Learn more', 'Schedule appointment', 'Track symptoms'],
-        followUp: ['Any specific concerns?', 'Want to dive deeper?', 'Questions for your doctor?']
-      }
+  const handleQuickAction = (actionId: string) => {
+    const quickMessages = {
+      symptoms: "I'm experiencing some symptoms and would like guidance.",
+      medication: "Can you tell me about my medications?",
+      wellness: "I'd like some wellness tips for better health.",
+      emergency: "I need emergency health guidance."
     };
+
+    const message = quickMessages[actionId as keyof typeof quickMessages];
+    if (message) {
+      setInputMessage(message);
+    }
   };
 
-  const handleQuickAction = (action: string) => {
-    handleSendMessage(action);
-  };
-
-  const handleVoiceInput = () => {
+  const toggleVoiceRecognition = () => {
     setIsListening(!isListening);
     if (!isListening) {
-      toast.success('Voice input activated - speak now');
-      // Simulate voice input
+      toast.success('Voice recognition started');
+      // Simulate voice recognition
       setTimeout(() => {
+        setInputMessage("I have a headache and feeling tired");
         setIsListening(false);
-        setInputMessage('I have been feeling tired lately and have some questions');
-        toast.success('Voice input captured');
+        toast.success('Voice message captured');
       }, 3000);
+    } else {
+      toast.info('Voice recognition stopped');
     }
   };
 
-  const escalateToHuman = () => {
-    toast.success('Connecting you with a human health advisor...');
-    const humanMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: "I'm connecting you with one of our human health advisors who can provide more personalized assistance. Please hold on while I transfer your conversation.",
-      sender: 'assistant',
-      timestamp: new Date(),
-      type: 'text'
-    };
-    setMessages(prev => [...prev, humanMessage]);
-  };
-
-  const getMessageTypeIcon = (type: string) => {
-    switch (type) {
-      case 'emergency': return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      case 'symptom-check': return <Heart className="h-4 w-4 text-orange-600" />;
-      case 'education': return <Lightbulb className="h-4 w-4 text-blue-600" />;
-      case 'coaching': return <Brain className="h-4 w-4 text-green-600" />;
-      default: return <Bot className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getUrgencyColor = (urgency?: string) => {
-    switch (urgency) {
-      case 'emergency': return 'border-red-500 bg-red-50';
-      case 'high': return 'border-orange-500 bg-orange-50';
-      case 'medium': return 'border-yellow-500 bg-yellow-50';
-      default: return 'border-gray-200 bg-white';
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <Bot className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">AI Health Assistant</CardTitle>
+                <p className="text-sm text-gray-600">Always here to help with your health questions</p>
+              </div>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Online
+            </Badge>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {quickActions.map((action) => (
+          <Button
+            key={action.id}
+            variant="outline"
+            onClick={() => handleQuickAction(action.id)}
+            className={`h-auto p-4 flex flex-col items-center gap-2 ${action.color} border-0`}
+          >
+            <action.icon className="h-6 w-6" />
+            <span className="text-xs font-medium">{action.label}</span>
+          </Button>
+        ))}
+      </div>
+
+      {/* Main Chat Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="chat">Health Chat</TabsTrigger>
-          <TabsTrigger value="coaching">Wellness Coaching</TabsTrigger>
-          <TabsTrigger value="education">Health Education</TabsTrigger>
+          <TabsTrigger value="chat">Chat</TabsTrigger>
+          <TabsTrigger value="context">Health Context</TabsTrigger>
+          <TabsTrigger value="history">Chat History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="chat" className="space-y-4">
-          {/* Chat Interface */}
-          <Card className="h-96">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-blue-600" />
-                AI Health Assistant
-                <Badge variant="outline" className="ml-auto">
-                  <Shield className="h-3 w-3 mr-1" />
-                  HIPAA Compliant
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col h-full">
-              <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+        <TabsContent value="chat">
+          <Card>
+            <CardContent className="p-0">
+              {/* Messages Area */}
+              <ScrollArea className="h-96 p-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
-                    <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                        <div className={`flex items-start gap-2 ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-                            {message.sender === 'user' ? 
-                              <User className="h-4 w-4" /> : 
-                              getMessageTypeIcon(message.type)
-                            }
-                          </div>
-                          <div className={`p-3 rounded-lg ${
-                            message.sender === 'user' 
-                              ? 'bg-blue-600 text-white' 
-                              : `${getUrgencyColor(message.metadata?.urgency)}`
-                          }`}>
-                            <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                            
-                            {message.metadata && (
-                              <div className="mt-2 space-y-2">
-                                {message.metadata.confidence && (
-                                  <div className="text-xs opacity-75">
-                                    Confidence: {message.metadata.confidence}%
-                                  </div>
-                                )}
-                                
-                                {message.metadata.suggestions && (
-                                  <div className="flex flex-wrap gap-1">
-                                    {message.metadata.suggestions.map((suggestion, index) => (
-                                      <Badge key={index} variant="outline" className="text-xs cursor-pointer">
-                                        {suggestion}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            
-                            <div className="text-xs opacity-50 mt-1">
+                    <div
+                      key={message.id}
+                      className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`flex gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          message.type === 'user' 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                        </div>
+                        <div className={`rounded-lg p-3 ${
+                          message.type === 'user'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-900'
+                        }`}>
+                          <p className="text-sm">{message.content}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs opacity-70">
                               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
+                            </span>
+                            {message.confidence && (
+                              <Badge variant="secondary" className="text-xs">
+                                {message.confidence}% confident
+                              </Badge>
+                            )}
                           </div>
+                          {message.suggestions && message.suggestions.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {message.suggestions.map((suggestion, index) => (
+                                <Button
+                                  key={index}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs"
+                                  onClick={() => setInputMessage(suggestion)}
+                                >
+                                  {suggestion}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                   ))}
-                  
                   {isTyping && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-                        <Bot className="h-4 w-4 animate-pulse" />
-                      </div>
-                      <div className="bg-gray-100 p-3 rounded-lg">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="flex gap-3 justify-start">
+                      <div className="flex gap-3 max-w-[80%]">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                          <Bot className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div className="bg-gray-100 rounded-lg p-3">
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
+                <div ref={messagesEndRef} />
               </ScrollArea>
-              
+
               {/* Input Area */}
-              <div className="mt-4 space-y-3">
+              <div className="border-t p-4">
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="Ask about symptoms, medications, or health concerns..."
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputMessage)}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={handleVoiceInput}
-                    variant="outline"
-                    size="icon"
-                    className={isListening ? 'bg-red-100 border-red-300' : ''}
+                  <div className="flex-1 relative">
+                    <Input
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Ask about symptoms, medications, wellness tips..."
+                      className="pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={toggleVoiceRecognition}
+                      className={`absolute right-1 top-1 h-8 w-8 p-0 ${
+                        isListening ? 'text-red-500' : 'text-gray-400'
+                      }`}
+                    >
+                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isTyping}
+                    className="px-6"
                   >
-                    {isListening ? <MicOff className="h-4 w-4 text-red-600" /> : <Mic className="h-4 w-4" />}
-                  </Button>
-                  <Button onClick={() => handleSendMessage(inputMessage)}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                {/* Quick Actions */}
+                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Avg response: 2-3 seconds</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    <span>Available 24/7</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="context">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Health Context</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Current Conditions</h4>
                 <div className="flex flex-wrap gap-2">
-                  {quickActions.map((action) => (
-                    <Button
-                      key={action.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickAction(action.action)}
-                      className="flex items-center gap-1"
-                    >
-                      {action.icon}
-                      {action.label}
-                    </Button>
+                  {healthContext.conditions.map((condition, index) => (
+                    <Badge key={index} variant="outline">{condition}</Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Medications</h4>
+                <div className="flex flex-wrap gap-2">
+                  {healthContext.medications.map((med, index) => (
+                    <Badge key={index} variant="secondary">{med}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Allergies</h4>
+                <div className="flex flex-wrap gap-2">
+                  {healthContext.allergies.map((allergy, index) => (
+                    <Badge key={index} className="bg-red-100 text-red-700">{allergy}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Recent Symptoms</h4>
+                <div className="flex flex-wrap gap-2">
+                  {healthContext.recentSymptoms.map((symptom, index) => (
+                    <Badge key={index} variant="outline" className="bg-yellow-50">{symptom}</Badge>
                   ))}
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Emergency Escalation */}
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              {suggestions.map((suggestion) => (
-                <Button
-                  key={suggestion.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSendMessage(suggestion.text)}
-                  className="text-xs"
-                >
-                  {suggestion.text}
-                </Button>
-              ))}
-            </div>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={escalateToHuman}
-                className="flex items-center gap-1"
-              >
-                <User className="h-3 w-3" />
-                Human Support
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleSendMessage('This is an emergency')}
-                className="flex items-center gap-1"
-              >
-                <Phone className="h-3 w-3" />
-                Emergency
-              </Button>
-            </div>
-          </div>
         </TabsContent>
 
-        <TabsContent value="coaching" className="space-y-4">
+        <TabsContent value="history">
           <Card>
             <CardHeader>
-              <CardTitle>Personalized Wellness Coaching</CardTitle>
+              <CardTitle>Recent Conversations</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Today's Focus</h4>
-                  <ul className="text-sm space-y-1">
-                    <li>• Take morning medications</li>
-                    <li>• 30-minute walk after breakfast</li>
-                    <li>• Blood pressure check at 6 PM</li>
-                    <li>• Prepare questions for tomorrow's appointment</li>
-                  </ul>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Weekly Goals</h4>
-                  <ul className="text-sm space-y-1">
-                    <li>• Exercise 5 days this week ✓</li>
-                    <li>• Medication adherence >95% ✓</li>
-                    <li>• Track blood pressure daily</li>
-                    <li>• Complete stress management session</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="education" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Education Resources</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Understanding Your Conditions</h4>
-                  <ul className="text-sm space-y-1">
-                    <li>• Hypertension management guide</li>
-                    <li>• Diabetes prevention tips</li>
-                    <li>• Heart-healthy lifestyle changes</li>
-                    <li>• Medication interaction guide</li>
-                  </ul>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Interactive Learning</h4>
-                  <ul className="text-sm space-y-1">
-                    <li>• Nutrition planning quiz</li>
-                    <li>• Exercise safety assessment</li>
-                    <li>• Symptom tracker tutorial</li>
-                    <li>• Emergency response training</li>
-                  </ul>
-                </div>
+            <CardContent>
+              <div className="space-y-3">
+                {messages.filter(m => m.type === 'user').slice(-5).map((message) => (
+                  <div key={message.id} className="p-3 border rounded-lg">
+                    <p className="text-sm">{message.content}</p>
+                    <span className="text-xs text-gray-500 mt-1 block">
+                      {message.timestamp.toLocaleDateString()} at {message.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Emergency Contact */}
+      <Card className="border-red-200 bg-red-50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Medical Emergency?</p>
+              <p className="text-xs text-red-600">For immediate medical emergencies, call emergency services</p>
+            </div>
+            <Button variant="destructive" size="sm">
+              <Phone className="h-4 w-4 mr-2" />
+              Emergency
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
