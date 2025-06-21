@@ -1,354 +1,262 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, User, Send, Mic, MicOff, Sparkles, Heart, Brain, Activity, Pill } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MessageSquare, Bot, Heart, Brain, Stethoscope, Send, User, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Message {
+interface ChatMessage {
   id: string;
+  type: 'user' | 'assistant';
   content: string;
-  sender: 'user' | 'assistant';
-  timestamp: string;
-  type: 'text' | 'suggestion' | 'analysis';
+  timestamp: Date;
   metadata?: {
-    confidence?: number;
-    sources?: string[];
+    confidence: number;
     actionable?: boolean;
+    sources?: string[];
   };
 }
 
-interface QuickAction {
+interface HealthInsight {
   id: string;
+  category: string;
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  action: string;
+  severity: 'low' | 'medium' | 'high';
+  actionable: boolean;
 }
 
 export const HealthAssistant = () => {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: "Hello! I'm your AI Health Assistant. I can help you with medical questions, analyze symptoms, provide health insights, and guide you through your wellness journey. How can I assist you today?",
-      sender: 'assistant',
-      timestamp: new Date().toISOString(),
-      type: 'text',
+      type: 'assistant',
+      content: 'Hello! I\'m your AI Health Assistant. I can help you understand symptoms, provide health information, and guide you on when to seek medical attention. How can I assist you today?',
+      timestamp: new Date(),
       metadata: { confidence: 95 }
     }
   ]);
 
-  const [inputValue, setInputValue] = useState('');
-  const [isListening, setIsListening] = useState(false);
+  const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState('chat');
 
-  const quickActions: QuickAction[] = [
+  const [healthInsights, setHealthInsights] = useState<HealthInsight[]>([
     {
       id: '1',
-      title: 'Symptom Analysis',
-      description: 'Describe your symptoms for AI analysis',
-      icon: Brain,
-      action: 'analyze_symptoms'
+      category: 'Preventive Care',
+      title: 'Annual Health Checkup Due',
+      description: 'Based on your age and health history, you\'re due for your annual physical examination.',
+      severity: 'medium',
+      actionable: true
     },
     {
       id: '2',
-      title: 'Medication Info',
-      description: 'Get information about medications',
-      icon: Pill,
-      action: 'medication_info'
-    },
-    {
-      id: '3',
-      title: 'Health Metrics',
-      description: 'Analyze your health data trends',
-      icon: Activity,
-      action: 'health_metrics'
-    },
-    {
-      id: '4',
-      title: 'Wellness Tips',
-      description: 'Get personalized health recommendations',
-      icon: Heart,
-      action: 'wellness_tips'
+      category: 'Lifestyle',
+      title: 'Hydration Reminder',
+      description: 'Your water intake has been below recommended levels. Aim for 8 glasses daily.',
+      severity: 'low',
+      actionable: true
     }
-  ];
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
+  ]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputMessage.trim()) return;
 
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date().toISOString(),
-      type: 'text'
+      type: 'user',
+      content: inputMessage,
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    setInputMessage('');
     setIsTyping(true);
 
     // Simulate AI response
     setTimeout(() => {
-      const aiResponse = generateAIResponse(inputValue);
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: generateAIResponse(inputMessage),
+        timestamp: new Date(),
+        metadata: { 
+          confidence: 85,
+          actionable: true,
+          sources: ['Medical Journal', 'Health Guidelines']
+        }
+      };
+      
       setMessages(prev => [...prev, aiResponse]);
       setIsTyping(false);
-    }, 1500);
+    }, 2000);
   };
 
-  const generateAIResponse = (userInput: string): Message => {
-    const input = userInput.toLowerCase();
+  const generateAIResponse = (input: string): string => {
+    const lowerInput = input.toLowerCase();
     
-    let response = '';
-    let type: 'text' | 'suggestion' | 'analysis' = 'text';
-    let metadata = { confidence: 85 };
-
-    if (input.includes('symptom') || input.includes('pain') || input.includes('feel')) {
-      response = "I understand you're experiencing some symptoms. Based on what you've described, here's my analysis:\n\n• This could be related to several common conditions\n• I recommend monitoring your symptoms\n• Consider consulting with a healthcare provider if symptoms persist\n\nWould you like me to help you track these symptoms or provide more specific guidance?";
-      type = 'analysis';
-      metadata = { confidence: 78, actionable: true };
-    } else if (input.includes('medication') || input.includes('drug') || input.includes('medicine')) {
-      response = "I can help you with medication information. Please note that I provide general information only and you should always consult your healthcare provider for medical advice.\n\nWhat specific medication would you like to know about? I can provide information on:\n• Dosage guidelines\n• Common side effects\n• Drug interactions\n• Timing recommendations";
-      type = 'suggestion';
-      metadata = { confidence: 92, sources: ['FDA Database', 'Medical Literature'] };
-    } else if (input.includes('health') || input.includes('wellness') || input.includes('tips')) {
-      response = "Here are some personalized wellness recommendations based on your health profile:\n\n🏃‍♂️ **Physical Activity**: Aim for 150 minutes of moderate exercise weekly\n🥗 **Nutrition**: Focus on whole foods and adequate hydration\n😴 **Sleep**: Maintain 7-9 hours of quality sleep\n🧘 **Stress Management**: Practice mindfulness or meditation\n\nWould you like me to elaborate on any of these areas?";
-      type = 'suggestion';
-      metadata = { confidence: 89, actionable: true };
-    } else {
-      response = "Thank you for your question. I'm here to help with your health and wellness needs. I can assist with:\n\n• Symptom analysis and health insights\n• Medication information and reminders\n• Wellness recommendations\n• Health data interpretation\n• Preventive care guidance\n\nWhat specific health topic would you like to explore?";
-    }
-
-    return {
-      id: Date.now().toString(),
-      content: response,
-      sender: 'assistant',
-      timestamp: new Date().toISOString(),
-      type,
-      metadata
-    };
-  };
-
-  const handleQuickAction = (action: string) => {
-    let prompt = '';
-    switch (action) {
-      case 'analyze_symptoms':
-        prompt = 'I need help analyzing my symptoms';
-        break;
-      case 'medication_info':
-        prompt = 'Can you provide information about my medications?';
-        break;
-      case 'health_metrics':
-        prompt = 'Help me understand my health metrics and trends';
-        break;
-      case 'wellness_tips':
-        prompt = 'I would like personalized wellness recommendations';
-        break;
+    if (lowerInput.includes('headache')) {
+      return 'Headaches can have various causes including dehydration, stress, or lack of sleep. For occasional headaches, try staying hydrated, getting adequate rest, and managing stress. However, if you experience severe, sudden, or persistent headaches, please consult a healthcare provider.';
     }
     
-    setInputValue(prompt);
-  };
-
-  const toggleVoiceInput = () => {
-    setIsListening(!isListening);
-    if (!isListening) {
-      toast.success('Voice input activated - speak now');
-      // Simulate voice input after 3 seconds
-      setTimeout(() => {
-        setIsListening(false);
-        setInputValue('I have been feeling tired lately and want to know what might be causing it');
-        toast.success('Voice input captured');
-      }, 3000);
-    } else {
-      toast.info('Voice input stopped');
+    if (lowerInput.includes('fever')) {
+      return 'A fever is your body\'s natural response to infection. For adults, a temperature above 100.4°F (38°C) is considered a fever. Stay hydrated, rest, and monitor your temperature. Seek medical attention if fever exceeds 103°F (39.4°C) or persists for more than 3 days.';
     }
+    
+    return 'Thank you for your question. While I can provide general health information, it\'s important to consult with a healthcare professional for personalized medical advice, especially for specific symptoms or concerns.';
   };
 
-  const getMessageTypeColor = (type: string) => {
-    switch (type) {
-      case 'analysis': return 'border-l-4 border-l-purple-500 bg-purple-50';
-      case 'suggestion': return 'border-l-4 border-l-blue-500 bg-blue-50';
-      default: return 'bg-gray-50';
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'low': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'high': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="h-[800px] flex flex-col space-y-4">
-      <Card className="bg-gradient-to-r from-green-50 to-teal-50">
+    <div className="space-y-6">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-green-600" />
+            <Bot className="h-6 w-6 text-blue-600" />
             AI Health Assistant
           </CardTitle>
           <CardDescription>
-            Your intelligent health companion powered by advanced medical AI
+            Your personal AI-powered health companion for guidance and insights
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.id}
-                  onClick={() => handleQuickAction(action.action)}
-                  className="p-3 text-left border rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200"
-                >
-                  <Icon className="h-5 w-5 text-gray-600 mb-2" />
-                  <h4 className="font-medium text-sm">{action.title}</h4>
-                  <p className="text-xs text-gray-600">{action.description}</p>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <MessageSquare className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+              <h3 className="font-semibold">24/7 Support</h3>
+              <p className="text-sm text-gray-600">Always available for health questions</p>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <Brain className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+              <h3 className="font-semibold">Smart Insights</h3>
+              <p className="text-sm text-gray-600">AI-powered health recommendations</p>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <Stethoscope className="h-8 w-8 mx-auto text-green-600 mb-2" />
+              <h3 className="font-semibold">Medical Guidance</h3>
+              <p className="text-sm text-gray-600">Evidence-based health information</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="flex-1 flex flex-col">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src="/health-ai-avatar.png" />
-                <AvatarFallback>
-                  <Bot className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-medium">HealthBot AI</h3>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-600">Online & Ready to Help</span>
-                </div>
-              </div>
-            </div>
-            <Badge className="bg-green-100 text-green-800">
-              <Sparkles className="h-3 w-3 mr-1" />
-              AI Powered
-            </Badge>
-          </div>
-        </CardHeader>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="chat">Health Chat</TabsTrigger>
+          <TabsTrigger value="insights">Health Insights</TabsTrigger>
+        </TabsList>
 
-        <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                    <div className="flex items-start gap-3">
-                      {message.sender === 'assistant' && (
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      
-                      <div
-                        className={`p-4 rounded-lg ${
-                          message.sender === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : `${getMessageTypeColor(message.type)}`
-                        }`}
-                      >
-                        <div className="whitespace-pre-wrap text-sm">{message.content}</div>
-                        
-                        {message.metadata && message.sender === 'assistant' && (
-                          <div className="mt-3 pt-2 border-t border-gray-200">
-                            <div className="flex items-center justify-between text-xs text-gray-600">
-                              <span>Confidence: {message.metadata.confidence}%</span>
-                              {message.metadata.actionable && (
-                                <Badge variant="outline" className="text-xs">
-                                  Actionable
-                                </Badge>
-                              )}
-                            </div>
-                            {message.metadata.sources && (
-                              <div className="mt-1 text-xs text-gray-500">
-                                Sources: {message.metadata.sources.join(', ')}
-                              </div>
-                            )}
-                          </div>
+        <TabsContent value="chat" className="space-y-4">
+          <Card>
+            <CardContent className="p-0">
+              <div className="h-96 overflow-y-auto p-4 space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${
+                      message.type === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        message.type === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {message.type === 'user' ? (
+                          <User className="h-4 w-4" />
+                        ) : (
+                          <Bot className="h-4 w-4" />
                         )}
+                        <span className="text-xs opacity-75">
+                          {message.timestamp.toLocaleTimeString()}
+                        </span>
                       </div>
-                      
-                      {message.sender === 'user' && (
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
+                      <p className="text-sm">{message.content}</p>
+                      {message.metadata && (
+                        <div className="mt-2 text-xs opacity-75">
+                          Confidence: {message.metadata.confidence}%
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback>
-                        <Bot className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                ))}
+                
+                {isTyping && (
+                  <div className="flex gap-3 justify-start">
+                    <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        <span className="text-sm text-gray-600 ml-2">AI is thinking...</span>
+                        <Bot className="h-4 w-4" />
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Ask me anything about your health..."
-                  className="pr-12"
-                />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={toggleVoiceInput}
-                  className={`absolute right-1 top-1 ${isListening ? 'text-red-600' : 'text-gray-400'}`}
-                >
-                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </Button>
+                )}
               </div>
-              <Button onClick={handleSendMessage} disabled={!inputValue.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              AI provides general health information. Always consult healthcare professionals for medical advice.
-            </p>
+              
+              <div className="border-t p-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Ask about symptoms, medications, or health concerns..."
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    disabled={isTyping}
+                  />
+                  <Button onClick={handleSendMessage} disabled={isTyping || !inputMessage.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-4">
+          <div className="grid gap-4">
+            {healthInsights.map((insight) => (
+              <Card key={insight.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{insight.title}</CardTitle>
+                    <Badge className={getSeverityColor(insight.severity)}>
+                      {insight.severity.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <Badge variant="outline">{insight.category}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">{insight.description}</p>
+                  {insight.actionable && (
+                    <Button size="sm" onClick={() => toast.success('Action noted!')}>
+                      Take Action
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

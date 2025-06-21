@@ -1,406 +1,339 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Heart, Activity, Droplets, Moon, Target, TrendingUp, Award, Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Activity, Heart, Droplets, Moon, Target, TrendingUp, Award, Calendar } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { toast } from 'sonner';
 
-interface HealthMetric {
-  id: string;
-  type: 'steps' | 'water' | 'sleep' | 'weight' | 'blood-pressure' | 'heart-rate';
-  value: number;
-  unit: string;
-  timestamp: Date;
-  goal?: number;
-}
-
-interface Habit {
+interface WellnessMetric {
   id: string;
   name: string;
-  category: string;
-  streak: number;
+  value: number;
   target: number;
-  completedToday: boolean;
-  icon: string;
+  unit: string;
+  icon: any;
+  color: string;
+  trend: 'up' | 'down' | 'stable';
+}
+
+interface ActivityData {
+  date: string;
+  steps: number;
+  calories: number;
+  sleep: number;
+  water: number;
 }
 
 export const WellnessTracker = () => {
-  const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([
+  const [activeTab, setActiveTab] = useState('overview');
+  const [wellnessMetrics, setWellnessMetrics] = useState<WellnessMetric[]>([
     {
       id: '1',
-      type: 'steps',
-      value: 8542,
+      name: 'Daily Steps',
+      value: 8500,
+      target: 10000,
       unit: 'steps',
-      timestamp: new Date(),
-      goal: 10000
+      icon: Activity,
+      color: 'blue',
+      trend: 'up'
     },
     {
       id: '2',
-      type: 'water',
-      value: 6,
-      unit: 'glasses',
-      timestamp: new Date(),
-      goal: 8
+      name: 'Heart Rate',
+      value: 72,
+      target: 80,
+      unit: 'bpm',
+      icon: Heart,
+      color: 'red',
+      trend: 'stable'
     },
     {
       id: '3',
-      type: 'sleep',
-      value: 7.5,
-      unit: 'hours',
-      timestamp: new Date(),
-      goal: 8
+      name: 'Water Intake',
+      value: 6,
+      target: 8,
+      unit: 'glasses',
+      icon: Droplets,
+      color: 'cyan',
+      trend: 'up'
     },
     {
       id: '4',
-      type: 'weight',
-      value: 75.2,
-      unit: 'kg',
-      timestamp: new Date(),
-      goal: 70
+      name: 'Sleep',
+      value: 7.5,
+      target: 8,
+      unit: 'hours',
+      icon: Moon,
+      color: 'purple',
+      trend: 'down'
     }
   ]);
 
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      id: '1',
-      name: 'Morning Meditation',
-      category: 'Mental Health',
-      streak: 12,
-      target: 1,
-      completedToday: true,
-      icon: '🧘‍♂️'
-    },
-    {
-      id: '2',
-      name: 'Daily Vitamin',
-      category: 'Nutrition',
-      streak: 28,
-      target: 1,
-      completedToday: false,
-      icon: '💊'
-    },
-    {
-      id: '3',
-      name: 'Exercise',
-      category: 'Fitness',
-      streak: 5,
-      target: 1,
-      completedToday: true,
-      icon: '🏃‍♂️'
-    }
+  const [activityData] = useState<ActivityData[]>([
+    { date: 'Mon', steps: 8200, calories: 320, sleep: 7.2, water: 6 },
+    { date: 'Tue', steps: 9100, calories: 380, sleep: 7.8, water: 7 },
+    { date: 'Wed', steps: 7800, calories: 295, sleep: 6.9, water: 5 },
+    { date: 'Thu', steps: 10200, calories: 420, sleep: 8.1, water: 8 },
+    { date: 'Fri', steps: 8900, calories: 365, sleep: 7.5, water: 7 },
+    { date: 'Sat', steps: 12000, calories: 480, sleep: 8.3, water: 9 },
+    { date: 'Sun', steps: 6500, calories: 250, sleep: 7.0, water: 6 }
   ]);
 
-  const [newMetricValue, setNewMetricValue] = useState('');
-  const [selectedMetricType, setSelectedMetricType] = useState<HealthMetric['type']>('steps');
-
-  const handleAddMetric = () => {
-    if (!newMetricValue) return;
-
-    const metricConfig = {
-      steps: { unit: 'steps', goal: 10000 },
-      water: { unit: 'glasses', goal: 8 },
-      sleep: { unit: 'hours', goal: 8 },
-      weight: { unit: 'kg', goal: 70 },
-      'blood-pressure': { unit: 'mmHg', goal: 120 },
-      'heart-rate': { unit: 'bpm', goal: 70 }
-    };
-
-    const newMetric: HealthMetric = {
-      id: Date.now().toString(),
-      type: selectedMetricType,
-      value: parseFloat(newMetricValue),
-      unit: metricConfig[selectedMetricType].unit,
-      timestamp: new Date(),
-      goal: metricConfig[selectedMetricType].goal
-    };
-
-    setHealthMetrics(prev => [newMetric, ...prev.filter(m => m.type !== selectedMetricType)]);
-    setNewMetricValue('');
-    toast.success('Health metric recorded');
+  const getProgressColor = (value: number, target: number) => {
+    const percentage = (value / target) * 100;
+    if (percentage >= 100) return 'bg-green-500';
+    if (percentage >= 75) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
-  const handleCompleteHabit = (habitId: string) => {
-    setHabits(prev => prev.map(habit => 
-      habit.id === habitId 
-        ? { 
-            ...habit, 
-            completedToday: true, 
-            streak: habit.completedToday ? habit.streak : habit.streak + 1 
-          }
-        : habit
+  const getTrendIcon = (trend: string) => {
+    return trend === 'up' ? '↗️' : trend === 'down' ? '↘️' : '➡️';
+  };
+
+  const updateMetric = (metricId: string, newValue: number) => {
+    setWellnessMetrics(prev => prev.map(metric => 
+      metric.id === metricId ? { ...metric, value: newValue } : metric
     ));
-    toast.success('Habit completed! 🎉');
+    toast.success('Metric updated successfully!');
   };
-
-  const calculateHealthScore = () => {
-    const scores = healthMetrics.map(metric => {
-      if (!metric.goal) return 100;
-      const percentage = (metric.value / metric.goal) * 100;
-      return Math.min(100, percentage);
-    });
-    return Math.round(scores.reduce((acc, score) => acc + score, 0) / scores.length);
-  };
-
-  const getMetricIcon = (type: string) => {
-    switch (type) {
-      case 'steps': return <Activity className="h-4 w-4" />;
-      case 'water': return <Droplets className="h-4 w-4" />;
-      case 'sleep': return <Moon className="h-4 w-4" />;
-      case 'weight': return <Target className="h-4 w-4" />;
-      case 'heart-rate': return <Heart className="h-4 w-4" />;
-      default: return <TrendingUp className="h-4 w-4" />;
-    }
-  };
-
-  const getMetricColor = (type: string) => {
-    switch (type) {
-      case 'steps': return 'text-blue-600';
-      case 'water': return 'text-cyan-600';
-      case 'sleep': return 'text-purple-600';
-      case 'weight': return 'text-green-600';
-      case 'heart-rate': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const healthScore = calculateHealthScore();
 
   return (
     <div className="space-y-6">
-      {/* Health Score Overview */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <div className="relative">
-              <div className="w-32 h-32 mx-auto">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#E5E7EB"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="2"
-                    strokeDasharray={`${healthScore}, 100`}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{healthScore}</div>
-                    <div className="text-sm text-gray-600">Health Score</div>
-                  </div>
-                </div>
-              </div>
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="h-6 w-6 text-green-600" />
+            Wellness Tracker
+          </CardTitle>
+          <CardDescription>
+            Monitor your health metrics and track wellness goals
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <Activity className="h-8 w-8 mx-auto text-green-600 mb-2" />
+              <h3 className="font-bold text-green-800">Active</h3>
+              <p className="text-sm text-gray-600">Daily tracking</p>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">Today's Wellness Summary</h2>
-              <p className="text-gray-600">Keep up the great work!</p>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <Target className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+              <h3 className="font-bold text-blue-800">Goals</h3>
+              <p className="text-sm text-gray-600">Personal targets</p>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <TrendingUp className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+              <h3 className="font-bold text-purple-800">Insights</h3>
+              <p className="text-sm text-gray-600">Data analysis</p>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <Award className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
+              <h3 className="font-bold text-yellow-800">Achievements</h3>
+              <p className="text-sm text-gray-600">Goal milestones</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="metrics" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="habits">Habits</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="tracking">Daily Tracking</TabsTrigger>
+          <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="goals">Goals</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="metrics" className="space-y-4">
-          {/* Quick Log */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Log Health Metric</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <select 
-                  className="border rounded px-3 py-2"
-                  value={selectedMetricType}
-                  onChange={(e) => setSelectedMetricType(e.target.value as HealthMetric['type'])}
-                >
-                  <option value="steps">Steps</option>
-                  <option value="water">Water (glasses)</option>
-                  <option value="sleep">Sleep (hours)</option>
-                  <option value="weight">Weight (kg)</option>
-                  <option value="blood-pressure">Blood Pressure</option>
-                  <option value="heart-rate">Heart Rate</option>
-                </select>
-                <Input
-                  type="number"
-                  placeholder="Value"
-                  value={newMetricValue}
-                  onChange={(e) => setNewMetricValue(e.target.value)}
-                />
-                <Button onClick={handleAddMetric}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Log
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Current Metrics */}
+        <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {healthMetrics.map((metric) => (
-              <Card key={metric.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-2 rounded-lg bg-gray-100 ${getMetricColor(metric.type)}`}>
-                      {getMetricIcon(metric.type)}
+            {wellnessMetrics.map((metric) => {
+              const IconComponent = metric.icon;
+              const progress = (metric.value / metric.target) * 100;
+              
+              return (
+                <Card key={metric.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <IconComponent className={`h-8 w-8 text-${metric.color}-600`} />
+                      <span className="text-2xl">{getTrendIcon(metric.trend)}</span>
                     </div>
-                    <Badge variant="outline">Today</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-2xl font-bold">
-                      {metric.value.toLocaleString()} {metric.unit}
-                    </div>
-                    <div className="text-sm text-gray-600 capitalize">
-                      {metric.type.replace('-', ' ')}
-                    </div>
-                    {metric.goal && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Goal: {metric.goal} {metric.unit}</span>
-                          <span>{Math.round((metric.value / metric.goal) * 100)}%</span>
-                        </div>
-                        <Progress value={(metric.value / metric.goal) * 100} className="h-1" />
+                    
+                    <div className="space-y-2">
+                      <h3 className="font-semibold">{metric.name}</h3>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold">{metric.value}</span>
+                        <span className="text-sm text-gray-600">/ {metric.target} {metric.unit}</span>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      
+                      <Progress value={progress} className="h-2" />
+                      
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{Math.round(progress)}% of goal</span>
+                        <Badge variant={progress >= 100 ? "default" : "outline"}>
+                          {progress >= 100 ? "Achieved" : "In Progress"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
-        <TabsContent value="habits" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Daily Habits</h3>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Habit
-            </Button>
+        <TabsContent value="tracking" className="space-y-4">
+          <h3 className="text-lg font-semibold">Log Today's Metrics</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {wellnessMetrics.map((metric) => {
+              const IconComponent = metric.icon;
+              
+              return (
+                <Card key={metric.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <IconComponent className={`h-5 w-5 text-${metric.color}-600`} />
+                      {metric.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="number"
+                        defaultValue={metric.value}
+                        onChange={(e) => updateMetric(metric.id, Number(e.target.value))}
+                      />
+                      <span className="text-sm text-gray-600">{metric.unit}</span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600">
+                      Target: {metric.target} {metric.unit}
+                    </div>
+                    
+                    <Button size="sm" className="w-full">
+                      Update {metric.name}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+        </TabsContent>
 
-          <div className="space-y-3">
-            {habits.map((habit) => (
-              <Card key={habit.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{habit.icon}</div>
-                      <div>
-                        <h4 className="font-semibold">{habit.name}</h4>
-                        <p className="text-sm text-gray-600">{habit.category}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Award className="h-4 w-4 text-yellow-600" />
-                          <span className="text-sm font-medium">{habit.streak} day streak</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {habit.completedToday ? (
-                        <Badge className="bg-green-100 text-green-800">
-                          ✓ Done Today
-                        </Badge>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleCompleteHabit(habit.id)}
-                        >
-                          Complete
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        <TabsContent value="trends" className="space-y-6">
+          <h3 className="text-lg font-semibold">Weekly Trends</h3>
+          
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Steps</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="steps" stroke="#3B82F6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Sleep & Water Intake</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="sleep" fill="#8B5CF6" />
+                    <Bar dataKey="water" fill="#06B6D4" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Goals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Weekly Goals</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span>Exercise 5 times</span>
-                      <Progress value={60} className="mt-1" />
-                      <span className="text-xs text-gray-500">3/5 completed</span>
-                    </div>
-                    <div>
-                      <span>Sleep 8h daily</span>
-                      <Progress value={85} className="mt-1" />
-                      <span className="text-xs text-gray-500">6/7 days</span>
-                    </div>
+          <h3 className="text-lg font-semibold">Wellness Goals</h3>
+          
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Goals</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium">Complete 5 workouts</h4>
+                    <p className="text-sm text-gray-600">4/5 completed</p>
                   </div>
+                  <Badge className="bg-green-100 text-green-800">80%</Badge>
                 </div>
                 
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Monthly Goals</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Lose 2kg</span>
-                      <span className="text-green-600">On track</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Meditate 20 days</span>
-                      <span className="text-green-600">Ahead of schedule</span>
-                    </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium">Drink 8 glasses daily</h4>
+                    <p className="text-sm text-gray-600">6/7 days achieved</p>
                   </div>
+                  <Badge className="bg-blue-100 text-blue-800">86%</Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                
+                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium">Sleep 8 hours nightly</h4>
+                    <p className="text-sm text-gray-600">3/7 nights achieved</p>
+                  </div>
+                  <Badge className="bg-purple-100 text-purple-800">43%</Badge>
+                </div>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="insights" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-2">💡 Insight</h4>
-                  <p className="text-blue-800 text-sm">
-                    Your sleep quality has improved by 15% this week. Keep maintaining your bedtime routine!
-                  </p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Achievement Badges</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                    <Award className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
+                    <p className="text-xs font-medium">Step Master</p>
+                  </div>
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <Droplets className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                    <p className="text-xs font-medium">Hydration Hero</p>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <Activity className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                    <p className="text-xs font-medium">Fitness Streak</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-100 rounded-lg opacity-50">
+                    <Moon className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-xs font-medium">Sleep Champion</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-100 rounded-lg opacity-50">
+                    <Heart className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-xs font-medium">Heart Health</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-100 rounded-lg opacity-50">
+                    <Calendar className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-xs font-medium">Consistency</p>
+                  </div>
                 </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-900 mb-2">🎯 Achievement</h4>
-                  <p className="text-green-800 text-sm">
-                    Congratulations! You've maintained your meditation streak for 12 days.
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Suggestion</h4>
-                  <p className="text-yellow-800 text-sm">
-                    Consider increasing your water intake. You're averaging 6 glasses vs. your goal of 8.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
