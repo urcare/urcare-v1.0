@@ -1,20 +1,21 @@
 
 import React from 'react';
-import { DocumentIntelligence } from '@/components/ai-insights/DocumentIntelligence';
+import { DocumentProcessor } from '@/components/ai/DocumentProcessor';
 
-const DocumentIntelligencePage = () => {
+const DocumentIntelligence = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Document Intelligence</h1>
-        <p className="text-gray-600">
-          AI-powered document analysis, categorization, and smart search for your health records
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="text-center space-y-2 mb-8">
+        <h1 className="text-3xl font-bold">Document Intelligence</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Transform your medical documents with AI-powered analysis. Upload lab reports, 
+          prescriptions, and medical records to extract key insights and track your health journey.
         </p>
       </div>
       
-      <DocumentIntelligence />
+      <DocumentProcessor />
     </div>
   );
 };
 
-export default DocumentIntelligencePage;
+export default DocumentIntelligence;
