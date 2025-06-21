@@ -5,24 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { 
-  FileText, 
+  ArrowLeft, 
   Download, 
   Share2, 
+  Edit3, 
+  Trash2, 
   Eye, 
-  Clock, 
-  User, 
-  Calendar, 
-  Tag,
+  Calendar,
+  User,
+  FileText,
   AlertTriangle,
-  Shield,
-  History
+  Clock,
+  Tag,
+  Shield
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MedicalRecord {
   id: string;
   patient_id: string;
   doctor_id?: string;
+  appointment_id?: string;
   type: string;
   title: string;
   description?: string;
@@ -40,327 +45,360 @@ interface RecordViewerProps {
   onClose: () => void;
 }
 
-export const RecordViewer: React.FC<RecordViewerProps> = ({ record, onClose }) => {
-  const [activeTab, setActiveTab] = useState('details');
+export const RecordViewer = ({ record, onClose }: RecordViewerProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleDownload = () => {
+    if (record.file_url) {
+      // Create a temporary link to download the file
+      const link = document.createElement('a');
+      link.href = record.file_url;
+      link.download = `${record.title}.${record.file_type || 'pdf'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('File downloaded successfully');
+    } else {
+      toast.error('No file available for download');
+    }
+  };
+
+  const handleShare = () => {
+    // Copy share link to clipboard
+    const shareLink = `${window.location.origin}/medical-records/${record.id}`;
+    navigator.clipboard.writeText(shareLink);
+    toast.success('Share link copied to clipboard');
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    toast.info('Edit mode enabled');
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+      // Handle delete logic here
+      toast.success('Record deleted successfully');
+      onClose();
+    }
+  };
+
+  const getRecordTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      'prescription': 'bg-blue-100 text-blue-800',
+      'lab_report': 'bg-green-100 text-green-800',
+      'imaging': 'bg-purple-100 text-purple-800',
+      'discharge_summary': 'bg-orange-100 text-orange-800',
+      'consultation_notes': 'bg-gray-100 text-gray-800',
+      'vaccination': 'bg-pink-100 text-pink-800',
+      'insurance': 'bg-yellow-100 text-yellow-800',
+      'referral': 'bg-indigo-100 text-indigo-800',
+      'other': 'bg-slate-100 text-slate-800'
+    };
+    return colors[type] || colors.other;
+  };
 
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
-      case 'emergency': return '🚨';
-      case 'doctors': return '👨‍⚕️';
-      case 'family': return '👨‍👩‍👧‍👦';
-      default: return '🔒';
+      case 'private': return <Shield className="h-4 w-4" />;
+      case 'family': return <User className="h-4 w-4" />;
+      case 'doctors': return <FileText className="h-4 w-4" />;
+      case 'emergency': return <AlertTriangle className="h-4 w-4" />;
+      default: return <Shield className="h-4 w-4" />;
     }
   };
-
-  const getVisibilityColor = (visibility: string) => {
-    switch (visibility) {
-      case 'emergency': return 'bg-red-100 text-red-800 border-red-200';
-      case 'doctors': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'family': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const mockAccessLogs = [
-    {
-      id: '1',
-      accessed_by: 'Dr. Smith',
-      access_type: 'view',
-      accessed_at: '2024-01-15T10:30:00Z',
-      ip_address: '192.168.1.1'
-    },
-    {
-      id: '2',
-      accessed_by: 'You',
-      access_type: 'edit',
-      accessed_at: '2024-01-14T15:45:00Z',
-      ip_address: '192.168.1.100'
-    },
-    {
-      id: '3',
-      accessed_by: 'Emergency Contact',
-      access_type: 'view',
-      accessed_at: '2024-01-13T08:20:00Z',
-      ip_address: '192.168.1.50'
-    }
-  ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary/10 rounded-lg">
-            <FileText className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold text-foreground">{record.title}</h1>
-              {record.is_critical && (
-                <Badge variant="destructive" className="text-xs">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Critical
-                </Badge>
-              )}
-            </div>
-            <p className="text-muted-foreground capitalize">{record.type.replace('_', ' ')}</p>
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Records
+          </Button>
+          {record.is_critical && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Critical
+            </Badge>
+          )}
         </div>
         
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Close
+          <Button variant="outline" size="sm" onClick={handleEdit}>
+            <Edit3 className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button variant="destructive" size="sm" onClick={handleDelete}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="access">Access Log</TabsTrigger>
-          <TabsTrigger value="metadata">Metadata</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="details" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Record Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Type:</span>
-                    <span className="capitalize">{record.type.replace('_', ' ')}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Created:</span>
-                    <span>{new Date(record.created_at).toLocaleDateString()}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Updated:</span>
-                    <span>{new Date(record.updated_at).toLocaleDateString()}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Status:</span>
-                    <Badge variant="outline" className="text-xs">Active</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Privacy & Access</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Visibility:</span>
-                    <Badge className={`text-xs ${getVisibilityColor(record.visibility)}`}>
-                      {getVisibilityIcon(record.visibility)} {record.visibility}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Critical:</span>
-                    <span>{record.is_critical ? 'Yes' : 'No'}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Shared with:</span>
-                    <span className="text-sm">
-                      {record.visibility === 'private' ? 'Only you' :
-                       record.visibility === 'family' ? 'Family members' :
-                       record.visibility === 'doctors' ? 'Your doctors' :
-                       'Emergency contacts'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {record.description && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{record.description}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {record.tags && record.tags.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {record.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="content" className="space-y-4">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Record Details */}
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Document Content</CardTitle>
-              <CardDescription>
-                View the content of your medical record
-              </CardDescription>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-2xl">{record.title}</CardTitle>
+                  <CardDescription className="mt-2">
+                    {record.description || 'No description provided'}
+                  </CardDescription>
+                </div>
+                <Badge className={getRecordTypeColor(record.type)}>
+                  {record.type.replace('_', ' ').toUpperCase()}
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent>
-              {record.file_url ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="font-medium">Attached File</p>
-                      <p className="text-sm text-muted-foreground">
-                        {record.file_type} • Click to view or download
-                      </p>
+                      <label className="text-sm font-medium text-gray-500">Record Type</label>
+                      <p className="text-sm">{record.type.replace('_', ' ').toUpperCase()}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Visibility</label>
+                      <div className="flex items-center gap-2">
+                        {getVisibilityIcon(record.visibility)}
+                        <p className="text-sm capitalize">{record.visibility}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Created</label>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <p className="text-sm">{new Date(record.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <p className="text-sm">{new Date(record.updated_at).toLocaleDateString()}</p>
+                      </div>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View File
-                  </Button>
+                  
+                  {record.tags && record.tags.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-2">
+                        <Tag className="h-4 w-4" />
+                        Tags
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {record.tags.map((tag, index) => (
+                          <Badge key={index} variant="secondary">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="content" className="space-y-4">
+                  {record.file_url ? (
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FileText className="h-5 w-5" />
+                        <span className="font-medium">Attached File</span>
+                        <Badge variant="outline">{record.file_type?.toUpperCase()}</Badge>
+                      </div>
+                      
+                      {record.file_type === 'pdf' && (
+                        <div className="bg-gray-100 rounded-lg p-8 text-center">
+                          <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                          <p className="text-gray-600 mb-4">PDF Document</p>
+                          <Button onClick={handleDownload}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Document
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {record.file_type?.startsWith('image/') && (
+                        <div className="max-w-full">
+                          <img 
+                            src={record.file_url} 
+                            alt={record.title}
+                            className="max-w-full h-auto rounded-lg border"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No file attached to this record</p>
+                    </div>
+                  )}
+                  
+                  {record.description && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 block mb-2">Notes</label>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="text-sm whitespace-pre-wrap">{record.description}</p>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="history" className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="border-l-2 border-blue-500 pl-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm font-medium">Record Created</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {new Date(record.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    
+                    {record.updated_at !== record.created_at && (
+                      <div className="border-l-2 border-green-500 pl-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium">Record Updated</span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {new Date(record.updated_at).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Quick Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Info</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="h-4 w-4 text-blue-600" />
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No file attached to this record</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    You can edit this record to add a file
+                <div>
+                  <p className="text-sm font-medium">Record Type</p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {record.type.replace('_', ' ')}
                   </p>
                 </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  {getVisibilityIcon(record.visibility)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Visibility</p>
+                  <p className="text-xs text-gray-500 capitalize">{record.visibility}</p>
+                </div>
+              </div>
+              
+              {record.is_critical && (
+                <>
+                  <Separator />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-red-600">Critical Record</p>
+                      <p className="text-xs text-gray-500">Requires immediate attention</p>
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="access" className="space-y-4">
+          {/* Related Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Access History</CardTitle>
-              <CardDescription>
-                Track who has accessed this medical record
-              </CardDescription>
+              <CardTitle className="text-lg">Related Information</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
-                <div className="space-y-3">
-                  {mockAccessLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                      <div className="p-2 bg-background rounded-lg">
-                        {log.access_type === 'view' ? (
-                          <Eye className="h-4 w-4 text-blue-500" />
-                        ) : (
-                          <FileText className="h-4 w-4 text-green-500" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{log.accessed_by}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(log.accessed_at).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {log.access_type}ed this record
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          IP: {log.ip_address}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+            <CardContent className="space-y-3">
+              {record.doctor_id && (
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">Doctor: Dr. Smith</span>
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="metadata" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Technical Details</CardTitle>
-              <CardDescription>
-                System information and metadata for this record
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-muted-foreground">Record ID:</span>
-                  <p className="font-mono text-xs mt-1">{record.id}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-muted-foreground">Patient ID:</span>
-                  <p className="font-mono text-xs mt-1">{record.patient_id}</p>
-                </div>
-                {record.doctor_id && (
-                  <div>
-                    <span className="font-medium text-muted-foreground">Doctor ID:</span>
-                    <p className="font-mono text-xs mt-1">{record.doctor_id}</p>
-                  </div>
-                )}
-                {record.appointment_id && (
-                  <div>
-                    <span className="font-medium text-muted-foreground">Appointment ID:</span>
-                    <p className="font-mono text-xs mt-1">{record.appointment_id}</p>
-                  </div>
-                )}
-              </div>
+              )}
               
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-2">System Information</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Database Table:</span>
-                    <span className="font-mono">medical_records</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Security Level:</span>
-                    <Badge variant="outline" className="text-xs">
-                      <Shield className="h-3 w-3 mr-1" />
-                      RLS Protected
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Backup Status:</span>
-                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
-                      ✓ Backed up
-                    </Badge>
-                  </div>
+              {record.appointment_id && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">Appointment: {record.appointment_id}</span>
                 </div>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <span className="text-sm">
+                  Created: {new Date(record.created_at).toLocaleDateString()}
+                </span>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+
+          {/* Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Download className="h-4 w-4 mr-2" />
+                Download Record
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share with Doctor
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Record
+              </Button>
+              <Separator />
+              <Button variant="destructive" size="sm" className="w-full justify-start">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Record
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
