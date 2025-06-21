@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,12 +7,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Search, MapPin, AlertTriangle, Clock } from 'lucide-react';
+import { Search, MapPin, AlertTriangle, Clock, Brain } from 'lucide-react';
 import { Symptom } from '@/types/healthTwin';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { SymptomAnalysisResults } from './SymptomAnalysisResults';
 
 interface SymptomCheckerProps {
   onSymptomAdd: (symptom: Symptom) => void;
   onAnalyze: (symptoms: Symptom[]) => void;
+}
+
+interface AnalysisResult {
+  analysis: string;
+  urgencyLevel: 'low' | 'moderate' | 'high' | 'emergency';
+  recommendedActions: string[];
+  disclaimer: string;
 }
 
 export function SymptomChecker({ onSymptomAdd, onAnalyze }: SymptomCheckerProps) {
@@ -24,6 +33,8 @@ export function SymptomChecker({ onSymptomAdd, onAnalyze }: SymptomCheckerProps)
   });
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>('');
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const bodyParts = [
     'head', 'neck', 'chest', 'abdomen', 'back', 'left-arm', 'right-arm', 
@@ -98,6 +109,46 @@ export function SymptomChecker({ onSymptomAdd, onAnalyze }: SymptomCheckerProps)
     };
     return colors[severity as keyof typeof colors];
   };
+
+  const analyzeWithAI = async () => {
+    if (symptoms.length === 0) {
+      toast.error('Please add at least one symptom to analyze');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-symptoms', {
+        body: { symptoms }
+      });
+
+      if (error) {
+        console.error('Analysis error:', error);
+        toast.error('Failed to analyze symptoms. Please try again.');
+        return;
+      }
+
+      setAnalysisResult(data);
+      onAnalyze(symptoms);
+      toast.success('Symptom analysis completed');
+    } catch (error) {
+      console.error('Error calling analysis function:', error);
+      toast.error('Failed to analyze symptoms. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Show analysis results if available
+  if (analysisResult) {
+    return (
+      <SymptomAnalysisResults 
+        result={analysisResult}
+        isLoading={isAnalyzing}
+        onClose={() => setAnalysisResult(null)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -312,12 +363,13 @@ export function SymptomChecker({ onSymptomAdd, onAnalyze }: SymptomCheckerProps)
               </div>
 
               <Button 
-                onClick={() => onAnalyze(symptoms)}
+                onClick={analyzeWithAI}
                 className="w-full"
                 size="lg"
+                disabled={isAnalyzing}
               >
-                <Search className="h-4 w-4 mr-2" />
-                Analyze Symptoms with AI
+                <Brain className="h-4 w-4 mr-2" />
+                {isAnalyzing ? 'Analyzing...' : 'Analyze Symptoms with AI'}
               </Button>
             </div>
           )}
