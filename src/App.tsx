@@ -262,6 +262,56 @@ function App() {
                   } 
                 />
 
+                {/* Specialized Medical Modules - Phase 7 */}
+                <Route 
+                  path="/mental-health" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'nurse', 'admin']}>
+                      <MentalHealth />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/geriatric-care" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <GeriatricCare />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/pediatric-care" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <PediatricCare />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/oncology-care" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <OncologyCare />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/surgical-services" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <SurgicalServices />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/rehabilitation-services" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <RehabilitationServices />
+                    </RoleBasedRoute>
+                  } 
+                />
+
                 {/* Nurse dashboard */}
                 <Route 
                   path="/dashboard/nurse" 
