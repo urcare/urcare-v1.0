@@ -1,107 +1,201 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { 
   Bell, 
   AlertTriangle, 
   CheckCircle, 
-  Clock, 
+  XCircle, 
+  Clock,
   Settings,
   Mail,
   MessageSquare,
-  Phone
+  Smartphone
 } from 'lucide-react';
 
+interface Alert {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'acknowledged' | 'resolved';
+  timestamp: Date;
+  category: 'performance' | 'security' | 'system' | 'business';
+  source: string;
+}
+
+interface AlertRule {
+  id: string;
+  name: string;
+  condition: string;
+  threshold: string;
+  enabled: boolean;
+  notifications: {
+    email: boolean;
+    sms: boolean;
+    slack: boolean;
+  };
+}
+
 export const AlertManagementInterface = () => {
-  const [activeAlerts, setActiveAlerts] = useState([
+  const [activeTab, setActiveTab] = useState('active');
+  const [alerts, setAlerts] = useState<Alert[]>([
     {
-      id: 1,
-      title: 'High CPU Usage',
-      description: 'Server CPU usage exceeded 90% threshold',
-      severity: 'critical',
-      timestamp: '2 minutes ago',
+      id: '1',
+      title: 'High CPU Usage Detected',
+      description: 'CPU usage has exceeded 85% for the past 10 minutes',
+      severity: 'high',
       status: 'active',
+      timestamp: new Date(Date.now() - 600000),
+      category: 'performance',
       source: 'System Monitor'
     },
     {
-      id: 2,
-      title: 'Slow Database Query',
-      description: 'Query execution time exceeded 2000ms',
-      severity: 'warning',
-      timestamp: '5 minutes ago',
-      status: 'acknowledged',
+      id: '2',
+      title: 'Database Connection Pool Full',
+      description: 'All database connections are in use, new requests are queued',
+      severity: 'critical',
+      status: 'active',
+      timestamp: new Date(Date.now() - 300000),
+      category: 'system',
       source: 'Database Monitor'
     },
     {
-      id: 3,
-      title: 'API Response Time',
-      description: '/api/patients endpoint response time > 1s',
-      severity: 'warning',
-      timestamp: '8 minutes ago',
-      status: 'active',
+      id: '3',
+      title: 'Unusual Login Pattern',
+      description: 'Multiple failed login attempts from same IP address',
+      severity: 'medium',
+      status: 'acknowledged',
+      timestamp: new Date(Date.now() - 1800000),
+      category: 'security',
+      source: 'Security Monitor'
+    },
+    {
+      id: '4',
+      title: 'API Response Time Slow',
+      description: 'Patient API response time exceeding 500ms threshold',
+      severity: 'medium',
+      status: 'resolved',
+      timestamp: new Date(Date.now() - 3600000),
+      category: 'performance',
       source: 'API Monitor'
     }
   ]);
 
-  const alertRules = [
+  const [alertRules, setAlertRules] = useState<AlertRule[]>([
     {
-      name: 'CPU Threshold',
+      id: '1',
+      name: 'High CPU Usage',
       condition: 'CPU Usage > 80%',
-      severity: 'warning',
+      threshold: 'for 5 minutes',
       enabled: true,
-      channels: ['email', 'slack']
+      notifications: { email: true, sms: true, slack: false }
     },
     {
-      name: 'Memory Threshold',
-      condition: 'Memory Usage > 85%',
-      severity: 'critical',
+      id: '2',
+      name: 'Memory Usage Critical',
+      condition: 'Memory Usage > 90%',
+      threshold: 'for 2 minutes',
       enabled: true,
-      channels: ['email', 'sms', 'slack']
+      notifications: { email: true, sms: true, slack: true }
     },
     {
-      name: 'Response Time',
-      condition: 'API Response > 1000ms',
-      severity: 'warning',
+      id: '3',
+      name: 'API Response Time',
+      condition: 'Response Time > 500ms',
+      threshold: 'for 3 consecutive requests',
       enabled: true,
-      channels: ['email']
+      notifications: { email: true, sms: false, slack: true }
+    },
+    {
+      id: '4',
+      name: 'Failed Login Attempts',
+      condition: 'Failed Logins > 5',
+      threshold: 'within 10 minutes',
+      enabled: false,
+      notifications: { email: true, sms: false, slack: false }
     }
-  ];
+  ]);
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'high':
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'medium':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'low':
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      case 'warning': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'info': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'critical':
+        return 'bg-red-100 text-red-800';
+      case 'high':
+        return 'bg-orange-100 text-orange-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-red-100 text-red-800';
-      case 'acknowledged': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-red-100 text-red-800';
+      case 'acknowledged':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'resolved':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const acknowledgeAlert = (alertId: number) => {
-    setActiveAlerts(alerts => 
-      alerts.map(alert => 
-        alert.id === alertId ? { ...alert, status: 'acknowledged' } : alert
-      )
-    );
+  const handleAlertAction = (alertId: string, action: 'acknowledge' | 'resolve') => {
+    setAlerts(prev => prev.map(alert => 
+      alert.id === alertId 
+        ? { ...alert, status: action === 'acknowledge' ? 'acknowledged' : 'resolved' }
+        : alert
+    ));
   };
 
-  const resolveAlert = (alertId: number) => {
-    setActiveAlerts(alerts => 
-      alerts.map(alert => 
-        alert.id === alertId ? { ...alert, status: 'resolved' } : alert
-      )
-    );
+  const toggleAlertRule = (ruleId: string) => {
+    setAlertRules(prev => prev.map(rule =>
+      rule.id === ruleId ? { ...rule, enabled: !rule.enabled } : rule
+    ));
+  };
+
+  const filteredAlerts = alerts.filter(alert => {
+    switch (activeTab) {
+      case 'active':
+        return alert.status === 'active';
+      case 'acknowledged':
+        return alert.status === 'acknowledged';
+      case 'resolved':
+        return alert.status === 'resolved';
+      default:
+        return true;
+    }
+  });
+
+  const alertCounts = {
+    active: alerts.filter(a => a.status === 'active').length,
+    acknowledged: alerts.filter(a => a.status === 'acknowledged').length,
+    resolved: alerts.filter(a => a.status === 'resolved').length,
+    critical: alerts.filter(a => a.severity === 'critical' && a.status === 'active').length
   };
 
   return (
@@ -109,149 +203,98 @@ export const AlertManagementInterface = () => {
       <Card className="bg-gradient-to-r from-red-50 to-orange-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
+            <Bell className="h-6 w-6 text-red-600" />
             Alert Management Center
           </CardTitle>
+          <CardDescription>
+            Monitor, manage, and configure system alerts and notifications
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">3</div>
+              <div className="text-2xl font-bold text-red-600">{alertCounts.active}</div>
               <div className="text-sm text-gray-600">Active Alerts</div>
             </div>
             <div className="text-center p-4 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">1</div>
+              <div className="text-2xl font-bold text-yellow-600">{alertCounts.acknowledged}</div>
+              <div className="text-sm text-gray-600">Acknowledged</div>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{alertCounts.resolved}</div>
+              <div className="text-sm text-gray-600">Resolved Today</div>
+            </div>
+            <div className="text-center p-4 bg-white/50 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">{alertCounts.critical}</div>
               <div className="text-sm text-gray-600">Critical</div>
-            </div>
-            <div className="text-center p-4 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">2</div>
-              <div className="text-sm text-gray-600">Warning</div>
-            </div>
-            <div className="text-center p-4 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">15</div>
-              <div className="text-sm text-gray-600">Resolved (24h)</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="active-alerts" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="active-alerts">Active Alerts</TabsTrigger>
-          <TabsTrigger value="alert-rules">Alert Rules</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="active">Active ({alertCounts.active})</TabsTrigger>
+          <TabsTrigger value="acknowledged">Acknowledged</TabsTrigger>
+          <TabsTrigger value="resolved">Resolved</TabsTrigger>
+          <TabsTrigger value="rules">Alert Rules</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="active-alerts" className="space-y-4">
+        <TabsContent value="active" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                Active Alerts ({activeAlerts.filter(a => a.status !== 'resolved').length})
-              </CardTitle>
+              <CardTitle>Active Alerts</CardTitle>
+              <CardDescription>Alerts requiring immediate attention</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {activeAlerts.map((alert) => (
-                  <Card key={alert.id} className={`border-l-4 ${
-                    alert.severity === 'critical' ? 'border-l-red-500' : 'border-l-yellow-500'
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">{alert.title}</h3>
-                            <p className="text-sm text-gray-600">{alert.description}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getSeverityColor(alert.severity)}>
-                              {alert.severity}
-                            </Badge>
-                            <Badge className={getStatusColor(alert.status)}>
-                              {alert.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center text-sm text-gray-600">
-                          <div className="flex items-center gap-4">
-                            <span>Source: {alert.source}</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {alert.timestamp}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            {alert.status === 'active' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => acknowledgeAlert(alert.id)}
-                              >
-                                Acknowledge
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => resolveAlert(alert.id)}
-                            >
-                              Resolve
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="alert-rules" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Alert Rules Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {alertRules.map((rule, index) => (
-                  <Card key={index} className="p-4">
+                {filteredAlerts.map((alert) => (
+                  <Card key={alert.id} className="p-4">
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-semibold">{rule.name}</h3>
-                          <p className="text-sm font-mono text-gray-600">{rule.condition}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={getSeverityColor(rule.severity)}>
-                            {rule.severity}
-                          </Badge>
-                          <Badge className={rule.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                            {rule.enabled ? 'Enabled' : 'Disabled'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Notification channels:</span>
-                          {rule.channels.map((channel, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {channel}
-                            </Badge>
-                          ))}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          {getSeverityIcon(alert.severity)}
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{alert.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              <span>{alert.timestamp.toLocaleString()}</span>
+                              <span>•</span>
+                              <span>{alert.source}</span>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Test
-                          </Button>
+                          <Badge className={getSeverityColor(alert.severity)}>
+                            {alert.severity}
+                          </Badge>
+                          <Badge className={getStatusColor(alert.status)}>
+                            {alert.status}
+                          </Badge>
                         </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleAlertAction(alert.id, 'acknowledge')}
+                          disabled={alert.status !== 'active'}
+                        >
+                          Acknowledge
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleAlertAction(alert.id, 'resolve')}
+                          disabled={alert.status === 'resolved'}
+                        >
+                          Resolve
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -261,60 +304,149 @@ export const AlertManagementInterface = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-4">
+        <TabsContent value="acknowledged" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Channels</CardTitle>
+              <CardTitle>Acknowledged Alerts</CardTitle>
+              <CardDescription>Alerts that have been acknowledged but not resolved</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Card className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <h3 className="font-semibold">Email Notifications</h3>
-                        <p className="text-sm text-gray-600">admin@hospital.com, ops-team@hospital.com</p>
+                {filteredAlerts.map((alert) => (
+                  <Card key={alert.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          {getSeverityIcon(alert.severity)}
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{alert.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              <span>{alert.timestamp.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className={getSeverityColor(alert.severity)}>
+                            {alert.severity}
+                          </Badge>
+                          <Badge className={getStatusColor(alert.status)}>
+                            {alert.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleAlertAction(alert.id, 'resolve')}
+                        >
+                          Resolve
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      <Button size="sm" variant="outline">Configure</Button>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                <Card className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <MessageSquare className="h-5 w-5 text-green-600" />
-                      <div>
-                        <h3 className="font-semibold">Slack Integration</h3>
-                        <p className="text-sm text-gray-600">#alerts channel</p>
+        <TabsContent value="resolved" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resolved Alerts</CardTitle>
+              <CardDescription>Recently resolved alerts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredAlerts.map((alert) => (
+                  <Card key={alert.id} className="p-4 opacity-75">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{alert.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                            <Clock className="h-3 w-3" />
+                            <span>{alert.timestamp.toLocaleString()}</span>
+                          </div>
+                        </div>
                       </div>
+                      <Badge className={getStatusColor(alert.status)}>
+                        {alert.status}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      <Button size="sm" variant="outline">Configure</Button>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                <Card className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-orange-600" />
-                      <div>
-                        <h3 className="font-semibold">SMS Alerts</h3>
-                        <p className="text-sm text-gray-600">Emergency contacts only</p>
+        <TabsContent value="rules" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Alert Rules Configuration</CardTitle>
+              <CardDescription>Configure when and how alerts are triggered</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {alertRules.map((rule) => (
+                  <Card key={rule.id} className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{rule.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            {rule.condition} {rule.threshold}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={rule.enabled}
+                          onCheckedChange={() => toggleAlertRule(rule.id)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-blue-600" />
+                          <span className={rule.notifications.email ? 'text-green-600' : 'text-gray-400'}>
+                            Email
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Smartphone className="h-4 w-4 text-green-600" />
+                          <span className={rule.notifications.sms ? 'text-green-600' : 'text-gray-400'}>
+                            SMS
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-purple-600" />
+                          <span className={rule.notifications.slack ? 'text-green-600' : 'text-gray-400'}>
+                            Slack
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Settings className="h-4 w-4 mr-1" />
+                          Configure
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          Test Alert
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>
-                      <Button size="sm" variant="outline">Configure</Button>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
