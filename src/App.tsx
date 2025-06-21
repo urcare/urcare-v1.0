@@ -217,7 +217,7 @@ function App() {
                 <Route 
                   path="/medication-management" 
                   element={
-                    <RoleBasedRoute allowedRoles={['patient', 'doctor',- 'pharmacy', 'admin']}>
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'pharmacy', 'admin']}>
                       <MedicationManagement />
                     </RoleBasedRoute>
                   } 

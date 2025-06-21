@@ -35,14 +35,6 @@ export const EngagementDashboard = () => {
     }));
   };
 
-  const handleBadgeEarned = (badgeId: string) => {
-    setUserStats(prev => ({
-      ...prev,
-      badgesEarned: prev.badgesEarned + 1,
-      totalPoints: prev.totalPoints + 25
-    }));
-  };
-
   const handlePeerConnect = (peerId: string) => {
     setUserStats(prev => ({
       ...prev,
@@ -134,7 +126,7 @@ export const EngagementDashboard = () => {
         </TabsContent>
 
         <TabsContent value="badges" className="space-y-6">
-          <AchievementBadges onBadgeEarned={handleBadgeEarned} />
+          <AchievementBadges />
         </TabsContent>
       </Tabs>
     </div>
