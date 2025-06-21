@@ -9,11 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointment_slots: {
+        Row: {
+          created_at: string | null
+          current_appointments: number | null
+          doctor_id: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          max_appointments: number | null
+          slot_date: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_appointments?: number | null
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          max_appointments?: number | null
+          slot_date: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_appointments?: number | null
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          max_appointments?: number | null
+          slot_date?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_slots_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
+          booking_reference: string | null
           created_at: string | null
           created_by: string | null
           date_time: string
+          department: string | null
           doctor_id: string
           duration_minutes: number | null
           id: string
@@ -21,13 +70,16 @@ export type Database = {
           patient_id: string
           prescription_id: string | null
           reason: string | null
+          slot_id: string | null
           status: Database["public"]["Enums"]["appointment_status"]
           type: Database["public"]["Enums"]["appointment_type"]
         }
         Insert: {
+          booking_reference?: string | null
           created_at?: string | null
           created_by?: string | null
           date_time: string
+          department?: string | null
           doctor_id: string
           duration_minutes?: number | null
           id?: string
@@ -35,13 +87,16 @@ export type Database = {
           patient_id: string
           prescription_id?: string | null
           reason?: string | null
+          slot_id?: string | null
           status?: Database["public"]["Enums"]["appointment_status"]
           type?: Database["public"]["Enums"]["appointment_type"]
         }
         Update: {
+          booking_reference?: string | null
           created_at?: string | null
           created_by?: string | null
           date_time?: string
+          department?: string | null
           doctor_id?: string
           duration_minutes?: number | null
           id?: string
@@ -49,6 +104,7 @@ export type Database = {
           patient_id?: string
           prescription_id?: string | null
           reason?: string | null
+          slot_id?: string | null
           status?: Database["public"]["Enums"]["appointment_status"]
           type?: Database["public"]["Enums"]["appointment_type"]
         }
@@ -70,6 +126,78 @@ export type Database = {
           {
             foreignKeyName: "appointments_patient_id_fkey"
             columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      doctor_availability: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_availability_doctor_id_fkey"
+            columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
@@ -591,15 +719,18 @@ export type Database = {
           address: string | null
           created_at: string | null
           date_of_birth: string | null
+          department: string | null
           emergency_contact: string | null
           full_name: string | null
           gender: string | null
           guardian_id: string | null
           health_id: string | null
           id: string
+          license_number: string | null
           phone: string | null
           preferences: Json | null
           role: string
+          specialization: string | null
           status: string
           updated_at: string | null
         }
@@ -607,15 +738,18 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          department?: string | null
           emergency_contact?: string | null
           full_name?: string | null
           gender?: string | null
           guardian_id?: string | null
           health_id?: string | null
           id: string
+          license_number?: string | null
           phone?: string | null
           preferences?: Json | null
           role?: string
+          specialization?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -623,15 +757,18 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          department?: string | null
           emergency_contact?: string | null
           full_name?: string | null
           gender?: string | null
           guardian_id?: string | null
           health_id?: string | null
           id?: string
+          license_number?: string | null
           phone?: string | null
           preferences?: Json | null
           role?: string
+          specialization?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -677,6 +814,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_appointment_slots: {
+        Args: {
+          doctor_uuid: string
+          start_date: string
+          end_date: string
+          slot_duration_minutes?: number
+        }
+        Returns: number
+      }
       get_doctor_id: {
         Args: { auth_user_id: string }
         Returns: string
