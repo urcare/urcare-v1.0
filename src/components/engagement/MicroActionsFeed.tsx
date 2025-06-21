@@ -1,113 +1,113 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, Zap, Target } from 'lucide-react';
+import { Zap, CheckCircle, Clock, Star, Flame, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MicroAction {
   id: string;
   title: string;
   description: string;
-  timeToComplete: string;
-  category: 'hydration' | 'movement' | 'nutrition' | 'mindfulness' | 'medication';
-  difficulty: 'easy' | 'medium' | 'hard';
+  category: string;
   points: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  estimatedTime: string;
   completed: boolean;
+  streak?: number;
 }
 
-interface Props {
+interface MicroActionsFeedProps {
   onActionComplete: (actionId: string) => void;
 }
 
-const microActions: MicroAction[] = [
-  {
-    id: 'action-1',
-    title: 'Drink a Glass of Water',
-    description: 'Stay hydrated for better energy and focus',
-    timeToComplete: '30 seconds',
-    category: 'hydration',
-    difficulty: 'easy',
-    points: 5,
-    completed: false
-  },
-  {
-    id: 'action-2',
-    title: 'Take 10 Deep Breaths',
-    description: 'Quick mindfulness exercise to reduce stress',
-    timeToComplete: '2 minutes',
-    category: 'mindfulness',
-    difficulty: 'easy',
-    points: 10,
-    completed: false
-  },
-  {
-    id: 'action-3',
-    title: 'Walk for 5 Minutes',
-    description: 'Light movement to boost circulation',
-    timeToComplete: '5 minutes',
-    category: 'movement',
-    difficulty: 'medium',
-    points: 15,
-    completed: false
-  },
-  {
-    id: 'action-4',
-    title: 'Check Medication Schedule',
-    description: 'Ensure you\'re on track with your prescriptions',
-    timeToComplete: '1 minute',
-    category: 'medication',
-    difficulty: 'easy',
-    points: 20,
-    completed: false
-  }
-];
+export const MicroActionsFeed = ({ onActionComplete }: MicroActionsFeedProps) => {
+  const [actions, setActions] = useState<MicroAction[]>([
+    {
+      id: '1',
+      title: 'Drink a Glass of Water',
+      description: 'Stay hydrated by drinking a full glass of water right now',
+      category: 'Hydration',
+      points: 5,
+      difficulty: 'easy',
+      estimatedTime: '1 min',
+      completed: false,
+      streak: 3
+    },
+    {
+      id: '2',
+      title: 'Take 10 Deep Breaths',
+      description: 'Practice mindful breathing for stress relief',
+      category: 'Mindfulness',
+      points: 10,
+      difficulty: 'easy',
+      estimatedTime: '2 min',
+      completed: false
+    },
+    {
+      id: '3',
+      title: 'Stand and Stretch',
+      description: 'Get up from your chair and do 5 simple stretches',
+      category: 'Movement',
+      points: 15,
+      difficulty: 'medium',
+      estimatedTime: '5 min',
+      completed: false
+    },
+    {
+      id: '4',
+      title: 'Log Your Mood',
+      description: 'Take a moment to check in with how you\'re feeling',
+      category: 'Mental Health',
+      points: 10,
+      difficulty: 'easy',
+      estimatedTime: '2 min',
+      completed: false,
+      streak: 7
+    },
+    {
+      id: '5',
+      title: '5-Minute Walk',
+      description: 'Take a short walk around your space or outside',
+      category: 'Movement',
+      points: 20,
+      difficulty: 'medium',
+      estimatedTime: '5 min',
+      completed: false
+    }
+  ]);
 
-export const MicroActionsFeed = ({ onActionComplete }: Props) => {
-  const [actions, setActions] = useState<MicroAction[]>(microActions);
-  const [completedToday, setCompletedToday] = useState(0);
-  const dailyGoal = 5;
+  const handleCompleteAction = (actionId: string) => {
+    setActions(prev => prev.map(action => 
+      action.id === actionId ? { ...action, completed: true } : action
+    ));
+    onActionComplete(actionId);
+    toast.success('Great job! Action completed! 🎉');
+  };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'hydration': return 'bg-blue-100 text-blue-800';
-      case 'movement': return 'bg-green-100 text-green-800';
-      case 'nutrition': return 'bg-orange-100 text-orange-800';
-      case 'mindfulness': return 'bg-purple-100 text-purple-800';
-      case 'medication': return 'bg-red-100 text-red-800';
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getDifficultyPoints = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return '🟢';
-      case 'medium': return '🟡';
-      case 'hard': return '🔴';
-      default: return '⚪';
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Hydration': return '💧';
+      case 'Mindfulness': return '🧠';
+      case 'Movement': return '🏃';
+      case 'Mental Health': return '💚';
+      default: return '⭐';
     }
   };
 
-  const handleCompleteAction = (actionId: string) => {
-    setActions(prev => 
-      prev.map(action => 
-        action.id === actionId 
-          ? { ...action, completed: true }
-          : action
-      )
-    );
-    
-    const action = actions.find(a => a.id === actionId);
-    if (action) {
-      setCompletedToday(prev => prev + 1);
-      onActionComplete(actionId);
-      toast.success(`+${action.points} points! Great job completing "${action.title}"`);
-    }
-  };
-
-  const progressPercentage = (completedToday / dailyGoal) * 100;
+  const completedCount = actions.filter(action => action.completed).length;
+  const totalPoints = actions.filter(action => action.completed).reduce((sum, action) => sum + action.points, 0);
 
   return (
     <div className="space-y-6">
@@ -115,46 +115,68 @@ export const MicroActionsFeed = ({ onActionComplete }: Props) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Micro-Actions Feed
+            Micro Actions Feed
           </CardTitle>
+          <CardDescription>
+            Quick, actionable steps to improve your health throughout the day
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Daily Progress</p>
-                <p className="text-sm text-gray-600">{completedToday} of {dailyGoal} actions completed</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-blue-600">{Math.round(progressPercentage)}%</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{completedCount}</div>
+              <p className="text-sm text-gray-600">Actions Completed</p>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{totalPoints}</div>
+              <p className="text-sm text-gray-600">Points Earned</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {Math.round((completedCount / actions.length) * 100)}%
+              </div>
+              <p className="text-sm text-gray-600">Completion Rate</p>
+            </div>
           </div>
+          
+          <Progress value={(completedCount / actions.length) * 100} className="mb-4" />
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {actions.map((action) => (
-          <Card key={action.id} className={`transition-all ${action.completed ? 'opacity-60 bg-green-50' : 'hover:shadow-md'}`}>
-            <CardContent className="p-4">
+          <Card key={action.id} className={`transition-all duration-200 hover:shadow-md ${action.completed ? 'opacity-60 bg-gray-50' : ''}`}>
+            <CardContent className="p-6">
               <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge className={getCategoryColor(action.category)}>
-                      {action.category}
-                    </Badge>
-                    <span className="text-xs text-gray-500">
-                      {getDifficultyPoints(action.difficulty)} {action.timeToComplete}
-                    </span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">{getCategoryIcon(action.category)}</span>
+                    <h3 className="font-semibold">{action.title}</h3>
+                    {action.streak && (
+                      <div className="flex items-center gap-1">
+                        <Flame className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm text-orange-600">{action.streak} day streak</span>
+                      </div>
+                    )}
                   </div>
                   
-                  <h3 className="font-medium">{action.title}</h3>
-                  <p className="text-sm text-gray-600">{action.description}</p>
+                  <p className="text-gray-600 mb-3">{action.description}</p>
                   
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm font-medium text-blue-600">+{action.points} points</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="outline" className="text-xs">
+                      {action.category}
+                    </Badge>
+                    <Badge className={`text-xs ${getDifficultyColor(action.difficulty)}`}>
+                      {action.difficulty}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {action.estimatedTime}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-blue-600">
+                      <Star className="h-3 w-3" />
+                      {action.points} pts
+                    </div>
                   </div>
                 </div>
                 
@@ -162,16 +184,15 @@ export const MicroActionsFeed = ({ onActionComplete }: Props) => {
                   {action.completed ? (
                     <div className="flex items-center gap-2 text-green-600">
                       <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Done!</span>
+                      <span className="text-sm font-medium">Completed</span>
                     </div>
                   ) : (
                     <Button 
-                      size="sm"
                       onClick={() => handleCompleteAction(action.id)}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      size="sm"
                     >
-                      <Clock className="h-4 w-4 mr-1" />
-                      Do Now
+                      <Zap className="h-4 w-4 mr-2" />
+                      Do It Now
                     </Button>
                   )}
                 </div>
@@ -180,15 +201,6 @@ export const MicroActionsFeed = ({ onActionComplete }: Props) => {
           </Card>
         ))}
       </div>
-
-      {completedToday >= dailyGoal && (
-        <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-bold text-green-700 mb-2">🎉 Daily Goal Achieved!</h3>
-            <p className="text-green-600">You've completed all your micro-actions for today. Great job!</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

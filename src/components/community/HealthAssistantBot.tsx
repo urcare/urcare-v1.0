@@ -4,342 +4,328 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bot, MessageSquare, Heart, Brain, Calendar, Clock, Send, Sparkles } from 'lucide-react';
+import { Bot, Send, Sparkles, Heart, Brain, Lightbulb, Clock, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Message {
   id: string;
   content: string;
-  isBot: boolean;
+  sender: 'user' | 'bot';
   timestamp: string;
-  type?: 'text' | 'suggestion' | 'reminder' | 'insight';
+  type?: 'suggestion' | 'question' | 'tip' | 'reminder';
 }
 
-interface HealthInsight {
+interface QuickAction {
   id: string;
   title: string;
   description: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high';
-  actionable: boolean;
+  icon: React.ReactNode;
+  action: string;
 }
 
 export const HealthAssistantBot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your personal health assistant. I'm here to help you track your wellness, provide health insights, and support your community journey. How can I assist you today?",
-      isBot: true,
-      timestamp: '10:00 AM',
-      type: 'text'
+      content: 'Hello! I\'m your AI Health Assistant. I can help with health questions, provide wellness tips, remind you about medications, and support your health journey. How can I assist you today?',
+      sender: 'bot',
+      timestamp: 'Just now',
+      type: 'suggestion'
     }
   ]);
-  const [newMessage, setNewMessage] = useState('');
+
+  const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  const healthInsights: HealthInsight[] = [
+  const quickActions: QuickAction[] = [
     {
       id: '1',
-      title: 'Mood Pattern Analysis',
-      description: 'Your mood has been consistently improving over the past week. Great progress!',
-      category: 'Mental Health',
-      priority: 'medium',
-      actionable: false
+      title: 'Symptom Checker',
+      description: 'Describe your symptoms for guidance',
+      icon: <Heart className="h-5 w-5" />,
+      action: 'symptom-check'
     },
     {
       id: '2',
-      title: 'Activity Reminder',
-      description: 'You haven\'t logged your medication today. Would you like me to set a reminder?',
-      category: 'Medication',
-      priority: 'high',
-      actionable: true
+      title: 'Medication Reminder',
+      description: 'Set up medication reminders',
+      icon: <Clock className="h-5 w-5" />,
+      action: 'med-reminder'
     },
     {
       id: '3',
-      title: 'Community Engagement',
-      description: 'You\'ve been very active in the diabetes community. Consider sharing your experience!',
-      category: 'Social',
-      priority: 'low',
-      actionable: true
+      title: 'Health Tips',
+      description: 'Get personalized health advice',
+      icon: <Lightbulb className="h-5 w-5" />,
+      action: 'health-tips'
+    },
+    {
+      id: '4',
+      title: 'Mental Wellness',
+      description: 'Support for mental health',
+      icon: <Brain className="h-5 w-5" />,
+      action: 'mental-wellness'
     }
   ];
 
-  const quickActions = [
-    { label: 'Check my mood trends', action: 'mood-trends' },
-    { label: 'Find buddy matches', action: 'buddy-match' },
-    { label: 'Schedule health reminder', action: 'reminder' },
-    { label: 'Get wellness tips', action: 'wellness-tips' },
-    { label: 'Community suggestions', action: 'community' }
-  ];
-
-  const botResponses = {
-    'mood-trends': "Based on your recent activity, I've noticed you've been feeling more positive lately! Your engagement with the community seems to correlate with better mood days. Would you like me to analyze this pattern further?",
-    'buddy-match': "I found 3 potential buddy matches based on your current mood and interests! Sarah M. (92% compatibility) is also interested in meditation and journaling. Would you like me to introduce you?",
-    'reminder': "I can help you set up personalized health reminders. What would you like to be reminded about? Medication, appointments, mood check-ins, or exercise?",
-    'wellness-tips': "Here are your personalized wellness tips for today: 1) Stay hydrated - you're at 60% of your daily goal, 2) Consider a 10-minute meditation session, 3) Share your progress in the community for motivation!",
-    'community': "Based on your interests, I recommend checking out the 'Heart Health Heroes' community - they have an AMA session with Dr. Johnson tomorrow at 2 PM. You might also enjoy the recovery stories in the diabetes support group."
-  };
-
-  const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = () => {
+    if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: newMessage,
-      isBot: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type: 'text'
+      content: inputMessage,
+      sender: 'user',
+      timestamp: 'Just now'
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setNewMessage('');
+    setInputMessage('');
     setIsTyping(true);
 
     // Simulate AI response
     setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateBotResponse(newMessage),
-        isBot: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        type: 'text'
-      };
-
+      const botResponse = generateBotResponse(inputMessage);
       setMessages(prev => [...prev, botResponse]);
       setIsTyping(false);
-    }, 1500);
+    }, 2000);
+  };
+
+  const generateBotResponse = (userInput: string): Message => {
+    const lowerInput = userInput.toLowerCase();
+    
+    if (lowerInput.includes('pain') || lowerInput.includes('hurt')) {
+      return {
+        id: (Date.now() + 1).toString(),
+        content: 'I understand you\'re experiencing pain. While I can\'t diagnose, I can suggest some general approaches: 1) Apply ice/heat as appropriate, 2) Gentle stretching, 3) Over-the-counter pain relief if suitable. If pain persists or is severe, please consult a healthcare provider. Would you like specific tips for the type of pain you\'re experiencing?',
+        sender: 'bot',
+        timestamp: 'Just now',
+        type: 'tip'
+      };
+    }
+    
+    if (lowerInput.includes('stress') || lowerInput.includes('anxiety')) {
+      return {
+        id: (Date.now() + 1).toString(),
+        content: 'Stress and anxiety are common experiences. Here are some immediate techniques that might help: 1) Deep breathing (4 counts in, 6 counts out), 2) Progressive muscle relaxation, 3) Mindful meditation for 5-10 minutes, 4) Light physical activity. If these feelings persist, consider speaking with a mental health professional. Would you like me to guide you through a quick breathing exercise?',
+        sender: 'bot',
+        timestamp: 'Just now',
+        type: 'tip'
+      };
+    }
+    
+    if (lowerInput.includes('medication') || lowerInput.includes('medicine')) {
+      return {
+        id: (Date.now() + 1).toString(),
+        content: 'I can help you organize your medications! I can assist with: 1) Setting up reminder schedules, 2) Tracking adherence, 3) Providing general information about medications (not medical advice), 4) Connecting you with pharmacist resources. What specific help do you need with your medications?',
+        sender: 'bot',
+        timestamp: 'Just now',
+        type: 'suggestion'
+      };
+    }
+    
+    return {
+      id: (Date.now() + 1).toString(),
+      content: 'Thank you for sharing that with me. I\'m here to support your health journey. Based on what you\'ve told me, I recommend: 1) Keeping track of your symptoms or concerns, 2) Maintaining regular healthy habits, 3) Consulting with healthcare providers for personalized advice. Is there a specific aspect of your health you\'d like to focus on today?',
+      sender: 'bot',
+      timestamp: 'Just now',
+      type: 'suggestion'
+    };
   };
 
   const handleQuickAction = (action: string) => {
-    const response = botResponses[action as keyof typeof botResponses];
-    if (response) {
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        content: response,
-        isBot: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        type: 'suggestion'
-      };
-      setMessages(prev => [...prev, botMessage]);
+    let response = '';
+    
+    switch (action) {
+      case 'symptom-check':
+        response = 'I\'d like to help you understand your symptoms better. Please describe what you\'re experiencing, including when it started, how severe it is (1-10), and any other relevant details. Remember, this is for guidance only - always consult a healthcare professional for proper diagnosis.';
+        break;
+      case 'med-reminder':
+        response = 'Let\'s set up your medication reminders! I can help you track: 1) Medication names and dosages, 2) Times to take them, 3) Frequency, 4) Special instructions. What medications do you need reminders for?';
+        break;
+      case 'health-tips':
+        response = 'Here are some personalized health tips based on common wellness practices: 1) Stay hydrated (8 glasses of water daily), 2) Get 7-9 hours of sleep, 3) Include 30 minutes of movement daily, 4) Eat a variety of colorful fruits and vegetables, 5) Practice stress management. Which area would you like specific advice on?';
+        break;
+      case 'mental-wellness':
+        response = 'Mental wellness is just as important as physical health. Some daily practices that can help: 1) Mindfulness meditation (even 5 minutes), 2) Gratitude journaling, 3) Regular social connections, 4) Limiting negative media, 5) Professional support when needed. How are you feeling today, and what kind of support would be most helpful?';
+        break;
+      default:
+        response = 'I\'m here to help with your health concerns. What would you like to know?';
     }
+
+    const botMessage: Message = {
+      id: Date.now().toString(),
+      content: response,
+      sender: 'bot',
+      timestamp: 'Just now',
+      type: 'suggestion'
+    };
+
+    setMessages(prev => [...prev, botMessage]);
+    toast.success('Health assistant activated!');
   };
 
-  const generateBotResponse = (userInput: string): string => {
-    const lowerInput = userInput.toLowerCase();
-    
-    if (lowerInput.includes('mood') || lowerInput.includes('feeling')) {
-      return "I understand you're asking about mood. I can help you track mood patterns and find compatible community members. Your recent mood trend shows improvement - keep up the great work! Would you like me to find buddy matches based on your current mood?";
-    }
-    
-    if (lowerInput.includes('community') || lowerInput.includes('friend')) {
-      return "The community is a great place to find support! Based on your profile, I recommend joining the discussions in your condition-specific groups. I can also help you find buddy matches with 85%+ compatibility. What type of support are you looking for?";
-    }
-    
-    if (lowerInput.includes('reminder') || lowerInput.includes('medication')) {
-      return "I can set up smart reminders for you! I notice you might benefit from medication reminders and mood check-ins. I can also remind you about upcoming AMA sessions and community events. What would you like me to help you remember?";
-    }
-    
-    if (lowerInput.includes('doctor') || lowerInput.includes('ama')) {
-      return "There are several exciting AMA sessions coming up! Dr. Johnson has a heart health session tomorrow, and Dr. Chen will discuss diabetes management next week. I can register you for sessions that match your interests. Which topics interest you most?";
-    }
-    
-    return "I'm here to help with your health journey! I can assist with mood tracking, finding community connections, setting reminders, providing wellness insights, and connecting you with relevant AMA sessions. What would you like to explore?";
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const getMessageTypeColor = (type?: string) => {
+    switch (type) {
+      case 'suggestion': return 'border-l-blue-400 bg-blue-50';
+      case 'tip': return 'border-l-green-400 bg-green-50';
+      case 'reminder': return 'border-l-yellow-400 bg-yellow-50';
+      default: return 'border-l-gray-400 bg-gray-50';
     }
   };
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-blue-50 to-cyan-50">
+      <Card className="bg-gradient-to-r from-cyan-50 to-blue-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
             AI Health Assistant
           </CardTitle>
           <CardDescription>
-            Your personal AI companion for health insights, community connections, and wellness support
+            Your personal AI companion for health guidance, symptom support, and wellness coaching
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div className="p-3 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">24/7</div>
+              <div className="text-2xl font-bold text-cyan-600">24/7</div>
               <p className="text-sm text-gray-600">Available</p>
             </div>
             <div className="p-3 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">89%</div>
-              <p className="text-sm text-gray-600">Accuracy</p>
+              <div className="text-2xl font-bold text-blue-600">1.2k</div>
+              <p className="text-sm text-gray-600">Questions Answered</p>
             </div>
             <div className="p-3 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">156</div>
-              <p className="text-sm text-gray-600">Conversations</p>
+              <div className="text-2xl font-bold text-green-600">95%</div>
+              <p className="text-sm text-gray-600">Helpful Rating</p>
             </div>
             <div className="p-3 bg-white/50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">12</div>
-              <p className="text-sm text-gray-600">Insights Today</p>
+              <div className="text-2xl font-bold text-purple-600">&lt;30s</div>
+              <p className="text-sm text-gray-600">Response Time</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Chat with Health Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4 max-h-[400px]">
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[80%] ${message.isBot ? 'flex gap-2' : ''}`}>
-                      {message.isBot && (
-                        <Avatar className="h-8 w-8 mt-1">
-                          <AvatarFallback className="bg-blue-100 text-blue-600">
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div className={`p-3 rounded-lg ${
-                        message.isBot 
-                          ? 'bg-blue-50 text-blue-900' 
-                          : 'bg-purple-600 text-white ml-12'
-                      }`}>
-                        <p className="text-sm">{message.content}</p>
-                        <span className="text-xs opacity-70 mt-1 block">{message.timestamp}</span>
-                      </div>
-                    </div>
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Actions</CardTitle>
+          <CardDescription>
+            Get instant help with common health needs
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickActions.map((action) => (
+              <Button
+                key={action.id}
+                variant="outline"
+                className="h-auto p-4 justify-start"
+                onClick={() => handleQuickAction(action.action)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                    {action.icon}
                   </div>
-                ))}
-                
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex gap-2">
-                      <Avatar className="h-8 w-8 mt-1">
-                        <AvatarFallback className="bg-blue-100 text-blue-600">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="bg-blue-50 text-blue-900 p-3 rounded-lg">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="text-left">
+                    <div className="font-medium">{action.title}</div>
+                    <div className="text-sm text-gray-600">{action.description}</div>
+                  </div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Chat Interface */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Chat with Health Assistant</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Messages */}
+            <div className="h-96 overflow-y-auto space-y-4 p-4 bg-gray-50 rounded-lg">
+              {messages.map((message) => (
+                <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex items-start gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <Avatar className="h-8 w-8">
+                      {message.sender === 'bot' ? (
+                        <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                          <Bot className="h-4 w-4 text-blue-600" />
                         </div>
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <User className="h-4 w-4 text-gray-600" />
+                        </div>
+                      )}
+                    </Avatar>
+                    
+                    <div className={`${
+                      message.sender === 'user' 
+                        ? 'bg-blue-600 text-white' 
+                        : `bg-white border-l-4 ${getMessageTypeColor(message.type)}`
+                    } p-3 rounded-lg shadow-sm`}>
+                      <p className="text-sm">{message.content}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`text-xs ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {message.timestamp}
+                        </span>
+                        {message.type && message.sender === 'bot' && (
+                          <Badge variant="secondary" className="text-xs">
+                            {message.type}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-1">
-                  {quickActions.map((action, index) => (
-                    <Button
-                      key={index}
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleQuickAction(action.action)}
-                      className="text-xs"
-                    >
-                      {action.label}
-                    </Button>
-                  ))}
                 </div>
-
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ask me anything about your health..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    className="flex-1"
-                  />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                Health Insights
-              </CardTitle>
-              <CardDescription>
-                AI-powered personalized insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {healthInsights.map((insight) => (
-                  <div key={insight.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-medium text-sm">{insight.title}</h4>
-                      <Badge className={`text-xs ${getPriorityColor(insight.priority)}`}>
-                        {insight.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-600">{insight.description}</p>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
-                        {insight.category}
-                      </Badge>
-                      {insight.actionable && (
-                        <Button size="sm" variant="outline" className="h-6 text-xs">
-                          Take Action
-                        </Button>
-                      )}
+              ))}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                        <Bot className="h-4 w-4 text-blue-600" />
+                      </div>
+                    </Avatar>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-l-gray-400">
+                      <div className="flex items-center gap-2">
+                        <div className="animate-bounce">●</div>
+                        <div className="animate-bounce" style={{ animationDelay: '0.1s' }}>●</div>
+                        <div className="animate-bounce" style={{ animationDelay: '0.2s' }}>●</div>
+                        <span className="ml-2 text-sm text-gray-600">AI is thinking...</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              )}
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Smart Reminders
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                  <span>Medication reminder</span>
-                  <span className="text-xs text-gray-500">2:00 PM</span>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-green-50 rounded">
-                  <span>Mood check-in</span>
-                  <span className="text-xs text-gray-500">6:00 PM</span>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-purple-50 rounded">
-                  <span>Dr. AMA session</span>
-                  <span className="text-xs text-gray-500">Tomorrow 2:00 PM</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            {/* Input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask me anything about your health..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isTyping}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="text-xs text-gray-500 text-center">
+              💡 This AI assistant provides general health information and guidance. Always consult healthcare professionals for medical advice, diagnosis, or treatment.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

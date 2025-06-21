@@ -18,6 +18,20 @@ import LIMS from "./pages/LIMS";
 import Insurance from "./pages/Insurance";
 import Community from "./pages/Community";
 import Appointments from "./pages/Appointments";
+import Engagement from "./pages/Engagement";
+
+// Import AI-powered pages
+import AIInsights from "./pages/AIInsights";
+import DocumentIntelligence from "./pages/DocumentIntelligence";
+import SmartReminders from "./pages/SmartReminders";
+import HealthAssistant from "./pages/HealthAssistant";
+
+// Import enhanced feature pages
+import FamilyHub from "./pages/FamilyHub";
+import EmergencyCenter from "./pages/EmergencyCenter";
+import WellnessTracking from "./pages/WellnessTracking";
+import MedicationManagement from "./pages/MedicationManagement";
+import AppointmentsEnhanced from "./pages/AppointmentsEnhanced";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +141,92 @@ function App() {
                   element={
                     <RoleBasedRoute allowedRoles={['patient', 'doctor', 'reception', 'admin']}>
                       <Appointments />
+                    </RoleBasedRoute>
+                  } 
+                />
+
+                {/* Engagement - All authenticated users */}
+                <Route 
+                  path="/engagement" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'nurse', 'admin', 'pharmacy', 'lab', 'reception']}>
+                      <Engagement />
+                    </RoleBasedRoute>
+                  } 
+                />
+
+                {/* AI-Powered Features */}
+                <Route 
+                  path="/ai-insights" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <AIInsights />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/document-intelligence" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <DocumentIntelligence />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/smart-reminders" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <SmartReminders />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/health-assistant" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <HealthAssistant />
+                    </RoleBasedRoute>
+                  } 
+                />
+
+                {/* Enhanced Features */}
+                <Route 
+                  path="/family-hub" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'admin']}>
+                      <FamilyHub />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/emergency-center" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <EmergencyCenter />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness-tracking" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <WellnessTracking />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/medication-management" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor',- 'pharmacy', 'admin']}>
+                      <MedicationManagement />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/appointments-enhanced" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'reception', 'admin']}>
+                      <AppointmentsEnhanced />
                     </RoleBasedRoute>
                   } 
                 />
