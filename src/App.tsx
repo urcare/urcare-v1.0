@@ -33,6 +33,11 @@ import WellnessTracking from "./pages/WellnessTracking";
 import MedicationManagement from "./pages/MedicationManagement";
 import AppointmentsEnhanced from "./pages/AppointmentsEnhanced";
 
+// Import advanced medical pages
+import AdvancedMedical from "./pages/AdvancedMedical";
+import MedicalRecords from "./pages/MedicalRecords";
+import ClinicalDecisionSupport from "./pages/ClinicalDecisionSupport";
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -227,6 +232,32 @@ function App() {
                   element={
                     <RoleBasedRoute allowedRoles={['patient', 'doctor', 'reception', 'admin']}>
                       <AppointmentsEnhanced />
+                    </RoleBasedRoute>
+                  } 
+                />
+
+                {/* Advanced Medical Features - Phase 6 */}
+                <Route 
+                  path="/advanced-medical" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'lab', 'admin']}>
+                      <AdvancedMedical />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/medical-records" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+                      <MedicalRecords />
+                    </RoleBasedRoute>
+                  } 
+                />
+                <Route 
+                  path="/clinical-decision-support" 
+                  element={
+                    <RoleBasedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+                      <ClinicalDecisionSupport />
                     </RoleBasedRoute>
                   } 
                 />

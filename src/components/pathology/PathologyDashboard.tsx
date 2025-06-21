@@ -1,323 +1,435 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Microscope, 
-  Workflow, 
+  FlaskConical, 
   FileText, 
-  Camera,
-  Share2, 
-  Settings,
-  Clock,
+  User, 
+  Clock, 
   AlertTriangle,
   CheckCircle,
-  Users,
-  Stethoscope,
-  Image,
-  Activity,
-  Brain,
+  Search,
   Eye,
-  BookOpen
+  Download,
+  Activity,
+  Target
 } from 'lucide-react';
-import { TissueTracking } from './TissueTracking';
-import { PathologyReporting } from './PathologyReporting';
-import { DigitalPathology } from './DigitalPathology';
-import { ImmunohistochemistryTracking } from './ImmunohistochemistryTracking';
-import { CaseConsultation } from './CaseConsultation';
-import { MolecularPathology } from './MolecularPathology';
+import { toast } from 'sonner';
+
+interface PathologyCase {
+  id: string;
+  patientName: string;
+  specimenType: string;
+  caseDate: string;
+  status: 'received' | 'processing' | 'staining' | 'reading' | 'completed';
+  priority: 'routine' | 'urgent' | 'stat';
+  pathologist: string;
+  diagnosis?: string;
+}
+
+interface SpecimenTracking {
+  id: string;
+  specimenId: string;
+  currentLocation: string;
+  status: string;
+  timestamp: string;
+}
 
 export const PathologyDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-
-  const pathologyMetrics = {
-    pendingCases: 89,
-    completedToday: 156,
-    urgentCases: 12,
-    avgTurnaroundTime: 2.8,
-    qualityScore: 98.5,
-    consultations: 23,
-    digitalSlides: 445,
-    ihdStains: 67
-  };
-
-  const urgentCases = [
+  const [activeTab, setActiveTab] = useState('cases');
+  const [cases] = useState<PathologyCase[]>([
     {
-      id: 'PATH001',
-      patient: 'John Doe',
-      specimen: 'Lung Biopsy',
-      priority: 'STAT',
-      received: '14:30',
-      status: 'Grossing',
-      pathologist: 'Dr. Smith'
+      id: '1',
+      patientName: 'Alice Johnson',
+      specimenType: 'Breast Biopsy',
+      caseDate: '2024-01-22',
+      status: 'reading',
+      priority: 'urgent',
+      pathologist: 'Dr. Smith',
+      diagnosis: 'Pending review'
     },
     {
-      id: 'PATH002',
-      patient: 'Jane Smith',
-      specimen: 'Breast Core',
-      priority: 'Urgent',
-      received: '13:45',
-      status: 'Sectioning',
+      id: '2',
+      patientName: 'Robert Brown',
+      specimenType: 'Colon Biopsy',
+      caseDate: '2024-01-22',
+      status: 'staining',
+      priority: 'routine',
       pathologist: 'Dr. Johnson'
     },
     {
-      id: 'PATH003',
-      patient: 'Mike Wilson',
-      specimen: 'Colon Resection',
-      priority: 'STAT',
-      received: '15:00',
-      status: 'Staining',
-      pathologist: 'Dr. Brown'
+      id: '3',
+      patientName: 'Mary Davis',
+      specimenType: 'Skin Lesion',
+      caseDate: '2024-01-21',
+      status: 'completed',
+      priority: 'stat',
+      pathologist: 'Dr. Wilson',
+      diagnosis: 'Benign nevus'
     }
-  ];
+  ]);
 
-  const recentConsultations = [
+  const [specimens] = useState<SpecimenTracking[]>([
     {
-      id: 'CONS001',
-      case: 'Melanoma Diagnosis',
-      consultant: 'Dr. Expert',
-      status: 'Pending Review',
-      urgency: 'High'
+      id: '1',
+      specimenId: 'SP-2024-001',
+      currentLocation: 'Histology Lab',
+      status: 'H&E Staining',
+      timestamp: '2024-01-22 10:30'
     },
     {
-      id: 'CONS002',
-      case: 'Lymphoma Subtyping',
-      consultant: 'Dr. Specialist',
-      status: 'Completed',
-      urgency: 'Routine'
+      id: '2',
+      specimenId: 'SP-2024-002',
+      currentLocation: 'IHC Lab',
+      status: 'Immunohistochemistry',
+      timestamp: '2024-01-22 09:15'
+    },
+    {
+      id: '3',
+      specimenId: 'SP-2024-003',
+      currentLocation: 'Digital Pathology',
+      status: 'Whole Slide Imaging',
+      timestamp: '2024-01-22 11:45'
     }
-  ];
+  ]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'received': return 'bg-blue-100 text-blue-800';
+      case 'processing': return 'bg-yellow-100 text-yellow-800';
+      case 'staining': return 'bg-purple-100 text-purple-800';
+      case 'reading': return 'bg-orange-100 text-orange-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'stat': return 'bg-red-100 text-red-800';
+      case 'urgent': return 'bg-orange-100 text-orange-800';
+      case 'routine': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pathology Management System</h1>
-          <p className="text-gray-600 mt-2">Comprehensive tissue tracking and diagnostic workflow management</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Camera className="h-4 w-4" />
-            Digital Pathology
-          </Button>
-          <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-            <Microscope className="h-4 w-4" />
-            New Case
-          </Button>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="text-center space-y-2 mb-8">
+        <h1 className="text-3xl font-bold">Pathology Management System</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Comprehensive pathology workflow management with digital imaging and case tracking
+        </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tissue-tracking">Tissue Tracking</TabsTrigger>
-          <TabsTrigger value="reporting">Reporting</TabsTrigger>
-          <TabsTrigger value="digital">Digital Pathology</TabsTrigger>
-          <TabsTrigger value="ihc">Immunohistochemistry</TabsTrigger>
-          <TabsTrigger value="molecular">Molecular</TabsTrigger>
-          <TabsTrigger value="consultation">Consultation</TabsTrigger>
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Cases</p>
+                <p className="text-2xl font-bold">28</p>
+              </div>
+              <Microscope className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                <p className="text-2xl font-bold">7</p>
+              </div>
+              <Eye className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed Today</p>
+                <p className="text-2xl font-bold">15</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Turnaround Time</p>
+                <p className="text-2xl font-bold">2.1d</p>
+              </div>
+              <Clock className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="cases">Case Management</TabsTrigger>
+          <TabsTrigger value="specimens">Specimen Tracking</TabsTrigger>
+          <TabsTrigger value="imaging">Digital Pathology</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="analytics">Quality Metrics</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Microscope className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-blue-900">{pathologyMetrics.pendingCases}</p>
-                    <p className="text-sm text-blue-700">Pending Cases</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-green-900">{pathologyMetrics.completedToday}</p>
-                    <p className="text-sm text-green-700">Completed Today</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-red-200 bg-red-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-red-900">{pathologyMetrics.urgentCases}</p>
-                    <p className="text-sm text-red-700">Urgent Cases</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 bg-purple-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Camera className="h-8 w-8 text-purple-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-purple-900">{pathologyMetrics.digitalSlides}</p>
-                    <p className="text-sm text-purple-700">Digital Slides</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="cases" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Pathology Cases</h3>
+            <div className="flex gap-2">
+              <Input placeholder="Search cases..." className="w-64" />
+              <Button>
+                <FlaskConical className="h-4 w-4 mr-2" />
+                New Case
+              </Button>
+            </div>
           </div>
-
-          {/* Urgent Cases */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Urgent Cases</CardTitle>
-              <CardDescription>High priority specimens requiring immediate attention</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {urgentCases.map((case_item, index) => (
-                  <div key={index} className={`flex items-center justify-between p-3 border-l-4 rounded ${
-                    case_item.priority === 'STAT' ? 'border-l-red-500 bg-red-50' : 'border-l-orange-500 bg-orange-50'
-                  }`}>
+          
+          <div className="grid gap-4">
+            {cases.map((caseItem) => (
+              <Card key={caseItem.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <Microscope className={`h-5 w-5 ${
-                        case_item.priority === 'STAT' ? 'text-red-600' : 'text-orange-600'
-                      }`} />
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Microscope className="h-6 w-6 text-purple-600" />
+                      </div>
                       <div>
-                        <h5 className="font-medium text-gray-900">{case_item.patient}</h5>
-                        <p className="text-sm text-gray-600">{case_item.specimen}</p>
-                        <p className="text-xs text-gray-500">Received: {case_item.received}</p>
+                        <h4 className="font-semibold">{caseItem.patientName}</h4>
+                        <p className="text-sm text-gray-600">{caseItem.specimenType}</p>
+                        <p className="text-xs text-gray-500">
+                          {caseItem.caseDate} • {caseItem.pathologist}
+                        </p>
+                        {caseItem.diagnosis && (
+                          <p className="text-xs text-blue-600 mt-1">{caseItem.diagnosis}</p>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge variant="outline" className={`${
-                        case_item.priority === 'STAT' ? 'border-red-500 text-red-700' : 'border-orange-500 text-orange-700'
-                      }`}>
-                        {case_item.priority}
+                    
+                    <div className="flex items-center gap-3">
+                      <Badge className={getPriorityColor(caseItem.priority)}>
+                        {caseItem.priority.toUpperCase()}
                       </Badge>
-                      <p className="text-sm text-gray-600 mt-1">{case_item.status}</p>
-                      <p className="text-xs text-gray-500">{case_item.pathologist}</p>
+                      <Badge className={getStatusColor(caseItem.status)}>
+                        {caseItem.status}
+                      </Badge>
+                      <Button size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Review
+                      </Button>
                     </div>
                   </div>
-                ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="specimens" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Specimen Tracking</h3>
+            <Button>
+              <Search className="h-4 w-4 mr-2" />
+              Track Specimen
+            </Button>
+          </div>
+          
+          <div className="grid gap-4">
+            {specimens.map((specimen) => (
+              <Card key={specimen.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <FlaskConical className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">{specimen.specimenId}</h4>
+                        <p className="text-sm text-gray-600">{specimen.currentLocation}</p>
+                        <p className="text-xs text-gray-500">{specimen.timestamp}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">{specimen.status}</Badge>
+                      <Button size="sm" variant="outline">
+                        <Activity className="h-4 w-4 mr-2" />
+                        History
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="imaging" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Digital Pathology Viewer
+              </CardTitle>
+              <CardDescription>
+                Whole slide imaging and AI-assisted diagnosis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-3">
+                  <div className="border rounded-lg bg-gray-900 h-96 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Microscope className="h-16 w-16 mx-auto mb-4 opacity-60" />
+                      <div className="text-lg">Digital Slide Viewer</div>
+                      <div className="text-sm opacity-75">Load whole slide images for analysis</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline">20x</Button>
+                      <Button size="sm" variant="outline">40x</Button>
+                      <Button size="sm" variant="outline">100x</Button>
+                      <Button size="sm" variant="outline">400x</Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm">
+                        <Target className="h-4 w-4 mr-2" />
+                        AI Analysis
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Case Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                      <div><strong>Patient:</strong> Alice Johnson</div>
+                      <div><strong>Specimen:</strong> Breast Biopsy</div>
+                      <div><strong>Stain:</strong> H&E</div>
+                      <div><strong>Block:</strong> A1</div>
+                      <div><strong>Section:</strong> 1</div>
+                      <div><strong>Magnification:</strong> 200x</div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">AI Findings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                      <div className="p-2 bg-red-50 rounded">
+                        <div className="font-medium text-red-800">Atypical Cells</div>
+                        <div className="text-red-600">Suspicious cellular morphology detected</div>
+                      </div>
+                      <div className="p-2 bg-yellow-50 rounded">
+                        <div className="font-medium text-yellow-800">Inflammatory Changes</div>
+                        <div className="text-yellow-600">Chronic inflammation present</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Consultations */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Consultations</CardTitle>
-                <CardDescription>Expert opinions and case reviews</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentConsultations.map((consultation, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded">
-                      <div className="flex items-center gap-3">
-                        <Users className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <h5 className="font-medium text-gray-900">{consultation.case}</h5>
-                          <p className="text-sm text-gray-600">{consultation.consultant}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className={`${
-                          consultation.status === 'Completed' ? 'border-green-500 text-green-700' : 'border-blue-500 text-blue-700'
-                        }`}>
-                          {consultation.status}
-                        </Badge>
-                        <p className="text-xs text-gray-500 mt-1">{consultation.urgency}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="reports" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Pathology Reports</h3>
+            <Button>
+              <FileText className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center text-gray-500">
+                <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <div className="text-lg">Report Management</div>
+                <div className="text-sm">Create, review, and finalize pathology reports</div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* Quality Metrics */}
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Quality Metrics</CardTitle>
-                <CardDescription>Performance indicators and quality assurance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Turnaround Time</span>
-                    <span className="font-medium">{pathologyMetrics.avgTurnaroundTime} days</span>
+                  <div className="flex justify-between">
+                    <span>Diagnostic Accuracy</span>
+                    <span className="font-bold">98.2%</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Quality Score</span>
-                    <span className="font-medium text-green-600">{pathologyMetrics.qualityScore}%</span>
+                  <div className="flex justify-between">
+                    <span>Turnaround Time</span>
+                    <span className="font-bold">2.1 days</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">IHC Stains</span>
-                    <span className="font-medium">{pathologyMetrics.ihdStains}</span>
+                  <div className="flex justify-between">
+                    <span>Second Opinion Rate</span>
+                    <span className="font-bold">3.4%</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Consultations</span>
-                    <span className="font-medium">{pathologyMetrics.consultations}</span>
+                  <div className="flex justify-between">
+                    <span>Amended Reports</span>
+                    <span className="font-bold">1.2%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Workload Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span>Biopsies</span>
+                    <span className="font-bold">45%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Cytology</span>
+                    <span className="font-bold">25%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Surgical Specimens</span>
+                    <span className="font-bold">20%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Frozen Sections</span>
+                    <span className="font-bold">10%</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Performance Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-xl font-bold text-gray-900">{pathologyMetrics.avgTurnaroundTime}d</p>
-                <p className="text-sm text-gray-600">Avg Turnaround</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Activity className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="text-xl font-bold text-gray-900">{pathologyMetrics.qualityScore}%</p>
-                <p className="text-sm text-gray-600">Quality Score</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-xl font-bold text-gray-900">{pathologyMetrics.consultations}</p>
-                <p className="text-sm text-gray-600">Active Consultations</p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tissue-tracking">
-          <TissueTracking />
-        </TabsContent>
-
-        <TabsContent value="reporting">
-          <PathologyReporting />
-        </TabsContent>
-
-        <TabsContent value="digital">
-          <DigitalPathology />
-        </TabsContent>
-
-        <TabsContent value="ihc">
-          <ImmunohistochemistryTracking />
-        </TabsContent>
-
-        <TabsContent value="molecular">
-          <MolecularPathology />
-        </TabsContent>
-
-        <TabsContent value="consultation">
-          <CaseConsultation />
         </TabsContent>
       </Tabs>
     </div>
