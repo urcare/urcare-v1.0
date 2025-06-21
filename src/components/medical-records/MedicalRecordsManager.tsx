@@ -4,21 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   FileText, 
-  Search, 
   Upload, 
+  Search, 
+  Filter, 
   Download, 
+  Share, 
   Eye, 
-  Lock, 
-  Users, 
-  Clock,
+  Edit, 
+  Trash2, 
+  Calendar, 
+  User, 
   Tag,
-  Filter,
-  Archive,
-  Scan,
-  Shield
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Shield,
+  Heart,
+  Brain,
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 
