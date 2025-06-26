@@ -13,11 +13,13 @@ export interface UserProfile {
   gender: string | null;
   address: string | null;
   emergency_contact: string | null;
+  emergency_phone: string | null;
   health_id: string | null;
   guardian_id: string | null;
   role: UserRole;
   status: string;
   preferences: any;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +37,7 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
   canAccess: (allowedRoles: UserRole[]) => boolean;
+  isOnboardingComplete: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,7 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      return data as UserProfile;
+      return {
+        ...data,
+        emergency_phone: null,
+        onboarding_completed: false
+      } as UserProfile;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
@@ -156,7 +163,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (profileError) throw profileError;
 
             setUser(data.user);
-            setProfile(profileData as UserProfile);
+            setProfile({
+              ...profileData,
+              emergency_phone: null,
+              onboarding_completed: false
+            } as UserProfile);
             toast.success('Account created successfully!', {
               description: `Welcome, ${fullName}!`
             });
@@ -218,7 +229,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (profileError) throw profileError;
 
               setUser(data.user);
-              setProfile(profileData as UserProfile);
+              setProfile({
+                ...profileData,
+                emergency_phone: null,
+                onboarding_completed: false
+              } as UserProfile);
               toast.success('Login successful!', {
                 description: `Welcome back, ${userMetaData.full_name}!`
               });
@@ -308,7 +323,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      setProfile(data as UserProfile);
+      setProfile({
+        ...data,
+        emergency_phone: null,
+        onboarding_completed: false
+      } as UserProfile);
       toast.success('Profile updated successfully');
     } catch (error: any) {
       console.error('Profile update error:', error);
@@ -340,6 +359,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile ? allowedRoles.includes(profile.role) : false;
   };
 
+  const isOnboardingComplete = (): boolean => {
+    return profile ? !!(profile.full_name && profile.phone) : false;
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -352,7 +375,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshProfile,
     hasRole,
     canAccess,
-    signInWithGoogle
+    signInWithGoogle,
+    isOnboardingComplete
   };
 
   return (

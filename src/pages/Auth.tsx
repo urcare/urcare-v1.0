@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 
 const Auth = () => {
-  const { user, profile, loading, isInitialized } = useAuth();
+  const { user, profile, loading, isInitialized, isOnboardingComplete } = useAuth();
 
   // Add debugging information
   console.log('Auth Component Debug:', {
@@ -13,7 +13,8 @@ const Auth = () => {
     loading,
     isInitialized,
     userEmail: user?.email,
-    profileRole: profile?.role
+    profileRole: profile?.role,
+    profileComplete: isOnboardingComplete()
   });
 
   // Show loading while initializing
@@ -28,22 +29,18 @@ const Auth = () => {
     );
   }
 
-  // Redirect to appropriate dashboard if already authenticated
-  if (user && profile) {
-    // Map roles to existing routes in the application
-    const roleRoutes = {
-      'patient': '/', // Main dashboard
-      'doctor': '/ai-diagnostics', // AI Diagnostics for doctors
-      'nurse': '/mental-health', // Mental Health for nurses
-      'admin': '/analytics', // Analytics for admins
-      'pharmacy': '/lims', // LIMS for pharmacy
-      'lab': '/lims', // LIMS for lab
-      'reception': '/clinical-analytics' // Clinical Analytics for reception
-    };
-    
-    const redirectPath = roleRoutes[profile.role] || '/';
-    console.log('Redirecting authenticated user to:', redirectPath);
-    return <Navigate to={redirectPath} replace />;
+  // Redirect to appropriate page if already authenticated
+  if (user) {
+    // Check if profile is complete using the new method
+    if (!isOnboardingComplete()) {
+      // New user - redirect to onboarding
+      console.log('New user detected, redirecting to onboarding');
+      return <Navigate to="/onboarding" replace />;
+    } else {
+      // Returning user - redirect to dashboard
+      console.log('Returning user detected, redirecting to dashboard');
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   // Show the full AuthForm for unauthenticated users

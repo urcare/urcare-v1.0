@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +49,7 @@ const Index = () => {
             </p>
             
             <div className="flex gap-4 justify-center flex-wrap">
-              <Link to="/mobile">
+              <Link to="/ai-diagnostics">
                 <Button className="btn-medical-primary mobile-touch-target">
                   Begin Diagnosis
                 </Button>

@@ -1,245 +1,548 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useOnboardingData } from '@/hooks/useOnboardingData';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Heart, Check, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
-
-// Import all step components
-import ProfilePhotoUpload from '@/components/onboarding/ProfilePhotoUpload';
-import MedicalConditions from '@/components/onboarding/MedicalConditions';
-import CurrentMedications from '@/components/onboarding/CurrentMedications';
-import LifestyleInsights from '@/components/onboarding/LifestyleInsights';
-import HealthRecords from '@/components/onboarding/HealthRecords';
-import ConnectWearables from '@/components/onboarding/ConnectWearables';
-import HealthGoals from '@/components/onboarding/HealthGoals';
-import OnboardingComplete from '@/components/onboarding/OnboardingComplete';
-
-const steps = [
-  { id: 'profile', title: 'Profile Setup', component: ProfilePhotoUpload },
-  { id: 'conditions', title: 'Medical Conditions', component: MedicalConditions },
-  { id: 'medications', title: 'Current Medications', component: CurrentMedications },
-  { id: 'lifestyle', title: 'Lifestyle Insights', component: LifestyleInsights },
-  { id: 'records', title: 'Health Records', component: HealthRecords },
-  { id: 'wearables', title: 'Connect Wearables', component: ConnectWearables },
-  { id: 'goals', title: 'Health Goals', component: HealthGoals },
-  { id: 'complete', title: 'All Set!', component: OnboardingComplete },
-];
+import { 
+  User, 
+  Phone, 
+  Calendar, 
+  MapPin, 
+  Heart, 
+  Shield, 
+  CheckCircle, 
+  ArrowRight,
+  ArrowLeft,
+  Upload,
+  Camera,
+  FileText,
+  AlertCircle,
+  Star,
+  Users,
+  Stethoscope,
+  Activity,
+  Brain
+} from 'lucide-react';
+import { supabase } from '../integrations/supabase/client';
 
 const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [onboardingData, setOnboardingData] = useState({});
-  const [initializationTimeout, setInitializationTimeout] = useState(false);
   const navigate = useNavigate();
-  const { user, loading, isInitialized } = useAuth();
-  const { saveOnboardingData, isSubmitting } = useOnboardingData();
-
-  console.log('Onboarding render - user:', !!user, 'loading:', loading, 'isInitialized:', isInitialized);
-
-  // Set timeout for initialization to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setInitializationTimeout(true);
-    }, 5000); // 5 second timeout
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  // Handle authentication check
-  useEffect(() => {
-    if (isInitialized && !user && !loading) {
-      console.log('No user found after initialization, redirecting to auth');
-      navigate('/auth');
+  const { user, profile, updateProfile } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: profile?.full_name || '',
+    phone: profile?.phone || '',
+    date_of_birth: '',
+    gender: '',
+    address: '',
+    emergency_contact: '',
+    emergency_phone: '',
+    blood_type: '',
+    allergies: '',
+    medical_conditions: '',
+    medications: '',
+    insurance_provider: '',
+    insurance_number: '',
+    preferred_language: 'English',
+    communication_preferences: {
+      email: true,
+      sms: false,
+      phone: false
+    },
+    privacy_settings: {
+      share_data_research: false,
+      share_data_analytics: true,
+      emergency_access: true
     }
-  }, [user, loading, isInitialized, navigate]);
+  });
 
-  const handleNext = async () => {
-    console.log('handleNext called, currentStep:', currentStep);
-    
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // This is the final step - save all onboarding data
-      console.log('Saving onboarding data:', onboardingData);
-      
-      const result = await saveOnboardingData(onboardingData);
-      
-      if (result.success) {
-        toast.success('Welcome to UrCare!', {
-          description: 'Your personalized health journey begins now.'
-        });
-        navigate('/dashboard');
-      }
-      // Error handling is done in the hook
-    }
-  };
-  
-  const handlePrevious = () => {
-    console.log('handlePrevious called, currentStep:', currentStep);
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const totalSteps = 4;
+  const progress = (currentStep / totalSteps) * 100;
 
-  const handleSkip = () => {
-    console.log('handleSkip called, currentStep:', currentStep);
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleStepData = (stepData: any) => {
-    console.log('handleStepData called with:', stepData);
-    setOnboardingData(prev => ({
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
       ...prev,
-      [steps[currentStep].id]: stepData
+      [field]: value
     }));
   };
 
-  // Show loading state only briefly during initial auth check
-  if (!isInitialized && loading && !initializationTimeout) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-6 h-6 text-white" />
+  const handleNestedChange = (parent: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent as keyof typeof prev],
+        [field]: value
+      }
+    }));
+  };
+
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1:
+        return formData.full_name && formData.phone;
+      case 2:
+        return formData.date_of_birth && formData.gender;
+      case 3:
+        return formData.emergency_contact && formData.emergency_phone;
+      case 4:
+        return true; // Preferences are optional
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleComplete = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          ...formData,
+          onboarding_completed: true,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Update local profile state
+      await updateProfile();
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <User className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Basic Information</h2>
+        <p className="text-muted-foreground">Let's start with your basic details</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="full_name">Full Name *</Label>
+          <Input
+            id="full_name"
+            value={formData.full_name}
+            onChange={(e) => handleInputChange('full_name', e.target.value)}
+            placeholder="Enter your full name"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="phone">Phone Number *</Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) => handleInputChange('phone', e.target.value)}
+            placeholder="Enter your phone number"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="preferred_language">Preferred Language</Label>
+          <Select value={formData.preferred_language} onValueChange={(value) => handleInputChange('preferred_language', value)}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="English">English</SelectItem>
+              <SelectItem value="Spanish">Spanish</SelectItem>
+              <SelectItem value="French">French</SelectItem>
+              <SelectItem value="German">German</SelectItem>
+              <SelectItem value="Chinese">Chinese</SelectItem>
+              <SelectItem value="Hindi">Hindi</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Calendar className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Personal Details</h2>
+        <p className="text-muted-foreground">Help us provide better personalized care</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="date_of_birth">Date of Birth *</Label>
+          <Input
+            id="date_of_birth"
+            type="date"
+            value={formData.date_of_birth}
+            onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="gender">Gender *</Label>
+          <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="address">Address</Label>
+          <Textarea
+            id="address"
+            value={formData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+            placeholder="Enter your address"
+            className="mt-1"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="blood_type">Blood Type</Label>
+          <Select value={formData.blood_type} onValueChange={(value) => handleInputChange('blood_type', value)}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select blood type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="A+">A+</SelectItem>
+              <SelectItem value="A-">A-</SelectItem>
+              <SelectItem value="B+">B+</SelectItem>
+              <SelectItem value="B-">B-</SelectItem>
+              <SelectItem value="AB+">AB+</SelectItem>
+              <SelectItem value="AB-">AB-</SelectItem>
+              <SelectItem value="O+">O+</SelectItem>
+              <SelectItem value="O-">O-</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Emergency & Medical Information</h2>
+        <p className="text-muted-foreground">Important information for emergency situations</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="emergency_contact">Emergency Contact Name *</Label>
+          <Input
+            id="emergency_contact"
+            value={formData.emergency_contact}
+            onChange={(e) => handleInputChange('emergency_contact', e.target.value)}
+            placeholder="Enter emergency contact name"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="emergency_phone">Emergency Contact Phone *</Label>
+          <Input
+            id="emergency_phone"
+            value={formData.emergency_phone}
+            onChange={(e) => handleInputChange('emergency_phone', e.target.value)}
+            placeholder="Enter emergency contact phone"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="allergies">Allergies</Label>
+          <Textarea
+            id="allergies"
+            value={formData.allergies}
+            onChange={(e) => handleInputChange('allergies', e.target.value)}
+            placeholder="List any allergies (e.g., penicillin, peanuts)"
+            className="mt-1"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="medical_conditions">Medical Conditions</Label>
+          <Textarea
+            id="medical_conditions"
+            value={formData.medical_conditions}
+            onChange={(e) => handleInputChange('medical_conditions', e.target.value)}
+            placeholder="List any chronic medical conditions"
+            className="mt-1"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="medications">Current Medications</Label>
+          <Textarea
+            id="medications"
+            value={formData.medications}
+            onChange={(e) => handleInputChange('medications', e.target.value)}
+            placeholder="List current medications and dosages"
+            className="mt-1"
+            rows={3}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep4 = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Shield className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Preferences & Privacy</h2>
+        <p className="text-muted-foreground">Customize your experience and privacy settings</p>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <h3 className="font-semibold text-foreground mb-3">Communication Preferences</h3>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="email"
+                checked={formData.communication_preferences.email}
+                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'email', checked)}
+              />
+              <Label htmlFor="email">Email notifications</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="sms"
+                checked={formData.communication_preferences.sms}
+                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'sms', checked)}
+              />
+              <Label htmlFor="sms">SMS notifications</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="phone"
+                checked={formData.communication_preferences.phone}
+                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'phone', checked)}
+              />
+              <Label htmlFor="phone">Phone calls</Label>
+            </div>
           </div>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Setting up your health profile...</p>
         </div>
-      </div>
-    );
-  }
 
-  // Show error state if initialization failed
-  if (initializationTimeout && !isInitialized) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Connection Issue</h2>
-          <p className="text-gray-600 mb-4">We're having trouble loading your profile.</p>
-          <Button onClick={() => window.location.reload()} className="bg-teal-600 hover:bg-teal-700">
-            Try Again
-          </Button>
+        <div>
+          <h3 className="font-semibold text-foreground mb-3">Privacy Settings</h3>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="share_data_research"
+                checked={formData.privacy_settings.share_data_research}
+                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'share_data_research', checked)}
+              />
+              <Label htmlFor="share_data_research">Share data for medical research (anonymized)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="share_data_analytics"
+                checked={formData.privacy_settings.share_data_analytics}
+                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'share_data_analytics', checked)}
+              />
+              <Label htmlFor="share_data_analytics">Share data for platform analytics</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="emergency_access"
+                checked={formData.privacy_settings.emergency_access}
+                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'emergency_access', checked)}
+              />
+              <Label htmlFor="emergency_access">Allow emergency access to medical data</Label>
+            </div>
+          </div>
         </div>
-      </div>
-    );
-  }
 
-  // Redirect to auth if not authenticated (handled by useEffect above)
-  if (isInitialized && !user) {
-    return null; // Will redirect via useEffect
-  }
-  
-  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
-  const CurrentStepComponent = steps[currentStep].component;
-
-  console.log('About to render CurrentStepComponent:', CurrentStepComponent.name);
-  
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
+        <div>
+          <h3 className="font-semibold text-foreground mb-3">Insurance Information (Optional)</h3>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="insurance_provider">Insurance Provider</Label>
+              <Input
+                id="insurance_provider"
+                value={formData.insurance_provider}
+                onChange={(e) => handleInputChange('insurance_provider', e.target.value)}
+                placeholder="Enter insurance provider name"
+                className="mt-1"
+              />
             </div>
             <div>
-              <h1 className="text-3xl font-light text-gray-900">UrCare</h1>
-              <p className="text-sm text-gray-600">Complete Your Health Profile</p>
+              <Label htmlFor="insurance_number">Insurance Number</Label>
+              <Input
+                id="insurance_number"
+                value={formData.insurance_number}
+                onChange={(e) => handleInputChange('insurance_number', e.target.value)}
+                placeholder="Enter insurance number"
+                className="mt-1"
+              />
             </div>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Step {currentStep + 1} of {steps.length}</span>
-              <span>{Math.round(progressPercentage)}%</span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
           </div>
         </div>
+      </div>
+    </div>
+  );
 
-        {/* Main Card */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl font-light text-gray-900">
-              {steps[currentStep].title}
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              {currentStep === 0 && "Let's start with your basic information"}
-              {currentStep === 1 && "Help us understand your health better"}
-              {currentStep === 2 && "Tell us about your current medications"}
-              {currentStep === 3 && "Share your lifestyle patterns"}
-              {currentStep === 4 && "Upload your health documents"}
-              {currentStep === 5 && "Connect your health devices"}
-              {currentStep === 6 && "Set your health goals"}
-              {currentStep === 7 && "You're ready to begin!"}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="px-8 py-6">
-            {isSubmitting ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <span className="ml-3 text-gray-600">Saving your information...</span>
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return renderStep1();
+      case 2:
+        return renderStep2();
+      case 3:
+        return renderStep3();
+      case 4:
+        return renderStep4();
+      default:
+        return renderStep1();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 text-white" />
               </div>
-            ) : (
-              <CurrentStepComponent onDataChange={handleStepData} />
-            )}
-          </CardContent>
-          
-          <CardFooter className="flex justify-between px-8 py-6 bg-gray-50/50">
-            <Button 
-              variant="outline" 
+              <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                UrCare
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to UrCare!</h1>
+            <p className="text-muted-foreground">Let's set up your profile to get started</p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-foreground">Step {currentStep} of {totalSteps}</span>
+              <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          {/* Step Content */}
+          <Card className="shadow-lg border-0">
+            <CardContent className="p-8">
+              {renderCurrentStep()}
+            </CardContent>
+          </Card>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-8">
+            <Button
+              variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 0 || isSubmitting}
-              className="flex items-center gap-2"
+              disabled={currentStep === 1}
+              className="flex items-center"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Previous
             </Button>
-            
-            <div className="flex gap-3">
-              {currentStep < steps.length - 1 && currentStep > 1 && (
-                <Button 
-                  variant="ghost" 
-                  onClick={handleSkip}
-                  disabled={isSubmitting}
-                  className="text-gray-600 hover:text-gray-800"
+
+            <div className="flex items-center space-x-2">
+              {currentStep < totalSteps ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!validateStep(currentStep)}
+                  className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
-                  Skip for now
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleComplete}
+                  disabled={loading || !validateStep(currentStep)}
+                  className="flex items-center bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Complete Setup
+                    </>
+                  )}
                 </Button>
               )}
-              
-              <Button 
-                onClick={handleNext}
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : currentStep === steps.length - 1 ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Complete Setup
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+
+          {/* Step Indicators */}
+          <div className="flex items-center justify-center space-x-2 mt-8">
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <div
+                key={i}
+                className={`w-3 h-3 rounded-full transition-colors ${
+                  i + 1 === currentStep
+                    ? 'bg-blue-600'
+                    : i + 1 < currentStep
+                    ? 'bg-green-500'
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

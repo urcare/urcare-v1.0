@@ -3,8 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Auth from './pages/Auth';
-// import AuthCallback from './pages/AuthCallback';
-import Index from './pages/Index';
+import { Landing } from './pages/Landing';
+import { Dashboard } from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
 import Profile from './pages/Profile';
 import AIDiagnostics from './pages/AIDiagnostics';
 import ClinicalDecisionSupport from './pages/ClinicalDecisionSupport';
@@ -16,14 +17,16 @@ import PerformanceMonitoring from './pages/PerformanceMonitoring';
 import Analytics from './pages/Analytics';
 
 function App() {
-  const { user, loading, isInitialized } = useAuth();
+  const { user, profile, loading, isInitialized, isOnboardingComplete } = useAuth();
 
   // Add debugging information
   console.log('App Component Debug:', {
     user: !!user,
+    profile: !!profile,
     loading,
     isInitialized,
-    userEmail: user?.email
+    userEmail: user?.email,
+    userRole: profile?.role
   });
 
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -47,17 +50,57 @@ function App() {
     return <>{children}</>;
   };
 
+  const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+    // Show loading while auth is initializing
+    if (!isInitialized || loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // If not authenticated, redirect to landing page
+    if (!user) {
+      return <Navigate to="/" replace />;
+    }
+
+    // If user is authenticated but onboarding is incomplete, show onboarding
+    if (user && !isOnboardingComplete()) {
+      return <>{children}</>;
+    }
+
+    // If onboarding is complete, redirect to dashboard
+    return <Navigate to="/dashboard" replace />;
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        {/* Public routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
-        {/* <Route path="/auth/callback" element={<AuthCallback />} /> */}
+        <Route path="/login" element={<Login />} />
+        
+        {/* Onboarding route */}
         <Route
-          path="/"
+          path="/onboarding"
+          element={
+            <OnboardingRoute>
+              <Onboarding />
+            </OnboardingRoute>
+          }
+        />
+        
+        {/* Protected routes */}
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
-              <Index />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -137,7 +180,7 @@ function App() {
         />
         
         {/* Catch-all route for unmatched paths */}
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
