@@ -115,6 +115,9 @@ const Onboarding = () => {
 
     setLoading(true);
     try {
+      console.log('Starting onboarding completion...');
+      
+      // First, update the database
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
@@ -123,15 +126,42 @@ const Onboarding = () => {
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
 
-      // Update local profile state
-      await updateProfile(formData);
+      console.log('Database updated successfully');
+
+      // Then update the local profile state with the correct format
+      await updateProfile({
+        full_name: formData.full_name,
+        phone: formData.phone,
+        date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
+        address: formData.address,
+        emergency_contact: formData.emergency_contact,
+        emergency_phone: formData.emergency_phone,
+        preferences: {
+          blood_type: formData.blood_type,
+          allergies: formData.allergies,
+          medical_conditions: formData.medical_conditions,
+          medications: formData.medications,
+          insurance_provider: formData.insurance_provider,
+          insurance_number: formData.insurance_number,
+          preferred_language: formData.preferred_language,
+          communication_preferences: formData.communication_preferences,
+          privacy_settings: formData.privacy_settings
+        }
+      });
+      
+      console.log('Profile updated successfully, navigating to dashboard...');
       
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      // You might want to show a toast or alert here
     } finally {
       setLoading(false);
     }
