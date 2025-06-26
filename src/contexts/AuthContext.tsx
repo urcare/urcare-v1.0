@@ -29,6 +29,7 @@ interface AuthContextType {
   isInitialized: boolean;
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -126,9 +127,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data.user) {
-        toast.success('Account created successfully!', {
-          description: 'Please check your email to verify your account.'
-        });
+        // Wait a moment for the trigger to create the user profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Try to fetch the user profile
+        const userProfile = await fetchUserProfile(data.user.id);
+        
+        if (userProfile) {
+          setUser(data.user);
+          setProfile(userProfile);
+          toast.success('Account created successfully!', {
+            description: `Welcome, ${userProfile.full_name || 'User'}!`
+          });
+        } else {
+          // If profile doesn't exist, create it manually
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: data.user.id,
+                full_name: fullName,
+                role: role,
+                status: 'active'
+              })
+              .select()
+              .single();
+
+            if (profileError) throw profileError;
+
+            setUser(data.user);
+            setProfile(profileData as UserProfile);
+            toast.success('Account created successfully!', {
+              description: `Welcome, ${fullName}!`
+            });
+          } catch (profileError: any) {
+            console.error('Profile creation error:', profileError);
+            toast.error('Account created but profile setup failed', {
+              description: 'Please contact support.'
+            });
+          }
+        }
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -154,15 +192,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         const userProfile = await fetchUserProfile(data.user.id);
+        
         if (userProfile) {
+          setUser(data.user);
+          setProfile(userProfile);
           toast.success('Login successful!', {
             description: `Welcome back, ${userProfile.full_name || 'User'}!`
           });
+        } else {
+          // If profile doesn't exist, try to create it from user metadata
+          const userMetaData = data.user.user_metadata;
+          if (userMetaData?.full_name) {
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .insert({
+                  id: data.user.id,
+                  full_name: userMetaData.full_name,
+                  role: userMetaData.role || 'patient',
+                  status: 'active'
+                })
+                .select()
+                .single();
+
+              if (profileError) throw profileError;
+
+              setUser(data.user);
+              setProfile(profileData as UserProfile);
+              toast.success('Login successful!', {
+                description: `Welcome back, ${userMetaData.full_name}!`
+              });
+            } catch (profileError: any) {
+              console.error('Profile creation error:', profileError);
+              toast.error('Login successful but profile setup failed', {
+                description: 'Please contact support.'
+              });
+            }
+          } else {
+            setUser(data.user);
+            toast.success('Login successful!', {
+              description: 'Welcome back!'
+            });
+          }
         }
       }
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error('Login failed', {
+        description: error.message
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+
+      // The OAuth flow will redirect the user, so we don't need to handle the response here
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      toast.error('Google sign-in failed', {
         description: error.message
       });
       throw error;
@@ -250,7 +351,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     refreshProfile,
     hasRole,
-    canAccess
+    canAccess,
+    signInWithGoogle
   };
 
   return (
