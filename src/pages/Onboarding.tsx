@@ -79,7 +79,7 @@ const Onboarding = () => {
     setFormData(prev => ({
       ...prev,
       [parent]: {
-        ...prev[parent as keyof typeof prev],
+        ...(prev[parent as keyof typeof prev] as Record<string, any>),
         [field]: value
       }
     }));
@@ -118,16 +118,15 @@ const Onboarding = () => {
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
-          user_id: user.id,
+          id: user.id,
           ...formData,
-          onboarding_completed: true,
           updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
       // Update local profile state
-      await updateProfile();
+      await updateProfile(formData);
       
       // Redirect to dashboard
       navigate('/dashboard');
