@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Auth from './pages/Auth';
 import Index from './pages/Index';
 import Profile from './pages/Profile';
 import AIDiagnostics from './pages/AIDiagnostics';
@@ -27,6 +27,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/auth" element={<Auth />} />
         <Route
           path="/"
           element={
@@ -109,6 +110,9 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
+        {/* Catch-all route for unmatched paths */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
