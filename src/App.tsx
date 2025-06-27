@@ -65,15 +65,26 @@ function App() {
 
     // If not authenticated, redirect to landing page
     if (!user) {
+      console.log('OnboardingRoute: No user, redirecting to landing');
       return <Navigate to="/" replace />;
     }
 
+    const onboardingComplete = isOnboardingComplete();
+    console.log('OnboardingRoute check:', { 
+      user: !!user, 
+      onboardingComplete, 
+      profile: !!profile,
+      profileOnboardingCompleted: profile?.onboarding_completed 
+    });
+
     // If user is authenticated but onboarding is incomplete, show onboarding
-    if (user && !isOnboardingComplete()) {
+    if (user && !onboardingComplete) {
+      console.log('OnboardingRoute: Showing onboarding');
       return <>{children}</>;
     }
 
     // If onboarding is complete, redirect to dashboard
+    console.log('OnboardingRoute: Onboarding complete, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   };
 

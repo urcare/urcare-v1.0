@@ -62,10 +62,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      // Map database fields to UserProfile interface with fallbacks for missing fields
       return {
-        ...data,
-        emergency_phone: null,
-        onboarding_completed: false
+        id: data.id,
+        full_name: data.full_name,
+        phone: data.phone,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        address: data.address,
+        emergency_contact: data.emergency_contact,
+        emergency_phone: (data as any).emergency_phone || null,
+        health_id: data.health_id,
+        guardian_id: data.guardian_id,
+        role: data.role as UserRole,
+        status: data.status,
+        preferences: data.preferences || {},
+        onboarding_completed: (data as any).onboarding_completed || false,
+        created_at: data.created_at,
+        updated_at: data.updated_at
       } as UserProfile;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -77,22 +91,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initializing auth...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setLoading(false);
+          setIsInitialized(true);
+          return;
+        }
         
         if (session?.user) {
+          console.log('Found existing session for user:', session.user.id);
           setUser(session.user);
-          const userProfile = await fetchUserProfile(session.user.id);
-          setProfile(userProfile);
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            setProfile(userProfile);
+            console.log('Profile loaded:', userProfile ? 'success' : 'failed');
+          } catch (profileError) {
+            console.error('Profile fetch error:', profileError);
+            // Continue without profile
+          }
+        } else {
+          console.log('No existing session found');
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
+        console.log('Auth initialization complete');
         setLoading(false);
         setIsInitialized(true);
       }
     };
 
-    initializeAuth();
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('Auth initialization timeout - forcing completion');
+      setLoading(false);
+      setIsInitialized(true);
+    }, 10000); // 10 second timeout
+
+    initializeAuth().finally(() => {
+      clearTimeout(timeoutId);
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -101,8 +142,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           setUser(session.user);
-          const userProfile = await fetchUserProfile(session.user.id);
-          setProfile(userProfile);
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            setProfile(userProfile);
+          } catch (profileError) {
+            console.error('Profile fetch error in auth state change:', profileError);
+            // Continue without profile
+          }
         } else {
           setUser(null);
           setProfile(null);
@@ -113,7 +159,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole) => {
@@ -360,7 +409,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isOnboardingComplete = (): boolean => {
-    return profile ? !!(profile.full_name && profile.phone) : false;
+    const isComplete = profile ? profile.onboarding_completed : false;
+    console.log('isOnboardingComplete check:', { 
+      profile: !!profile, 
+      onboarding_completed: profile?.onboarding_completed, 
+      isComplete 
+    });
+    return isComplete;
   };
 
   const value: AuthContextType = {

@@ -1,4 +1,3 @@
-
 -- First, let's create the user_profiles table (this should work)
 CREATE TABLE IF NOT EXISTS public.user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -8,11 +7,13 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   gender TEXT CHECK (gender IN ('male', 'female', 'other')),
   address TEXT,
   emergency_contact TEXT,
+  emergency_phone TEXT,
   health_id TEXT, -- ABHA ID
   guardian_id UUID REFERENCES public.user_profiles(id),
   role TEXT NOT NULL DEFAULT 'patient' CHECK (role IN ('patient', 'doctor', 'nurse', 'admin', 'pharmacy', 'lab', 'reception')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending', 'suspended')),
   preferences JSONB DEFAULT '{}',
+  onboarding_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
