@@ -33,6 +33,8 @@ import {
   Brain
 } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
+import { toast } from 'sonner';
+import { apiService } from '../services/api';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -179,15 +181,14 @@ const Onboarding = () => {
         allMedications.push(formData.medications);
       }
 
-      const profileData = {
-        id: user.id,
+      // Prepare the profile data for update
+      const profileUpdateData: any = {
         full_name: fullName,
         phone: formData.phone,
         date_of_birth: formData.date_of_birth,
         gender: formData.gender,
         address: formData.address,
         emergency_contact: formData.emergency_contact,
-        emergency_phone: formData.emergency_phone,
         preferences: {
           blood_type: formData.blood_type,
           allergies: formData.allergies,
@@ -195,24 +196,44 @@ const Onboarding = () => {
           medications: allMedications.join(', '),
           insurance_provider: formData.insurance_provider,
           insurance_number: formData.insurance_number,
+          insurance_group: formData.insurance_group,
+          insurance_phone: formData.insurance_phone,
           height: formData.height,
           weight: formData.weight,
           age: formData.age
         },
-        onboarding_completed: true,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      // Try to update the user profile
+      const { data, error } = await supabase
         .from('user_profiles')
-        .upsert(profileData)
+        .update(profileUpdateData)
+        .eq('id', user.id)
         .select();
 
       if (error) {
-        console.error('Database update error:', error);
+        console.error('Profile update error:', error);
+        
+        // If the update fails, try to insert a new profile
+        const { data: insertData, error: insertError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            ...profileUpdateData,
+            role: 'patient',
+            status: 'active'
+          })
+          .select();
+
+        if (insertError) {
+          console.error('Profile insert error:', insertError);
+          throw insertError;
+        }
       }
 
-      await updateProfile({
+      // Update the local profile state
+      const updatedProfile = {
         full_name: fullName,
         phone: formData.phone,
         date_of_birth: formData.date_of_birth,
@@ -232,15 +253,27 @@ const Onboarding = () => {
           age: formData.age
         },
         onboarding_completed: true
-      });
+      };
 
+      // Update the auth context
+      await updateProfile(updatedProfile);
+      
+      // Refresh the profile to ensure we have the latest data
       await refreshProfile();
+      
+      // Show success message
+      toast.success('Onboarding completed successfully!', {
+        description: 'Welcome to UrCare! You can now access all features.'
+      });
+      
+      // Navigate to dashboard
       navigate('/dashboard', { replace: true });
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      alert('Onboarding completed with some issues. You can continue to the dashboard.');
-      navigate('/dashboard', { replace: true });
+      toast.error('Failed to complete onboarding', {
+        description: 'Please try again or contact support if the issue persists.'
+      });
     } finally {
       setLoading(false);
     }

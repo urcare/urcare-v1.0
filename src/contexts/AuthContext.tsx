@@ -71,13 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: data.gender,
         address: data.address,
         emergency_contact: data.emergency_contact,
-        emergency_phone: (data as any).emergency_phone || null,
+        emergency_phone: data.emergency_phone || null,
         health_id: data.health_id,
         guardian_id: data.guardian_id,
         role: data.role as UserRole,
         status: data.status,
         preferences: data.preferences || {},
-        onboarding_completed: (data as any).onboarding_completed || false,
+        onboarding_completed: data.onboarding_completed || false,
         created_at: data.created_at,
         updated_at: data.updated_at
       } as UserProfile;
