@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,63 +39,115 @@ const Onboarding = () => {
   const { user, profile, updateProfile, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
-    phone: profile?.phone || '',
+    first_name: profile?.full_name?.split(' ')[0] || '',
+    last_name: profile?.full_name?.split(' ').slice(1).join(' ') || '',
     date_of_birth: '',
+    age: 0,
+    height: '',
+    weight: '',
     gender: '',
-    address: '',
-    emergency_contact: '',
-    emergency_phone: '',
+    address: profile?.address || '',
+    phone: profile?.phone || '',
     blood_type: '',
-    allergies: '',
-    medical_conditions: '',
-    medications: '',
-    insurance_provider: '',
-    insurance_number: '',
-    preferred_language: 'English',
-    communication_preferences: {
-      email: true,
-      sms: false,
-      phone: false
-    },
-    privacy_settings: {
-      share_data_research: false,
-      share_data_analytics: true,
-      emergency_access: true
-    }
+    emergency_contact: profile?.emergency_contact || '',
+    emergency_phone: profile?.emergency_phone || '',
+    allergies: profile?.preferences?.allergies || '',
+    medical_conditions: profile?.preferences?.medical_conditions || '',
+    selected_conditions: [] as string[],
+    medications: profile?.preferences?.medications || '',
+    selected_medications: [] as string[],
+    insurance_provider: profile?.preferences?.insurance_provider || '',
+    insurance_number: profile?.preferences?.insurance_number || '',
+    insurance_group: '',
+    insurance_phone: ''
   });
 
-  const totalSteps = 4;
+  const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
+
+  const commonConditions = [
+    'Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'Arthritis',
+    'Depression', 'Anxiety', 'Cancer', 'Thyroid Disorder', 'Kidney Disease',
+    'Liver Disease', 'Epilepsy', 'Migraine', 'Obesity', 'Sleep Apnea'
+  ];
+
+  const commonMedications = [
+    'Aspirin', 'Ibuprofen', 'Acetaminophen', 'Metformin', 'Lisinopril',
+    'Amlodipine', 'Atorvastatin', 'Omeprazole', 'Albuterol', 'Sertraline',
+    'Metoprolol', 'Losartan', 'Simvastatin', 'Pantoprazole', 'Levothyroxine'
+  ];
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    if (field === 'date_of_birth') {
+      const age = calculateAge(value);
+      setFormData(prev => ({
+        ...prev,
+        age
+      }));
+    }
   };
 
-  const handleNestedChange = (parent: string, field: string, value: any) => {
+  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleConditionToggle = (condition: string) => {
     setFormData(prev => ({
       ...prev,
-      [parent]: {
-        ...(prev[parent as keyof typeof prev] as Record<string, any>),
-        [field]: value
-      }
+      selected_conditions: prev.selected_conditions.includes(condition)
+        ? prev.selected_conditions.filter(c => c !== condition)
+        : [...prev.selected_conditions, condition]
+    }));
+  };
+
+  const handleMedicationToggle = (medication: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selected_medications: prev.selected_medications.includes(medication)
+        ? prev.selected_medications.filter(m => m !== medication)
+        : [...prev.selected_medications, medication]
     }));
   };
 
   const validateStep = (step: number) => {
     switch (step) {
       case 1:
-        return formData.full_name && formData.phone;
+        return formData.first_name && formData.last_name && formData.date_of_birth && formData.gender;
       case 2:
-        return formData.date_of_birth && formData.gender;
+        return formData.phone && formData.emergency_contact && formData.emergency_phone;
       case 3:
-        return formData.emergency_contact && formData.emergency_phone;
       case 4:
-        return true; // Preferences are optional
+      case 5:
+      case 6:
+        return true;
       default:
         return false;
     }
@@ -111,19 +164,24 @@ const Onboarding = () => {
   };
 
   const handleComplete = async () => {
-    if (!user) {
-      console.error('No user found in handleComplete');
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
     try {
-      console.log('Starting onboarding completion...', { user: user.id, formData });
+      const fullName = `${formData.first_name} ${formData.last_name}`.trim();
+      const allConditions = [...formData.selected_conditions];
+      if (formData.medical_conditions) {
+        allConditions.push(formData.medical_conditions);
+      }
       
-      // Prepare the data for database update
+      const allMedications = [...formData.selected_medications];
+      if (formData.medications) {
+        allMedications.push(formData.medications);
+      }
+
       const profileData = {
         id: user.id,
-        full_name: formData.full_name,
+        full_name: fullName,
         phone: formData.phone,
         date_of_birth: formData.date_of_birth,
         gender: formData.gender,
@@ -133,78 +191,54 @@ const Onboarding = () => {
         preferences: {
           blood_type: formData.blood_type,
           allergies: formData.allergies,
-          medical_conditions: formData.medical_conditions,
-          medications: formData.medications,
+          medical_conditions: allConditions.join(', '),
+          medications: allMedications.join(', '),
           insurance_provider: formData.insurance_provider,
           insurance_number: formData.insurance_number,
-          preferred_language: formData.preferred_language,
-          communication_preferences: formData.communication_preferences,
-          privacy_settings: formData.privacy_settings
+          height: formData.height,
+          weight: formData.weight,
+          age: formData.age
         },
         onboarding_completed: true,
         updated_at: new Date().toISOString()
       };
 
-      console.log('Profile data to save:', profileData);
-
-      // Update the database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .upsert(profileData)
         .select();
 
       if (error) {
         console.error('Database update error:', error);
-        // Don't throw error, continue with local state update
-        console.log('Continuing with local state update despite database error');
-      } else {
-        console.log('Database updated successfully:', data);
       }
 
-      // Update the local profile state
-      try {
-        const updateResult = await updateProfile({
-          full_name: formData.full_name,
-          phone: formData.phone,
-          date_of_birth: formData.date_of_birth,
-          gender: formData.gender,
-          address: formData.address,
-          emergency_contact: formData.emergency_contact,
-          emergency_phone: formData.emergency_phone,
-          preferences: {
-            blood_type: formData.blood_type,
-            allergies: formData.allergies,
-            medical_conditions: formData.medical_conditions,
-            medications: formData.medications,
-            insurance_provider: formData.insurance_provider,
-            insurance_number: formData.insurance_number,
-            preferred_language: formData.preferred_language,
-            communication_preferences: formData.communication_preferences,
-            privacy_settings: formData.privacy_settings
-          },
-          onboarding_completed: true
-        });
-        
-        console.log('Profile updated successfully, refreshing profile...');
-        
-        // Force refresh the profile to ensure state is updated
-        await refreshProfile();
-        
-        console.log('Profile refreshed, navigating to dashboard...');
-      } catch (updateError) {
-        console.error('Profile update error:', updateError);
-        // Continue with navigation even if profile update fails
-      }
-      
-      // Always navigate to dashboard, even if there were errors
-      setTimeout(() => {
-        console.log('Navigating to dashboard...');
-        navigate('/dashboard', { replace: true });
-      }, 100);
+      await updateProfile({
+        full_name: fullName,
+        phone: formData.phone,
+        date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
+        address: formData.address,
+        emergency_contact: formData.emergency_contact,
+        emergency_phone: formData.emergency_phone,
+        preferences: {
+          blood_type: formData.blood_type,
+          allergies: formData.allergies,
+          medical_conditions: allConditions.join(', '),
+          medications: allMedications.join(', '),
+          insurance_provider: formData.insurance_provider,
+          insurance_number: formData.insurance_number,
+          height: formData.height,
+          weight: formData.weight,
+          age: formData.age
+        },
+        onboarding_completed: true
+      });
+
+      await refreshProfile();
+      navigate('/dashboard', { replace: true });
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      // Show error to user but still navigate
       alert('Onboarding completed with some issues. You can continue to the dashboard.');
       navigate('/dashboard', { replace: true });
     } finally {
@@ -212,76 +246,70 @@ const Onboarding = () => {
     }
   };
 
-  // Manual completion function for testing
-  const handleManualComplete = () => {
-    console.log('Manual completion triggered');
-    navigate('/dashboard', { replace: true });
-  };
-
   const renderStep1 = () => (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
       <div className="text-center mb-8">
         <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <User className="w-10 h-10 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Basic Information</h2>
-        <p className="text-muted-foreground">Let's start with your basic details</p>
+        <p className="text-muted-foreground">Let's start with your personal details</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex justify-center mb-6">
+        <div className="relative">
+          <Avatar className="w-24 h-24 border-4 border-white/20 shadow-lg">
+            <AvatarImage src={profileImage || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-xl">
+              {formData.first_name?.[0]}{formData.last_name?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <Button
+            size="sm"
+            variant="outline"
+            className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-white/90 backdrop-blur-sm border-white/30"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Camera className="w-4 h-4" />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleProfileImageUpload}
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="full_name">Full Name *</Label>
+          <Label htmlFor="first_name">First Name *</Label>
           <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) => handleInputChange('full_name', e.target.value)}
-            placeholder="Enter your full name"
+            id="first_name"
+            value={formData.first_name}
+            onChange={(e) => handleInputChange('first_name', e.target.value)}
+            placeholder="Enter your first name"
             className="mt-1"
           />
         </div>
 
         <div>
-          <Label htmlFor="phone">Phone Number *</Label>
+          <Label htmlFor="last_name">Last Name *</Label>
           <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            placeholder="Enter your phone number"
+            id="last_name"
+            value={formData.last_name}
+            onChange={(e) => handleInputChange('last_name', e.target.value)}
+            placeholder="Enter your last name"
             className="mt-1"
           />
         </div>
 
-        <div>
-          <Label htmlFor="preferred_language">Preferred Language</Label>
-          <Select value={formData.preferred_language} onValueChange={(value) => handleInputChange('preferred_language', value)}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="English">English</SelectItem>
-              <SelectItem value="Spanish">Spanish</SelectItem>
-              <SelectItem value="French">French</SelectItem>
-              <SelectItem value="German">German</SelectItem>
-              <SelectItem value="Chinese">Chinese</SelectItem>
-              <SelectItem value="Hindi">Hindi</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Calendar className="w-10 h-10 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Personal Details</h2>
-        <p className="text-muted-foreground">Help us provide better personalized care</p>
-      </div>
-
-      <div className="space-y-4">
         <div>
           <Label htmlFor="date_of_birth">Date of Birth *</Label>
           <Input
@@ -291,6 +319,9 @@ const Onboarding = () => {
             onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
             className="mt-1"
           />
+          {formData.age > 0 && (
+            <p className="text-sm text-muted-foreground mt-1">Age: {formData.age} years</p>
+          )}
         </div>
 
         <div>
@@ -309,14 +340,68 @@ const Onboarding = () => {
         </div>
 
         <div>
+          <Label htmlFor="height">Height (cm)</Label>
+          <Input
+            id="height"
+            type="number"
+            value={formData.height}
+            onChange={(e) => handleInputChange('height', e.target.value)}
+            placeholder="Enter height in cm"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="weight">Weight (kg)</Label>
+          <Input
+            id="weight"
+            type="number"
+            value={formData.weight}
+            onChange={(e) => handleInputChange('weight', e.target.value)}
+            placeholder="Enter weight in kg"
+            className="mt-1"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep2 = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Phone className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Contact Information</h2>
+        <p className="text-muted-foreground">Help us stay connected with you</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
           <Label htmlFor="address">Address</Label>
           <Textarea
             id="address"
             value={formData.address}
             onChange={(e) => handleInputChange('address', e.target.value)}
-            placeholder="Enter your address"
+            placeholder="Enter your full address"
             className="mt-1"
             rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="phone">Phone Number *</Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) => handleInputChange('phone', e.target.value)}
+            placeholder="Enter your phone number"
+            className="mt-1"
           />
         </div>
 
@@ -338,21 +423,7 @@ const Onboarding = () => {
             </SelectContent>
           </Select>
         </div>
-      </div>
-    </div>
-  );
 
-  const renderStep3 = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="w-10 h-10 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Emergency & Medical Information</h2>
-        <p className="text-muted-foreground">Important information for emergency situations</p>
-      </div>
-
-      <div className="space-y-4">
         <div>
           <Label htmlFor="emergency_contact">Emergency Contact Name *</Label>
           <Input
@@ -374,144 +445,244 @@ const Onboarding = () => {
             className="mt-1"
           />
         </div>
+      </div>
+    </motion.div>
+  );
 
+  const renderStep3 = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Allergies</h2>
+        <p className="text-muted-foreground">Important information for your safety</p>
+      </div>
+
+      <div className="space-y-4">
         <div>
           <Label htmlFor="allergies">Allergies</Label>
           <Textarea
             id="allergies"
             value={formData.allergies}
             onChange={(e) => handleInputChange('allergies', e.target.value)}
-            placeholder="List any allergies (e.g., penicillin, peanuts)"
+            placeholder="List any allergies (e.g., penicillin, peanuts, shellfish, latex)"
             className="mt-1"
-            rows={3}
+            rows={4}
           />
         </div>
 
+        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-blue-900 dark:text-blue-100">Why this matters</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                Knowing your allergies helps us provide safer care and avoid potential reactions during treatments.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep4 = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Stethoscope className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Medical Conditions</h2>
+        <p className="text-muted-foreground">Help us understand your health history</p>
+      </div>
+
+      <div className="space-y-4">
         <div>
-          <Label htmlFor="medical_conditions">Medical Conditions</Label>
+          <Label>Common Medical Conditions</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+            {commonConditions.map((condition) => (
+              <div key={condition} className="flex items-center space-x-2">
+                <Checkbox
+                  id={condition}
+                  checked={formData.selected_conditions.includes(condition)}
+                  onCheckedChange={() => handleConditionToggle(condition)}
+                />
+                <Label htmlFor={condition} className="text-sm cursor-pointer">
+                  {condition}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="medical_conditions">Other Medical Conditions</Label>
           <Textarea
             id="medical_conditions"
             value={formData.medical_conditions}
             onChange={(e) => handleInputChange('medical_conditions', e.target.value)}
-            placeholder="List any chronic medical conditions"
+            placeholder="List any other medical conditions not mentioned above"
             className="mt-1"
             rows={3}
           />
         </div>
 
+        {formData.selected_conditions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {formData.selected_conditions.map((condition) => (
+              <Badge key={condition} variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                {condition}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  const renderStep5 = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Activity className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Current Medications</h2>
+        <p className="text-muted-foreground">List medications you're currently taking</p>
+      </div>
+
+      <div className="space-y-4">
         <div>
-          <Label htmlFor="medications">Current Medications</Label>
+          <Label>Common Medications</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+            {commonMedications.map((medication) => (
+              <div key={medication} className="flex items-center space-x-2">
+                <Checkbox
+                  id={medication}
+                  checked={formData.selected_medications.includes(medication)}
+                  onCheckedChange={() => handleMedicationToggle(medication)}
+                />
+                <Label htmlFor={medication} className="text-sm cursor-pointer">
+                  {medication}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="medications">Other Medications</Label>
           <Textarea
             id="medications"
             value={formData.medications}
             onChange={(e) => handleInputChange('medications', e.target.value)}
-            placeholder="List current medications and dosages"
+            placeholder="List any other medications with dosages (e.g., Aspirin 81mg daily)"
             className="mt-1"
             rows={3}
           />
         </div>
+
+        {formData.selected_medications.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {formData.selected_medications.map((medication) => (
+              <Badge key={medication} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                {medication}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 
-  const renderStep4 = () => (
-    <div className="space-y-6">
+  const renderStep6 = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
+    >
       <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <Shield className="w-10 h-10 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Preferences & Privacy</h2>
-        <p className="text-muted-foreground">Customize your experience and privacy settings</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Insurance Information</h2>
+        <p className="text-muted-foreground">Optional: Help us with billing and coverage</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <h3 className="font-semibold text-foreground mb-3">Communication Preferences</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="email"
-                checked={formData.communication_preferences.email}
-                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'email', checked)}
-              />
-              <Label htmlFor="email">Email notifications</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="sms"
-                checked={formData.communication_preferences.sms}
-                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'sms', checked)}
-              />
-              <Label htmlFor="sms">SMS notifications</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="phone"
-                checked={formData.communication_preferences.phone}
-                onCheckedChange={(checked) => handleNestedChange('communication_preferences', 'phone', checked)}
-              />
-              <Label htmlFor="phone">Phone calls</Label>
-            </div>
-          </div>
+          <Label htmlFor="insurance_provider">Insurance Provider</Label>
+          <Input
+            id="insurance_provider"
+            value={formData.insurance_provider}
+            onChange={(e) => handleInputChange('insurance_provider', e.target.value)}
+            placeholder="Enter insurance provider name"
+            className="mt-1"
+          />
         </div>
 
         <div>
-          <h3 className="font-semibold text-foreground mb-3">Privacy Settings</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="share_data_research"
-                checked={formData.privacy_settings.share_data_research}
-                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'share_data_research', checked)}
-              />
-              <Label htmlFor="share_data_research">Share data for medical research (anonymized)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="share_data_analytics"
-                checked={formData.privacy_settings.share_data_analytics}
-                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'share_data_analytics', checked)}
-              />
-              <Label htmlFor="share_data_analytics">Share data for platform analytics</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="emergency_access"
-                checked={formData.privacy_settings.emergency_access}
-                onCheckedChange={(checked) => handleNestedChange('privacy_settings', 'emergency_access', checked)}
-              />
-              <Label htmlFor="emergency_access">Allow emergency access to medical data</Label>
-            </div>
-          </div>
+          <Label htmlFor="insurance_number">Insurance Number</Label>
+          <Input
+            id="insurance_number"
+            value={formData.insurance_number}
+            onChange={(e) => handleInputChange('insurance_number', e.target.value)}
+            placeholder="Enter insurance number"
+            className="mt-1"
+          />
         </div>
 
         <div>
-          <h3 className="font-semibold text-foreground mb-3">Insurance Information (Optional)</h3>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="insurance_provider">Insurance Provider</Label>
-              <Input
-                id="insurance_provider"
-                value={formData.insurance_provider}
-                onChange={(e) => handleInputChange('insurance_provider', e.target.value)}
-                placeholder="Enter insurance provider name"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="insurance_number">Insurance Number</Label>
-              <Input
-                id="insurance_number"
-                value={formData.insurance_number}
-                onChange={(e) => handleInputChange('insurance_number', e.target.value)}
-                placeholder="Enter insurance number"
-                className="mt-1"
-              />
-            </div>
+          <Label htmlFor="insurance_group">Group Number</Label>
+          <Input
+            id="insurance_group"
+            value={formData.insurance_group}
+            onChange={(e) => handleInputChange('insurance_group', e.target.value)}
+            placeholder="Enter group number"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="insurance_phone">Insurance Phone</Label>
+          <Input
+            id="insurance_phone"
+            value={formData.insurance_phone}
+            onChange={(e) => handleInputChange('insurance_phone', e.target.value)}
+            placeholder="Enter insurance phone number"
+            className="mt-1"
+          />
+        </div>
+      </div>
+
+      <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+        <div className="flex items-start space-x-2">
+          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="font-medium text-green-900 dark:text-green-100">Almost done!</h4>
+            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+              You're just one step away from completing your profile setup. All information is kept secure and private.
+            </p>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
   const renderCurrentStep = () => {
@@ -524,6 +695,10 @@ const Onboarding = () => {
         return renderStep3();
       case 4:
         return renderStep4();
+      case 5:
+        return renderStep5();
+      case 6:
+        return renderStep6();
       default:
         return renderStep1();
     }
@@ -532,8 +707,7 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -543,11 +717,10 @@ const Onboarding = () => {
                 UrCare
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to UrCare!</h1>
-            <p className="text-muted-foreground">Let's set up your profile to get started</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Complete Your Profile</h1>
+            <p className="text-muted-foreground">Let's personalize your healthcare experience</p>
           </div>
 
-          {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-foreground">Step {currentStep} of {totalSteps}</span>
@@ -556,14 +729,14 @@ const Onboarding = () => {
             <Progress value={progress} className="h-2" />
           </div>
 
-          {/* Step Content */}
-          <Card className="shadow-lg border-0">
+          <Card className="shadow-lg border-0 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
             <CardContent className="p-8">
-              {renderCurrentStep()}
+              <AnimatePresence mode="wait">
+                {renderCurrentStep()}
+              </AnimatePresence>
             </CardContent>
           </Card>
 
-          {/* Navigation */}
           <div className="flex items-center justify-between mt-8">
             <Button
               variant="outline"
@@ -586,39 +759,27 @@ const Onboarding = () => {
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <>
-                  <Button
-                    onClick={handleComplete}
-                    disabled={loading || !validateStep(currentStep)}
-                    className="flex items-center bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Completing...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Complete Setup
-                      </>
-                    )}
-                  </Button>
-                  
-                  {/* Manual completion button for testing */}
-                  <Button
-                    variant="outline"
-                    onClick={handleManualComplete}
-                    className="flex items-center text-orange-600 border-orange-600 hover:bg-orange-50"
-                  >
-                    Skip to Dashboard (Test)
-                  </Button>
-                </>
+                <Button
+                  onClick={handleComplete}
+                  disabled={loading || !validateStep(currentStep)}
+                  className="flex items-center bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Complete Setup
+                    </>
+                  )}
+                </Button>
               )}
             </div>
           </div>
 
-          {/* Step Indicators */}
           <div className="flex items-center justify-center space-x-2 mt-8">
             {Array.from({ length: totalSteps }, (_, i) => (
               <div
@@ -639,4 +800,4 @@ const Onboarding = () => {
   );
 };
 
-export default Onboarding;
+export default Onboarding; 
