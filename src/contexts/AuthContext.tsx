@@ -71,13 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: data.gender,
         address: data.address,
         emergency_contact: data.emergency_contact,
-        emergency_phone: data.emergency_phone || null,
+        emergency_phone: (data as any).emergency_phone || null,
         health_id: data.health_id,
         guardian_id: data.guardian_id,
         role: data.role as UserRole,
         status: data.status,
         preferences: data.preferences || {},
-        onboarding_completed: data.onboarding_completed || false,
+        onboarding_completed: (data as any).onboarding_completed || false,
         created_at: data.created_at,
         updated_at: data.updated_at
       } as UserProfile;
@@ -357,31 +357,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
     try {
       if (!user) throw new Error('No user logged in');
 
+      console.log('Updating profile with data:', updates);
       setLoading(true);
+      
+      // Prepare the update data, handling the onboarding_completed field
+      const updateData: any = { ...updates };
+      
+      // If onboarding_completed is being set, ensure it's handled properly
+      if (updates.onboarding_completed !== undefined) {
+        updateData.onboarding_completed = updates.onboarding_completed;
+      }
       
       const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates)
+        .update(updateData)
         .eq('id', user.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
 
-      setProfile({
+      console.log('Profile updated successfully:', data);
+
+      // Update local state with the returned data, handling missing fields
+      const updatedProfile = {
         ...data,
-        emergency_phone: null,
-        onboarding_completed: (data as any)?.onboarding_completed || false
-      } as UserProfile);
+        emergency_phone: (data as any).emergency_phone || null,
+        onboarding_completed: (data as any).onboarding_completed || false
+      } as UserProfile;
+      
+      setProfile(updatedProfile);
       toast.success('Profile updated successfully');
     } catch (error: any) {
       console.error('Profile update error:', error);
       toast.error('Profile update failed', {
-        description: error.message
+        description: error.message || 'An error occurred while updating your profile.'
       });
       throw error;
     } finally {

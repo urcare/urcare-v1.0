@@ -166,9 +166,24 @@ const Onboarding = () => {
   };
 
   const handleComplete = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found for onboarding completion');
+      toast.error('User not found', { description: 'Please log in again.' });
+      return;
+    }
 
+    console.log('Starting onboarding completion for user:', user.id);
     setLoading(true);
+    
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.error('Onboarding completion timed out');
+      setLoading(false);
+      toast.error('Onboarding timed out', {
+        description: 'Please try again. If the issue persists, contact support.'
+      });
+    }, 30000); // 30 second timeout
+    
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
       const allConditions = [...formData.selected_conditions];
@@ -180,6 +195,13 @@ const Onboarding = () => {
       if (formData.medications) {
         allMedications.push(formData.medications);
       }
+
+      console.log('Prepared onboarding data:', {
+        fullName,
+        phone: formData.phone,
+        conditions: allConditions,
+        medications: allMedications
+      });
 
       // Prepare the profile data for update
       const profileUpdateData: any = {
@@ -205,6 +227,8 @@ const Onboarding = () => {
         updated_at: new Date().toISOString()
       };
 
+      console.log('Attempting to update user profile...');
+      
       // Try to update the user profile
       const { data, error } = await supabase
         .from('user_profiles')
@@ -216,6 +240,7 @@ const Onboarding = () => {
         console.error('Profile update error:', error);
         
         // If the update fails, try to insert a new profile
+        console.log('Attempting to insert new profile...');
         const { data: insertData, error: insertError } = await supabase
           .from('user_profiles')
           .insert({
@@ -228,8 +253,29 @@ const Onboarding = () => {
 
         if (insertError) {
           console.error('Profile insert error:', insertError);
-          throw insertError;
+          throw new Error(`Failed to create profile: ${insertError.message}`);
         }
+        
+        console.log('Profile created successfully:', insertData);
+      } else {
+        console.log('Profile updated successfully:', data);
+      }
+
+      // Now try to mark onboarding as completed
+      console.log('Marking onboarding as completed...');
+      const { error: completionError } = await supabase
+        .from('user_profiles')
+        .update({ 
+          onboarding_completed: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (completionError) {
+        console.error('Failed to mark onboarding as completed:', completionError);
+        // Don't throw here, as the main data was saved successfully
+      } else {
+        console.log('Onboarding marked as completed successfully');
       }
 
       // Update the local profile state
@@ -255,26 +301,49 @@ const Onboarding = () => {
         onboarding_completed: true
       };
 
-      // Update the auth context
-      await updateProfile(updatedProfile);
+      console.log('Updating auth context...');
+      
+      // Update the auth context - wrap in try-catch to prevent blocking
+      try {
+        await updateProfile(updatedProfile);
+        console.log('Auth context updated successfully');
+      } catch (authError) {
+        console.error('Auth context update failed:', authError);
+        // Don't throw here, as the database update was successful
+      }
       
       // Refresh the profile to ensure we have the latest data
-      await refreshProfile();
+      try {
+        await refreshProfile();
+        console.log('Profile refreshed successfully');
+      } catch (refreshError) {
+        console.error('Profile refresh failed:', refreshError);
+        // Don't throw here, as the main operation was successful
+      }
+      
+      // Clear the timeout since we succeeded
+      clearTimeout(timeoutId);
       
       // Show success message
       toast.success('Onboarding completed successfully!', {
         description: 'Welcome to UrCare! You can now access all features.'
       });
       
+      console.log('Navigating to dashboard...');
+      
       // Navigate to dashboard
       navigate('/dashboard', { replace: true });
       
     } catch (error) {
+      // Clear the timeout since we're handling the error
+      clearTimeout(timeoutId);
+      
       console.error('Error completing onboarding:', error);
       toast.error('Failed to complete onboarding', {
-        description: 'Please try again or contact support if the issue persists.'
+        description: error instanceof Error ? error.message : 'Please try again or contact support if the issue persists.'
       });
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
