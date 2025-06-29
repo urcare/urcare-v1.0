@@ -3,12 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface UserProfile {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  address: string | null;
+  emergency_contact: string | null;
+  emergency_phone: string | null;
+  health_id: string | null;
+  guardian_id: string | null;
+  role: string;
+  status: string;
+  preferences: any;
+  onboarding_completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        console.log('AuthCallback: Starting OAuth callback handling...');
+        
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -21,13 +42,61 @@ const AuthCallback = () => {
         }
 
         if (data.session?.user) {
-          toast.success('Login successful!', {
-            description: 'Welcome to UrCare!'
+          console.log('AuthCallback: User authenticated, checking profile...', { 
+            userId: data.session.user.id,
+            email: data.session.user.email 
           });
           
-          // Redirect to dashboard - the AuthContext will handle the session
-          navigate('/');
+          // Check if user profile exists and onboarding is complete
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .single();
+
+            if (profileError) {
+              console.log('AuthCallback: No profile found, user is new');
+              // User is new - redirect to onboarding
+              toast.success('Welcome to UrCare!', {
+                description: 'Let\'s set up your profile'
+              });
+              navigate('/onboarding', { replace: true });
+              return;
+            }
+
+            // Check if onboarding is complete - safely access the field
+            const onboardingCompleted = (profileData as any)?.onboarding_completed || false;
+            console.log('AuthCallback: Profile found, onboarding status:', { 
+              onboardingCompleted,
+              profileData 
+            });
+
+            if (onboardingCompleted) {
+              // Returning user with completed onboarding - redirect to dashboard
+              console.log('AuthCallback: Returning user, redirecting to dashboard');
+              toast.success('Welcome back!', {
+                description: 'You have been signed in successfully.'
+              });
+              navigate('/dashboard', { replace: true });
+            } else {
+              // User exists but onboarding is incomplete - redirect to onboarding
+              console.log('AuthCallback: User exists but onboarding incomplete, redirecting to onboarding');
+              toast.success('Welcome back!', {
+                description: 'Please complete your profile setup'
+              });
+              navigate('/onboarding', { replace: true });
+            }
+          } catch (profileError) {
+            console.error('AuthCallback: Error checking profile:', profileError);
+            // If there's an error checking profile, assume user is new
+            toast.success('Welcome to UrCare!', {
+              description: 'Let\'s set up your profile'
+            });
+            navigate('/onboarding', { replace: true });
+          }
         } else {
+          console.log('AuthCallback: No session found, redirecting to auth');
           navigate('/auth');
         }
       } catch (error) {

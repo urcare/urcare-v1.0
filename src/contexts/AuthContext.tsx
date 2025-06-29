@@ -281,7 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setProfile({
                 ...profileData,
                 emergency_phone: null,
-                onboarding_completed: false
+                onboarding_completed: (profileData as any)?.onboarding_completed || false
               } as UserProfile);
               toast.success('Login successful!', {
                 description: `Welcome back, ${userMetaData.full_name}!`
@@ -375,7 +375,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile({
         ...data,
         emergency_phone: null,
-        onboarding_completed: false
+        onboarding_completed: (data as any)?.onboarding_completed || false
       } as UserProfile);
       toast.success('Profile updated successfully');
     } catch (error: any) {

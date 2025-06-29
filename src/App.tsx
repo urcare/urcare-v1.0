@@ -15,6 +15,7 @@ import LIMS from './pages/LIMS';
 import ClinicalAnalytics from './pages/ClinicalAnalytics';
 import PerformanceMonitoring from './pages/PerformanceMonitoring';
 import Analytics from './pages/Analytics';
+import AuthCallback from './pages/AuthCallback';
 
 function App() {
   const { user, profile, loading, isInitialized, isOnboardingComplete } = useAuth();
@@ -96,6 +97,9 @@ function App() {
         <Route path="/auth" element={<Landing showModal />} />
         {/* <Route path="/auth" element={<Auth />} /> */}
         <Route path="/login" element={<Login />} />
+        
+        {/* Auth callback route for OAuth */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
         
         {/* Onboarding route */}
         {/* <Route path="/onboarding" element={ <OnboardingRoute><Onboarding /></OnboardingRoute> } /> */}
