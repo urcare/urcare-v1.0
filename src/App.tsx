@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Auth from './pages/Auth';
-import { Landing } from './pages/Landing';
+import Landing from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 import Profile from './pages/Profile';
@@ -93,60 +93,25 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<Landing showModal />} />
+        {/* <Route path="/auth" element={<Auth />} /> */}
         <Route path="/login" element={<Login />} />
         
         {/* Onboarding route */}
-        <Route
-          path="/onboarding"
-          element={
-            <OnboardingRoute>
-              <Onboarding />
-            </OnboardingRoute>
-          }
-        />
+        {/* <Route path="/onboarding" element={ <OnboardingRoute><Onboarding /></OnboardingRoute> } /> */}
+        <Route path="/onboarding" element={ <Onboarding /> } />
         
         {/* Protected routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/ai-diagnostics"
-          element={
-            <ProtectedRoute>
-              <AIDiagnostics />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/clinical-decision-support"
-          element={
-            <ProtectedRoute>
-              <ClinicalDecisionSupport />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mental-health"
-          element={
-            <ProtectedRoute>
-              <MentalHealth />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } />
+
+        <Route path="/profile" element={ <ProtectedRoute> <Profile /> </ProtectedRoute> } />
+        
+        <Route path="/ai-diagnostics" element={ <ProtectedRoute> <AIDiagnostics /> </ProtectedRoute> } />
+        
+        <Route path="/clinical-decision-support" element={ <ProtectedRoute> <ClinicalDecisionSupport /> </ProtectedRoute> } />
+        
+        <Route path="/mental-health" element={ <ProtectedRoute> <MentalHealth /> </ProtectedRoute> } />
+        
         <Route
           path="/geriatric-care"
           element={

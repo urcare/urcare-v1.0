@@ -1,454 +1,376 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  Heart, 
-  Stethoscope, 
-  Users, 
-  Shield, 
-  Zap, 
-  Brain, 
-  Activity, 
-  Calendar,
-  FileText,
-  Bell,
-  CheckCircle,
-  ArrowRight,
-  Play,
-  Star,
-  Globe,
-  Clock,
-  TrendingUp,
-  BarChart3,
-  Microscope,
-  Pill,
-  Phone,
-  MessageSquare,
-  Video,
-  MapPin,
-  UserCheck,
-  Database,
-  Cpu,
-  Smartphone,
-  Tablet
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Heart, Shield, Users, Zap, Clock } from 'lucide-react';
 
-export const Landing = () => {
-  const features = [
+const Landing = ({ showModal = false }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const navigate = useNavigate();
+
+  // Background images data with descriptions for different themes
+  const backgroundImages = [
     {
-      icon: Heart,
-      title: 'Comprehensive Health Management',
-      description: 'Complete health records, appointments, and medication tracking in one secure platform.',
-      color: 'text-red-500',
-      bgColor: 'bg-red-50 dark:bg-red-900/20'
+      desktop: "/landing/health-app-desktop-1.jpg",
+      mobile: "/landing/health-app-mobile-1.jpg",
+      alt: 'People checking health app with smiles',
+      tagline: 'Smart health tracking made simple'
     },
     {
-      icon: Zap,
-      title: 'AI-Powered Diagnostics',
-      description: 'Advanced AI algorithms provide diagnostic insights and treatment recommendations.',
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20'
+      desktop: "/landing/health-app-desktop-2.jpg",
+      mobile: "/landing/health-app-mobile-2.jpg",
+      alt: 'Happy person cycling outdoors',
+      tagline: 'Your fitness journey, powered by AI'
     },
     {
-      icon: Shield,
-      title: 'Enterprise Security',
-      description: 'HIPAA-compliant security with end-to-end encryption and role-based access control.',
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20'
+      desktop: "/landing/health-app-desktop-3.jpg",
+      mobile: "/landing/health-app-mobile-3.jpg",
+      alt: 'Family cooking healthy meal together',
+      tagline: 'Nutrition guidance for the whole family'
     },
     {
-      icon: Brain,
-      title: 'Mental Health Support',
-      description: 'Integrated mental health tools and crisis intervention systems.',
-      color: 'text-pink-500',
-      bgColor: 'bg-pink-50 dark:bg-pink-900/20'
+      desktop: "/landing/health-app-desktop-4.jpg",
+      mobile: "/landing/health-app-mobile-4.jpg",
+      alt: 'Person meditating peacefully',
+      tagline: 'Mental wellness at your fingertips'
     },
     {
-      icon: Activity,
-      title: 'Real-time Monitoring',
-      description: 'Continuous health monitoring with instant alerts and notifications.',
-      color: 'text-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20'
+      desktop: "/landing/health-app-desktop-5.jpg",
+      mobile: "/landing/health-app-mobile-5.jpg",
+      alt: 'Group doing yoga together',
+      tagline: 'Community-driven health experiences'
     },
     {
-      icon: Users,
-      title: 'Multi-role Support',
-      description: 'Comprehensive support for patients, doctors, nurses, and administrators.',
-      color: 'text-indigo-500',
-      bgColor: 'bg-indigo-50 dark:bg-indigo-900/20'
+      desktop: "/landing/health-app-desktop-6.jpg",
+      mobile: "/landing/health-app-mobile-6.jpg",
+      alt: 'Person celebrating health milestone',
+      tagline: 'Celebrate every step of your journey'
     }
   ];
 
-  const stats = [
-    { value: '10,000+', label: 'Active Users', icon: Users },
-    { value: '99.9%', label: 'Uptime', icon: Shield },
-    { value: '50+', label: 'Healthcare Partners', icon: Heart },
-    { value: '24/7', label: 'Support', icon: Clock }
-  ];
+  // Auto-shuffle images every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        (prevIndex + 1) % backgroundImages.length
+      );
+    }, 5000);
 
-  const testimonials = [
-    {
-      name: 'Dr. Sarah Johnson',
-      role: 'Cardiologist',
-      content: 'UrCare has revolutionized how I manage my patients. The AI insights are incredibly accurate and save me hours of analysis.',
-      rating: 5,
-      avatar: 'SJ'
-    },
-    {
-      name: 'Emily Chen',
-      role: 'Patient',
-      content: 'As a patient, I feel more in control of my health than ever. The platform is intuitive and keeps me informed about my care.',
-      rating: 5,
-      avatar: 'EC'
-    },
-    {
-      name: 'Dr. Michael Rodriguez',
-      role: 'Hospital Administrator',
-      content: 'The administrative tools are comprehensive and the security features give us complete confidence in patient data protection.',
-      rating: 5,
-      avatar: 'MR'
-    }
-  ];
+    return () => clearInterval(interval);
+  }, [backgroundImages.length]);
 
-  const roleCards = [
-    {
-      title: 'For Patients',
-      description: 'Access your health records, schedule appointments, and track your wellness journey.',
-      icon: Heart,
-      color: 'text-red-500',
-      bgColor: 'bg-red-50 dark:bg-red-900/20',
-      features: ['Health Records', 'Appointment Booking', 'Medication Tracking', 'Wellness Programs']
-    },
-    {
-      title: 'For Doctors',
-      description: 'Advanced diagnostic tools, patient management, and AI-powered insights.',
-      icon: Stethoscope,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      features: ['AI Diagnostics', 'Patient Management', 'Treatment Plans', 'Clinical Analytics']
-    },
-    {
-      title: 'For Nurses',
-      description: 'Efficient patient care coordination and real-time monitoring tools.',
-      icon: Users,
-      color: 'text-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      features: ['Patient Monitoring', 'Care Coordination', 'Vital Signs', 'Medication Admin']
-    },
-    {
-      title: 'For Administrators',
-      description: 'Comprehensive system management and analytics dashboard.',
-      icon: Shield,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-      features: ['User Management', 'System Analytics', 'Security Controls', 'Performance Monitoring']
-    }
-  ];
+  const currentImage = backgroundImages[currentImageIndex];
+  // const closeModal = () => setIsModalOpen(!isModalOpen);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="medical-nav px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              UrCare
-            </span>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-foreground hover:text-primary transition-colors">Features</a>
-            <a href="#roles" className="text-foreground hover:text-primary transition-colors">Roles</a>
-            <a href="#testimonials" className="text-foreground hover:text-primary transition-colors">Testimonials</a>
-            <a href="#contact" className="text-foreground hover:text-primary transition-colors">Contact</a>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <Link to="/auth">
-              <Button variant="outline">Sign In</Button>
-            </Link>
-            <Link to="/auth">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <>
+      <div className="relative w-full h-screen overflow-hidden bg-transparent">
+        {/* Background Image with Cross-dissolve Animation */}
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={currentImageIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 75 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            {/* Desktop Image */}
+            <div
+              className="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url('${currentImage.desktop}')` }}
+            />
 
-      {/* Hero Section */}
-      <section className="relative px-6 py-20 overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute top-40 left-40 w-80 h-80 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        </div>
+            {/* Mobile Image */}
+            <div
+              className="md:hidden absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url('${currentImage.mobile}')` }}
+            />
 
-        <div className="relative max-w-7xl mx-auto text-center">
-          <Badge variant="outline" className="mb-6 px-4 py-2 text-sm">
-            <Zap className="w-4 h-4 mr-2" />
-            AI-Powered Healthcare Platform
-          </Badge>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            The Future of
-            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"> Healthcare</span>
-            <br />
-            is Here
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            UrCare is a comprehensive healthcare management platform that combines AI-powered diagnostics, 
-            secure patient data management, and seamless care coordination for modern healthcare delivery.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-            <Link to="/auth">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-4">
-                Start Your Journey
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
-            </Button>
-          </div>
+            {/* Enhanced Gradient Overlay for Better Glass Effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25" />
+          </motion.div>
+        </AnimatePresence>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Icon className="h-6 w-6 text-primary mr-2" />
-                    <span className="text-3xl font-bold text-foreground">{stat.value}</span>
+        {/* Main Content Container */}
+        <div className="relative z-10 h-full flex items-end md:items-center py-4 justify-center md:justify-end px-4 md:px-12 lg:px-16">
+
+          {/* Content Card - Centered on mobile, Right half on desktop */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full max-w-lg md:max-w-xl lg:max-w-2xl"
+          >
+
+            {/* Glass Container */}
+            <div className="relative backdrop-blur-sm md:backdrop-blur-md bg-black/15 md:bg-white/10 border border-white/25 rounded-3xl p-4 md:p-10 lg:p-12 shadow-2xl">
+
+              {/* Subtle Inner Glow */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 to-black/5 pointer-events-none" />
+
+              {/* Logo Section */}
+              <motion.div
+                initial={{ opacity: 0, y: -30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="mb-4 md:mb-8 text-center md:text-left"
+              >
+                <div className="flex items-center justify-center md:justify-start space-x-3">
+                  <div className="flex items-center justify-center bg-gradient-to-br from-black/15 to-black/15 backdrop-blur-md px-3 py-2 rounded-3xl border border-teal-500/50 shadow-lg">
+                    <div className="size-16 rounded-full flex items-center justify-center mr-2">
+                      <img src="/brand.png" alt="brand" className='scale-150' />
+                    </div>
+                    <h1 className="text-2xl md:text-4xl font-bold font-Krona bg-gradient-to-r from-white via-teal-100 to-teal-500 bg-clip-text text-transparent tracking-tight">UrCare</h1>
                   </div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+              </motion.div>
 
-      {/* Features Section */}
-      <section id="features" className="px-6 py-20 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Why Choose UrCare?
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our platform combines cutting-edge technology with healthcare expertise to deliver 
-              the most comprehensive and secure healthcare management solution.
-            </p>
-          </div>
+              {/* Main Headline */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="mb-6 text-center md:text-left relative p-4 rounded-xl bg-teal-950/50 backdrop-blur-sm border border-white/10 "
+              >
+                <h2 className="text-xl md:text-3xl lg:text-4xl font-Krona font-bold bg-gradient-to-r from-white via-gray-200 to-teal-300 bg-clip-text text-transparent leading-tight mb-2 md:mb-4">
+                  AI‑Powered Healthcare
+                  <br />
+                  <span className="bg-gradient-to-r from-white via-gray-200 to-teal-300 bg-clip-text text-transparent">
+                    That Adapts to You
+                  </span>
+                </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                  <CardContent className="p-8">
-                    <div className={`w-12 h-12 ${feature.bgColor} rounded-lg flex items-center justify-center mb-6`}>
-                      <Icon className={`h-6 w-6 ${feature.color}`} />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+                {/* Dynamic Tagline with Glass Background */}
+                <div className="relative py-2 md:p-4 rounded-2xl bg-none backdrop-blur-sm border border-white/25 mb-2 md:mb-4">
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={currentImageIndex}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.6 }}
+                      className="text-sm md:text-xl font-Montserrat font-medium text-gray-100 leading-relaxed"
+                    >
+                      {currentImage.tagline}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
 
-      {/* Role-based Features */}
-      <section id="roles" className="px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Designed for Every Healthcare Role
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Whether you're a patient, healthcare provider, or administrator, 
-              UrCare has specialized tools designed for your unique needs.
-            </p>
-          </div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  className="text-base font-Montserrat font-medium text-gray-200 leading-relaxed"
+                >
+                  One platform for records, routines, and real care.
+                </motion.p>
+              </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {roleCards.map((role, index) => {
-              const Icon = role.icon;
-              return (
-                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 ${role.bgColor} rounded-lg flex items-center justify-center`}>
-                        <Icon className={`h-6 w-6 ${role.color}`} />
+              {/* Feature Pills */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1 }}
+                className="flex flex-wrap justify-center md:justify-start gap-4 mb-4 md:mb-8"
+              >
+                {[
+                  { icon: Shield, text: 'HIPAA Secure', color: 'from-green-400 to-emerald-500' },
+                  { icon: Zap, text: 'AI-Powered', color: 'from-yellow-400 to-orange-500' },
+                  { icon: Users, text: 'Family Care', color: 'from-pink-400 to-rose-500' },
+                  { icon: Clock, text: '24/7 Support', color: 'from-blue-400 to-indigo-500' }
+                ].map((feature, index) => (
+                  <motion.div
+                    key={feature.text}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
+                    className="group"
+                  >
+                    <div className="flex flex-row items-center space-x-2 p-2 md:px-3 md:py-2 bg-white/5 md:bg-white/25 backdrop-blur-sm rounded-full border border-white/25 text-gray-950 text-md hover:bg-white/15 transition-all duration-300 shadow-lg">
+                      <div className={`mb-1 size-10 flex items-center justify-center rounded-full bg-gradient-to-r ${feature.color}`}>
+                        <feature.icon className="size-8 text-white" />
                       </div>
-                      <div>
-                        <CardTitle className="text-xl">{role.title}</CardTitle>
-                        <CardDescription className="text-base">
-                          {role.description}
-                        </CardDescription>
-                      </div>
+                      <span className="text-sm md:text-base font-Montserrat font-semibold text-white md:text-black">{feature.text}</span>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {role.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* Get Started Button */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 1.4 }}
+                className="text-center md:text-left"
+              >
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="group relative px-8 py-4 bg-gradient-to-br from-teal-400 via-teal-700 to-teal-950 hover:from-teal-950 hover:via-teal-700 hover:to-teal-400 text-white font-bold text-lg rounded-2xl shadow-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-100/50 transform hover:scale-105 active:scale-95"
+                >
+                  <span className="flex items-center space-x-1 md:space-x-2">
+                    <span className='font-semibold'>Get Started</span>
+                    <ArrowRight className="size-4 md:size-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+
+                  {/* Enhanced Button Glow */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/50 to-purple-600/50 blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-300 -z-10" />
+                </button>
+              </motion.div>
+
+            </div>
+          </motion.div>
         </div>
-      </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="px-6 py-20 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Trusted by Healthcare Professionals
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              See what healthcare providers and patients are saying about UrCare.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
-                        {testimonial.avatar}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold text-foreground">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Bottom indicator dots */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.6 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-0"
+        >
+          <div className="backdrop-blur-md bg-white/10 rounded-full p-2 border border-white/20">
+            {backgroundImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-2 h-2 mx-1 rounded-full transition-all duration-300 ${index === currentImageIndex
+                  ? 'bg-white w-6'
+                  : 'bg-white/50 hover:bg-white/70'
+                  }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
             ))}
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </div>
 
-      {/* CTA Section */}
-      <section className="px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
-            Ready to Transform Healthcare?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of healthcare professionals and patients who trust UrCare 
-            for their healthcare management needs.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link to="/auth">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-4">
-                Get Started Free
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-              Schedule Demo
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Auth Modal */}
 
-      {/* Footer */}
-      <footer className="bg-muted/50 px-6 py-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-white" />
+        <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
+            onClick={() => navigate("/")}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Animated Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5 pointer-events-none" />
+              
+              {/* Floating Orbs */}
+              {/* <div className="absolute -top-10 -left-10 w-20 h-20 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-xl animate-pulse" />
+              <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full blur-xl animate-pulse delay-1000" /> */}
+              
+              <div className="relative p-8 text-center">
+                {/* Header Section */}
+                <div className="mb-8">
+                  {/* Brand Logo */}
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="flex justify-center items-center mb-2"
+                  >
+                    <div className="relative">
+                      <img src="/brand.png" alt="Brand" className="relative size-20 rounded-xl" />
+                    </div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-teal-100 to-teal-500 bg-clip-text text-transparent font-Krona tracking-wide">UrCare</h1>
+                  </motion.div>
+                  
+                  {/* Welcome Text */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                   <p className="text-gray-300 text-sm font-medium font-Montserrat leading-relaxed">
+                      Continue your personalized healthcare journey with AI-powered insights and care
+                    </p>
+                  </motion.div>
                 </div>
-                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  UrCare
-                </span>
+
+                {/* Authentication Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="space-y-4 mb-8"
+                >
+                  {/* Google Sign In Button */}
+                  <button className="group w-full flex items-center justify-center space-x-3 bg-black/50 backdrop-blur-sm text-white py-4 px-6 rounded-2xl border border-white/15 hover:bg-blue-400/15 hover:border-white/40 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-black/10 rounded-full blur-sm opacity-20 group-hover:opacity-30 transition-opacity" />
+                      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="relative size-8" />
+                    </div>
+                    <span className="font-semibold font-Montserrat text-lg">Continue with Google</span>
+                  </button>
+                </motion.div>
+
+                {/* Features Highlight */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="mb-6"
+                >
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { icon: Shield, text: 'Secure', color: 'from-green-400 to-emerald-500' },
+                      { icon: Zap, text: 'AI-Powered', color: 'from-yellow-400 to-orange-500' },
+                      { icon: Heart, text: 'Trusted', color: 'from-pink-400 to-rose-500' }
+                    ].map((feature, index) => (
+                      <div key={feature.text} className="flex flex-col items-center space-y-2 py-2 rounded-2xl shadow-2xl shadow-white/10">
+                        <div className={`p-1 rounded-full bg-gradient-to-r ${feature.color} shadow-lg`}>
+                          <feature.icon className="size-6 text-white" />
+                        </div>
+                        <span className="text-white text-sm font-Syne font-medium">{feature.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Footer */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  className="space-y-3"
+                >
+                  <p className="text-gray-400 text-sm font-Montserrat leading-relaxed">
+                    By continuing, you agree to our <span className='font-semibold'>Terms of Service</span> and <span className='font-semibold'>Privacy Policy</span>
+                  </p>
+                  
+                  <button
+                    onClick={() => navigate("/")}
+                    className="text-white/75 hover:text-white pt-4 font-Syne transition-colors duration-200 underline underline-offset-2"
+                  >
+                    Maybe later
+                  </button>
+                </motion.div>
               </div>
-              <p className="text-muted-foreground mb-4">
-                Transforming healthcare delivery with AI-powered insights and secure patient management.
-              </p>
-              <div className="flex space-x-4">
-                <Globe className="h-5 w-5 text-muted-foreground hover:text-foreground cursor-pointer" />
-                <MessageSquare className="h-5 w-5 text-muted-foreground hover:text-foreground cursor-pointer" />
-                <Phone className="h-5 w-5 text-muted-foreground hover:text-foreground cursor-pointer" />
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Platform</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">API</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Support</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Status</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Company</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacy</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 UrCare. All rights reserved. HIPAA compliant and secure.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+
+
   );
-}; 
+
+
+};
+
+
+
+
+
+export default Landing;

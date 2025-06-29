@@ -1,5 +1,25 @@
 /* Import Inter font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Quattrocento:wght@400;700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Syne:wght@400..800&display=swap");
+
+.font-Syne {
+  font-family: Syne;
+}
+
+.font-Quattrocento {
+  font-family: Quattrocento;
+}
+.font-Krona {
+  font-family: Krona One;
+}
+
+.font-Montserrat {
+  font-family: Montserrat;
+}
+
+.root {
+  font-family: Montserrat, sans-serif;
+}
 
 @tailwind base;
 @tailwind components;
