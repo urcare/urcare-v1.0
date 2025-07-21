@@ -41,7 +41,7 @@ jobs:
     
     - name: Setup Capacitor
       run: |
-        npx cap add android --confirm
+        npx cap add android
         npx cap sync android
     
     - name: Build APK (Debug)
