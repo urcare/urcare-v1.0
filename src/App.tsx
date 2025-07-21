@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Auth from './pages/Auth';
 import Landing from './pages/Landing';
+import OnDemandLanding from './pages/OnDemandLanding';
 import { Dashboard } from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 import Profile from './pages/Profile';
@@ -93,8 +94,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Landing showModal />} />
+        <Route path="/" element={<OnDemandLanding />} />
+        <Route path="/old-landing" element={<Landing />} />
+        <Route path="/auth" element={<OnDemandLanding showModal={true} />} />
         {/* <Route path="/auth" element={<Auth />} /> */}
         <Route path="/login" element={<Login />} />
         
