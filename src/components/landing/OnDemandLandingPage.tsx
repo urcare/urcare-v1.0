@@ -117,7 +117,7 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/onboarding')}
                 className="w-full max-w-sm bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Get started
