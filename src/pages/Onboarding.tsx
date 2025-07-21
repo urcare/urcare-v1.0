@@ -59,7 +59,7 @@ const Onboarding = () => {
       };
 
       console.log('Upserting user profile:', userProfileData);
-
+      
       // Upsert the user profile
       const { error: upsertError } = await supabase
         .from('user_profiles')
@@ -71,7 +71,7 @@ const Onboarding = () => {
       }
 
       console.log('User profile upserted successfully');
-
+      
       // Show success message
       toast.success('Onboarding completed successfully!', {
         description: 'Welcome to UrCare! You can now access all features.'
@@ -130,8 +130,8 @@ const Onboarding = () => {
   // Show questions step
   if (onboardingStep === 'questions') {
     const currentQuestion = onboardingQuestions[currentQuestionIndex];
-    
-    return (
+
+  return (
       <QuestionStep
         question={currentQuestion}
         currentStep={currentQuestionIndex + 1}
