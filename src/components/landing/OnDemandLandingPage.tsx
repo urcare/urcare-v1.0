@@ -10,54 +10,54 @@ interface OnDemandLandingPageProps {
 export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPageProps) => {
   const navigate = useNavigate();
 
-  // Grid images data with diverse people and health-related imagery
+  // Grid images data with healthcare and wellness imagery including the new user-provided images
   const gridImages = [
     {
       id: 1,
-      url: "https://images.unsplash.com/photo-1494790108755-2616b612b1c9?w=400&h=600&fit=crop&crop=face",
-      alt: "Person with closed eyes and gentle smile",
+      url: "https://images.unsplash.com/photo-1568822617270-2c1579f8dfe2?w=400&h=600&fit=crop&crop=center",
+      alt: "Grandfather and grandson bonding together",
       className: "col-span-1 row-span-2"
     },
     {
       id: 2, 
-      url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&crop=face",
-      alt: "Person holding head in contemplation",
+      url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop&crop=center",
+      alt: "Elderly couple enjoying healthy green smoothies",
       className: "col-span-1 row-span-1"
     },
     {
       id: 3,
-      url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=300&fit=crop&crop=face", 
-      alt: "Woman in athletic wear",
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center", 
+      alt: "Young couple doing yoga meditation outdoors",
       className: "col-span-1 row-span-1"
     },
     {
       id: 4,
-      url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&crop=face",
-      alt: "Man in casual wear smiling",
+      url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop&crop=center",
+      alt: "Fit young couple at the gym exercising together",
       className: "col-span-1 row-span-2"
     },
     {
       id: 5,
-      url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face",
-      alt: "Woman holding coffee cup",
+      url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=600&fit=crop&crop=center",
+      alt: "Active couple jogging together in park",
       className: "col-span-1 row-span-2"
     },
     {
       id: 6,
-      url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center",
-      alt: "Pills and medication",
+      url: "/images/meditation-wellness.jpg",
+      alt: "Meditation and wellness in nature",
       className: "col-span-1 row-span-1"
     },
     {
       id: 7,
-      url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop&crop=center",
-      alt: "Medical supplies",
+      url: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=400&h=300&fit=crop&crop=center",
+      alt: "Healthcare technology and medical devices",
       className: "col-span-1 row-span-1"
     },
     {
       id: 8,
-      url: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=face",
-      alt: "Mature person smiling",
+      url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop&crop=center",
+      alt: "Healthy nutrition and wellness lifestyle",
       className: "col-span-1 row-span-1"
     }
   ];
@@ -102,11 +102,11 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
           className="text-center space-y-4 flex-shrink-0"
         >
           <h1 className="text-4xl font-light text-gray-900 leading-tight">
-            Treatment, on-demand
+            Your Health,Your Way
           </h1>
           
           <p className="text-lg text-gray-600 font-normal max-w-sm mx-auto">
-            Prescribed online, delivered to your door
+            Anytime, Anywhere.
           </p>
 
           {/* CTA Buttons */}
@@ -141,15 +141,7 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
         </motion.div>
       </div>
 
-      {/* Bottom Home Indicator */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-        className="absolute bottom-4 left-1/2 transform -translate-x-1/2"
-      >
-        <div className="w-32 h-1 bg-gray-900 rounded-full"></div>
-      </motion.div>
+
     </div>
   );
 }; 

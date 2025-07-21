@@ -96,8 +96,7 @@ function App() {
         {/* Public routes */}
         <Route path="/" element={<OnDemandLanding />} />
         <Route path="/old-landing" element={<Landing />} />
-        <Route path="/auth" element={<OnDemandLanding showModal={true} />} />
-        {/* <Route path="/auth" element={<Auth />} /> */}
+        <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Login />} />
         
         {/* Auth callback route for OAuth */}
