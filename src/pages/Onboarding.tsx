@@ -3,24 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
-import { WelcomeScreen } from '../components/onboarding/WelcomeScreen';
-import { NameStep } from '../components/onboarding/NameStep';
-import { GreetingStep } from '../components/onboarding/GreetingStep';
-import { QuestionStep } from '../components/onboarding/QuestionStep';
-import { onboardingQuestions } from '../data/onboardingQuestions';
+import { OnboardingSteps } from '../components/onboarding/OnboardingSteps';
+import { SerialOnboarding } from '../components/onboarding/SerialOnboarding';
+
+interface OnboardingData {
+  fullName: string;
+  age: string;
+  gender: string;
+  height: string;
+  weight: string;
+  wakeUpTime: string;
+  sleepTime: string;
+  workStart: string;
+  workEnd: string;
+}
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'name' | 'greeting' | 'questions'>('welcome');
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'serial' | 'complete'>('welcome');
   const [loading, setLoading] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [questionAnswers, setQuestionAnswers] = useState<Record<string, any>>({});
-  
-  const totalQuestions = onboardingQuestions.length;
 
-  const handleComplete = async () => {
+  const handleSerialComplete = async (data: OnboardingData) => {
     if (!user) {
       console.error('No user found for onboarding completion');
       toast.error('User not found', { description: 'Please log in again.' });
@@ -31,31 +35,20 @@ const Onboarding = () => {
     setLoading(true);
     
     try {
-      // Create preferences object from question answers
-      const preferences = {
-        sleep_improvement: questionAnswers.sleep_improvement,
-        health_priorities: questionAnswers.health_priorities,
-        weight_goal: questionAnswers.weight_goal,
-        goal_speed: questionAnswers.goal_speed,
-        barriers: questionAnswers.barriers,
-        chronic_conditions: questionAnswers.chronic_conditions,
-        diet_type: questionAnswers.diet_type,
-        allergies: questionAnswers.allergies,
-        smartwatch_usage: questionAnswers.smartwatch_usage,
-        family_tracking: questionAnswers.family_tracking,
-      };
-
       const userProfileData = {
         id: user.id,
-        full_name: firstName,
-        age: questionAnswers.age,
-        gender: questionAnswers.gender,
-        height: questionAnswers.height,
-        weight: questionAnswers.current_weight,
-        target_weight: questionAnswers.target_weight,
-        preferences: preferences,
+        full_name: data.fullName,
+        age: parseInt(data.age),
+        gender: data.gender,
+        height: parseInt(data.height),
+        weight: parseInt(data.weight),
         onboarding_completed: true,
-        updated_at: new Date().toISOString()
+        preferences: {
+          wake_up_time: data.wakeUpTime,
+          sleep_time: data.sleepTime,
+          work_start: data.workStart,
+          work_end: data.workEnd,
+        },
       };
 
       console.log('Upserting user profile:', userProfileData);
@@ -72,23 +65,21 @@ const Onboarding = () => {
 
       console.log('User profile upserted successfully');
       
-      // Show success message
-      toast.success('Onboarding completed successfully!', {
-        description: 'Welcome to UrCare! You can now access all features.'
-      });
+      setOnboardingStep('complete');
       
-      console.log('Navigating to dashboard...');
+      setTimeout(() => {
+        toast.success('Welcome to UrCare!', { 
+          description: `Great to have you here, ${data.fullName}!` 
+        });
+        navigate('/dashboard');
+      }, 2000);
       
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true });
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error completing onboarding:', error);
-      toast.error('Failed to complete onboarding', {
-        description: error instanceof Error ? error.message : 'Please try again or contact support if the issue persists.'
+      toast.error('Onboarding failed', {
+        description: error.message || 'There was an error completing your onboarding. Please try again.'
       });
     } finally {
-      console.log('Setting loading to false');
       setLoading(false);
     }
   };
@@ -96,73 +87,33 @@ const Onboarding = () => {
   // Show welcome screen first
   if (onboardingStep === 'welcome') {
     return (
-      <WelcomeScreen 
-        onContinue={() => setOnboardingStep('name')}
+      <OnboardingSteps
+        stepType="welcome"
+        onContinue={() => setOnboardingStep('serial')}
       />
     );
   }
 
-  // Show name input step
-  if (onboardingStep === 'name') {
+  // Show serial onboarding
+  if (onboardingStep === 'serial') {
     return (
-      <NameStep
-        onContinue={(name) => {
-          setFirstName(name);
-          setOnboardingStep('greeting');
-        }}
+      <SerialOnboarding
+        onComplete={handleSerialComplete}
         onBack={() => setOnboardingStep('welcome')}
-        initialValue={firstName}
       />
     );
   }
 
-  // Show greeting step
-  if (onboardingStep === 'greeting') {
+  // Show completion
+  if (onboardingStep === 'complete') {
     return (
-      <GreetingStep
-        userName={firstName}
-        onContinue={() => setOnboardingStep('questions')}
-        onBack={() => setOnboardingStep('name')}
+      <OnboardingSteps
+        stepType="complete"
+        onContinue={() => navigate('/dashboard')}
       />
     );
   }
 
-  // Show questions step
-  if (onboardingStep === 'questions') {
-    const currentQuestion = onboardingQuestions[currentQuestionIndex];
-
-  return (
-      <QuestionStep
-        question={currentQuestion}
-        currentStep={currentQuestionIndex + 1}
-        totalSteps={totalQuestions}
-        onContinue={(answer) => {
-          // Save the answer
-          setQuestionAnswers(prev => ({
-            ...prev,
-            [currentQuestion.id]: answer
-          }));
-          
-          // Move to next question or complete
-          if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-          } else {
-            handleComplete();
-          }
-        }}
-        onBack={() => {
-          if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
-          } else {
-            setOnboardingStep('greeting');
-          }
-        }}
-        initialValue={questionAnswers[currentQuestion.id]}
-      />
-    );
-  }
-
-  // Fallback (should not reach here)
   return null;
 };
 

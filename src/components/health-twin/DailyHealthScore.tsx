@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Brain, Activity, Moon, Apple, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { HealthScore } from '@/types/healthTwin';
+import { HealthScore } from '@/types';
 
 interface DailyHealthScoreProps {
   healthScore: HealthScore;

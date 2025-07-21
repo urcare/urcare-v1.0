@@ -50,18 +50,16 @@ export const CTASection = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 max-w-4xl mx-auto">
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-white">500K+</div>
-              <div className="text-blue-200">Happy Users</div>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-white">1M+</div>
-              <div className="text-blue-200">Diagnoses Made</div>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-white">99.9%</div>
-              <div className="text-blue-200">Uptime</div>
-            </div>
+            {[
+              { value: "500K+", label: "Happy Users" },
+              { value: "1M+", label: "Diagnoses Made" },
+              { value: "99.9%", label: "Uptime" }
+            ].map((stat, index) => (
+              <div key={index} className="text-center space-y-2">
+                <div className="text-3xl font-bold text-white">{stat.value}</div>
+                <div className="text-blue-200">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

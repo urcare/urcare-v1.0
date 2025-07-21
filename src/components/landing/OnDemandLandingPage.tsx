@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { GRID_IMAGES } from './constants';
 
 interface OnDemandLandingPageProps {
   showModal?: boolean;
@@ -9,58 +10,6 @@ interface OnDemandLandingPageProps {
 
 export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPageProps) => {
   const navigate = useNavigate();
-
-  // Grid images data with healthcare and wellness imagery including the new user-provided images
-  const gridImages = [
-    {
-      id: 1,
-      url: "https://images.unsplash.com/photo-1568822617270-2c1579f8dfe2?w=400&h=600&fit=crop&crop=center",
-      alt: "Grandfather and grandson bonding together",
-      className: "col-span-1 row-span-2"
-    },
-    {
-      id: 2, 
-      url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop&crop=center",
-      alt: "Elderly couple enjoying healthy green smoothies",
-      className: "col-span-1 row-span-1"
-    },
-    {
-      id: 3,
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center", 
-      alt: "Young couple doing yoga meditation outdoors",
-      className: "col-span-1 row-span-1"
-    },
-    {
-      id: 4,
-      url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop&crop=center",
-      alt: "Fit young couple at the gym exercising together",
-      className: "col-span-1 row-span-2"
-    },
-    {
-      id: 5,
-      url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=600&fit=crop&crop=center",
-      alt: "Active couple jogging together in park",
-      className: "col-span-1 row-span-2"
-    },
-    {
-      id: 6,
-      url: "/images/meditation-wellness.jpg",
-      alt: "Meditation and wellness in nature",
-      className: "col-span-1 row-span-1"
-    },
-    {
-      id: 7,
-      url: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=400&h=300&fit=crop&crop=center",
-      alt: "Healthcare technology and medical devices",
-      className: "col-span-1 row-span-1"
-    },
-    {
-      id: 8,
-      url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop&crop=center",
-      alt: "Healthy nutrition and wellness lifestyle",
-      className: "col-span-1 row-span-1"
-    }
-  ];
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
@@ -73,7 +22,7 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
           transition={{ duration: 0.8 }}
           className="grid grid-cols-3 gap-3 h-[45vh] mb-6 flex-shrink-0"
         >
-          {gridImages.map((image, index) => (
+          {GRID_IMAGES.map((image, index) => (
             <motion.div
               key={image.id}
               initial={{ opacity: 0, scale: 0.8 }}
@@ -83,12 +32,8 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
             >
               <div 
                 className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  backgroundImage: `url('${image.url}')`,
-                  backgroundColor: '#f3f4f6'
-                }}
+                style={{ backgroundImage: `url('${image.url}')`, backgroundColor: '#f3f4f6' }}
               />
-              {/* Overlay for better image display */}
               <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-300" />
             </motion.div>
           ))}

@@ -2,64 +2,29 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TESTIMONIALS, ANIMATION_VARIANTS } from './constants';
 
 export const TestimonialsSection = () => {
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Working Mother",
-      content: "Better than Google, feels like magic! Urcare caught my symptoms early and recommended exactly what I needed.",
-      rating: 5,
-      avatar: "SJ"
-    },
-    {
-      name: "Michael Chen",
-      role: "Software Engineer",
-      content: "Caught my real issue when I was unsure. The accuracy is incredible and saved me from unnecessary worry.",
-      rating: 5,
-      avatar: "MC"
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "College Student",
-      content: "Helped me avoid a panic ER trip. Perfect for late-night health questions when no doctor is around!",
-      rating: 5,
-      avatar: "ER"
-    },
-    {
-      name: "David Thompson",
-      role: "Retiree",
-      content: "As someone with multiple health concerns, this platform gives me peace of mind. The AI is remarkably accurate.",
-      rating: 5,
-      avatar: "DT"
-    }
-  ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const current = TESTIMONIALS[currentIndex];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+      setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
 
-  const nextTestimonial = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const prevTestimonial = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
+  const nextTestimonial = () => setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+  const prevTestimonial = () => setCurrentIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-50 to-white">
+    <section className={ANIMATION_VARIANTS.section}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            What Our Users Say
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className={ANIMATION_VARIANTS.heading}>What Our Users Say</h2>
+          <p className={ANIMATION_VARIANTS.subheading}>
             Join thousands of satisfied users who trust Urcare for their healthcare needs.
           </p>
         </div>
@@ -68,28 +33,22 @@ export const TestimonialsSection = () => {
           <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100">
             <div className="text-center space-y-6">
               <div className="flex justify-center mb-6">
-                {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
+                {[...Array(current.rating)].map((_, i) => (
                   <Star key={i} className="h-6 w-6 text-yellow-400 fill-current" />
                 ))}
               </div>
               
               <blockquote className="text-2xl lg:text-3xl font-medium text-gray-900 leading-relaxed">
-                "{testimonials[currentIndex].content}"
+                "{current.content}"
               </blockquote>
               
               <div className="flex items-center justify-center gap-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold">
-                    {testimonials[currentIndex].avatar}
-                  </span>
+                  <span className="text-blue-600 font-semibold">{current.avatar}</span>
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900">
-                    {testimonials[currentIndex].name}
-                  </div>
-                  <div className="text-gray-600">
-                    {testimonials[currentIndex].role}
-                  </div>
+                  <div className="font-semibold text-gray-900">{current.name}</div>
+                  <div className="text-gray-600">{current.role}</div>
                 </div>
               </div>
             </div>
@@ -97,33 +56,21 @@ export const TestimonialsSection = () => {
           
           {/* Navigation */}
           <div className="flex justify-center items-center gap-4 mt-8">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={prevTestimonial}
-              className="rounded-full w-12 h-12 border-gray-300 hover:border-blue-300"
-            >
+            <Button variant="outline" size="icon" onClick={prevTestimonial} className="rounded-full w-12 h-12 border-gray-300 hover:border-blue-300">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             
             <div className="flex gap-2">
-              {testimonials.map((_, index) => (
+              {TESTIMONIALS.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'}`}
                 />
               ))}
             </div>
             
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={nextTestimonial}
-              className="rounded-full w-12 h-12 border-gray-300 hover:border-blue-300"
-            >
+            <Button variant="outline" size="icon" onClick={nextTestimonial} className="rounded-full w-12 h-12 border-gray-300 hover:border-blue-300">
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>

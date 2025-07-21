@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Search, MapPin, AlertTriangle, Clock, Brain } from 'lucide-react';
-import { Symptom } from '@/types/healthTwin';
+import { Symptom } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SymptomAnalysisResults } from './SymptomAnalysisResults';

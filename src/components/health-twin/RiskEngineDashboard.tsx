@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Heart, Brain, Activity, Shield, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { RiskFactor } from '@/types/healthTwin';
+import { RiskFactor } from '@/types';
 
 interface RiskEngineDashboardProps {
   riskFactors: RiskFactor[];

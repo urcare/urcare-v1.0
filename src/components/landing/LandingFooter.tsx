@@ -3,16 +3,14 @@ import React from 'react';
 import { Heart, Linkedin, Instagram, Twitter } from 'lucide-react';
 
 export const LandingFooter = () => {
-  const footerLinks = {
-    company: [
-      { name: 'About', href: '#' },
-      { name: 'Contact', href: '#' },
-      { name: 'Terms', href: '#' },
-      { name: 'Privacy', href: '#' }
-    ]
-  };
+  const FOOTER_LINKS = [
+    { name: 'About', href: '#' },
+    { name: 'Contact', href: '#' },
+    { name: 'Terms', href: '#' },
+    { name: 'Privacy', href: '#' }
+  ];
 
-  const socialLinks = [
+  const SOCIAL_LINKS = [
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Instagram, href: '#', label: 'Instagram' },
     { icon: Twitter, href: '#', label: 'Twitter' }
@@ -43,7 +41,7 @@ export const LandingFooter = () => {
           <div className="flex flex-col sm:flex-row gap-8 justify-between items-start sm:items-center">
             {/* Links */}
             <div className="flex gap-8">
-              {footerLinks.company.map((link, index) => (
+              {FOOTER_LINKS.map((link, index) => (
                 <a
                   key={index}
                   href={link.href}
@@ -56,7 +54,7 @@ export const LandingFooter = () => {
             
             {/* Social */}
             <div className="flex gap-4">
-              {socialLinks.map((social, index) => (
+              {SOCIAL_LINKS.map((social, index) => (
                 <a
                   key={index}
                   href={social.href}

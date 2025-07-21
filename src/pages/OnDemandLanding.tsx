@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { OnDemandLandingPage } from '@/components/landing/OnDemandLandingPage';
-import { SplashScreen } from '@/components/landing/SplashScreen';
+import { SplashScreen } from '@/components/ui/SplashScreen';
 
 export default function OnDemandLanding() {
   const [showSplash, setShowSplash] = useState(true);

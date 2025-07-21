@@ -20,7 +20,7 @@ import {
   HealthMilestone, 
   HealthTimelineEvent,
   VitalSigns 
-} from '@/types/healthTwin';
+} from '@/types';
 
 const HealthTwin = () => {
   const [activeTab, setActiveTab] = useState('avatar');

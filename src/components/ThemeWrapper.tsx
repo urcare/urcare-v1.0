@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { cn } from '@/utils/themeUtils';
+import { cn } from '@/lib/utils';
 
 interface ThemeWrapperProps {
   children: React.ReactNode;

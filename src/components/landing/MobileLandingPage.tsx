@@ -3,16 +3,31 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, Shield, Stethoscope, FileText, Lock, Cpu } from 'lucide-react';
 
+const ORBIT_ICONS = [
+  { Component: Heart, color: "text-red-400", position: "top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2" },
+  { Component: Cpu, color: "text-cyan-400", position: "top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2" },
+  { Component: Stethoscope, color: "text-blue-400", position: "bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2" },
+  { Component: Lock, color: "text-green-400", position: "top-1/2 left-0 transform -translate-x-1/2 -translate-y-1/2" },
+  { Component: FileText, color: "text-purple-400", position: "top-1/4 right-1/4 transform translate-x-1/2 -translate-y-1/2" }
+];
+
+const PARTICLES = [
+  { size: "w-2 h-2", color: "bg-cyan-400", position: "top-20 left-10", opacity: "opacity-60" },
+  { size: "w-1 h-1", color: "bg-blue-400", position: "top-40 right-8", opacity: "opacity-50" },
+  { size: "w-1.5 h-1.5", color: "bg-teal-400", position: "bottom-60 left-6", opacity: "opacity-40" }
+];
+
 export const MobileLandingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden border-8 border-black">
-      {/* Dark gradient background with teal highlights */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-blue-900/80 to-teal-900/40"></div>
       
-      {/* Floating particles with glow */}
-      <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full animate-pulse opacity-60 shadow-lg shadow-cyan-400/50"></div>
-      <div className="absolute top-40 right-8 w-1 h-1 bg-blue-400 rounded-full animate-pulse opacity-50 animation-delay-1000 shadow-md shadow-blue-400/50"></div>
-      <div className="absolute bottom-60 left-6 w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse opacity-40 animation-delay-2000 shadow-md shadow-teal-400/50"></div>
+      {PARTICLES.map((particle, index) => (
+        <div 
+          key={index} 
+          className={`absolute ${particle.size} ${particle.color} ${particle.position} ${particle.opacity} rounded-full animate-pulse shadow-lg`}
+        ></div>
+      ))}
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-12">
         {/* Central glassmorphic card */}
@@ -29,30 +44,11 @@ export const MobileLandingPage = () => {
 
             {/* Orbiting Icons */}
             <div className="absolute inset-0 animate-spin" style={{ animationDuration: '25s' }}>
-              {/* Heart */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20">
-                <Heart className="w-5 h-5 text-red-400" />
-              </div>
-              
-              {/* AI Chip */}
-              <div className="absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20">
-                <Cpu className="w-5 h-5 text-cyan-400" />
-              </div>
-              
-              {/* Stethoscope */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20">
-                <Stethoscope className="w-5 h-5 text-blue-400" />
-              </div>
-              
-              {/* Lock (Privacy) */}
-              <div className="absolute top-1/2 left-0 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20">
-                <Lock className="w-5 h-5 text-green-400" />
-              </div>
-              
-              {/* Document */}
-              <div className="absolute top-1/4 right-1/4 transform translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20">
-                <FileText className="w-5 h-5 text-purple-400" />
-              </div>
+              {ORBIT_ICONS.map(({ Component, color, position }, index) => (
+                <div key={index} className={`absolute ${position} w-10 h-10 bg-white/10 backdrop-blur-lg rounded-full shadow-lg flex items-center justify-center border border-white/20`}>
+                  <Component className={`w-5 h-5 ${color}`} />
+                </div>
+              ))}
             </div>
             
             {/* Orbit rings */}

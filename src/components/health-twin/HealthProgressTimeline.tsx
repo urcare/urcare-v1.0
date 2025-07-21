@@ -18,7 +18,7 @@ import {
   TrendingUp,
   Target
 } from 'lucide-react';
-import { HealthMilestone, HealthTimelineEvent } from '@/types/healthTwin';
+import { HealthMilestone, HealthTimelineEvent } from '@/types';
 
 interface HealthProgressTimelineProps {
   milestones: HealthMilestone[];

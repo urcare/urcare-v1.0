@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { User, Palette, Shirt, Crown } from 'lucide-react';
-import { HealthAvatar } from '@/types/healthTwin';
+import { HealthAvatar } from '@/types';
 
 interface AvatarCreatorProps {
   onSave: (avatar: HealthAvatar) => void;

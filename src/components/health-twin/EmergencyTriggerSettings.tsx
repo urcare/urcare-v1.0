@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Heart, Thermometer, Activity, Plus, Trash2, Phone } from 'lucide-react';
-import { EmergencyTrigger, VitalSigns } from '@/types/healthTwin';
+import { EmergencyTrigger, VitalSigns } from '@/types';
 
 interface EmergencyTriggerSettingsProps {
   triggers: EmergencyTrigger[];

@@ -7,15 +7,17 @@ import Landing from './pages/Landing';
 import OnDemandLanding from './pages/OnDemandLanding';
 import { Dashboard } from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
-import Profile from './pages/Profile';
-import AIDiagnostics from './pages/AIDiagnostics';
-import ClinicalDecisionSupport from './pages/ClinicalDecisionSupport';
-import MentalHealth from './pages/MentalHealth';
-import GeriatricCare from './pages/GeriatricCare';
-import LIMS from './pages/LIMS';
-import ClinicalAnalytics from './pages/ClinicalAnalytics';
-import PerformanceMonitoring from './pages/PerformanceMonitoring';
-import Analytics from './pages/Analytics';
+import { 
+  ProfilePage,
+  AIDiagnosticsPage,
+  ClinicalDecisionSupportPage,
+  MentalHealthPage,
+  GeriatricCarePage,
+  LIMSPage,
+  ClinicalAnalyticsPage,
+  PerformanceMonitoringPage,
+  AnalyticsPage
+} from './pages/RouteComponents';
 import AuthCallback from './pages/AuthCallback';
 
 function App() {
@@ -109,56 +111,15 @@ function App() {
         {/* Protected routes */}
         <Route path="/dashboard" element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } />
 
-        <Route path="/profile" element={ <ProtectedRoute> <Profile /> </ProtectedRoute> } />
-        
-        <Route path="/ai-diagnostics" element={ <ProtectedRoute> <AIDiagnostics /> </ProtectedRoute> } />
-        
-        <Route path="/clinical-decision-support" element={ <ProtectedRoute> <ClinicalDecisionSupport /> </ProtectedRoute> } />
-        
-        <Route path="/mental-health" element={ <ProtectedRoute> <MentalHealth /> </ProtectedRoute> } />
-        
-        <Route
-          path="/geriatric-care"
-          element={
-            <ProtectedRoute>
-              <GeriatricCare />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/lims"
-          element={
-            <ProtectedRoute>
-              <LIMS />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/clinical-analytics"
-          element={
-            <ProtectedRoute>
-              <ClinicalAnalytics />
-            </ProtectedRoute>
-          }
-        />
-        
-        {/* Phase 9: Performance Monitoring and Analytics */}
-        <Route 
-          path="/performance-monitoring" 
-          element={
-            <ProtectedRoute>
-              <PerformanceMonitoring />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/analytics" 
-          element={
-            <ProtectedRoute>
-              <Analytics />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/profile" element={ <ProtectedRoute> <ProfilePage /> </ProtectedRoute> } />
+        <Route path="/ai-diagnostics" element={ <ProtectedRoute> <AIDiagnosticsPage /> </ProtectedRoute> } />
+        <Route path="/clinical-decision-support" element={ <ProtectedRoute> <ClinicalDecisionSupportPage /> </ProtectedRoute> } />
+        <Route path="/mental-health" element={ <ProtectedRoute> <MentalHealthPage /> </ProtectedRoute> } />
+        <Route path="/geriatric-care" element={ <ProtectedRoute> <GeriatricCarePage /> </ProtectedRoute> } />
+        <Route path="/lims" element={ <ProtectedRoute> <LIMSPage /> </ProtectedRoute> } />
+        <Route path="/clinical-analytics" element={ <ProtectedRoute> <ClinicalAnalyticsPage /> </ProtectedRoute> } />
+        <Route path="/performance-monitoring" element={ <ProtectedRoute> <PerformanceMonitoringPage /> </ProtectedRoute> } />
+        <Route path="/analytics" element={ <ProtectedRoute> <AnalyticsPage /> </ProtectedRoute> } />
         
         {/* Catch-all route for unmatched paths */}
         <Route path="*" element={<Navigate to="/" replace />} />

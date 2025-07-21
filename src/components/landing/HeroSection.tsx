@@ -56,18 +56,16 @@ export const HeroSection = () => {
             </div>
             
             <div className="flex items-center gap-8 pt-12">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">500K+</div>
-                <div className="text-sm text-white/80">Users Served</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">24/7</div>
-                <div className="text-sm text-white/80">Available</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">95%</div>
-                <div className="text-sm text-white/80">Accuracy</div>
-              </div>
+              {[
+                { value: "500K+", label: "Users Served" },
+                { value: "24/7", label: "Available" },
+                { value: "95%", label: "Accuracy" }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-3xl font-bold text-white">{stat.value}</div>
+                  <div className="text-sm text-white/80">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
           

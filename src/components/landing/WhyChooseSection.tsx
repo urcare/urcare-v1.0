@@ -1,30 +1,8 @@
 
 import React from 'react';
-import { Clock, Calendar, Award, Smartphone } from 'lucide-react';
+import { WHY_CHOOSE_BENEFITS } from './constants';
 
 export const WhyChooseSection = () => {
-  const benefits = [
-    {
-      icon: Clock,
-      title: "No more late-night panic googling",
-      description: "Get reliable medical guidance instantly instead of falling down internet rabbit holes."
-    },
-    {
-      icon: Calendar,
-      title: "Faster than waiting rooms",
-      description: "Skip the waiting room and get answers to your health questions in seconds."
-    },
-    {
-      icon: Award,
-      title: "Get clarity before you visit a clinic",
-      description: "Understand your symptoms and be prepared for more productive doctor visits."
-    },
-    {
-      icon: Smartphone,
-      title: "Built with doctors and AI researchers",
-      description: "Developed in collaboration with medical professionals and leading AI experts."
-    }
-  ];
 
   return (
     <section className="py-24 bg-white">
@@ -42,7 +20,7 @@ export const WhyChooseSection = () => {
             </p>
             
             <div className="space-y-6">
-              {benefits.map((benefit, index) => (
+              {WHY_CHOOSE_BENEFITS.map((benefit, index) => (
                 <div 
                   key={index}
                   className="flex gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors duration-300 animate-fade-in"
@@ -52,12 +30,8 @@ export const WhyChooseSection = () => {
                     <benefit.icon className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {benefit.title}
-                    </h3>
-                    <p className="text-gray-600">
-                      {benefit.description}
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
+                    <p className="text-gray-600">{benefit.description}</p>
                   </div>
                 </div>
               ))}
