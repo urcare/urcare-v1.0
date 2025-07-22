@@ -34,7 +34,7 @@ const Unauthorized = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/auth');
+      navigate('/welcome');
     } catch (error) {
       console.error('Sign out error:', error);
     }

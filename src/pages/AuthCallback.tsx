@@ -174,23 +174,23 @@ const AuthCallback = () => {
             }, 100);
           }
         } else {
-          console.log('AuthCallback: No session found, redirecting to auth');
-          navigate('/auth');
+          console.log('AuthCallback: No session found, redirecting to welcome');
+          navigate('/welcome');
         }
       } catch (error) {
         console.error('Auth callback error:', error);
         toast.error('Authentication failed');
-        navigate('/auth');
+        navigate('/welcome');
       }
     };
 
     // Set a timeout to prevent infinite loading
     timeoutId = setTimeout(() => {
-      console.log('AuthCallback: Timeout reached, forcing redirect to auth');
+      console.log('AuthCallback: Timeout reached, forcing redirect to welcome');
       toast.error('Authentication timeout', {
         description: 'Taking too long to authenticate. Please try again.'
       });
-      navigate('/auth');
+      navigate('/welcome');
     }, 15000); // 15 second timeout
 
     handleAuthCallback();

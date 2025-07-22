@@ -359,22 +359,12 @@ const Onboarding = () => {
     }
   };
 
-  // Show welcome screen first
-  if (onboardingStep === 'welcome') {
-    return (
-      <OnboardingSteps
-        stepType="welcome"
-        onContinue={() => setOnboardingStep('serial')}
-      />
-    );
-  }
-
-  // Show serial onboarding
-  if (onboardingStep === 'serial') {
+  // Show serial onboarding directly (welcome screen is now separate)
+  if (onboardingStep === 'welcome' || onboardingStep === 'serial') {
     return (
       <SerialOnboarding
         onComplete={handleSerialComplete}
-        onBack={() => setOnboardingStep('welcome')}
+        onBack={() => navigate('/')}
       />
     );
   }

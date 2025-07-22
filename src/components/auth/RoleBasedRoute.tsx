@@ -29,9 +29,9 @@ export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
     );
   }
 
-  // Redirect to auth if not authenticated
+  // Redirect to welcome if not authenticated
   if (!user || !profile) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/welcome" state={{ from: location }} replace />;
   }
 
   // Check if user has required role

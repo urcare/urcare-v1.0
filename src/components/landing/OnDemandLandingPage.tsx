@@ -62,7 +62,7 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               <Button
-                onClick={() => navigate('/onboarding')}
+                onClick={() => navigate('/welcome')}
                 className="w-full max-w-sm bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Get started
@@ -75,11 +75,11 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
               transition={{ duration: 0.6, delay: 1.0 }}
             >
               <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/welcome')}
                 variant="outline"
                 className="w-full max-w-sm bg-transparent border-gray-300 text-gray-900 hover:bg-gray-50 py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300"
               >
-                Log in
+                I'm already a member
               </Button>
             </motion.div>
           </div>

@@ -1,12 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import Login from './pages/Login';
-import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import OnDemandLanding from './pages/OnDemandLanding';
 import { Dashboard } from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { 
   ProfilePage,
   AIDiagnosticsPage,
@@ -47,9 +46,9 @@ function App() {
       );
     }
 
-    // Redirect to auth if not authenticated
+    // Redirect to welcome if not authenticated
     if (!user) {
-      return <Navigate to="/auth" replace />;
+      return <Navigate to="/welcome" replace />;
     }
 
     return <>{children}</>;
@@ -68,10 +67,10 @@ function App() {
       );
     }
 
-    // If not authenticated, redirect to landing page
+    // If not authenticated, redirect to welcome page
     if (!user) {
-      console.log('OnboardingRoute: No user, redirecting to landing');
-      return <Navigate to="/" replace />;
+      console.log('OnboardingRoute: No user, redirecting to welcome');
+      return <Navigate to="/welcome" replace />;
     }
 
     const onboardingComplete = isOnboardingComplete();
@@ -98,9 +97,8 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<OnDemandLanding />} />
+        <Route path="/welcome" element={<WelcomeScreen />} />
         <Route path="/old-landing" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/login" element={<Login />} />
         
         {/* Auth callback route for OAuth */}
         <Route path="/auth/callback" element={<AuthCallback />} />
