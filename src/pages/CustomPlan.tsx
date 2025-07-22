@@ -51,6 +51,21 @@ const CustomPlan: React.FC = () => {
       navigate('/onboarding');
       return;
     }
+    // Check for required onboarding data
+    const required = [
+      profile.full_name,
+      profile.date_of_birth,
+      profile.gender,
+      profile.preferences?.meals?.breakfast_time,
+      profile.preferences?.schedule?.sleep_time,
+      profile.preferences?.schedule?.wake_up_time,
+      profile.preferences?.health?.blood_group
+    ];
+    if (required.some((v) => !v)) {
+      toast.error('Some onboarding data is missing. Please complete onboarding.');
+      navigate('/onboarding');
+      return;
+    }
     // Call backend for GPT-4 report
     fetchCustomPlanReport(profile).then((r) => {
       setReport(r);

@@ -110,12 +110,12 @@ const AuthCallback = () => {
             });
 
             if (onboardingCompleted) {
-              // Returning user with completed onboarding - redirect to dashboard
-              console.log('AuthCallback: Returning user, redirecting to dashboard');
+              // Returning user with completed onboarding - redirect to custom plan
+              console.log('AuthCallback: Returning user, redirecting to custom plan');
               toast.success('Welcome back!', {
                 description: 'You have been signed in successfully.'
               });
-              navigate('/dashboard', { replace: true });
+              navigate('/custom-plan', { replace: true });
             } else {
               // User exists but onboarding is incomplete - redirect to onboarding
               console.log('AuthCallback: User exists but onboarding incomplete, redirecting to onboarding');

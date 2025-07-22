@@ -37,9 +37,9 @@ const Auth = () => {
       console.log('New user detected, redirecting to onboarding');
       return <Navigate to="/onboarding" replace />;
     } else {
-      // Returning user - redirect to dashboard
-      console.log('Returning user detected, redirecting to dashboard');
-      return <Navigate to="/dashboard" replace />;
+      // Returning user - redirect to custom plan
+      console.log('Returning user detected, redirecting to custom plan');
+      return <Navigate to="/custom-plan" replace />;
     }
   }
 
