@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, User, Calendar, Users, Ruler, Weight, Clock, Briefcase } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OnboardingData {
   fullName: string;
@@ -408,6 +409,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 };
 
 export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, onBack }) => {
+  const { signInWithGoogle } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
@@ -1752,10 +1754,13 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
                 type="button" 
                 variant="outline"
                 className="w-full bg-white text-gray-900 border-2 border-gray-900 hover:bg-gray-50 rounded-full h-14 flex items-center justify-center space-x-3"
-                onClick={() => {
-                  // Handle Google sign in
-                  console.log('Sign in with Google');
-                  updateData('saveProgress', 'Google');
+                onClick={async () => {
+                  try {
+                    await signInWithGoogle();
+                    updateData('saveProgress', 'Google');
+                  } catch (error) {
+                    console.error('Google sign-in failed:', error);
+                  }
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">

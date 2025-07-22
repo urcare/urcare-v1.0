@@ -10,8 +10,8 @@ interface OnboardingData {
   fullName: string;
   age: string;
   gender: string;
-  height: string;
-  weight: string;
+  heightCm: string;
+  weightKg: string;
   wakeUpTime: string;
   sleepTime: string;
   workStart: string;
@@ -24,7 +24,7 @@ const Onboarding = () => {
   const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'serial' | 'complete'>('welcome');
   const [loading, setLoading] = useState(false);
 
-  const handleSerialComplete = async (data: OnboardingData) => {
+  const handleSerialComplete = (data: OnboardingData) => {
     if (!user) {
       console.error('No user found for onboarding completion');
       toast.error('User not found', { description: 'Please log in again.' });
@@ -34,54 +34,58 @@ const Onboarding = () => {
     console.log('Starting onboarding completion for user:', user.id);
     setLoading(true);
     
-    try {
-      const userProfileData = {
-        id: user.id,
-        full_name: data.fullName,
-        age: parseInt(data.age),
-        gender: data.gender,
-        height: parseInt(data.height),
-        weight: parseInt(data.weight),
-        onboarding_completed: true,
-        preferences: {
-          wake_up_time: data.wakeUpTime,
-          sleep_time: data.sleepTime,
-          work_start: data.workStart,
-          work_end: data.workEnd,
-        },
-      };
+    const saveUserProfile = async () => {
+      try {
+        const userProfileData = {
+          id: user.id,
+          full_name: data.fullName,
+          age: parseInt(data.age),
+          gender: data.gender,
+          height: parseInt(data.heightCm),
+          weight: parseInt(data.weightKg),
+          onboarding_completed: true,
+          preferences: {
+            wake_up_time: data.wakeUpTime,
+            sleep_time: data.sleepTime,
+            work_start: data.workStart,
+            work_end: data.workEnd,
+          },
+        };
 
-      console.log('Upserting user profile:', userProfileData);
-      
-      // Upsert the user profile
-      const { error: upsertError } = await supabase
-        .from('user_profiles')
-        .upsert(userProfileData);
+        console.log('Upserting user profile:', userProfileData);
+        
+        // Upsert the user profile
+        const { error: upsertError } = await supabase
+          .from('user_profiles')
+          .upsert(userProfileData);
 
-      if (upsertError) {
-        console.error('Error upserting user profile:', upsertError);
-        throw upsertError;
-      }
+        if (upsertError) {
+          console.error('Error upserting user profile:', upsertError);
+          throw upsertError;
+        }
 
-      console.log('User profile upserted successfully');
-      
-      setOnboardingStep('complete');
-      
-      setTimeout(() => {
-        toast.success('Welcome to UrCare!', { 
-          description: `Great to have you here, ${data.fullName}!` 
+        console.log('User profile upserted successfully');
+        
+        setOnboardingStep('complete');
+        
+        setTimeout(() => {
+          toast.success('Welcome to UrCare!', { 
+            description: `Great to have you here, ${data.fullName}!` 
+          });
+          navigate('/dashboard');
+        }, 2000);
+        
+      } catch (error: any) {
+        console.error('Error completing onboarding:', error);
+        toast.error('Onboarding failed', {
+          description: error.message || 'There was an error completing your onboarding. Please try again.'
         });
-        navigate('/dashboard');
-      }, 2000);
-      
-    } catch (error: any) {
-      console.error('Error completing onboarding:', error);
-      toast.error('Onboarding failed', {
-        description: error.message || 'There was an error completing your onboarding. Please try again.'
-      });
-    } finally {
-      setLoading(false);
-    }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    saveUserProfile();
   };
 
   // Show welcome screen first
