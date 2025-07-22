@@ -438,11 +438,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isOnboardingComplete = (): boolean => {
-    const isComplete = profile ? profile.onboarding_completed : false;
+    if (!profile) return false;
+    
+    const isComplete = profile.onboarding_completed === true;
     console.log('isOnboardingComplete check:', { 
       profile: !!profile, 
       onboarding_completed: profile?.onboarding_completed, 
-      isComplete 
+      isComplete,
+      fullProfile: profile
     });
     return isComplete;
   };

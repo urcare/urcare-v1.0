@@ -103,24 +103,42 @@ const AuthCallback = () => {
             }
 
             // Check if onboarding is complete - safely access the field
-            const onboardingCompleted = (profileData as any)?.onboarding_completed || false;
+            const onboardingCompleted = (profileData as any)?.onboarding_completed === true;
+            
+            // Check for required data fields as additional validation
+            const preferences = profileData.preferences as any;
+            const hasRequiredData = !!(
+              profileData.full_name &&
+              profileData.date_of_birth &&
+              profileData.gender &&
+              preferences?.meals?.breakfast_time &&
+              preferences?.schedule?.sleep_time &&
+              preferences?.health?.blood_group
+            );
+            
             console.log('AuthCallback: Profile found, onboarding status:', { 
               onboardingCompleted,
+              hasRequiredData,
+              fullName: profileData.full_name,
+              dateOfBirth: profileData.date_of_birth,
               profileData 
             });
 
-            if (onboardingCompleted) {
+            if (onboardingCompleted && hasRequiredData) {
               // Returning user with completed onboarding - redirect to custom plan
-              console.log('AuthCallback: Returning user, redirecting to custom plan');
+              console.log('AuthCallback: User with complete data, redirecting to custom plan');
               toast.success('Welcome back!', {
                 description: 'You have been signed in successfully.'
               });
               navigate('/custom-plan', { replace: true });
             } else {
               // User exists but onboarding is incomplete - redirect to onboarding
-              console.log('AuthCallback: User exists but onboarding incomplete, redirecting to onboarding');
-              toast.success('Welcome back!', {
-                description: 'Please complete your profile setup'
+              console.log('AuthCallback: User data incomplete, redirecting to onboarding', {
+                onboardingCompleted,
+                hasRequiredData
+              });
+              toast.success('Welcome!', {
+                description: onboardingCompleted ? 'Please complete your profile setup' : 'Let\'s set up your profile'
               });
               navigate('/onboarding', { replace: true });
             }

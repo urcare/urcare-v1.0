@@ -32,13 +32,20 @@ const Auth = () => {
   // Redirect to appropriate page if already authenticated
   if (user) {
     // Check if profile is complete using the new method
-    if (!isOnboardingComplete()) {
-      // New user - redirect to onboarding
-      console.log('New user detected, redirecting to onboarding');
+    const onboardingComplete = isOnboardingComplete();
+    console.log('Auth: User found, checking onboarding status:', {
+      onboardingComplete,
+      profile: !!profile,
+      profileData: profile
+    });
+    
+    if (!onboardingComplete) {
+      // New user or incomplete onboarding - redirect to onboarding
+      console.log('User onboarding incomplete, redirecting to onboarding');
       return <Navigate to="/onboarding" replace />;
     } else {
-      // Returning user - redirect to custom plan
-      console.log('Returning user detected, redirecting to custom plan');
+      // Returning user with complete onboarding - redirect to custom plan
+      console.log('User onboarding complete, redirecting to custom plan');
       return <Navigate to="/custom-plan" replace />;
     }
   }

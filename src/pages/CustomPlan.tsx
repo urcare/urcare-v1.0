@@ -52,16 +52,25 @@ const CustomPlan: React.FC = () => {
       return;
     }
     // Check for required onboarding data
+    const preferences = profile.preferences as any;
     const required = [
       profile.full_name,
       profile.date_of_birth,
       profile.gender,
-      profile.preferences?.meals?.breakfast_time,
-      profile.preferences?.schedule?.sleep_time,
-      profile.preferences?.schedule?.wake_up_time,
-      profile.preferences?.health?.blood_group
+      preferences?.meals?.breakfast_time,
+      preferences?.schedule?.sleep_time,
+      preferences?.schedule?.wake_up_time,
+      preferences?.health?.blood_group
     ];
+    
+    console.log('CustomPlan: Checking required data:', {
+      profile,
+      required: required.map((v, i) => ({ index: i, value: !!v })),
+      missingFields: required.map((v, i) => !v ? i : null).filter(v => v !== null)
+    });
+    
     if (required.some((v) => !v)) {
+      console.log('CustomPlan: Missing required data, redirecting to onboarding');
       toast.error('Some onboarding data is missing. Please complete onboarding.');
       navigate('/onboarding');
       return;

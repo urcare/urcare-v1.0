@@ -309,6 +309,9 @@ const Onboarding = () => {
       try {
         await refreshProfile();
         console.log('✅ Auth context refreshed with updated profile');
+        
+        // Wait a moment for the auth context to update
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (refreshError) {
         console.warn('Could not refresh auth profile:', refreshError);
       }
@@ -316,7 +319,7 @@ const Onboarding = () => {
       // Step 7: Show completion screen with detailed confirmation
       setOnboardingStep('complete');
       
-      // Step 8: Navigate to dashboard with success feedback
+      // Step 8: Navigate to custom plan with success feedback
       setTimeout(() => {
         toast.success('🎉 Welcome to UrCare!', { 
           description: `Profile setup complete! ${dataSummary.completeness}% data completeness with ${dataSummary.totalCompleted} key fields saved securely.`,
@@ -331,7 +334,7 @@ const Onboarding = () => {
           });
         }, 1000);
         
-        navigate('/dashboard');
+        navigate('/custom-plan');
       }, 2500);
       
     } catch (error: any) {
