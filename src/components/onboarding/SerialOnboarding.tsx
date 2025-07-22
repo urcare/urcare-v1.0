@@ -78,8 +78,12 @@ interface WheelPickerProps {
 
 const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onValueChange, width }) => {
   const selectedIndex = options.indexOf(selectedValue);
-  const visibleItems = 5; // Show 5 items at a time
-  const itemHeight = 40; // Height of each item in pixels
+  const visibleItems = 7; // Show 7 items at a time (3 above, 1 center, 3 below)
+  const itemHeight = 45; // Height of each item in pixels
+
+  // Touch and scroll state
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Add haptic feedback function
   const triggerHapticFeedback = () => {
@@ -97,12 +101,15 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
       if (index >= 0 && index < options.length) {
         result.push({
           value: options[index],
+          index: index,
           offset: i,
           isSelected: i === 0
         });
       } else {
+        // Add empty spaces for smooth scrolling
         result.push({
           value: '',
+          index: -1,
           offset: i,
           isSelected: false
         });
@@ -111,63 +118,198 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
     return result;
   };
 
-  const handleItemClick = (offset: number) => {
-    const newIndex = selectedIndex + offset;
-    if (newIndex >= 0 && newIndex < options.length && offset !== 0) {
+  const handleItemClick = (targetIndex: number) => {
+    if (targetIndex >= 0 && targetIndex < options.length && targetIndex !== selectedIndex) {
       triggerHapticFeedback();
-      onValueChange(options[newIndex]);
+      onValueChange(options[targetIndex]);
+    }
+  };
+
+  const moveUp = () => {
+    if (selectedIndex > 0) {
+      triggerHapticFeedback();
+      onValueChange(options[selectedIndex - 1]);
+    }
+  };
+
+  const moveDown = () => {
+    if (selectedIndex < options.length - 1) {
+      triggerHapticFeedback();
+      onValueChange(options[selectedIndex + 1]);
+    }
+  };
+
+  // Handle mouse wheel scrolling
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      moveDown();
+    } else {
+      moveUp();
+    }
+  };
+
+  // Handle touch start
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+    setIsDragging(true);
+  };
+
+  // Handle touch move
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || touchStartY === null) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = touchStartY - currentY;
+    
+    // Require minimum movement to trigger scroll
+    if (Math.abs(deltaY) > 20) {
+      if (deltaY > 0) {
+        moveDown();
+      } else {
+        moveUp();
+      }
+      setTouchStartY(currentY); // Reset for continuous scrolling
+    }
+  };
+
+  // Handle touch end
+  const handleTouchEnd = () => {
+    setTouchStartY(null);
+    setIsDragging(false);
+  };
+
+  // Handle mouse drag (for desktop)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setTouchStartY(e.clientY);
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || touchStartY === null) return;
+    
+    const currentY = e.clientY;
+    const deltaY = touchStartY - currentY;
+    
+    if (Math.abs(deltaY) > 20) {
+      if (deltaY > 0) {
+        moveDown();
+      } else {
+        moveUp();
+      }
+      setTouchStartY(currentY);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setTouchStartY(null);
+    setIsDragging(false);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveUp();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveDown();
     }
   };
 
   return (
-    <div className={`relative ${width} h-48 overflow-hidden bg-gray-50`}>
-      {/* Selection indicator - center highlight */}
-      <div className="absolute top-1/2 left-0 right-0 h-10 -mt-5 border-t border-b border-gray-400 bg-white bg-opacity-40 z-10 pointer-events-none rounded-lg"></div>
-      
-      {/* Gradient overlays for fading effect */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-gray-50 to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent z-20 pointer-events-none"></div>
-      
+    <div 
+      className={`relative ${width} h-64 overflow-hidden flex flex-col justify-center focus:outline-none`}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      style={{ userSelect: 'none' }}
+    >
       {/* Options container */}
       <div className="flex flex-col items-center justify-center h-full relative">
         {getVisibleOptions().map((item, index) => {
-          const opacity = item.isSelected ? 1 : Math.max(0.4, 1 - Math.abs(item.offset) * 0.25);
-          const scale = item.isSelected ? 1.1 : Math.max(0.85, 1 - Math.abs(item.offset) * 0.08);
+          if (!item.value) {
+            return (
+              <div
+                key={`empty-${index}`}
+                style={{ height: `${itemHeight}px` }}
+                className="flex items-center justify-center"
+              >
+              </div>
+            );
+          }
+
+          // Calculate opacity and styling based on distance from center - more dramatic fade
+          const distance = Math.abs(item.offset);
+          let opacity, fontSize, fontWeight, color, textShadow, transform;
+          
+          if (item.isSelected) {
+            // Selected item - bold, magnified with glassy effect
+            opacity = 1;
+            fontSize = '20px';
+            fontWeight = '800';
+            color = '#000000';
+            textShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+            transform = 'scale(1.15)';
+          } else if (distance === 1) {
+            // Adjacent items - more visible
+            opacity = 0.7;
+            fontSize = '16px';
+            fontWeight = '500';
+            color = '#666666';
+            textShadow = 'none';
+            transform = 'scale(1)';
+          } else if (distance === 2) {
+            // Further items - less visible
+            opacity = 0.35;
+            fontSize = '15px';
+            fontWeight = '400';
+            color = '#999999';
+            textShadow = 'none';
+            transform = 'scale(0.95)';
+          } else {
+            // Farthest items - barely visible
+            opacity = 0.1;
+            fontSize = '14px';
+            fontWeight = '300';
+            color = '#CCCCCC';
+            textShadow = 'none';
+            transform = 'scale(0.9)';
+          }
           
           return (
             <div
-              key={index}
+              key={`${item.value}-${index}`}
               className="flex items-center justify-center cursor-pointer transition-all duration-300 ease-out"
               style={{
                 height: `${itemHeight}px`,
                 opacity,
-                transform: `scale(${scale})`,
-                fontWeight: item.isSelected ? '700' : '500',
-                color: item.isSelected ? '#000000' : '#9CA3AF',
-                fontSize: item.isSelected ? '18px' : '16px'
+                transform
               }}
-              onClick={() => handleItemClick(item.offset)}
+              onClick={() => handleItemClick(item.index)}
             >
-              <span className="select-none text-center">
+              <span 
+                className="select-none text-center leading-none pointer-events-none"
+                style={{
+                  fontSize,
+                  fontWeight,
+                  color,
+                  textShadow,
+                  letterSpacing: item.isSelected ? '0.5px' : '0px'
+                }}
+              >
                 {item.value}
               </span>
             </div>
           );
         })}
-      </div>
-      
-      {/* Touch/scroll handlers for mobile */}
-      <div className="absolute inset-0 z-30">
-        {/* Up button */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-2/5 cursor-pointer"
-          onClick={() => handleItemClick(-1)}
-        ></div>
-        {/* Down button */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-2/5 cursor-pointer"
-          onClick={() => handleItemClick(1)}
-        ></div>
       </div>
     </div>
   );
