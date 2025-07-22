@@ -60,8 +60,7 @@ const steps = [
   { id: 'dateOfBirth', title: 'When were you born?', type: 'dateOfBirth', icon: Calendar },
   { id: 'gender', title: 'What\'s your gender?', type: 'choice', icon: Users },
   { id: 'heightWeight', title: 'Height & weight', type: 'heightWeight', icon: Ruler },
-  { id: 'wakeUpTime', title: 'What time do you usually wake up?', type: 'time', icon: Clock },
-  { id: 'sleepTime', title: 'What time do you usually go to sleep?', type: 'time', icon: Clock },
+  { id: 'sleepSchedule', title: 'Sleep schedule', type: 'sleepSchedule', icon: Clock },
   { id: 'workSchedule', title: 'What\'s your work schedule?', type: 'timeRange', icon: Briefcase },
   { id: 'chronicConditions', title: 'Do you have any chronic conditions?', type: 'multiChoice', icon: User },
   { id: 'medications', title: 'Do you take any medications?', type: 'medications', icon: User },
@@ -112,7 +111,7 @@ const getDays = () => Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 const getYears = () => {
   const currentYear = new Date().getFullYear();
   const years = [];
-  for (let year = currentYear; year >= currentYear - 100; year--) {
+  for (let year = currentYear - 100; year <= currentYear; year++) {
     years.push(year.toString());
   }
   return years;
@@ -130,6 +129,28 @@ const calculateAge = (birthMonth: string, birthDay: string, birthYear: string) =
   }
   
   return age.toString();
+};
+
+const calculateSleepDuration = (sleepTime: string, wakeTime: string) => {
+  if (!sleepTime || !wakeTime) return null;
+  
+  const [sleepHour, sleepMinute] = sleepTime.split(':').map(Number);
+  const [wakeHour, wakeMinute] = wakeTime.split(':').map(Number);
+  
+  // Convert times to minutes from midnight
+  let sleepMinutes = sleepHour * 60 + sleepMinute;
+  let wakeMinutes = wakeHour * 60 + wakeMinute;
+  
+  // If wake time is earlier than sleep time, assume it's the next day
+  if (wakeMinutes <= sleepMinutes) {
+    wakeMinutes += 24 * 60; // Add 24 hours
+  }
+  
+  const durationMinutes = wakeMinutes - sleepMinutes;
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+  
+  return { hours, minutes, totalHours: durationMinutes / 60 };
 };
 
 // Helper functions for height and weight pickers
@@ -172,16 +193,22 @@ interface WheelPickerProps {
 const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onValueChange, width }) => {
   const selectedIndex = options.indexOf(selectedValue);
   const visibleItems = 7; // Show 7 items at a time (3 above, 1 center, 3 below)
-  const itemHeight = 45; // Height of each item in pixels
+  const itemHeight = 50; // Height of each item in pixels
 
   // Touch and scroll state
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
-  // Add haptic feedback function
+  // Enhanced haptic feedback function
   const triggerHapticFeedback = () => {
-    if (navigator.vibrate) {
-      navigator.vibrate(50); // Vibrate for 50ms
+    try {
+      // Modern haptic feedback for supported devices
+      if ('vibrate' in navigator) {
+        navigator.vibrate([30]); // Short pulse for better feel
+      }
+    } catch (error) {
+      // Silently fail if haptic feedback is not supported
     }
   };
 
@@ -220,15 +247,19 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   const moveUp = () => {
     if (selectedIndex > 0) {
+      setIsScrolling(true);
       triggerHapticFeedback();
       onValueChange(options[selectedIndex - 1]);
+      setTimeout(() => setIsScrolling(false), 150);
     }
   };
 
   const moveDown = () => {
     if (selectedIndex < options.length - 1) {
+      setIsScrolling(true);
       triggerHapticFeedback();
       onValueChange(options[selectedIndex + 1]);
+      setTimeout(() => setIsScrolling(false), 150);
     }
   };
 
@@ -244,6 +275,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   // Handle touch start
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent page scroll
     setTouchStartY(e.touches[0].clientY);
     setIsDragging(true);
   };
@@ -252,11 +284,12 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || touchStartY === null) return;
     
+    e.preventDefault(); // Prevent scroll on the page
     const currentY = e.touches[0].clientY;
     const deltaY = touchStartY - currentY;
     
-    // Require minimum movement to trigger scroll
-    if (Math.abs(deltaY) > 20) {
+    // Require minimum movement to trigger scroll (reduced for better sensitivity)
+    if (Math.abs(deltaY) > 15) {
       if (deltaY > 0) {
         moveDown();
       } else {
@@ -284,7 +317,8 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
     const currentY = e.clientY;
     const deltaY = touchStartY - currentY;
     
-    if (Math.abs(deltaY) > 20) {
+    // Improved sensitivity for desktop dragging
+    if (Math.abs(deltaY) > 12) {
       if (deltaY > 0) {
         moveDown();
       } else {
@@ -312,7 +346,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   return (
     <div 
-      className={`relative ${width} h-48 overflow-hidden flex flex-col justify-center focus:outline-none`}
+      className={`relative ${width} h-56 overflow-hidden flex flex-col justify-center focus:outline-none rounded-xl`}
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -326,7 +360,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
       style={{ userSelect: 'none' }}
     >
       {/* Options container */}
-      <div className="flex flex-col items-center justify-center h-full relative">
+      <div className={`flex flex-col items-center justify-center h-full relative transition-all duration-200 ease-out ${isScrolling ? 'scale-105' : 'scale-100'}`}>
         {getVisibleOptions().map((item, index) => {
           if (!item.value) {
             return (
@@ -339,63 +373,67 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
             );
           }
 
-          // Calculate opacity and styling based on distance from center - more dramatic fade
+          // Calculate opacity and styling based on distance from center - simple bold text
           const distance = Math.abs(item.offset);
-          let opacity, fontSize, fontWeight, color, textShadow, transform;
+          let opacity, fontSize, fontWeight, color, textShadow, transform, zIndex;
           
           if (item.isSelected) {
-            // Selected item - bold, magnified with glassy effect
+            // Selected item - simple bold text
             opacity = 1;
-            fontSize = '20px';
-            fontWeight = '800';
-            color = '#000000';
-            textShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-            transform = 'scale(1.15)';
+            fontSize = 'clamp(16px, 4vw, 20px)';
+            fontWeight = '700';
+            color = '#111827';
+            textShadow = 'none';
+            transform = 'scale(1) translateZ(0)';
+            zIndex = 10;
           } else if (distance === 1) {
-            // Adjacent items - more visible
+            // Adjacent items - good visibility
             opacity = 0.7;
-            fontSize = '16px';
+            fontSize = 'clamp(14px, 3.5vw, 18px)';
             fontWeight = '500';
-            color = '#666666';
+            color = '#374151';
             textShadow = 'none';
-            transform = 'scale(1)';
+            transform = 'scale(1) translateZ(0)';
+            zIndex = 5;
           } else if (distance === 2) {
-            // Further items - less visible
-            opacity = 0.35;
-            fontSize = '15px';
+            // Further items - moderate visibility
+            opacity = 0.4;
+            fontSize = 'clamp(12px, 3vw, 16px)';
             fontWeight = '400';
-            color = '#999999';
+            color = '#6b7280';
             textShadow = 'none';
-            transform = 'scale(0.95)';
+            transform = 'scale(1) translateZ(0)';
+            zIndex = 3;
           } else {
-            // Farthest items - barely visible
-            opacity = 0.1;
-            fontSize = '14px';
-            fontWeight = '300';
-            color = '#CCCCCC';
+            // Farthest items - low visibility
+            opacity = 0.2;
+            fontSize = 'clamp(11px, 2.5vw, 14px)';
+            fontWeight = '400';
+            color = '#9ca3af';
             textShadow = 'none';
-            transform = 'scale(0.9)';
+            transform = 'scale(1) translateZ(0)';
+            zIndex = 1;
           }
           
           return (
             <div
               key={`${item.value}-${index}`}
-              className="flex items-center justify-center cursor-pointer transition-all duration-300 ease-out"
+              className="flex items-center justify-center cursor-pointer transition-all duration-300 ease-out px-2"
               style={{
                 height: `${itemHeight}px`,
                 opacity,
-                transform
+                transform,
+                zIndex
               }}
               onClick={() => handleItemClick(item.index)}
             >
               <span 
-                className="select-none text-center leading-none pointer-events-none"
+                className="select-none text-center leading-tight pointer-events-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
                 style={{
                   fontSize,
                   fontWeight,
                   color,
-                  textShadow,
-                  letterSpacing: item.isSelected ? '0.5px' : '0px'
+                  textShadow
                 }}
               >
                 {item.value}
@@ -491,14 +529,9 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
           }
         }
         break;
-      case 'wakeUpTime':
-        if (!data.wakeUpTime) {
-          newErrors.wakeUpTime = 'Please select your wake-up time';
-        }
-        break;
-      case 'sleepTime':
-        if (!data.sleepTime) {
-          newErrors.sleepTime = 'Please select your sleep time';
+      case 'sleepSchedule':
+        if (!data.wakeUpTime || !data.sleepTime) {
+          newErrors.sleepSchedule = 'Please set both wake-up and sleep times';
         }
         break;
       case 'workSchedule':
@@ -754,41 +787,100 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
 
       case 'dateOfBirth':
         return (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-500 text-center px-4">
-              When were you born?
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+            {data.birthMonth && data.birthDay && data.birthYear && (
+              <p className="text-sm text-gray-600 text-center px-4">
+                So you are {calculateAge(data.birthMonth, data.birthDay, data.birthYear)} years old.
+              </p>
+            )}
+            <div className="flex justify-center items-center space-x-4 max-w-sm w-full px-4">
+              <div className="text-center flex flex-col items-center flex-1 min-w-0">
                 <WheelPicker
                   options={getMonths()}
                   selectedValue={data.birthMonth}
                   onValueChange={(value) => updateData('birthMonth', value)}
                   width="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">Month</p>
+                <p className="text-xs text-gray-500 mt-2 font-medium">Month</p>
               </div>
-              <div className="text-center">
+              <div className="text-center flex flex-col items-center flex-shrink-0 w-16">
                 <WheelPicker
                   options={getDays()}
                   selectedValue={data.birthDay}
                   onValueChange={(value) => updateData('birthDay', value)}
                   width="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">Day</p>
+                <p className="text-xs text-gray-500 mt-2 font-medium">Day</p>
               </div>
-              <div className="text-center">
+              <div className="text-center flex flex-col items-center flex-shrink-0 w-20">
                 <WheelPicker
                   options={getYears()}
                   selectedValue={data.birthYear}
                   onValueChange={(value) => updateData('birthYear', value)}
                   width="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">Year</p>
+                <p className="text-xs text-gray-500 mt-2 font-medium">Year</p>
               </div>
             </div>
             {errors.dateOfBirth && (
-              <p className="text-red-500 text-sm text-center mt-2">{errors.dateOfBirth}</p>
+              <p className="text-red-500 text-sm text-center mt-4">{errors.dateOfBirth}</p>
+            )}
+          </div>
+        );
+
+      case 'sleepSchedule':
+        const sleepDuration = calculateSleepDuration(data.sleepTime, data.wakeUpTime);
+        const isGoodSleep = sleepDuration && sleepDuration.totalHours >= 7 && sleepDuration.totalHours <= 9;
+        
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500 text-center px-4">
+              What are your sleep and wake times?
+            </p>
+            <div className="space-y-4">
+              <div className="text-center">
+                <Label htmlFor="wakeUpTime" className="text-base font-medium text-gray-700 mb-2 block">Wake-up time</Label>
+                <Input
+                  id="wakeUpTime"
+                  type="time"
+                  value={data.wakeUpTime}
+                  onChange={(e) => updateData('wakeUpTime', e.target.value)}
+                  className="text-center text-xl font-normal border-none bg-transparent focus:ring-0 focus:outline-none text-gray-900 p-0 h-auto"
+                  style={{ boxShadow: 'none' }}
+                />
+                <div className="w-full h-px bg-gray-200 mt-2"></div>
+              </div>
+              <div className="text-center">
+                <Label htmlFor="sleepTime" className="text-base font-medium text-gray-700 mb-2 block">Sleep time</Label>
+                <Input
+                  id="sleepTime"
+                  type="time"
+                  value={data.sleepTime}
+                  onChange={(e) => updateData('sleepTime', e.target.value)}
+                  className="text-center text-xl font-normal border-none bg-transparent focus:ring-0 focus:outline-none text-gray-900 p-0 h-auto"
+                  style={{ boxShadow: 'none' }}
+                />
+                <div className="w-full h-px bg-gray-200 mt-2"></div>
+              </div>
+            </div>
+            
+            {/* Sleep Duration and Encouragement Message */}
+            {sleepDuration && (
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-600">
+                  Sleep duration: {sleepDuration.hours}h {sleepDuration.minutes}m
+                </p>
+                <p className={`text-sm font-medium ${isGoodSleep ? 'text-green-600' : 'text-amber-600'}`}>
+                  {isGoodSleep 
+                    ? "You are taking good hours of sleep as required! 🌙😴"
+                    : "Try to adjust for better sleep! 🌟🕒"
+                  }
+                </p>
+              </div>
+            )}
+            
+            {errors.sleepSchedule && (
+              <p className="text-red-500 text-sm text-center">{errors.sleepSchedule}</p>
             )}
           </div>
         );
@@ -1140,41 +1232,68 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
 
       case 'mealTimings':
         return (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-500 text-center px-4">
-              What are your usual meal times?
-            </p>
-            <div className="space-y-4">
+          <div className="flex flex-col justify-center space-y-6">
+            <div className="text-center">
+              <p className="text-base text-gray-600 font-medium mb-1">
+                What are your usual meal times?
+              </p>
+              <p className="text-xs text-gray-500">
+                Set your preferred dining schedule
+              </p>
+            </div>
+            
+            <div className="flex flex-col justify-center space-y-6 px-4">
+              {/* Breakfast */}
               <div className="text-center">
-                <Label htmlFor="breakfastTime" className="text-sm font-medium text-gray-700 mb-2 block">Breakfast</Label>
-                <WheelPicker
-                  options={getTimeOptions()}
-                  selectedValue={data.breakfastTime}
-                  onValueChange={(value) => updateData('breakfastTime', value)}
-                  width="w-full"
+                <Label htmlFor="breakfastTime" className="text-lg font-bold text-gray-900 mb-3 block">
+                  🌅 Breakfast
+                </Label>
+                <Input
+                  id="breakfastTime"
+                  type="time"
+                  value={data.breakfastTime}
+                  onChange={(e) => updateData('breakfastTime', e.target.value)}
+                  className="text-center text-xl font-medium border-none bg-transparent focus:ring-0 focus:outline-none text-gray-900 p-0 h-auto w-full"
+                  style={{ boxShadow: 'none' }}
                 />
+                <div className="w-full h-px bg-gray-300 mt-2 rounded-full"></div>
               </div>
+
+              {/* Lunch */}
               <div className="text-center">
-                <Label htmlFor="lunchTime" className="text-sm font-medium text-gray-700 mb-2 block">Lunch</Label>
-                <WheelPicker
-                  options={getTimeOptions()}
-                  selectedValue={data.lunchTime}
-                  onValueChange={(value) => updateData('lunchTime', value)}
-                  width="w-full"
+                <Label htmlFor="lunchTime" className="text-lg font-bold text-gray-900 mb-3 block">
+                  ☀️ Lunch
+                </Label>
+                <Input
+                  id="lunchTime"
+                  type="time"
+                  value={data.lunchTime}
+                  onChange={(e) => updateData('lunchTime', e.target.value)}
+                  className="text-center text-xl font-medium border-none bg-transparent focus:ring-0 focus:outline-none text-gray-900 p-0 h-auto w-full"
+                  style={{ boxShadow: 'none' }}
                 />
+                <div className="w-full h-px bg-gray-300 mt-2 rounded-full"></div>
               </div>
+
+              {/* Dinner */}
               <div className="text-center">
-                <Label htmlFor="dinnerTime" className="text-sm font-medium text-gray-700 mb-2 block">Dinner</Label>
-                <WheelPicker
-                  options={getTimeOptions()}
-                  selectedValue={data.dinnerTime}
-                  onValueChange={(value) => updateData('dinnerTime', value)}
-                  width="w-full"
+                <Label htmlFor="dinnerTime" className="text-lg font-bold text-gray-900 mb-3 block">
+                  🌙 Dinner
+                </Label>
+                <Input
+                  id="dinnerTime"
+                  type="time"
+                  value={data.dinnerTime}
+                  onChange={(e) => updateData('dinnerTime', e.target.value)}
+                  className="text-center text-xl font-medium border-none bg-transparent focus:ring-0 focus:outline-none text-gray-900 p-0 h-auto w-full"
+                  style={{ boxShadow: 'none' }}
                 />
+                <div className="w-full h-px bg-gray-300 mt-2 rounded-full"></div>
               </div>
             </div>
+
             {errors.mealTimings && (
-              <p className="text-red-500 text-sm text-center mt-2">{errors.mealTimings}</p>
+              <p className="text-red-500 text-sm text-center font-medium">{errors.mealTimings}</p>
             )}
           </div>
         );
@@ -1226,6 +1345,10 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
                 </div>
               </div>
               <div className="relative">
+                {/* Gradient overlays for fade effect */}
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
+                
                 <input
                   type="range"
                   min="0"
@@ -1233,7 +1356,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
                   step="1"
                   value={data.routineFlexibility || '5'}
                   onChange={(e) => updateData('routineFlexibility', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider relative z-5"
                 />
               </div>
             </div>
