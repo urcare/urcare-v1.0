@@ -8,6 +8,9 @@ import { ArrowLeft, ArrowRight, User, Calendar, Users, Ruler, Weight, Clock, Bri
 interface OnboardingData {
   fullName: string;
   age: string;
+  birthMonth: string;
+  birthDay: string;
+  birthYear: string;
   gender: string;
   height: string;
   weight: string;
@@ -24,7 +27,8 @@ interface SerialOnboardingProps {
 
 const steps = [
   { id: 'fullName', title: 'What\'s your full name?', type: 'text', icon: User },
-  { id: 'age', title: 'How old are you?', type: 'number', icon: Calendar },
+  { id: 'welcome', title: '', type: 'welcome', icon: User },
+  { id: 'dateOfBirth', title: 'When were you born?', type: 'dateOfBirth', icon: Calendar },
   { id: 'gender', title: 'What\'s your gender?', type: 'choice', icon: Users },
   { id: 'height', title: 'What\'s your height?', type: 'number', icon: Ruler, unit: 'cm' },
   { id: 'weight', title: 'What\'s your weight?', type: 'number', icon: Weight, unit: 'kg' },
@@ -33,11 +37,150 @@ const steps = [
   { id: 'workSchedule', title: 'What\'s your work schedule?', type: 'timeRange', icon: Briefcase }
 ];
 
+// Helper functions for date picker
+const getMonths = () => [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const getDays = () => Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+
+const getYears = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = currentYear; year >= currentYear - 100; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
+const calculateAge = (birthMonth: string, birthDay: string, birthYear: string) => {
+  const monthIndex = getMonths().indexOf(birthMonth);
+  const birthDate = new Date(parseInt(birthYear), monthIndex, parseInt(birthDay));
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age.toString();
+};
+
+// Custom Wheel Picker Component
+interface WheelPickerProps {
+  options: string[];
+  selectedValue: string;
+  onValueChange: (value: string) => void;
+  width: string;
+}
+
+const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onValueChange, width }) => {
+  const selectedIndex = options.indexOf(selectedValue);
+  const visibleItems = 5; // Show 5 items at a time
+  const itemHeight = 40; // Height of each item in pixels
+
+  // Add haptic feedback function
+  const triggerHapticFeedback = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50); // Vibrate for 50ms
+    }
+  };
+
+  const getVisibleOptions = () => {
+    const result = [];
+    const halfVisible = Math.floor(visibleItems / 2);
+    
+    for (let i = -halfVisible; i <= halfVisible; i++) {
+      const index = selectedIndex + i;
+      if (index >= 0 && index < options.length) {
+        result.push({
+          value: options[index],
+          offset: i,
+          isSelected: i === 0
+        });
+      } else {
+        result.push({
+          value: '',
+          offset: i,
+          isSelected: false
+        });
+      }
+    }
+    return result;
+  };
+
+  const handleItemClick = (offset: number) => {
+    const newIndex = selectedIndex + offset;
+    if (newIndex >= 0 && newIndex < options.length && offset !== 0) {
+      triggerHapticFeedback();
+      onValueChange(options[newIndex]);
+    }
+  };
+
+  return (
+    <div className={`relative ${width} h-48 overflow-hidden bg-gray-50`}>
+      {/* Selection indicator - center highlight */}
+      <div className="absolute top-1/2 left-0 right-0 h-10 -mt-5 border-t border-b border-gray-400 bg-white bg-opacity-40 z-10 pointer-events-none rounded-lg"></div>
+      
+      {/* Gradient overlays for fading effect */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-gray-50 to-transparent z-20 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent z-20 pointer-events-none"></div>
+      
+      {/* Options container */}
+      <div className="flex flex-col items-center justify-center h-full relative">
+        {getVisibleOptions().map((item, index) => {
+          const opacity = item.isSelected ? 1 : Math.max(0.4, 1 - Math.abs(item.offset) * 0.25);
+          const scale = item.isSelected ? 1.1 : Math.max(0.85, 1 - Math.abs(item.offset) * 0.08);
+          
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-center cursor-pointer transition-all duration-300 ease-out"
+              style={{
+                height: `${itemHeight}px`,
+                opacity,
+                transform: `scale(${scale})`,
+                fontWeight: item.isSelected ? '700' : '500',
+                color: item.isSelected ? '#000000' : '#9CA3AF',
+                fontSize: item.isSelected ? '18px' : '16px'
+              }}
+              onClick={() => handleItemClick(item.offset)}
+            >
+              <span className="select-none text-center">
+                {item.value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Touch/scroll handlers for mobile */}
+      <div className="absolute inset-0 z-30">
+        {/* Up button */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-2/5 cursor-pointer"
+          onClick={() => handleItemClick(-1)}
+        ></div>
+        {/* Down button */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-2/5 cursor-pointer"
+          onClick={() => handleItemClick(1)}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
 export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, onBack }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
     age: '',
+    birthMonth: 'January',
+    birthDay: '1',
+    birthYear: '2000',
     gender: '',
     height: '',
     weight: '',
@@ -60,10 +203,12 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
           newErrors.fullName = 'Name must be at least 2 characters';
         }
         break;
-      case 'age':
-        const age = parseInt(data.age);
-        if (!data.age || isNaN(age) || age < 1 || age > 120) {
-          newErrors.age = 'Please enter a valid age (1-120)';
+      case 'welcome':
+        // Welcome screen doesn't need validation
+        break;
+      case 'dateOfBirth':
+        if (!data.birthMonth || !data.birthDay || !data.birthYear) {
+          newErrors.dateOfBirth = 'Please select your date of birth';
         }
         break;
       case 'gender':
@@ -108,8 +253,19 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      // Calculate age when completing date of birth step
+      if (steps[currentStep].id === 'dateOfBirth') {
+        const calculatedAge = calculateAge(data.birthMonth, data.birthDay, data.birthYear);
+        setData(prev => ({ ...prev, age: calculatedAge }));
+      }
+      
       if (currentStep === steps.length - 1) {
-        onComplete(data);
+        // Ensure age is calculated before completing
+        const finalData = { ...data };
+        if (finalData.birthMonth && finalData.birthDay && finalData.birthYear) {
+          finalData.age = calculateAge(finalData.birthMonth, finalData.birthDay, finalData.birthYear);
+        }
+        onComplete(finalData);
       } else {
         setCurrentStep(currentStep + 1);
       }
@@ -138,6 +294,71 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
 
   const renderStepContent = () => {
     switch (currentStepData.type) {
+      case 'welcome':
+        return (
+          <div className="text-center space-y-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-6xl mb-8"
+            >
+              👋
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="space-y-4"
+            >
+              <h1 className="text-3xl font-semibold text-gray-900">
+                Nice to meet you, {data.fullName}!
+              </h1>
+              <p className="text-lg text-gray-600 leading-relaxed px-4">
+                UrCare is your health companion, helping you track fitness, nutrition, and sleep.
+              </p>
+            </motion.div>
+          </div>
+        );
+
+      case 'dateOfBirth':
+        return (
+          <div className="space-y-6">
+            <p className="text-sm text-gray-500 text-center px-4">
+              This will be used to calibrate your custom plan.
+            </p>
+            <div className="flex justify-center items-center space-x-6 py-8">
+              {/* Month Column */}
+              <WheelPicker
+                options={getMonths()}
+                selectedValue={data.birthMonth}
+                onValueChange={(value) => updateData('birthMonth', value)}
+                width="w-28"
+              />
+
+              {/* Day Column */}
+              <WheelPicker
+                options={getDays()}
+                selectedValue={data.birthDay}
+                onValueChange={(value) => updateData('birthDay', value)}
+                width="w-16"
+              />
+
+              {/* Year Column */}
+              <WheelPicker
+                options={getYears()}
+                selectedValue={data.birthYear}
+                onValueChange={(value) => updateData('birthYear', value)}
+                width="w-20"
+              />
+            </div>
+            
+            {errors.dateOfBirth && (
+              <p className="text-red-500 text-sm text-center mt-4">{errors.dateOfBirth}</p>
+            )}
+          </div>
+        );
+
       case 'text':
         return (
           <div className="space-y-2">
@@ -304,12 +525,16 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
           transition={{ duration: 0.6 }}
           className="mb-12 text-center"
         >
-          <h1 className="text-2xl font-normal text-gray-900 mb-4 leading-tight">
-            {currentStepData.title}
-          </h1>
-          <p className="text-sm text-gray-500">
-            Step {currentStep + 1} of {steps.length}
-          </p>
+          {currentStepData.type !== 'welcome' && (
+            <>
+              <h1 className="text-2xl font-normal text-gray-900 mb-4 leading-tight">
+                {currentStepData.title}
+              </h1>
+              <p className="text-sm text-gray-500">
+                Step {currentStep + 1} of {steps.length}
+              </p>
+            </>
+          )}
         </motion.div>
 
         {/* Input Section */}
@@ -317,7 +542,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex-1 flex items-start justify-center"
+          className={`flex-1 flex items-${currentStepData.type === 'welcome' ? 'center' : 'start'} justify-center`}
         >
           <div className="w-full max-w-md">
             <AnimatePresence mode="wait">
