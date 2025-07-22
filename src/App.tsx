@@ -19,6 +19,7 @@ import {
   AnalyticsPage
 } from './pages/RouteComponents';
 import AuthCallback from './pages/AuthCallback';
+import CustomPlan from './pages/CustomPlan';
 
 function App() {
   const { user, profile, loading, isInitialized, isOnboardingComplete } = useAuth();
@@ -120,6 +121,7 @@ function App() {
         <Route path="/clinical-analytics" element={ <ProtectedRoute> <ClinicalAnalyticsPage /> </ProtectedRoute> } />
         <Route path="/performance-monitoring" element={ <ProtectedRoute> <PerformanceMonitoringPage /> </ProtectedRoute> } />
         <Route path="/analytics" element={ <ProtectedRoute> <AnalyticsPage /> </ProtectedRoute> } />
+        <Route path="/custom-plan" element={<CustomPlan />} />
         
         {/* Catch-all route for unmatched paths */}
         <Route path="*" element={<Navigate to="/" replace />} />
