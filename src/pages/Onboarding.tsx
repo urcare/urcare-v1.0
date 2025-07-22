@@ -384,7 +384,7 @@ const Onboarding = () => {
     return (
       <OnboardingSteps
         stepType="complete"
-        onContinue={() => navigate('/dashboard')}
+        onContinue={() => navigate('/custom-plan')}
       />
     );
   }

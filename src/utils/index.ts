@@ -24,9 +24,9 @@ export const getPostLoginRedirectURL = (): string => {
   // Default redirect based on current path
   const currentPath = window.location.pathname;
   
-  // If already on auth pages, redirect to dashboard
+  // If already on auth pages, redirect to custom plan
   if (currentPath.includes('/auth') || currentPath.includes('/login')) {
-    return `${window.location.origin}/dashboard`;
+    return `${window.location.origin}/custom-plan`;
   }
   
   return window.location.href;

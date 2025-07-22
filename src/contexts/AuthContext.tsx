@@ -438,15 +438,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isOnboardingComplete = (): boolean => {
-    if (!profile) return false;
+    if (!profile) {
+      console.log('isOnboardingComplete: No profile found');
+      return false;
+    }
     
-    const isComplete = profile.onboarding_completed === true;
-    console.log('isOnboardingComplete check:', { 
+    // Check the onboarding_completed flag
+    const flagComplete = profile.onboarding_completed === true;
+    
+    // Additional validation: check if essential data is present
+    const preferences = profile.preferences as any;
+    const hasEssentialData = !!(
+      profile.full_name &&
+      profile.date_of_birth &&
+      profile.gender &&
+      preferences?.meals?.breakfast_time &&
+      preferences?.schedule?.sleep_time &&
+      preferences?.health?.blood_group
+    );
+    
+    const isComplete = flagComplete && hasEssentialData;
+    
+    console.log('isOnboardingComplete comprehensive check:', { 
       profile: !!profile, 
       onboarding_completed: profile?.onboarding_completed, 
+      flagComplete,
+      hasEssentialData,
       isComplete,
-      fullProfile: profile
+      fullName: profile.full_name,
+      dateOfBirth: profile.date_of_birth,
+      gender: profile.gender
     });
+    
     return isComplete;
   };
 

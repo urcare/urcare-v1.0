@@ -88,9 +88,9 @@ function App() {
       return <>{children}</>;
     }
 
-    // If onboarding is complete, redirect to dashboard
-    console.log('OnboardingRoute: Onboarding complete, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
+    // If onboarding is complete, redirect to custom plan
+    console.log('OnboardingRoute: Onboarding complete, redirecting to custom plan');
+    return <Navigate to="/custom-plan" replace />;
   };
 
   return (
@@ -121,7 +121,7 @@ function App() {
         <Route path="/clinical-analytics" element={ <ProtectedRoute> <ClinicalAnalyticsPage /> </ProtectedRoute> } />
         <Route path="/performance-monitoring" element={ <ProtectedRoute> <PerformanceMonitoringPage /> </ProtectedRoute> } />
         <Route path="/analytics" element={ <ProtectedRoute> <AnalyticsPage /> </ProtectedRoute> } />
-        <Route path="/custom-plan" element={<CustomPlan />} />
+        <Route path="/custom-plan" element={ <ProtectedRoute> <CustomPlan /> </ProtectedRoute> } />
         
         {/* Catch-all route for unmatched paths */}
         <Route path="*" element={<Navigate to="/" replace />} />

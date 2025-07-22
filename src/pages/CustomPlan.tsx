@@ -46,11 +46,23 @@ const CustomPlan: React.FC = () => {
   const isSubscribed = profile?.preferences?.subscription === 'active';
 
   useEffect(() => {
+    console.log('CustomPlan: Component mounted, checking profile...', { profile: !!profile });
+    
     if (!profile) {
+      console.log('CustomPlan: No profile found, redirecting to onboarding');
       toast.error('Profile not found. Please complete onboarding.');
       navigate('/onboarding');
       return;
     }
+
+    // Check onboarding completion flag first
+    if (!profile.onboarding_completed) {
+      console.log('CustomPlan: Onboarding not completed, redirecting to onboarding');
+      toast.error('Please complete your onboarding first.');
+      navigate('/onboarding');
+      return;
+    }
+    
     // Check for required onboarding data
     const preferences = profile.preferences as any;
     const required = [
@@ -63,23 +75,34 @@ const CustomPlan: React.FC = () => {
       preferences?.health?.blood_group
     ];
     
-    console.log('CustomPlan: Checking required data:', {
+    const missingFields = required.map((v, i) => !v ? i : null).filter(v => v !== null);
+    
+    console.log('CustomPlan: Data validation check:', {
       profile,
+      onboardingCompleted: profile.onboarding_completed,
       required: required.map((v, i) => ({ index: i, value: !!v })),
-      missingFields: required.map((v, i) => !v ? i : null).filter(v => v !== null)
+      missingFields,
+      hasAllData: missingFields.length === 0
     });
     
     if (required.some((v) => !v)) {
-      console.log('CustomPlan: Missing required data, redirecting to onboarding');
-      toast.error('Some onboarding data is missing. Please complete onboarding.');
+      console.log('CustomPlan: Missing required data fields, redirecting to onboarding');
+      toast.error('Some onboarding data is missing. Please complete your profile setup.');
       navigate('/onboarding');
       return;
     }
+
+    console.log('CustomPlan: All checks passed, generating custom plan...');
+    
     // Call backend for GPT-4 report
     fetchCustomPlanReport(profile).then((r) => {
       setReport(r);
       setLoading(false);
       setTimeout(() => setStep('ready'), 1200);
+    }).catch((error) => {
+      console.error('CustomPlan: Error generating report:', error);
+      setLoading(false);
+      toast.error('Failed to generate custom plan. Please try again.');
     });
   }, [profile, navigate]);
 
