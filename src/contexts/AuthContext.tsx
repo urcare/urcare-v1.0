@@ -140,6 +140,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
+        // Don't interfere with OAuth callback processing
+        if (window.location.pathname === '/auth/callback') {
+          console.log('Auth state change skipped - on callback page');
+          return;
+        }
+        
         if (session?.user) {
           setUser(session.user);
           try {

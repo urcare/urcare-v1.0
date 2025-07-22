@@ -26,6 +26,8 @@ const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const handleAuthCallback = async () => {
       try {
         console.log('AuthCallback: Starting OAuth callback handling...');
@@ -84,6 +86,11 @@ const AuthCallback = () => {
             email: sessionData.session.user.email 
           });
           
+          // Clear the timeout since we found a session
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          
           // Check if user profile exists and onboarding is complete
           try {
             const { data: profileData, error: profileError } = await supabase
@@ -98,7 +105,11 @@ const AuthCallback = () => {
               toast.success('Welcome to UrCare!', {
                 description: 'Let\'s set up your profile'
               });
-              navigate('/onboarding', { replace: true });
+              
+              setTimeout(() => {
+                console.log('AuthCallback: Executing navigation for new user to onboarding');
+                navigate('/onboarding', { replace: true });
+              }, 100);
               return;
             }
 
@@ -130,7 +141,11 @@ const AuthCallback = () => {
               toast.success('Welcome back!', {
                 description: 'You have been signed in successfully.'
               });
-              navigate('/custom-plan', { replace: true });
+              
+              setTimeout(() => {
+                console.log('AuthCallback: Executing navigation to custom plan');
+                navigate('/custom-plan', { replace: true });
+              }, 100);
             } else {
               // User exists but onboarding is incomplete - redirect to onboarding
               console.log('AuthCallback: User data incomplete, redirecting to onboarding', {
@@ -140,7 +155,11 @@ const AuthCallback = () => {
               toast.success('Welcome!', {
                 description: onboardingCompleted ? 'Please complete your profile setup' : 'Let\'s set up your profile'
               });
-              navigate('/onboarding', { replace: true });
+              
+              setTimeout(() => {
+                console.log('AuthCallback: Executing navigation to onboarding');
+                navigate('/onboarding', { replace: true });
+              }, 100);
             }
           } catch (profileError) {
             console.error('AuthCallback: Error checking profile:', profileError);
@@ -148,7 +167,11 @@ const AuthCallback = () => {
             toast.success('Welcome to UrCare!', {
               description: 'Let\'s set up your profile'
             });
-            navigate('/onboarding', { replace: true });
+            
+            setTimeout(() => {
+              console.log('AuthCallback: Executing fallback navigation to onboarding');
+              navigate('/onboarding', { replace: true });
+            }, 100);
           }
         } else {
           console.log('AuthCallback: No session found, redirecting to auth');
@@ -161,14 +184,49 @@ const AuthCallback = () => {
       }
     };
 
+    // Set a timeout to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      console.log('AuthCallback: Timeout reached, forcing redirect to auth');
+      toast.error('Authentication timeout', {
+        description: 'Taking too long to authenticate. Please try again.'
+      });
+      navigate('/auth');
+    }, 15000); // 15 second timeout
+
     handleAuthCallback();
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="text-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Completing authentication...</p>
+      <div className="text-center max-w-md mx-auto px-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+          Completing Authentication
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Setting up your secure session...
+        </p>
+        <div className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+          If this takes more than 15 seconds, you'll be redirected automatically.
+        </div>
+        
+        <button 
+          onClick={() => {
+            console.log('AuthCallback: Manual navigation to onboarding');
+            toast.info('Redirecting to setup...');
+            navigate('/onboarding');
+          }}
+          className="text-blue-600 hover:text-blue-700 underline text-sm"
+        >
+          Having trouble? Click here to continue
+        </button>
       </div>
     </div>
   );
