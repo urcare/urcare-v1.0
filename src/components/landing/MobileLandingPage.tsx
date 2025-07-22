@@ -59,8 +59,8 @@ export const MobileLandingPage = () => {
           {/* Brand Section */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-400/30">
-                <Heart className="w-4 h-4 text-white" />
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center shadow-lg shadow-green-400/30">
+                <img src="/urcare-logo.svg" alt="UrCare Logo" className="w-5 h-5" />
               </div>
               <span className="text-lg font-light text-white/90">UrCare</span>
             </div>

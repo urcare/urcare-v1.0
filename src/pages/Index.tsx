@@ -11,8 +11,8 @@ const Index = () => {
       <header className="medical-nav px-6 py-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-medical rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+              <img src="/urcare-logo.svg" alt="UrCare Logo" className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-foreground">UrCare</h1>

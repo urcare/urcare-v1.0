@@ -77,10 +77,10 @@ export const AuthForm = () => {
       <div className="relative w-full max-w-md">
         {/* Logo and branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <Heart className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg">
+            <img src="/brand.png" alt="UrCare Logo" className="w-12 h-12 rounded-xl" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
             UrCare
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm">

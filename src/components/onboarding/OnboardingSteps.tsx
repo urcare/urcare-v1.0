@@ -71,28 +71,7 @@ export const OnboardingSteps: React.FC<OnboardingStepsProps> = ({
             className="mb-12"
           >
             <div className="w-24 h-24 mx-auto mb-8">
-              <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
-                <path d="M48 84C48 84 12 60 12 36C12 24 21.6 14 33.6 14C40.8 14 46.8 18 48 24C49.2 18 55.2 14 62.4 14C74.4 14 84 24 84 36C84 60 48 84 48 84Z" fill="#22C55E" stroke="#16A34A" strokeWidth="2"/>
-                <g transform="translate(58, 20)">
-                  <rect x="6" y="2" width="4" height="12" fill="white" rx="1"/>
-                  <rect x="2" y="6" width="12" height="4" fill="white" rx="1"/>
-                </g>
-                <g transform="translate(16, 28)" stroke="white" strokeWidth="1.5" fill="none">
-                  <circle cx="4" cy="4" r="2"/>
-                  <circle cx="4" cy="12" r="2"/>
-                  <circle cx="12" cy="8" r="2"/>
-                  <line x1="4" y1="6" x2="4" y2="10"/>
-                  <line x1="6" y1="4" x2="10" y2="8"/>
-                  <line x1="6" y1="12" x2="10" y2="8"/>
-                </g>
-                <g transform="translate(20, 40)" stroke="white" strokeWidth="1" fill="white">
-                  <circle cx="2" cy="2" r="1"/>
-                  <circle cx="8" cy="6" r="1"/>
-                  <circle cx="14" cy="2" r="1"/>
-                  <line x1="2" y1="2" x2="8" y2="6" stroke="white" strokeWidth="0.8"/>
-                  <line x1="8" y1="6" x2="14" y2="2" stroke="white" strokeWidth="0.8"/>
-                </g>
-              </svg>
+              <img src="/brand.png" alt="UrCare Logo" className="w-full h-full drop-shadow-lg rounded-xl" />
             </div>
           </motion.div>
 

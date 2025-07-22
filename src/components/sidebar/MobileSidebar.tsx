@@ -56,13 +56,13 @@ export function MobileSidebar() {
           <div className="border-b border-gray-200/50 dark:border-gray-800/50 p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Heart className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
+                  <img src="/urcare-logo.svg" alt="UrCare Logo" className="w-8 h-8" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                    UrCare
-                  </h1>
+                                      <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      UrCare
+                    </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Healthcare Management
                   </p>

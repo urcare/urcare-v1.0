@@ -315,25 +315,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
+      // Get the current origin and ensure proper callback URL
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log('Google OAuth redirect URL:', redirectUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Google OAuth initialization error:', error);
+        throw error;
+      }
 
+      console.log('Google OAuth initiated successfully');
       // The OAuth flow will redirect the user, so we don't need to handle the response here
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast.error('Google sign-in failed', {
-        description: error.message
+        description: error.message || 'Failed to initialize Google sign-in'
       });
+      setLoading(false); // Reset loading state on error
       throw error;
-    } finally {
-      setLoading(false);
     }
+    // Note: Don't set loading to false here as the page will redirect
   };
 
   const signOut = async () => {

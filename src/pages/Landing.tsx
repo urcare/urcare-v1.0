@@ -119,7 +119,7 @@ const Landing = ({ showModal = false }) => {
                 <div className="flex items-center justify-center md:justify-start space-x-3">
                   <div className="flex items-center justify-center bg-gradient-to-br from-black/15 to-black/15 backdrop-blur-md px-3 py-2 rounded-3xl border border-teal-500/50 shadow-lg">
                     <div className="size-16 rounded-full flex items-center justify-center mr-2">
-                      <img src="/brand.png" alt="brand" className='scale-150' />
+                      <img src="/brand.png" alt="UrCare Logo" className='scale-150 rounded-xl' />
                     </div>
                     <h1 className="text-2xl md:text-4xl font-bold font-Krona bg-gradient-to-r from-white via-teal-100 to-teal-500 bg-clip-text text-transparent tracking-tight">UrCare</h1>
                   </div>
@@ -282,7 +282,7 @@ const Landing = ({ showModal = false }) => {
                     className="flex justify-center items-center mb-2"
                   >
                     <div className="relative">
-                      <img src="/brand.png" alt="Brand" className="relative size-20 rounded-xl" />
+                      <img src="/brand.png" alt="UrCare Logo" className="relative size-20 rounded-xl" />
                     </div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-teal-100 to-teal-500 bg-clip-text text-transparent font-Krona tracking-wide">UrCare</h1>
                   </motion.div>

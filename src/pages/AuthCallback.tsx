@@ -29,22 +29,59 @@ const AuthCallback = () => {
     const handleAuthCallback = async () => {
       try {
         console.log('AuthCallback: Starting OAuth callback handling...');
+        console.log('AuthCallback: Current URL:', window.location.href);
+        console.log('AuthCallback: URL hash:', window.location.hash);
+        console.log('AuthCallback: URL search params:', window.location.search);
         
-        const { data, error } = await supabase.auth.getSession();
+        // First, try to handle the OAuth callback if there are auth params in the URL
+        const { data: authData, error: authError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('Auth callback error:', error);
+        if (authError) {
+          console.error('Auth callback session error:', authError);
           toast.error('Authentication failed', {
-            description: error.message
+            description: authError.message
           });
           navigate('/auth');
           return;
         }
 
-        if (data.session?.user) {
+        let sessionData = authData;
+        
+        // If no session yet, wait a bit for the OAuth callback to process
+        if (!authData.session) {
+          console.log('AuthCallback: No session found yet, waiting for OAuth processing...');
+          
+          // Wait a moment for the OAuth flow to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Try getting session again
+          const { data: retryData, error: retryError } = await supabase.auth.getSession();
+          
+          if (retryError) {
+            console.error('Auth callback retry error:', retryError);
+            toast.error('Authentication failed', {
+              description: retryError.message
+            });
+            navigate('/auth');
+            return;
+          }
+          
+          if (!retryData.session) {
+            console.log('AuthCallback: Still no session, redirecting to auth');
+            toast.error('Authentication failed', {
+              description: 'No session was established'
+            });
+            navigate('/auth');
+            return;
+          }
+          
+          sessionData = retryData;
+        }
+
+        if (sessionData.session?.user) {
           console.log('AuthCallback: User authenticated, checking profile...', { 
-            userId: data.session.user.id,
-            email: data.session.user.email 
+            userId: sessionData.session.user.id,
+            email: sessionData.session.user.email 
           });
           
           // Check if user profile exists and onboarding is complete
@@ -52,7 +89,7 @@ const AuthCallback = () => {
             const { data: profileData, error: profileError } = await supabase
               .from('user_profiles')
               .select('*')
-              .eq('id', data.session.user.id)
+              .eq('id', sessionData.session.user.id)
               .single();
 
             if (profileError) {
