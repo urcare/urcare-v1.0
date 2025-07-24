@@ -154,11 +154,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
+    console.log('signInWithGoogle called');
     setLoading(true);
     try {
+      console.log('Calling supabase.auth.signInWithOAuth for Google');
       await supabase.auth.signInWithOAuth({ provider: 'google' });
+      console.log('supabase.auth.signInWithOAuth for Google finished (should redirect or popup)');
     } catch (error: any) {
       setLoading(false);
+      console.error('Google sign-in failed:', error);
       toast.error('Google sign-in failed', { description: error.message || 'Failed to initialize Google sign-in' });
       throw error;
     }
