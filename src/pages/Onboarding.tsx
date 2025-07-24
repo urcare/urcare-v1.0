@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { OnboardingSteps } from '../components/onboarding/OnboardingSteps';
 import { SerialOnboarding } from '../components/onboarding/SerialOnboarding';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingData {
   fullName: string;
@@ -166,142 +167,92 @@ const Onboarding = () => {
 
       console.log('📊 Data completeness summary:', dataSummary);
 
-      // Step 3: Prepare comprehensive user profile data
+      // Step 3: Prepare comprehensive user profile data for user_profiles table
       const userProfileData = {
         id: user.id,
         full_name: data.fullName.trim(),
-        date_of_birth: dateOfBirth,
+        age: age,
+        birth_month: data.birthMonth,
+        birth_day: data.birthDay,
+        birth_year: data.birthYear,
         gender: data.gender,
-        phone: data.emergencyContactPhone, // Store emergency contact as primary phone initially
-        emergency_contact: data.emergencyContactName,
-        emergency_phone: data.emergencyContactPhone,
+        unit_system: data.unitSystem,
+        height_feet: data.heightFeet,
+        height_inches: data.heightInches,
+        height_cm: data.heightCm,
+        weight_lb: data.weightLb,
+        weight_kg: data.weightKg,
+        wake_up_time: data.wakeUpTime,
+        sleep_time: data.sleepTime,
+        work_start: data.workStart,
+        work_end: data.workEnd,
+        chronic_conditions: data.chronicConditions,
+        takes_medications: data.takesMedications,
+        medications: data.medications,
+        has_surgery: data.hasSurgery,
+        surgery_details: data.surgeryDetails,
+        health_goals: data.healthGoals,
+        diet_type: data.dietType,
+        blood_group: data.bloodGroup,
+        breakfast_time: data.breakfastTime,
+        lunch_time: data.lunchTime,
+        dinner_time: data.dinnerTime,
+        workout_time: data.workoutTime,
+        routine_flexibility: data.routineFlexibility,
+        uses_wearable: data.usesWearable,
+        wearable_type: data.wearableType,
+        track_family: data.trackFamily,
+        share_progress: data.shareProgress,
+        emergency_contact_name: data.emergencyContactName,
+        emergency_contact_phone: data.emergencyContactPhone,
+        critical_conditions: data.criticalConditions,
+        has_health_reports: data.hasHealthReports,
+        health_reports: data.healthReports,
+        referral_code: data.referralCode,
+        save_progress: data.saveProgress,
         onboarding_completed: true,
         status: 'active',
-        preferences: {
-          // Personal Info
-          age: age,
-          birth_details: {
-            month: data.birthMonth,
-            day: data.birthDay,
-            year: data.birthYear
-          },
-          
-          // Physical Measurements
-          measurements: {
-            unit_system: data.unitSystem,
-            height: {
-              cm: parseInt(data.heightCm),
-              feet: parseInt(data.heightFeet || '0'),
-              inches: parseInt(data.heightInches || '0')
-            },
-            weight: {
-              kg: parseInt(data.weightKg),
-              lb: parseInt(data.weightLb || '0')
-            }
-          },
-
-          // Sleep & Schedule
-          schedule: {
-            wake_up_time: data.wakeUpTime,
-            sleep_time: data.sleepTime,
-            work_start: data.workStart,
-            work_end: data.workEnd,
-            routine_flexibility: parseInt(data.routineFlexibility || '5')
-          },
-
-          // Meal Timings
-          meals: {
-            breakfast_time: data.breakfastTime,
-            lunch_time: data.lunchTime,
-            dinner_time: data.dinnerTime,
-            diet_type: data.dietType
-          },
-
-          // Health Information
-          health: {
-            blood_group: data.bloodGroup,
-            chronic_conditions: data.chronicConditions || [],
-            takes_medications: data.takesMedications,
-            medications: data.medications || [],
-            has_surgery: data.hasSurgery,
-            surgery_details: data.surgeryDetails || [],
-            critical_conditions: data.criticalConditions || '',
-            health_goals: data.healthGoals || []
-          },
-
-          // Lifestyle
-          lifestyle: {
-            workout_time: data.workoutTime,
-            uses_wearable: data.usesWearable,
-            wearable_type: data.wearableType || '',
-            track_family: data.trackFamily,
-            share_progress: data.shareProgress
-          },
-
-          // Reports & Progress
-          reports: {
-            has_health_reports: data.hasHealthReports,
-            health_reports: data.healthReports || [],
-            referral_code: data.referralCode || ''
-          },
-
-          // Onboarding metadata
-          onboarding_completed_at: new Date().toISOString(),
-          onboarding_version: '1.0',
-          data_completeness: dataSummary.completeness,
-          data_summary: dataSummary.categories,
-          total_fields_saved: dataSummary.totalCompleted
-        }
+        preferences: {}, // You can fill this with your preferences object if needed
+        updated_at: new Date().toISOString()
       };
 
-      console.log('Saving comprehensive user profile:', userProfileData);
+      // Step 4: Save to user_profiles table with upsert
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert(userProfileData, { onConflict: 'id' });
 
-      // Step 4: Save to database with retry logic
-      // Supabase integration removed, placeholder for saving data
-      console.warn('Supabase integration removed, placeholder for saving data.');
-      console.log('Simulating successful save of user profile data:', userProfileData);
+      if (error) {
+        throw error;
+      }
 
-      // Step 5: Verify data was saved correctly
-      // Supabase integration removed, placeholder for verification
-      console.warn('Supabase integration removed, placeholder for data verification.');
-      console.log('Simulating successful data verification.');
-
-      // Step 6: Refresh auth context with updated profile
+      // Step 5: Refresh auth context with updated profile
       try {
         await refreshProfile();
         console.log('✅ Auth context refreshed with updated profile');
-        
-        // Wait a moment for the auth context to update
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (refreshError) {
         console.warn('Could not refresh auth profile:', refreshError);
       }
 
-      // Step 7: Show completion screen with detailed confirmation
+      // Step 6: Show completion screen with detailed confirmation
       setOnboardingStep('complete');
-      
-      // Step 8: Navigate to custom plan with success feedback
+
+      // Step 7: Navigate to custom plan with success feedback
       setTimeout(() => {
-        toast.success('🎉 Welcome to UrCare!', { 
+        toast.success('🎉 Welcome to UrCare!', {
           description: `Profile setup complete! ${dataSummary.completeness}% data completeness with ${dataSummary.totalCompleted} key fields saved securely.`,
           duration: 4000
         });
-        
-        // Additional detailed feedback
         setTimeout(() => {
           toast.info('📋 Data Saved Successfully', {
             description: `✅ Personal Info ✅ Health Metrics ✅ Schedule ✅ Emergency Contact - All stored safely!`,
             duration: 3000
           });
         }, 1000);
-        
         navigate('/custom-plan');
       }, 2500);
-      
     } catch (error: any) {
       console.error('❌ Error completing onboarding:', error);
-      
-      // Detailed error handling
       let errorMessage = 'There was an error saving your profile.';
       if (error.message?.includes('duplicate')) {
         errorMessage = 'Profile already exists. Updating existing profile...';
@@ -310,7 +261,6 @@ const Onboarding = () => {
       } else if (error.message?.includes('validation')) {
         errorMessage = 'Data validation error. Please check your information.';
       }
-      
       toast.error('Onboarding Error', {
         description: errorMessage,
         duration: 6000
