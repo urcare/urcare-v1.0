@@ -80,7 +80,7 @@ const steps = [
   { id: 'criticalConditions', title: 'Known allergies or critical conditions', type: 'textArea', icon: User },
   { id: 'healthReports', title: 'Existing health reports to upload?', type: 'fileUpload', icon: User },
   { id: 'referralCode', title: 'Enter referral code (optional)', type: 'referralCode', icon: User },
-  { id: 'auth', title: 'Create Your Account', type: 'auth', icon: User }
+  { id: 'auth', title: '', type: 'auth', icon: User }
 ];
 
 // Helper functions for chronic conditions
