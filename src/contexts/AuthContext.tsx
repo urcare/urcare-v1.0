@@ -24,7 +24,7 @@ export interface UserProfile {
 }
 
 interface AuthContextType {
-  user: any | null; // Changed from User to any as User is no longer imported
+  user: any | null;
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
@@ -44,82 +44,94 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null); // Changed from User to any
+  const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Fetch user profile from our user_profiles table
-  const fetchUserProfile = async (userId: string) => {
+  // Fetch user profile from user_profiles table
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      // This function is no longer used as supabase is removed.
-      // Keeping it for now as it might be re-introduced or refactored.
-      console.warn('fetchUserProfile is deprecated as supabase is removed.');
-      return null;
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+      return data as UserProfile;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
     }
   };
 
-  // Initialize auth state
+  // Initialize auth state and listen for changes
   useEffect(() => {
+    let mounted = true;
     const initializeAuth = async () => {
+      setLoading(true);
       try {
-        console.log('Initializing auth...');
-        // Supabase authentication state is no longer managed here.
-        // This block is kept for now as it might be re-introduced or refactored.
-        console.warn('Supabase authentication state is no longer managed here.');
-        setLoading(false);
-        setIsInitialized(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (mounted) {
+          setUser(user);
+          if (user) {
+            const profile = await fetchUserProfile(user.id);
+            setProfile(profile);
+            console.log('AuthContext: Loaded user and profile on init', { user, profile });
+          } else {
+            setProfile(null);
+            console.log('AuthContext: No user on init');
+          }
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        console.log('Auth initialization complete');
-        setLoading(false);
-        setIsInitialized(true);
+        if (mounted) {
+          setLoading(false);
+          setIsInitialized(true);
+        }
       }
     };
+    initializeAuth();
 
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.log('Auth initialization timeout - forcing completion');
-      setLoading(false);
-      setIsInitialized(true);
-    }, 10000); // 10 second timeout
-
-    initializeAuth().finally(() => {
-      clearTimeout(timeoutId);
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setUser(session.user);
+        const profile = await fetchUserProfile(session.user.id);
+        setProfile(profile);
+        console.log('AuthContext: Auth state changed, user logged in', { user: session.user, profile });
+      } else {
+        setUser(null);
+        setProfile(null);
+        console.log('AuthContext: Auth state changed, user logged out');
+      }
     });
-
-    // Listen for auth changes
-    // Supabase auth state change listener is no longer active.
-    // This block is kept for now as it might be re-introduced or refactored.
-    console.warn('Supabase auth state change listener is no longer active.');
-
     return () => {
-      clearTimeout(timeoutId);
-      // No subscription to unsubscribe from as supabase is removed.
+      mounted = false;
+      listener?.subscription?.unsubscribe();
     };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Supabase sign-up logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase sign-up logic is no longer available.');
-      toast.error('Signup functionality is currently unavailable.', {
-        description: 'Please try again later or contact support.'
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, role },
+        },
       });
-      throw new Error('Supabase sign-up functionality is not implemented.');
-
+      if (error) throw error;
+      toast.success('Signup successful! Please check your email to confirm your account.');
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error('Signup failed', {
-        description: error.message
-      });
+      toast.error('Signup failed', { description: error.message });
       throw error;
     } finally {
       setLoading(false);
@@ -127,22 +139,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Supabase sign-in logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase sign-in logic is no longer available.');
-      toast.error('Login functionality is currently unavailable.', {
-        description: 'Please try again later or contact support.'
-      });
-      throw new Error('Supabase sign-in functionality is not implemented.');
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success('Login successful!');
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('Login failed', {
-        description: error.message
-      });
+      toast.error('Login failed', { description: error.message });
       throw error;
     } finally {
       setLoading(false);
@@ -153,12 +157,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await supabase.auth.signInWithOAuth({ provider: 'google' });
-      // No need to setLoading(false) here, as the page will redirect
     } catch (error: any) {
       setLoading(false);
-      toast.error('Google sign-in failed', {
-        description: error.message || 'Failed to initialize Google sign-in'
-      });
+      toast.error('Google sign-in failed', { description: error.message || 'Failed to initialize Google sign-in' });
       throw error;
     }
   };
@@ -167,33 +168,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await supabase.auth.signInWithOAuth({ provider: 'apple' });
-    } finally {
+    } catch (error: any) {
       setLoading(false);
+      toast.error('Apple sign-in failed', { description: error.message || 'Failed to initialize Apple sign-in' });
+      throw error;
     }
   };
+
   const signInWithEmail = async () => {
     setLoading(true);
     try {
-      // You may want to show an email/password form/modal here
-      // For now, just a placeholder
-      // await supabase.auth.signInWithPassword({ email, password });
+      // Placeholder for email sign-in modal or logic
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Supabase sign-out logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase sign-out logic is no longer available.');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setProfile(null);
       toast.success('Signed out successfully');
     } catch (error: any) {
       console.error('Signout error:', error);
-      toast.error('Signout failed', {
-        description: error.message
-      });
+      toast.error('Signout failed', { description: error.message });
       throw error;
     } finally {
       setLoading(false);
@@ -201,25 +202,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
+    if (!user) throw new Error('No user logged in');
+    setLoading(true);
     try {
-      if (!user) throw new Error('No user logged in');
-
-      console.log('Updating profile with data:', updates);
-      setLoading(true);
-      
-      // Supabase profile update logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase profile update logic is no longer available.');
-      toast.error('Profile update functionality is currently unavailable.', {
-        description: 'Please try again later or contact support.'
-      });
-      throw new Error('Supabase profile update functionality is not implemented.');
-
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success('Profile updated successfully!');
     } catch (error: any) {
       console.error('Profile update error:', error);
-      toast.error('Profile update failed', {
-        description: error.message || 'An error occurred while updating your profile.'
-      });
+      toast.error('Profile update failed', { description: error.message || 'An error occurred while updating your profile.' });
       throw error;
     } finally {
       setLoading(false);
@@ -228,14 +223,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (!user) return;
-    
+    setLoading(true);
     try {
-      // Supabase profile refresh logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase profile refresh logic is no longer available.');
-      setProfile(null); // Clear profile if refresh fails
+      const profile = await fetchUserProfile(user.id);
+      setProfile(profile);
+      console.log('AuthContext: Profile refreshed', { profile });
     } catch (error) {
       console.error('Error refreshing profile:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -252,11 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('isOnboardingComplete: No profile found');
       return false;
     }
-    
-    // Supabase onboarding completion logic is no longer available.
-    // This function is kept for now as it might be re-introduced or refactored.
-    console.warn('Supabase onboarding completion logic is no longer available.');
-    return false; // Assume not complete if supabase is removed
+    return !!profile.onboarding_completed;
   };
 
   const value: AuthContextType = {
