@@ -62,6 +62,8 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
   const handleGoogleSignIn = async () => {
     // Persist onboarding data before redirect
     try {
+      alert('Saving onboardingData to localStorage: ' + JSON.stringify(onboardingData));
+      console.log('handleGoogleSignIn: onboardingData to save:', onboardingData);
       localStorage.setItem('pendingOnboardingData', JSON.stringify(onboardingData));
       console.log('Saved onboardingData to localStorage before Google sign-in:', onboardingData);
     } catch (e) {
