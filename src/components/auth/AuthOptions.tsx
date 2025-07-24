@@ -60,12 +60,25 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
     // onAuthSuccess will be called after redirect if needed
   };
   const handleGoogleSignIn = async () => {
+    // Persist onboarding data before redirect
+    try {
+      localStorage.setItem('pendingOnboardingData', JSON.stringify(onboardingData));
+      console.log('Saved onboardingData to localStorage before Google sign-in:', onboardingData);
+    } catch (e) {
+      console.warn('Failed to save onboardingData to localStorage:', e);
+    }
     await signInWithGoogle();
     // Do NOT call onAuthSuccess here, as the page will redirect on success.
   };
   const handleEmailSignIn = async () => {
     await signInWithEmail();
     // onAuthSuccess will be called after redirect if needed
+  };
+
+  // Add debug log to onAuthSuccess
+  const handleAuthSuccess = () => {
+    console.log('onAuthSuccess called');
+    onAuthSuccess();
   };
 
   return (
@@ -102,7 +115,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
       </div>
       <div className="text-center mt-10 mb-2">
         <span className="text-base text-gray-700">Would you like to sign in later?{' '}</span>
-        <button onClick={onAuthSuccess} className="underline font-medium text-base">Skip</button>
+        <button onClick={handleAuthSuccess} className="underline font-medium text-base">Skip</button>
       </div>
     </div>
   );

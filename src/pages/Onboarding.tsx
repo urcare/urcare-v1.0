@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -51,9 +51,28 @@ interface OnboardingData {
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, profile } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'serial' | 'complete'>('welcome');
   const [loading, setLoading] = useState(false);
+
+  // Restore onboarding data from localStorage after Google OAuth
+  useEffect(() => {
+    if (user && !profile && onboardingStep !== 'complete') {
+      const pending = localStorage.getItem('pendingOnboardingData');
+      if (pending) {
+        try {
+          const onboardingData = JSON.parse(pending);
+          console.log('Restoring onboardingData from localStorage after Google OAuth:', onboardingData);
+          // Call handleSerialComplete with restored data
+          handleSerialComplete(onboardingData);
+          localStorage.removeItem('pendingOnboardingData');
+        } catch (e) {
+          console.warn('Failed to parse onboardingData from localStorage:', e);
+        }
+      }
+    }
+    // eslint-disable-next-line
+  }, [user, profile, onboardingStep]);
 
   // Comprehensive data validation function
   const validateOnboardingData = (data: OnboardingData): { isValid: boolean; errors: string[] } => {
@@ -216,10 +235,17 @@ const Onboarding = () => {
         updated_at: new Date().toISOString()
       };
 
+      // Debug log before upsert
+      console.log('Attempting upsert to user_profiles:', userProfileData);
+      console.log('User id for upsert:', user.id);
+
       // Step 4: Save to user_profiles table with upsert
-      const { error } = await supabase
+      const { error, data: upsertData } = await supabase
         .from('user_profiles')
         .upsert(userProfileData, { onConflict: 'id' });
+
+      // Debug log after upsert
+      console.log('Upsert result:', { error, upsertData });
 
       if (error) {
         throw error;
