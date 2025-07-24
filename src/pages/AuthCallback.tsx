@@ -43,10 +43,21 @@ const AuthCallback = () => {
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (user) {
-          // Always redirect to onboarding if profile is missing
-          console.log('AuthCallback: User authenticated, redirecting to onboarding for profile setup');
-          navigate('/onboarding', { replace: true });
-          return;
+          // Fetch user profile from user_profiles
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+          if (profile && profile.onboarding_completed) {
+            console.log('AuthCallback: Onboarding complete, redirecting to custom plan');
+            navigate('/custom-plan', { replace: true });
+            return;
+          } else {
+            console.log('AuthCallback: Onboarding not complete, redirecting to onboarding');
+            navigate('/onboarding', { replace: true });
+            return;
+          }
         } else {
           console.log('AuthCallback: No session found, redirecting to welcome');
           navigate('/welcome');
