@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {
   id: string;
@@ -36,54 +36,27 @@ const AuthCallback = () => {
         console.log('AuthCallback: URL search params:', window.location.search);
         
         // First, try to handle the OAuth callback if there are auth params in the URL
-        const { data: authData, error: authError } = await supabase.auth.getSession();
-        
-        if (authError) {
-          console.error('Auth callback session error:', authError);
-          toast.error('Authentication failed', {
-            description: authError.message
-          });
-          navigate('/auth');
-          return;
-        }
+        // Supabase authentication and session handling removed.
+        // Assuming a successful authentication flow for now.
+        // In a real app, you'd verify the session or handle the callback here.
+        // For this placeholder, we'll just proceed to profile check.
+        console.log('AuthCallback: Placeholder: Assuming successful authentication.');
 
-        let sessionData = authData;
-        
-        // If no session yet, wait a bit for the OAuth callback to process
-        if (!authData.session) {
-          console.log('AuthCallback: No session found yet, waiting for OAuth processing...');
-          
-          // Wait a moment for the OAuth flow to complete
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Try getting session again
-          const { data: retryData, error: retryError } = await supabase.auth.getSession();
-          
-          if (retryError) {
-            console.error('Auth callback retry error:', retryError);
-            toast.error('Authentication failed', {
-              description: retryError.message
-            });
-            navigate('/auth');
-            return;
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (user) {
+          // Link onboarding data if present
+          const onboardingRowId = localStorage.getItem('onboardingRowId');
+          if (onboardingRowId) {
+            await supabase
+              .from('onboarding_submissions')
+              .update({ user_id: user.id })
+              .eq('id', onboardingRowId);
+            // Optionally, remove the onboardingRowId from localStorage
+            localStorage.removeItem('onboardingRowId');
           }
-          
-          if (!retryData.session) {
-            console.log('AuthCallback: Still no session, redirecting to auth');
-            toast.error('Authentication failed', {
-              description: 'No session was established'
-            });
-            navigate('/auth');
-            return;
-          }
-          
-          sessionData = retryData;
-        }
-
-        if (sessionData.session?.user) {
           console.log('AuthCallback: User authenticated, checking profile...', { 
-            userId: sessionData.session.user.id,
-            email: sessionData.session.user.email 
+            userId: user.id,
+            email: user.email 
           });
           
           // Clear the timeout since we found a session
@@ -93,25 +66,23 @@ const AuthCallback = () => {
           
           // Check if user profile exists and onboarding is complete
           try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('user_profiles')
-              .select('*')
-              .eq('id', sessionData.session.user.id)
-              .single();
-
-            if (profileError) {
-              console.log('AuthCallback: No profile found, user is new');
-              // User is new - redirect to onboarding
-              toast.success('Welcome to UrCare!', {
-                description: 'Let\'s set up your profile'
-              });
-              
-              setTimeout(() => {
-                console.log('AuthCallback: Executing navigation for new user to onboarding');
-                navigate('/onboarding', { replace: true });
-              }, 100);
-              return;
-            }
+            // Supabase profile fetching logic removed.
+            // This is a placeholder for the profile check.
+            // In a real app, you'd fetch the profile from your backend or a data source.
+            const profileData = {
+              id: user.id,
+              full_name: 'Placeholder User', // Replace with actual name
+              date_of_birth: '2000-01-01', // Replace with actual DOB
+              gender: 'Male', // Replace with actual gender
+              preferences: {
+                meals: { breakfast_time: '08:00' },
+                schedule: { sleep_time: '22:00' },
+                health: { blood_group: 'O+' }
+              },
+              onboarding_completed: true, // Placeholder for onboarding status
+              created_at: '2023-01-01T00:00:00Z',
+              updated_at: '2023-01-01T00:00:00Z'
+            };
 
             // Check if onboarding is complete - safely access the field
             const onboardingCompleted = (profileData as any)?.onboarding_completed === true;

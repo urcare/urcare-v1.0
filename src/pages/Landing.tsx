@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Heart, Shield, Users, Zap, Clock } from 'lucide-react';
-import { supabase } from '../integrations/supabase/client';
 
 const Landing = ({ showModal = false }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -309,13 +308,8 @@ const Landing = ({ showModal = false }) => {
                   {/* Google Sign In Button */}
                   <button
                     className="group w-full flex items-center justify-center space-x-3 bg-black/50 backdrop-blur-sm text-white py-4 px-6 rounded-2xl border border-white/15 hover:bg-blue-400/15 hover:border-white/40 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                    onClick={async () => {
-                      await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                          redirectTo: `${window.location.origin}/auth/callback`
-                        }
-                      });
+                    onClick={() => {
+                      window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google/callback`;
                     }}
                   >
                     <div className="relative">

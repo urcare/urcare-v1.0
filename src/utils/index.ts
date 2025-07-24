@@ -38,7 +38,6 @@ export const setPostLoginRedirect = (url?: string): void => {
 };
 
 export const clearAuthStorage = (): void => {
-  localStorage.removeItem('supabase.auth.token');
   window.sessionStorage.removeItem('postLoginRedirect');
   // Clear any other auth-related storage
 };

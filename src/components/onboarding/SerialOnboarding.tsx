@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, User, Calendar, Users, Ruler, Weight, Clock, Briefcase } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthOptions } from '@/components/auth/AuthOptions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingData {
   fullName: string;
@@ -670,7 +671,16 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         if (finalData.birthMonth && finalData.birthDay && finalData.birthYear) {
           finalData.age = calculateAge(finalData.birthMonth, finalData.birthDay, finalData.birthYear);
         }
-        onComplete(finalData);
+        (async () => {
+          const { data: inserted, error } = await supabase
+            .from('onboarding_submissions')
+            .insert([{ ...finalData, user_id: null }])
+            .select('id');
+          if (!error && inserted && inserted[0]?.id) {
+            localStorage.setItem('onboardingRowId', inserted[0].id);
+          }
+          onComplete(finalData);
+        })();
       } else {
         setCurrentStep(currentStep + 1);
       }

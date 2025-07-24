@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
 import { OnboardingSteps } from '../components/onboarding/OnboardingSteps';
 import { SerialOnboarding } from '../components/onboarding/SerialOnboarding';
@@ -258,52 +257,14 @@ const Onboarding = () => {
       console.log('Saving comprehensive user profile:', userProfileData);
 
       // Step 4: Save to database with retry logic
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      while (retryCount < maxRetries) {
-        try {
-          const { error: upsertError } = await supabase
-            .from('user_profiles')
-            .upsert(userProfileData, { 
-              onConflict: 'id',
-              ignoreDuplicates: false 
-            });
-
-          if (upsertError) throw upsertError;
-          break; // Success, exit retry loop
-          
-        } catch (retryError: any) {
-          retryCount++;
-          console.error(`Database save attempt ${retryCount} failed:`, retryError);
-          
-          if (retryCount === maxRetries) {
-            throw retryError; // Final attempt failed
-          }
-          
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-        }
-      }
-
-      console.log('✅ User profile saved successfully with all onboarding data');
+      // Supabase integration removed, placeholder for saving data
+      console.warn('Supabase integration removed, placeholder for saving data.');
+      console.log('Simulating successful save of user profile data:', userProfileData);
 
       // Step 5: Verify data was saved correctly
-      const { data: savedProfile, error: verifyError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (verifyError) {
-        console.warn('Could not verify saved data:', verifyError);
-      } else {
-        console.log('✅ Data verification successful:', {
-          onboarding_completed: (savedProfile as any)?.onboarding_completed,
-          preferences_saved: !!savedProfile.preferences,
-          data_fields: Object.keys(savedProfile.preferences || {}).length
-        });
-      }
+      // Supabase integration removed, placeholder for verification
+      console.warn('Supabase integration removed, placeholder for data verification.');
+      console.log('Simulating successful data verification.');
 
       // Step 6: Refresh auth context with updated profile
       try {

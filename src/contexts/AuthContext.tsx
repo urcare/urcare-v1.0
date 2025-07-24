@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type UserRole = 'patient' | 'doctor' | 'nurse' | 'admin' | 'pharmacy' | 'lab' | 'reception' | 'hr';
@@ -25,7 +23,7 @@ export interface UserProfile {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null; // Changed from User to any as User is no longer imported
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
@@ -43,7 +41,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null); // Changed from User to any
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -51,36 +49,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from our user_profiles table
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-      }
-
-      // Map database fields to UserProfile interface with fallbacks for missing fields
-      return {
-        id: data.id,
-        full_name: data.full_name,
-        phone: data.phone,
-        date_of_birth: data.date_of_birth,
-        gender: data.gender,
-        address: data.address,
-        emergency_contact: data.emergency_contact,
-        emergency_phone: (data as any).emergency_phone || null,
-        health_id: data.health_id,
-        guardian_id: data.guardian_id,
-        role: data.role as UserRole,
-        status: data.status,
-        preferences: data.preferences || {},
-        onboarding_completed: (data as any).onboarding_completed || false,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      } as UserProfile;
+      // This function is no longer used as supabase is removed.
+      // Keeping it for now as it might be re-introduced or refactored.
+      console.warn('fetchUserProfile is deprecated as supabase is removed.');
+      return null;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
@@ -92,29 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          setLoading(false);
-          setIsInitialized(true);
-          return;
-        }
-        
-        if (session?.user) {
-          console.log('Found existing session for user:', session.user.id);
-          setUser(session.user);
-          try {
-            const userProfile = await fetchUserProfile(session.user.id);
-            setProfile(userProfile);
-            console.log('Profile loaded:', userProfile ? 'success' : 'failed');
-          } catch (profileError) {
-            console.error('Profile fetch error:', profileError);
-            // Continue without profile
-          }
-        } else {
-          console.log('No existing session found');
-        }
+        // Supabase authentication state is no longer managed here.
+        // This block is kept for now as it might be re-introduced or refactored.
+        console.warn('Supabase authentication state is no longer managed here.');
+        setLoading(false);
+        setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
@@ -136,38 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        
-        // Don't interfere with OAuth callback processing
-        if (window.location.pathname === '/auth/callback') {
-          console.log('Auth state change skipped - on callback page');
-          return;
-        }
-        
-        if (session?.user) {
-          setUser(session.user);
-          try {
-            const userProfile = await fetchUserProfile(session.user.id);
-            setProfile(userProfile);
-          } catch (profileError) {
-            console.error('Profile fetch error in auth state change:', profileError);
-            // Continue without profile
-          }
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        
-        setLoading(false);
-        setIsInitialized(true);
-      }
-    );
+    // Supabase auth state change listener is no longer active.
+    // This block is kept for now as it might be re-introduced or refactored.
+    console.warn('Supabase auth state change listener is no longer active.');
 
     return () => {
       clearTimeout(timeoutId);
-      subscription.unsubscribe();
+      // No subscription to unsubscribe from as supabase is removed.
     };
   }, []);
 
@@ -175,65 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role
-          }
-        }
+      // Supabase sign-up logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase sign-up logic is no longer available.');
+      toast.error('Signup functionality is currently unavailable.', {
+        description: 'Please try again later or contact support.'
       });
+      throw new Error('Supabase sign-up functionality is not implemented.');
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Wait a moment for the trigger to create the user profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Try to fetch the user profile
-        const userProfile = await fetchUserProfile(data.user.id);
-        
-        if (userProfile) {
-          setUser(data.user);
-          setProfile(userProfile);
-          toast.success('Account created successfully!', {
-            description: `Welcome, ${userProfile.full_name || 'User'}!`
-          });
-        } else {
-          // If profile doesn't exist, create it manually
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('user_profiles')
-              .insert({
-                id: data.user.id,
-                full_name: fullName,
-                role: role,
-                status: 'active'
-              })
-              .select()
-              .single();
-
-            if (profileError) throw profileError;
-
-            setUser(data.user);
-            setProfile({
-              ...profileData,
-              emergency_phone: null,
-              onboarding_completed: false
-            } as UserProfile);
-            toast.success('Account created successfully!', {
-              description: `Welcome, ${fullName}!`
-            });
-          } catch (profileError: any) {
-            console.error('Profile creation error:', profileError);
-            toast.error('Account created but profile setup failed', {
-              description: 'Please contact support.'
-            });
-          }
-        }
-      }
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error('Signup failed', {
@@ -249,63 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Supabase sign-in logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase sign-in logic is no longer available.');
+      toast.error('Login functionality is currently unavailable.', {
+        description: 'Please try again later or contact support.'
       });
+      throw new Error('Supabase sign-in functionality is not implemented.');
 
-      if (error) throw error;
-
-      if (data.user) {
-        const userProfile = await fetchUserProfile(data.user.id);
-        
-        if (userProfile) {
-          setUser(data.user);
-          setProfile(userProfile);
-          toast.success('Login successful!', {
-            description: `Welcome back, ${userProfile.full_name || 'User'}!`
-          });
-        } else {
-          // If profile doesn't exist, try to create it from user metadata
-          const userMetaData = data.user.user_metadata;
-          if (userMetaData?.full_name) {
-            try {
-              const { data: profileData, error: profileError } = await supabase
-                .from('user_profiles')
-                .insert({
-                  id: data.user.id,
-                  full_name: userMetaData.full_name,
-                  role: userMetaData.role || 'patient',
-                  status: 'active'
-                })
-                .select()
-                .single();
-
-              if (profileError) throw profileError;
-
-              setUser(data.user);
-              setProfile({
-                ...profileData,
-                emergency_phone: null,
-                onboarding_completed: (profileData as any)?.onboarding_completed || false
-              } as UserProfile);
-              toast.success('Login successful!', {
-                description: `Welcome back, ${userMetaData.full_name}!`
-              });
-            } catch (profileError: any) {
-              console.error('Profile creation error:', profileError);
-              toast.error('Login successful but profile setup failed', {
-                description: 'Please contact support.'
-              });
-            }
-          } else {
-            setUser(data.user);
-            toast.success('Login successful!', {
-              description: 'Welcome back!'
-            });
-          }
-        }
-      }
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error('Login failed', {
@@ -321,28 +150,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Get the current origin and ensure proper callback URL
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log('Google OAuth redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
+      // Supabase Google OAuth logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase Google OAuth logic is no longer available.');
+      toast.error('Google sign-in functionality is currently unavailable.', {
+        description: 'Please try again later or contact support.'
       });
+      throw new Error('Supabase Google OAuth functionality is not implemented.');
 
-      if (error) {
-        console.error('Google OAuth initialization error:', error);
-        throw error;
-      }
-
-      console.log('Google OAuth initiated successfully');
-      // The OAuth flow will redirect the user, so we don't need to handle the response here
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast.error('Google sign-in failed', {
@@ -357,12 +172,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-      
-      setUser(null);
-      setProfile(null);
+      // Supabase sign-out logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase sign-out logic is no longer available.');
       toast.success('Signed out successfully');
     } catch (error: any) {
       console.error('Signout error:', error);
@@ -382,37 +194,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Updating profile with data:', updates);
       setLoading(true);
       
-      // Prepare the update data, handling the onboarding_completed field
-      const updateData: any = { ...updates };
-      
-      // If onboarding_completed is being set, ensure it's handled properly
-      if (updates.onboarding_completed !== undefined) {
-        updateData.onboarding_completed = updates.onboarding_completed;
-      }
-      
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .update(updateData)
-        .eq('id', user.id)
-        .select()
-        .single();
+      // Supabase profile update logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase profile update logic is no longer available.');
+      toast.error('Profile update functionality is currently unavailable.', {
+        description: 'Please try again later or contact support.'
+      });
+      throw new Error('Supabase profile update functionality is not implemented.');
 
-      if (error) {
-        console.error('Profile update error:', error);
-        throw error;
-      }
-
-      console.log('Profile updated successfully:', data);
-
-      // Update local state with the returned data, handling missing fields
-      const updatedProfile = {
-        ...data,
-        emergency_phone: (data as any).emergency_phone || null,
-        onboarding_completed: (data as any).onboarding_completed || false
-      } as UserProfile;
-      
-      setProfile(updatedProfile);
-      toast.success('Profile updated successfully');
     } catch (error: any) {
       console.error('Profile update error:', error);
       toast.error('Profile update failed', {
@@ -428,8 +217,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     try {
-      const userProfile = await fetchUserProfile(user.id);
-      setProfile(userProfile);
+      // Supabase profile refresh logic is no longer available.
+      // This function is kept for now as it might be re-introduced or refactored.
+      console.warn('Supabase profile refresh logic is no longer available.');
+      setProfile(null); // Clear profile if refresh fails
     } catch (error) {
       console.error('Error refreshing profile:', error);
     }
@@ -449,34 +240,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
     
-    // Check the onboarding_completed flag
-    const flagComplete = profile.onboarding_completed === true;
-    
-    // Additional validation: check if essential data is present
-    const preferences = profile.preferences as any;
-    const hasEssentialData = !!(
-      profile.full_name &&
-      profile.date_of_birth &&
-      profile.gender &&
-      preferences?.meals?.breakfast_time &&
-      preferences?.schedule?.sleep_time &&
-      preferences?.health?.blood_group
-    );
-    
-    const isComplete = flagComplete && hasEssentialData;
-    
-    console.log('isOnboardingComplete comprehensive check:', { 
-      profile: !!profile, 
-      onboarding_completed: profile?.onboarding_completed, 
-      flagComplete,
-      hasEssentialData,
-      isComplete,
-      fullName: profile.full_name,
-      dateOfBirth: profile.date_of_birth,
-      gender: profile.gender
-    });
-    
-    return isComplete;
+    // Supabase onboarding completion logic is no longer available.
+    // This function is kept for now as it might be re-introduced or refactored.
+    console.warn('Supabase onboarding completion logic is no longer available.');
+    return false; // Assume not complete if supabase is removed
   };
 
   const value: AuthContextType = {

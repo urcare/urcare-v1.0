@@ -8,7 +8,6 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     allowNavigation: [
       'urcare.vercel.app',
-      '*.supabase.co',
       'accounts.google.com',
       'oauth.googleusercontent.com'
     ]
