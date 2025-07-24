@@ -59,21 +59,40 @@ const Onboarding = () => {
   useEffect(() => {
     console.log('Onboarding useEffect: user, profile, onboardingStep', { user, profile, onboardingStep });
     if (user && !profile && onboardingStep !== 'complete') {
-      const pending = localStorage.getItem('pendingOnboardingData');
-      if (pending) {
-        try {
-          const onboardingData = JSON.parse(pending);
-          console.log('Restoring onboardingData from localStorage after Google OAuth:', onboardingData);
-          // Call handleSerialComplete with restored data
-          handleSerialComplete(onboardingData);
-          localStorage.removeItem('pendingOnboardingData');
-        } catch (e) {
-          console.warn('Failed to parse onboardingData from localStorage:', e);
+      setTimeout(() => {
+        const pending = localStorage.getItem('pendingOnboardingData');
+        if (pending) {
+          try {
+            const onboardingData = JSON.parse(pending);
+            console.log('Restoring onboardingData from localStorage after Google OAuth (delayed):', onboardingData);
+            // Call handleSerialComplete with restored data
+            handleSerialComplete(onboardingData);
+            localStorage.removeItem('pendingOnboardingData');
+          } catch (e) {
+            console.warn('Failed to parse onboardingData from localStorage:', e);
+          }
         }
-      }
+      }, 1000); // 1 second delay
     }
     // eslint-disable-next-line
   }, [user, profile, onboardingStep]);
+
+  // Temporary manual trigger for debugging
+  const handleManualOnboardingSave = () => {
+    const pending = localStorage.getItem('pendingOnboardingData');
+    if (pending) {
+      try {
+        const onboardingData = JSON.parse(pending);
+        console.log('Manual trigger: Restoring onboardingData from localStorage:', onboardingData);
+        handleSerialComplete(onboardingData);
+        localStorage.removeItem('pendingOnboardingData');
+      } catch (e) {
+        console.warn('Manual trigger: Failed to parse onboardingData from localStorage:', e);
+      }
+    } else {
+      console.warn('Manual trigger: No onboardingData found in localStorage');
+    }
+  };
 
   // Comprehensive data validation function
   const validateOnboardingData = (data: OnboardingData): { isValid: boolean; errors: string[] } => {
@@ -300,10 +319,18 @@ const Onboarding = () => {
   // Show serial onboarding directly (welcome screen is now separate)
   if (onboardingStep === 'welcome' || onboardingStep === 'serial') {
     return (
-      <SerialOnboarding
-        onComplete={handleSerialComplete}
-        onBack={() => navigate('/')}
-      />
+      <>
+        <SerialOnboarding
+          onComplete={handleSerialComplete}
+          onBack={() => navigate('/')}
+        />
+        {/* Temporary manual trigger button for debugging */}
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <button onClick={handleManualOnboardingSave} style={{ padding: 10, background: '#fbbf24', color: '#111', borderRadius: 6, fontWeight: 'bold' }}>
+            Manual Save Onboarding (Debug)
+          </button>
+        </div>
+      </>
     );
   }
 
