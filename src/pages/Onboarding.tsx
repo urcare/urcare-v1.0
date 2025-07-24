@@ -57,6 +57,7 @@ const Onboarding = () => {
 
   // Restore onboarding data from localStorage after Google OAuth
   useEffect(() => {
+    console.log('Onboarding useEffect: user, profile, onboardingStep', { user, profile, onboardingStep });
     if (user && !profile && onboardingStep !== 'complete') {
       const pending = localStorage.getItem('pendingOnboardingData');
       if (pending) {
