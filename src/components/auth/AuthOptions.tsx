@@ -61,7 +61,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
   };
   const handleGoogleSignIn = async () => {
     await signInWithGoogle();
-    // onAuthSuccess will be called after redirect if needed
+    // Do NOT call onAuthSuccess here, as the page will redirect on success.
   };
   const handleEmailSignIn = async () => {
     await signInWithEmail();
