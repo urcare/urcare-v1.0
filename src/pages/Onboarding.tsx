@@ -207,13 +207,45 @@ const Onboarding = () => {
       console.log('📊 Data completeness summary:', dataSummary);
 
       // Step 3: Prepare comprehensive user profile data for user_profiles table
+      // Build date_of_birth string
+      const monthIndex = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ].indexOf(data.birthMonth) + 1;
+      const date_of_birth = `${data.birthYear}-${monthIndex.toString().padStart(2, '0')}-${data.birthDay.padStart(2, '0')}`;
+
+      // Build preferences object
+      const preferences = {
+        meals: {
+          breakfast_time: data.breakfastTime,
+          lunch_time: data.lunchTime,
+          dinner_time: data.dinnerTime,
+          diet_type: data.dietType
+        },
+        schedule: {
+          sleep_time: data.sleepTime,
+          wake_up_time: data.wakeUpTime,
+          work_start: data.workStart,
+          work_end: data.workEnd,
+          routine_flexibility: data.routineFlexibility
+        },
+        health: {
+          blood_group: data.bloodGroup,
+          chronic_conditions: Array.isArray(data.chronicConditions) ? data.chronicConditions : [],
+          takes_medications: data.takesMedications,
+          medications: Array.isArray(data.medications) ? data.medications : [],
+          has_surgery: data.hasSurgery,
+          surgery_details: Array.isArray(data.surgeryDetails) ? data.surgeryDetails : [],
+          critical_conditions: data.criticalConditions,
+          health_goals: Array.isArray(data.healthGoals) ? data.healthGoals : []
+        }
+      };
+
       const userProfileData = {
         id: user.id,
         full_name: data.fullName.trim(),
         age: age,
-        birth_month: data.birthMonth,
-        birth_day: data.birthDay,
-        birth_year: data.birthYear,
+        date_of_birth,
         gender: data.gender,
         unit_system: data.unitSystem,
         height_feet: data.heightFeet,
@@ -225,12 +257,12 @@ const Onboarding = () => {
         sleep_time: data.sleepTime,
         work_start: data.workStart,
         work_end: data.workEnd,
-        chronic_conditions: data.chronicConditions,
+        chronic_conditions: Array.isArray(data.chronicConditions) ? data.chronicConditions : [],
         takes_medications: data.takesMedications,
-        medications: data.medications,
+        medications: Array.isArray(data.medications) ? data.medications : [],
         has_surgery: data.hasSurgery,
-        surgery_details: data.surgeryDetails,
-        health_goals: data.healthGoals,
+        surgery_details: Array.isArray(data.surgeryDetails) ? data.surgeryDetails : [],
+        health_goals: Array.isArray(data.healthGoals) ? data.healthGoals : [],
         diet_type: data.dietType,
         blood_group: data.bloodGroup,
         breakfast_time: data.breakfastTime,
@@ -246,17 +278,17 @@ const Onboarding = () => {
         emergency_contact_phone: data.emergencyContactPhone,
         critical_conditions: data.criticalConditions,
         has_health_reports: data.hasHealthReports,
-        health_reports: data.healthReports,
+        health_reports: Array.isArray(data.healthReports) ? data.healthReports : [],
         referral_code: data.referralCode,
         save_progress: data.saveProgress,
         onboarding_completed: true,
         status: 'active',
-        preferences: {}, // You can fill this with your preferences object if needed
+        preferences,
         updated_at: new Date().toISOString()
       };
 
       // Debug log before upsert
-      console.log('Attempting upsert to user_profiles:', userProfileData);
+      console.log('Final userProfileData for upsert:', userProfileData);
       console.log('User id for upsert:', user.id);
 
       // Step 4: Save to user_profiles table with upsert
