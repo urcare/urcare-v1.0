@@ -70,7 +70,6 @@ export const BookingInterface = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('role', 'doctor')
         .eq('department', selectedDepartment)
         .order('full_name');
       

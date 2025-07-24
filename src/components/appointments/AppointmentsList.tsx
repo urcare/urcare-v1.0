@@ -36,20 +36,10 @@ export const AppointmentsList = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      console.log('Fetching appointments for user:', user.id, 'with role:', profile?.role);
-
       let query = supabase
         .from('appointments')
-        .select('*');
-
-      // Filter based on user role
-      if (profile?.role === 'patient') {
-        query = query.eq('patient_id', user.id);
-      } else if (profile?.role === 'doctor') {
-        query = query.eq('doctor_id', user.id);
-      }
-
-      query = query.order('date_time', { ascending: true });
+        .select('*')
+        .order('date_time', { ascending: true });
 
       const { data: appointmentsData, error: appointmentsError } = await query;
       

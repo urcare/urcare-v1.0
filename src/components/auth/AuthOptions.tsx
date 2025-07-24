@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -20,8 +20,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    fullName: onboardingData?.fullName || '',
-    role: 'patient' as UserRole
+    fullName: onboardingData?.fullName || ''
   });
 
   const handleInputChange = (field: string, value: string) => {

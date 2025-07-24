@@ -3,13 +3,10 @@ export interface User {
   id: string;
   email: string;
   full_name?: string;
-  role?: UserRole;
   avatar_url?: string;
   created_at?: string;
   updated_at?: string;
 }
-
-export type UserRole = 'Patient' | 'Doctor' | 'Nurse' | 'Admin' | 'Pharmacy' | 'Lab' | 'Reception';
 
 export interface AuthSession {
   access_token: string;

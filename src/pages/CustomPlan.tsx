@@ -171,6 +171,10 @@ const CustomPlan: React.FC = () => {
             <div className="w-full flex justify-center mt-6">
               <Button className="w-40" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
             </div>
+            {/* After showing the custom plan, add a button to go to /paywall */}
+            <div className="w-full flex justify-center mt-6">
+              <Button className="w-40" onClick={() => navigate('/paywall')}>Proceed to Paywall</Button>
+            </div>
           </>
         )}
       </div>

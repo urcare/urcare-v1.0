@@ -46,14 +46,12 @@ import {
   Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getMenuSectionsByRole } from './sidebar/roleBasedMenus';
 
 interface SidebarItem {
   title: string;
-  href: string;
+  url: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  description?: string;
-  badge?: string;
 }
 
 interface SidebarSection {
@@ -62,174 +60,12 @@ interface SidebarSection {
 }
 
 export const AppSidebar = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const getRoleBasedSections = (): SidebarSection[] => {
-    const role = profile?.role || user?.user_metadata?.role || 'patient';
-    
-    const commonSections: SidebarSection[] = [
-      {
-        title: 'Overview',
-        items: [
-          { title: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-500' },
-          { title: 'Profile', href: '/profile', icon: User, color: 'text-green-500' },
-          { title: 'Notifications', href: '/notifications', icon: Bell, color: 'text-orange-500' },
-        ]
-      }
-    ];
-
-    const roleSpecificSections: SidebarSection[] = [];
-
-    switch (role) {
-      case 'patient':
-        roleSpecificSections.push(
-          {
-            title: 'Health Management',
-            items: [
-              { title: 'Medical Records', href: '/medical-records', icon: FileText, color: 'text-blue-500' },
-              { title: 'Appointments', href: '/appointments', icon: Calendar, color: 'text-green-500' },
-              { title: 'Medications', href: '/medications', icon: Pill, color: 'text-purple-500' },
-              { title: 'Test Results', href: '/test-results', icon: Microscope, color: 'text-indigo-500' },
-            ]
-          },
-          {
-            title: 'Wellness',
-            items: [
-              { title: 'Health Score', href: '/health-score', icon: Activity, color: 'text-emerald-500' },
-              { title: 'Mental Health', href: '/mental-health', icon: Brain, color: 'text-pink-500' },
-              { title: 'Wellness Programs', href: '/wellness', icon: Award, color: 'text-yellow-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'doctor':
-        roleSpecificSections.push(
-          {
-            title: 'Patient Care',
-            items: [
-              { title: 'Patient List', href: '/patients', icon: Users, color: 'text-blue-500' },
-              { title: 'Appointments', href: '/appointments', icon: Calendar, color: 'text-green-500' },
-              { title: 'Medical Records', href: '/medical-records', icon: FileText, color: 'text-purple-500' },
-              { title: 'Diagnostics', href: '/diagnostics', icon: Stethoscope, color: 'text-indigo-500' },
-            ]
-          },
-          {
-            title: 'Clinical Tools',
-            items: [
-              { title: 'AI Diagnostics', href: '/ai-diagnostics', icon: Zap, color: 'text-orange-500' },
-              { title: 'Treatment Plans', href: '/treatment-plans', icon: ClipboardList, color: 'text-teal-500' },
-              { title: 'Clinical Analytics', href: '/clinical-analytics', icon: BarChart3, color: 'text-cyan-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'nurse':
-        roleSpecificSections.push(
-          {
-            title: 'Patient Care',
-            items: [
-              { title: 'Patient List', href: '/patients', icon: Users, color: 'text-blue-500' },
-              { title: 'Vital Signs', href: '/vital-signs', icon: Thermometer, color: 'text-red-500' },
-              { title: 'Medication Admin', href: '/medication-admin', icon: Syringe, color: 'text-purple-500' },
-              { title: 'Bed Management', href: '/bed-management', icon: Bed, color: 'text-green-500' },
-            ]
-          },
-          {
-            title: 'Care Coordination',
-            items: [
-              { title: 'Care Plans', href: '/care-plans', icon: ClipboardList, color: 'text-teal-500' },
-              { title: 'Patient Monitoring', href: '/patient-monitoring', icon: ActivitySquare, color: 'text-orange-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'admin':
-        roleSpecificSections.push(
-          {
-            title: 'System Management',
-            items: [
-              { title: 'User Management', href: '/users', icon: Users, color: 'text-blue-500' },
-              { title: 'System Settings', href: '/settings', icon: Settings, color: 'text-gray-500' },
-              { title: 'Security', href: '/security', icon: ShieldCheck, color: 'text-red-500' },
-              { title: 'Database', href: '/database', icon: Database, color: 'text-purple-500' },
-            ]
-          },
-          {
-            title: 'Analytics',
-            items: [
-              { title: 'System Analytics', href: '/analytics', icon: BarChart3, color: 'text-green-500' },
-              { title: 'Performance', href: '/performance', icon: Activity, color: 'text-orange-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'pharmacy':
-        roleSpecificSections.push(
-          {
-            title: 'Pharmacy Management',
-            items: [
-              { title: 'Inventory', href: '/inventory', icon: Pill, color: 'text-blue-500' },
-              { title: 'Prescriptions', href: '/prescriptions', icon: FileText, color: 'text-green-500' },
-              { title: 'Dispensing', href: '/dispensing', icon: Syringe, color: 'text-purple-500' },
-              { title: 'Drug Interactions', href: '/drug-interactions', icon: Shield, color: 'text-red-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'lab':
-        roleSpecificSections.push(
-          {
-            title: 'Laboratory',
-            items: [
-              { title: 'Test Orders', href: '/test-orders', icon: ClipboardList, color: 'text-blue-500' },
-              { title: 'Results', href: '/results', icon: Microscope, color: 'text-green-500' },
-              { title: 'Equipment', href: '/equipment', icon: Activity, color: 'text-purple-500' },
-              { title: 'Quality Control', href: '/quality-control', icon: ShieldCheck, color: 'text-orange-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'reception':
-        roleSpecificSections.push(
-          {
-            title: 'Patient Services',
-            items: [
-              { title: 'Registration', href: '/registration', icon: UserCheck, color: 'text-blue-500' },
-              { title: 'Appointments', href: '/appointments', icon: Calendar, color: 'text-green-500' },
-              { title: 'Billing', href: '/billing', icon: CreditCard, color: 'text-purple-500' },
-              { title: 'Insurance', href: '/insurance', icon: Shield, color: 'text-indigo-500' },
-            ]
-          }
-        );
-        break;
-
-      case 'hr':
-        roleSpecificSections.push(
-          {
-            title: 'Human Resources',
-            items: [
-              { title: 'Employee Management', href: '/employees', icon: Users, color: 'text-blue-500' },
-              { title: 'Training', href: '/training', icon: GraduationCap, color: 'text-green-500' },
-              { title: 'Compliance', href: '/compliance', icon: ShieldCheck, color: 'text-purple-500' },
-              { title: 'Performance', href: '/performance', icon: BarChart3, color: 'text-orange-500' },
-            ]
-          }
-        );
-        break;
-    }
-
-    return [...commonSections, ...roleSpecificSections];
-  };
-
-  const sections = getRoleBasedSections();
+  // Only show default sidebar
+  const sections = getMenuSectionsByRole();
 
   return (
     <div className={cn(
@@ -267,10 +103,7 @@ export const AppSidebar = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                {profile?.full_name || user.email}
-              </p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {profile?.role}
+                {user.email}
               </p>
             </div>
           </div>
@@ -289,37 +122,20 @@ export const AppSidebar = () => {
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = location.pathname === item.url;
                   const Icon = item.icon;
                   
                   return (
                     <Link
-                      key={item.href}
-                      to={item.href}
+                      key={item.url}
+                      to={item.url}
                       className={cn(
                         "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group relative",
-                        isActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        isActive ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       )}
                     >
-                      <Icon className={cn(
-                        "h-5 w-5 transition-colors duration-200",
-                        isActive ? "text-primary-foreground" : item.color
-                      )} />
-                      {!collapsed && (
-                        <>
-                          <span className="flex-1">{item.title}</span>
-                          {item.badge && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-foreground">
-                              {item.badge}
-                            </span>
-                          )}
-                        </>
-                      )}
-                      {collapsed && isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
-                      )}
+                      <Icon className="w-5 h-5" />
+                      <span>{item.title}</span>
                     </Link>
                   );
                 })}

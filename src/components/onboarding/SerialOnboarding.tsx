@@ -449,7 +449,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 };
 
 export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, onBack }) => {
-  const { signInWithGoogle } = useAuth();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
@@ -660,27 +660,12 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
       }
       
       if (currentStep === steps.length - 1) {
-        // For auth step, don't auto-complete - let AuthOptions handle completion
-        if (steps[currentStep].id === 'auth') {
-          // The AuthOptions component will handle completion
+        // If user is authenticated, skip auth step and complete onboarding
+        if (user) {
+          onComplete(data);
           return;
         }
-        
-        // Ensure age is calculated before completing
-        const finalData = { ...data };
-        if (finalData.birthMonth && finalData.birthDay && finalData.birthYear) {
-          finalData.age = calculateAge(finalData.birthMonth, finalData.birthDay, finalData.birthYear);
-        }
-        (async () => {
-          const { data: inserted, error } = await supabase
-            .from('onboarding_submissions')
-            .insert([{ ...finalData, user_id: null }])
-            .select('id');
-          if (!error && inserted && inserted[0]?.id) {
-            localStorage.setItem('onboardingRowId', inserted[0].id);
-          }
-          onComplete(finalData);
-        })();
+        // If not authenticated, go to auth step (handled by AuthOptions)
       } else {
         setCurrentStep(currentStep + 1);
       }

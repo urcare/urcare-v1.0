@@ -54,28 +54,24 @@ const Onboarding = () => {
   const { user, refreshProfile, profile } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'serial' | 'complete'>('welcome');
   const [loading, setLoading] = useState(false);
+  const [pendingOnboardingData, setPendingOnboardingData] = useState<OnboardingData | null>(null);
 
-  // Restore onboarding data from localStorage after Google OAuth
+  // Restore onboarding data from localStorage after OAuth
   useEffect(() => {
-    console.log('Onboarding useEffect: user, profile, onboardingStep', { user, profile, onboardingStep });
-    if (user && !profile && onboardingStep !== 'complete') {
-      setTimeout(() => {
-        const pending = localStorage.getItem('pendingOnboardingData');
-        if (pending) {
-          try {
-            const onboardingData = JSON.parse(pending);
-            console.log('Restoring onboardingData from localStorage after Google OAuth (delayed):', onboardingData);
-            // Call handleSerialComplete with restored data
-            handleSerialComplete(onboardingData);
-            localStorage.removeItem('pendingOnboardingData');
-          } catch (e) {
-            console.warn('Failed to parse onboardingData from localStorage:', e);
-          }
+    if (user && onboardingStep !== 'complete') {
+      const pending = localStorage.getItem('pendingOnboardingData');
+      if (pending) {
+        try {
+          const onboardingData = JSON.parse(pending);
+          setPendingOnboardingData(onboardingData);
+          handleSerialComplete(onboardingData);
+          localStorage.removeItem('pendingOnboardingData');
+        } catch (e) {
+          console.warn('Failed to parse onboardingData from localStorage:', e);
         }
-      }, 1000); // 1 second delay
+      }
     }
-    // eslint-disable-next-line
-  }, [user, profile, onboardingStep]);
+  }, [user, onboardingStep]);
 
   // Temporary manual trigger for debugging
   const handleManualOnboardingSave = () => {

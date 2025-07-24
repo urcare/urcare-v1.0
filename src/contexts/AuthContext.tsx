@@ -2,8 +2,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-export type UserRole = 'patient' | 'doctor' | 'nurse' | 'admin' | 'pharmacy' | 'lab' | 'reception' | 'hr';
-
 export interface UserProfile {
   id: string;
   full_name: string | null;
@@ -15,7 +13,6 @@ export interface UserProfile {
   emergency_phone: string | null;
   health_id: string | null;
   guardian_id: string | null;
-  role: UserRole;
   status: string;
   preferences: any;
   onboarding_completed: boolean;
@@ -28,7 +25,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
-  signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
@@ -36,8 +33,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
-  hasRole: (role: UserRole) => boolean;
-  canAccess: (allowedRoles: UserRole[]) => boolean;
   isOnboardingComplete: () => boolean;
 }
 
@@ -117,14 +112,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: UserRole) => {
+  const signUp = async (email: string, password: string, fullName: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName, role },
+          data: { full_name: fullName },
         },
       });
       if (error) throw error;
@@ -239,14 +234,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const hasRole = (role: UserRole): boolean => {
-    return profile?.role === role;
-  };
-
-  const canAccess = (allowedRoles: UserRole[]): boolean => {
-    return profile ? allowedRoles.includes(profile.role) : false;
-  };
-
   const isOnboardingComplete = (): boolean => {
     if (!profile) {
       console.log('isOnboardingComplete: No profile found');
@@ -265,8 +252,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     refreshProfile,
-    hasRole,
-    canAccess,
     signInWithGoogle,
     signInWithApple,
     signInWithEmail,

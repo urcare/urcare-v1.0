@@ -77,7 +77,6 @@ class ApiService {
           .insert({
             id: userId,
             ...profileData,
-            role: 'patient',
             status: 'active'
           });
 

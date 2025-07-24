@@ -14,7 +14,6 @@ interface UserProfile {
   emergency_phone: string | null;
   health_id: string | null;
   guardian_id: string | null;
-  role: string;
   status: string;
   preferences: any;
   onboarding_completed: boolean;

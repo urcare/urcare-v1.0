@@ -3,15 +3,8 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 
-interface RoleBasedRouteProps {
-  children: React.ReactNode;
-  allowedRoles: UserRole[];
-  fallbackPath?: string;
-}
-
-export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ 
+export const RoleBasedRoute: React.FC<{ children: React.ReactNode, fallbackPath?: string }> = ({ 
   children, 
-  allowedRoles,
   fallbackPath = '/auth'
 }) => {
   const { user, profile, loading, isInitialized } = useAuth();
@@ -32,21 +25,6 @@ export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   // Redirect to welcome if not authenticated
   if (!user || !profile) {
     return <Navigate to="/welcome" state={{ from: location }} replace />;
-  }
-
-  // Check if user has required role
-  if (!allowedRoles.includes(profile.role)) {
-    return (
-      <Navigate 
-        to="/unauthorized" 
-        state={{ 
-          from: location,
-          requiredRoles: allowedRoles,
-          userRole: profile.role 
-        }} 
-        replace 
-      />
-    );
   }
 
   return <>{children}</>;

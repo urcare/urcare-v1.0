@@ -19,6 +19,7 @@ import {
 } from './pages/RouteComponents';
 import AuthCallback from './pages/AuthCallback';
 import CustomPlan from './pages/CustomPlan';
+import Paywall from './pages/Paywall';
 
 function App() {
   const { user, profile, loading, isInitialized, isOnboardingComplete } = useAuth();
@@ -29,8 +30,7 @@ function App() {
     profile: !!profile,
     loading,
     isInitialized,
-    userEmail: user?.email,
-    userRole: profile?.role
+    userEmail: user?.email
   });
 
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -120,6 +120,7 @@ function App() {
         <Route path="/performance-monitoring" element={ <ProtectedRoute> <PerformanceMonitoringPage /> </ProtectedRoute> } />
         <Route path="/analytics" element={ <ProtectedRoute> <AnalyticsPage /> </ProtectedRoute> } />
         <Route path="/custom-plan" element={ <ProtectedRoute> <CustomPlan /> </ProtectedRoute> } />
+        <Route path="/paywall" element={<Paywall />} />
         
         {/* Catch-all route for unmatched paths */}
         <Route path="*" element={<Navigate to="/" replace />} />
