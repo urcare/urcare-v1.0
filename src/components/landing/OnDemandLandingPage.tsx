@@ -40,7 +40,7 @@ export const OnDemandLandingPage = ({ showModal = false }: OnDemandLandingPagePr
             .eq('user_id', user.id)
             .single();
           if (!data || !data.onboarding_completed) {
-            navigate('/onboarding');
+            navigate('/welcome');
           } else {
             // Check subscription in preferences (assuming preferences.subscription === 'active')
             const isSubscribed = data.preferences && data.preferences.subscription === 'active';
