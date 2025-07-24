@@ -150,26 +150,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Supabase Google OAuth logic is no longer available.
-      // This function is kept for now as it might be re-introduced or refactored.
-      console.warn('Supabase Google OAuth logic is no longer available.');
-      toast.error('Google sign-in functionality is currently unavailable.', {
-        description: 'Please try again later or contact support.'
-      });
-      throw new Error('Supabase Google OAuth functionality is not implemented.');
-
+      await supabase.auth.signInWithOAuth({ provider: 'google' });
+      // No need to setLoading(false) here, as the page will redirect
     } catch (error: any) {
-      console.error('Google sign-in error:', error);
+      setLoading(false);
       toast.error('Google sign-in failed', {
         description: error.message || 'Failed to initialize Google sign-in'
       });
-      setLoading(false); // Reset loading state on error
       throw error;
     }
-    // Note: Don't set loading to false here as the page will redirect
   };
 
   const signInWithApple = async () => {
