@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export type UserRole = 'patient' | 'doctor' | 'nurse' | 'admin' | 'pharmacy' | 'lab' | 'reception' | 'hr';
 
@@ -30,6 +31,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  signInWithEmail: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -169,6 +172,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Note: Don't set loading to false here as the page will redirect
   };
 
+  const signInWithApple = async () => {
+    setLoading(true);
+    try {
+      await supabase.auth.signInWithOAuth({ provider: 'apple' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const signInWithEmail = async () => {
+    setLoading(true);
+    try {
+      // You may want to show an email/password form/modal here
+      // For now, just a placeholder
+      // await supabase.auth.signInWithPassword({ email, password });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -259,6 +281,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasRole,
     canAccess,
     signInWithGoogle,
+    signInWithApple,
+    signInWithEmail,
     isOnboardingComplete
   };
 

@@ -2,14 +2,15 @@
 import { Brain, Search, Users, Shield, Clock, MessageSquare, UserCheck, Calendar, Award, Smartphone } from 'lucide-react';
 
 export const GRID_IMAGES = [
-  { id: 1, url: "https://images.unsplash.com/photo-1568822617270-2c1579f8dfe2?w=400&h=600&fit=crop&crop=center", alt: "Grandfather and grandson bonding", className: "col-span-1 row-span-2" },
-  { id: 2, url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop&crop=center", alt: "Elderly couple with smoothies", className: "col-span-1 row-span-1" },
-  { id: 3, url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center", alt: "Yoga meditation outdoors", className: "col-span-1 row-span-1" },
-  { id: 4, url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop&crop=center", alt: "Gym exercise couple", className: "col-span-1 row-span-2" },
-  { id: 5, url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=600&fit=crop&crop=center", alt: "Active couple jogging", className: "col-span-1 row-span-2" },
-  { id: 6, url: "/images/meditation-wellness.jpg", alt: "Meditation wellness", className: "col-span-1 row-span-1" },
-  { id: 7, url: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=400&h=300&fit=crop&crop=center", alt: "Healthcare technology", className: "col-span-1 row-span-1" },
-  { id: 8, url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop&crop=center", alt: "Healthy nutrition", className: "col-span-1 row-span-1" }
+  { id: 1, url: "/landing/health-app-desktop-1.jpg", alt: "Health app desktop 1", className: "col-span-1 row-span-2" },
+  { id: 2, url: "/landing/health-app-desktop-2.jpg", alt: "Health app desktop 2", className: "col-span-1 row-span-1" },
+  { id: 3, url: "/landing/health-app-desktop-3.jpg", alt: "Health app desktop 3", className: "col-span-1 row-span-1" },
+  { id: 4, url: "/landing/health-app-desktop-4.jpg", alt: "Health app desktop 4", className: "col-span-1 row-span-2" },
+  { id: 5, url: "/landing/health-app-desktop-5.jpg", alt: "Health app desktop 5", className: "col-span-1 row-span-2" },
+  { id: 6, url: "/landing/health-app-desktop-6.jpg", alt: "Health app desktop 6", className: "col-span-1 row-span-1" },
+  { id: 7, url: "/landing/health-app-mobile-1.jpg", alt: "Health app mobile 1", className: "col-span-1 row-span-1" },
+  { id: 8, url: "/landing/health-app-mobile-2.jpg", alt: "Health app mobile 2", className: "col-span-1 row-span-1" },
+  { id: 9, url: "/landing/health-app-mobile-3.jpg", alt: "Health app mobile 3", className: "col-span-1 row-span-1" }
 ];
 
 export const FEATURES = [
