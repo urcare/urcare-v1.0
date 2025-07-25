@@ -182,7 +182,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       console.log('Calling supabase.auth.signInWithOAuth for Google');
-      await supabase.auth.signInWithOAuth({ provider: 'google' });
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      await supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: { redirectTo }
+      });
       console.log('supabase.auth.signInWithOAuth for Google finished (should redirect or popup)');
     } catch (error: any) {
       setLoading(false);
@@ -195,7 +199,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithApple = async () => {
     setLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({ provider: 'apple' });
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      await supabase.auth.signInWithOAuth({ 
+        provider: 'apple',
+        options: { redirectTo }
+      });
     } catch (error: any) {
       setLoading(false);
       toast.error('Apple sign-in failed', { description: error.message || 'Failed to initialize Apple sign-in' });

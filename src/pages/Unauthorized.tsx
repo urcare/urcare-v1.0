@@ -17,7 +17,7 @@ const Unauthorized = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/welcome');
+      navigate('/welcome-screen');
     } catch (error) {
       console.error('Sign out error:', error);
     }

@@ -15,7 +15,7 @@ export const WelcomeScreen: React.FC = () => {
   }, []);
 
   const handleGetStarted = () => {
-    navigate('/auth');
+    navigate('/onboarding');
   };
 
   return (

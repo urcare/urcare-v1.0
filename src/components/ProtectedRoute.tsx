@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   }
 
   if (!user) {
-    return <Navigate to="/welcome" state={{ from: location }} replace />;
+    return <Navigate to="/welcome-screen" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

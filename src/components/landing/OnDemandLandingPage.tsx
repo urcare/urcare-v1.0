@@ -18,44 +18,10 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
   const navigate = useNavigate();
   // Remove showLogin state and related modal logic
 
-  // Unified login handler
+  // Unified login handler - removed as OAuth is now handled by AuthOptions component
   const handleLogin = async (provider: 'apple' | 'google' | 'email') => {
-    let error = null;
-    const redirectTo = window.location.origin + '/welcome-screen';
-    if (provider === 'google') {
-      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } }));
-    } else if (provider === 'apple') {
-      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo } }));
-    } else if (provider === 'email') {
-      // You may want to show an email/password form/modal here
-      // For now, just return
-      return;
-    }
-    if (!error) {
-      // Wait for auth state to update
-      setTimeout(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // Fetch onboarding status and subscription
-          const { data, error } = await supabase
-            .from('onboarding_submissions')
-            .select('onboarding_completed, preferences')
-            .eq('user_id', user.id)
-            .single();
-          if (!data || !data.onboarding_completed) {
-            navigate('/welcome');
-          } else {
-            // Check subscription in preferences (assuming preferences.subscription === 'active')
-            const isSubscribed = data.preferences && data.preferences.subscription === 'active';
-            if (isSubscribed) {
-              navigate('/dashboard');
-            } else {
-              navigate('/custom-plan');
-            }
-          }
-        }
-      }, 1000);
-    }
+    // This function is no longer used as OAuth is handled by AuthOptions
+    console.log('handleLogin called but not used');
   };
 
   return (

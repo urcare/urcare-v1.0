@@ -7,6 +7,7 @@ import CustomPlan from './pages/CustomPlan';
 import Paywall from './pages/Paywall';
 import { Dashboard } from './pages/Dashboard';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { AuthCallback } from './components/auth/AuthCallback';
 
 // Robust ProtectedRoute
 const ProtectedRoute = ({ children, requireOnboardingComplete = false }: { children: React.ReactNode, requireOnboardingComplete?: boolean }) => {
@@ -46,6 +47,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         {/* Welcome Screen (before onboarding) */}
         <Route path="/welcome-screen" element={<WelcomeScreen />} />
+        {/* Auth Callback for OAuth redirects */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
         {/* Auth - removed */}
         {/* <Route path="/auth" element={<Auth />} /> */}
         {/* Onboarding (no longer protected) */}
