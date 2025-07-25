@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,13 @@ import { ArrowRight } from 'lucide-react';
 
 export const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [logoLoaded, setLogoLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = '/brand.png';
+    img.onload = () => setLogoLoaded(true);
+  }, []);
 
   const handleGetStarted = () => {
     navigate('/auth');
@@ -22,12 +29,13 @@ export const WelcomeScreen: React.FC = () => {
         {/* Logo */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          animate={{ scale: logoLoaded ? 1 : 0.8, opacity: logoLoaded ? 1 : 0 }}
+          transition={{ type: 'spring', stiffness: 120, damping: 12, delay: 0.2 }}
           className="mb-12"
+          style={{ willChange: 'transform, opacity' }}
         >
           <div className="w-24 h-24 mx-auto mb-8">
-            <img src="/brand.png" alt="UrCare Logo" className="w-full h-full drop-shadow-lg rounded-xl" />
+            <img src="/brand.png" alt="UrCare Logo" className="w-full h-full drop-shadow-lg rounded-xl" style={{ opacity: logoLoaded ? 1 : 0 }} />
           </div>
         </motion.div>
 

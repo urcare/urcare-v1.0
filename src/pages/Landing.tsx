@@ -11,6 +11,7 @@ const Landing = () => {
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
   const navigate = useNavigate();
   const { user, profile, isInitialized, loading } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     if (isInitialized && !loading && user && profile?.onboarding_completed) {
@@ -19,17 +20,19 @@ const Landing = () => {
   }, [isInitialized, loading, user, profile, navigate]);
 
   const handleSplashComplete = () => {
-    setTimeout(() => {
-      setShowSplash(false);
-    }, 300);
+    setSplashDone(true);
+    setShowSplash(false);
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000);
+      if (!splashDone) {
+        setSplashDone(true);
+        setShowSplash(false);
+      }
+    }, 1200); // 1.2s for faster splash
     return () => clearTimeout(timer);
-  }, []);
+  }, [splashDone]);
 
   // Handler for Get Started button
   const handleGetStarted = () => {
@@ -48,7 +51,7 @@ const Landing = () => {
       <OnDemandLandingPage onGetStarted={handleGetStarted} onAlreadyMember={handleAlreadyMember} />
       {showAuth && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30">
-          <div className="w-full max-w-md bg-white rounded-t-3xl shadow-xl pb-8 pt-4 px-6 animate-slide-up" style={{ minHeight: '50vh' }}>
+          <div className="w-full max-w-md bg-white rounded-t-3xl shadow-xl pb-8 pt-4 px-6 animate-slide-up" style={{ height: '320px' }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold mx-auto">{authMode === 'signup' ? 'Sign up' : 'Sign in'}</h2>
               <button onClick={() => setShowAuth(false)} className="text-2xl font-light absolute right-6 top-6">&times;</button>

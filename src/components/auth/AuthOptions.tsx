@@ -154,14 +154,6 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
       <div>
         {/* Heading handled by parent modal, so skip here */}
         
-        {/* Test button for debugging */}
-        <button
-          onClick={handleTestClick}
-          className="w-full flex items-center justify-center gap-3 bg-blue-500 text-white rounded-full py-4 text-lg font-medium mb-4 hover:bg-blue-600 transition-colors duration-200 cursor-pointer"
-        >
-          🧪 Test Button (Click me!)
-        </button>
-        
         <div className="space-y-4">
           <button
             onClick={handleAppleSignIn}
@@ -206,16 +198,6 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
             {isProcessing ? (mode === 'signup' ? 'Signing up...' : 'Signing in...') : (mode === 'signup' ? 'Sign up using Email' : 'Sign in with Email')}
           </button>
         </div>
-      </div>
-      <div className="text-center mt-10 mb-2">
-        <span className="text-base text-gray-700">Would you like to sign in later?{' '}</span>
-        <button 
-          onClick={handleAuthSuccess} 
-          className="underline font-medium text-base hover:text-gray-900 transition-colors duration-200"
-          disabled={isProcessing}
-        >
-          Skip
-        </button>
       </div>
     </div>
   );
