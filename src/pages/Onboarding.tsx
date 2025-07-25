@@ -87,6 +87,21 @@ const Onboarding = () => {
     }
   }, [user, onboardingStep]);
 
+  // Fallback: create profile row if missing
+  useEffect(() => {
+    if (user && !profile) {
+      supabase.from('user_profiles').insert([
+        { id: user.id, full_name: user.email, onboarding_completed: false }
+      ]).then(({ error }) => {
+        if (error) {
+          console.error('Failed to create user profile in onboarding fallback:', error);
+        } else {
+          console.log('Created user profile in onboarding fallback for user:', user.id);
+        }
+      });
+    }
+  }, [user, profile]);
+
   // Temporary manual trigger for debugging
   const handleManualOnboardingSave = () => {
     const pending = localStorage.getItem('pendingOnboardingData');

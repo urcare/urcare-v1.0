@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthOptionsProps {
   onboardingData: any;
@@ -117,8 +118,27 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
   };
 
   // Add debug log to onAuthSuccess
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = async () => {
     console.log('onAuthSuccess called');
+    // Ensure user profile row exists
+    const user = JSON.parse(localStorage.getItem('supabase.auth.user') || 'null');
+    if (user && user.id) {
+      const { data: profile, error: selectError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!profile) {
+        const { error: insertError } = await supabase.from('user_profiles').insert([
+          { id: user.id, full_name: user.email, onboarding_completed: false }
+        ]);
+        if (insertError) {
+          console.error('Failed to create user profile after sign-up:', insertError);
+        } else {
+          console.log('Created user profile after sign-up for user:', user.id);
+        }
+      }
+    }
     onAuthSuccess();
   };
 
