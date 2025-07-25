@@ -177,7 +177,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithEmail = async () => {
     setLoading(true);
     try {
-      // Placeholder for email sign-in modal or logic
+      // For now, we'll use a simple email/password form approach
+      // This could be enhanced with a modal or separate page
+      toast.info('Email sign-in feature coming soon!');
+      // You can implement a modal or redirect to email sign-in page here
+    } catch (error: any) {
+      console.error('Email sign-in error:', error);
+      toast.error('Email sign-in failed', { description: error.message || 'Failed to initialize email sign-in' });
     } finally {
       setLoading(false);
     }

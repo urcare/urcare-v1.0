@@ -317,12 +317,6 @@ const Onboarding = () => {
           description: `Profile setup complete! ${dataSummary.completeness}% data completeness with ${dataSummary.totalCompleted} key fields saved securely.`,
           duration: 4000
         });
-        setTimeout(() => {
-          toast.info('📋 Data Saved Successfully', {
-            description: `✅ Personal Info ✅ Health Metrics ✅ Schedule ✅ Emergency Contact - All stored safely!`,
-            duration: 3000
-          });
-        }, 1000);
         navigate('/custom-plan');
       }, 2500);
     } catch (error: any) {
@@ -352,12 +346,6 @@ const Onboarding = () => {
           onComplete={handleSerialComplete}
           onBack={() => navigate('/')}
         />
-        {/* Temporary manual trigger button for debugging */}
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <button onClick={handleManualOnboardingSave} style={{ padding: 10, background: '#fbbf24', color: '#111', borderRadius: 6, fontWeight: 'bold' }}>
-            Manual Save Onboarding (Debug)
-          </button>
-        </div>
       </>
     );
   }
