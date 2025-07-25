@@ -151,8 +151,8 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
   return (
     <div className="w-full max-w-md mx-auto flex flex-col min-h-[70vh] justify-between">
       <div>
-        {/* Only show the heading 'Save your progress' */}
-        <h1 className="text-3xl font-bold mb-10 mt-10">Save your progress</h1>
+        {/* Change heading to 'Sign up' */}
+        <h1 className="text-3xl font-bold mb-10 mt-10">Sign up</h1>
         
         {/* Test button for debugging */}
         <button
