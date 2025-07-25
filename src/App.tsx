@@ -1,16 +1,17 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Landing from './pages/Landing';
-import Auth from './pages/Auth';
 import Onboarding from './pages/Onboarding';
 import CustomPlan from './pages/CustomPlan';
 import Paywall from './pages/Paywall';
 import { Dashboard } from './pages/Dashboard';
 
-// Minimal ProtectedRoute
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, isInitialized } = useAuth();
+// Robust ProtectedRoute
+const ProtectedRoute = ({ children, requireOnboardingComplete = false }: { children: React.ReactNode, requireOnboardingComplete?: boolean }) => {
+  const { user, profile, loading, isInitialized } = useAuth();
+  const location = useLocation();
+
   if (!isInitialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -24,6 +25,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+  if (!profile) {
+    return null; // or a loading spinner
+  }
+  if (requireOnboardingComplete && !profile.onboarding_completed) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  if (!requireOnboardingComplete && profile.onboarding_completed && location.pathname === '/onboarding') {
+    return <Navigate to="/custom-plan" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -33,12 +43,12 @@ function App() {
       <Routes>
         {/* Main Landing Page */}
         <Route path="/" element={<Landing />} />
-        {/* Auth */}
-        <Route path="/auth" element={<Auth />} />
+        {/* Auth - removed */}
+        {/* <Route path="/auth" element={<Auth />} /> */}
         {/* Onboarding (protected) */}
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-        {/* Custom Plan (protected) */}
-        <Route path="/custom-plan" element={<ProtectedRoute><CustomPlan /></ProtectedRoute>} />
+        {/* Custom Plan (protected, require onboarding complete) */}
+        <Route path="/custom-plan" element={<ProtectedRoute requireOnboardingComplete={true}><CustomPlan /></ProtectedRoute>} />
         {/* Paywall (protected) */}
         <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
         {/* Dashboard (protected) */}
