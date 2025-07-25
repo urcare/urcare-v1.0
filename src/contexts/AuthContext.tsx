@@ -63,6 +63,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Helper: Ensure user profile row exists
+  const ensureUserProfile = async (user: any) => {
+    if (!user) return;
+    // Try to fetch the profile
+    const { data: profile, error: fetchError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // Some error other than "no rows"
+      console.error('Error fetching user profile:', fetchError);
+      return;
+    }
+    if (!profile) {
+      // No profile exists, create a blank one
+      const { error: insertError } = await supabase
+        .from('user_profiles')
+        .insert([{ id: user.id, full_name: user.user_metadata?.full_name || user.email }]);
+      if (insertError) {
+        console.error('Error inserting blank user profile:', insertError);
+      } else {
+        console.log('Blank user profile created for', user.id);
+      }
+    }
+  };
+
   // Initialize auth state and listen for changes
   useEffect(() => {
     let mounted = true;
@@ -73,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) {
           setUser(user);
           if (user) {
+            await ensureUserProfile(user);
             const profile = await fetchUserProfile(user.id);
             setProfile(profile);
             console.log('AuthContext: Loaded user and profile on init', { user, profile });
@@ -97,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!mounted) return;
       if (session?.user) {
         setUser(session.user);
+        await ensureUserProfile(session.user);
         const profile = await fetchUserProfile(session.user.id);
         setProfile(profile);
         console.log('AuthContext: Auth state changed, user logged in', { user: session.user, profile });
