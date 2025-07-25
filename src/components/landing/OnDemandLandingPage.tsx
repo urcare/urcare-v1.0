@@ -11,9 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 interface OnDemandLandingPageProps {
   showModal?: boolean;
   onGetStarted?: () => void;
+  onAlreadyMember?: () => void;
 }
 
-export const OnDemandLandingPage = ({ showModal = false, onGetStarted }: OnDemandLandingPageProps) => {
+export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlreadyMember }: OnDemandLandingPageProps) => {
   const navigate = useNavigate();
   // Remove showLogin state and related modal logic
 
@@ -111,6 +112,19 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted }: OnDeman
                 className="w-full max-w-sm bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Get started
+              </Button>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+            >
+              <Button
+                onClick={onAlreadyMember}
+                variant="outline"
+                className="w-full max-w-sm bg-transparent border-gray-300 text-gray-900 hover:bg-gray-50 py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300"
+              >
+                I'm already a member
               </Button>
             </motion.div>
           </div>
