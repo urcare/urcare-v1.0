@@ -37,13 +37,23 @@ async function fetchCustomPlanReport(profile: any) {
 }
 
 const CustomPlan: React.FC = () => {
-  const { profile } = useAuth();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [step, setStep] = useState<'progress' | 'ready'>('progress');
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   // Replace with real subscription check
   const isSubscribed = profile?.preferences?.subscription === 'active';
+
+  useEffect(() => {
+    if (profile) {
+      if (isSubscribed) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/paywall', { replace: true });
+      }
+    }
+  }, [profile, isSubscribed, navigate]);
 
   useEffect(() => {
     console.log('CustomPlan: Component mounted, checking profile...', { profile: !!profile });

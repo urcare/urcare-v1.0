@@ -56,6 +56,13 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [pendingOnboardingData, setPendingOnboardingData] = useState<OnboardingData | null>(null);
 
+  // Redirect to /custom-plan if onboarding is already complete
+  useEffect(() => {
+    if (profile && profile.onboarding_completed) {
+      navigate('/custom-plan', { replace: true });
+    }
+  }, [profile, navigate]);
+
   // Redirect to /auth if user is not authenticated
   useEffect(() => {
     if (!user) {
