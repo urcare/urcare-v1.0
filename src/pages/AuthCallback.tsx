@@ -174,11 +174,28 @@ const AuthCallback = () => {
             }
           }
           // No onboarding data in localStorage, check profile
-          const { data: profile } = await supabase
+          let { data: profile } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('id', user.id)
             .maybeSingle();
+          if (!profile) {
+            // Create a minimal profile row
+            const { error } = await supabase.from('user_profiles').insert([
+              { id: user.id, full_name: user.email, onboarding_completed: false }
+            ]);
+            if (error) {
+              toast.error('Failed to create user profile', { description: error.message });
+              navigate('/onboarding', { replace: true });
+              return;
+            }
+            // Fetch the new profile
+            ({ data: profile } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle());
+          }
           if (profile && profile.onboarding_completed) {
             navigate('/custom-plan', { replace: true });
             return;
