@@ -130,13 +130,13 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
         .eq('id', user.id)
         .maybeSingle();
       if (!profile) {
-        const { error: insertError } = await supabase.from('user_profiles').insert([
+        const { error: upsertError } = await supabase.from('user_profiles').upsert([
           { id: user.id, full_name: user.email, onboarding_completed: false }
         ]);
-        if (insertError) {
-          console.error('Failed to create user profile after sign-up:', insertError);
+        if (upsertError) {
+          console.error('Failed to upsert user profile after sign-up:', upsertError);
         } else {
-          console.log('Created user profile after sign-up for user:', user.id);
+          console.log('Upserted user profile after sign-up for user:', user.id);
         }
       }
     }
