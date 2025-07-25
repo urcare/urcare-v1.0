@@ -56,7 +56,12 @@ const Landing = () => {
               <h2 className="text-xl font-semibold mx-auto">{authMode === 'signup' ? 'Sign up' : 'Sign in'}</h2>
               <button onClick={() => setShowAuth(false)} className="text-2xl font-light absolute right-6 top-6">&times;</button>
             </div>
-            <AuthOptions onboardingData={{}} onAuthSuccess={() => setShowAuth(false)} mode={authMode} />
+            <AuthOptions onboardingData={{}} onAuthSuccess={() => {
+              setShowAuth(false);
+              if (authMode === 'signup') {
+                navigate('/welcome-screen');
+              }
+            }} mode={authMode} />
           </div>
         </div>
       )}
