@@ -45,8 +45,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         {/* Auth - removed */}
         {/* <Route path="/auth" element={<Auth />} /> */}
-        {/* Onboarding (protected) */}
-        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        {/* Onboarding (no longer protected) */}
+        <Route path="/onboarding" element={<Onboarding />} />
         {/* Custom Plan (protected, require onboarding complete) */}
         <Route path="/custom-plan" element={<ProtectedRoute requireOnboardingComplete={true}><CustomPlan /></ProtectedRoute>} />
         {/* Paywall (protected) */}

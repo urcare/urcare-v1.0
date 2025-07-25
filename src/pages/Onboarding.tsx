@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { SerialOnboarding } from '../components/onboarding/SerialOnboarding';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthOptions } from '@/components/auth/AuthOptions';
 
 interface OnboardingData {
   fullName: string;
@@ -54,6 +55,13 @@ const Onboarding = () => {
   const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'serial' | 'complete'>('welcome');
   const [loading, setLoading] = useState(false);
   const [pendingOnboardingData, setPendingOnboardingData] = useState<OnboardingData | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+
+  // Show auth popup if not authenticated
+  useEffect(() => {
+    if (!user) setShowAuth(true);
+    else setShowAuth(false);
+  }, [user]);
 
   // Redirect to /custom-plan if onboarding is already complete
   useEffect(() => {
@@ -61,13 +69,6 @@ const Onboarding = () => {
       navigate('/custom-plan', { replace: true });
     }
   }, [profile, navigate]);
-
-  // Redirect to /auth if user is not authenticated
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth', { replace: true });
-    }
-  }, [user, navigate]);
 
   // Restore onboarding data from localStorage after OAuth
   useEffect(() => {
@@ -375,6 +376,11 @@ const Onboarding = () => {
       setLoading(false);
     }
   };
+
+  // Show auth popup if not authenticated
+  if (showAuth) {
+    return <AuthOptions onboardingData={{}} onAuthSuccess={() => setShowAuth(false)} />;
+  }
 
   // Show serial onboarding directly (welcome screen is now separate)
   if (onboardingStep === 'welcome' || onboardingStep === 'serial') {
