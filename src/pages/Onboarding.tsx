@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
-import { OnboardingSteps } from '../components/onboarding/OnboardingSteps';
 import { SerialOnboarding } from '../components/onboarding/SerialOnboarding';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -392,10 +391,11 @@ const Onboarding = () => {
   // Show completion
   if (onboardingStep === 'complete') {
     return (
-      <OnboardingSteps
-        stepType="complete"
-        onContinue={() => navigate('/custom-plan')}
-      />
+      <div>
+        <h2>Profile Setup Complete!</h2>
+        <p>Your profile has been successfully saved. You can now start using UrCare.</p>
+        <button onClick={() => navigate('/custom-plan')}>Continue to Custom Plan</button>
+      </div>
     );
   }
 
