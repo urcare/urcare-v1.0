@@ -8,7 +8,7 @@ export const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/onboarding');
+    navigate('/auth');
   };
 
   return (

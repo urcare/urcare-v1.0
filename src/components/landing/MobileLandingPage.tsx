@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, Shield, Stethoscope, FileText, Lock, Cpu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ORBIT_ICONS = [
   { Component: Heart, color: "text-red-400", position: "top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2" },
@@ -18,6 +19,8 @@ const PARTICLES = [
 ];
 
 export const MobileLandingPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden border-8 border-black">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-blue-900/80 to-teal-900/40"></div>
@@ -82,11 +85,10 @@ export const MobileLandingPage = () => {
 
           {/* CTA Button - Glassy with neon blue edge */}
           <Button
-            size="lg"
-            className="w-full bg-white/5 backdrop-blur-lg hover:bg-white/10 text-white py-4 text-base font-semibold rounded-2xl shadow-lg border border-cyan-400/50 hover:border-cyan-400/80 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-400/30 hover:shadow-xl"
-            onClick={() => window.location.href = '/auth'}
+            onClick={() => navigate('/auth')}
+            className="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg hover:bg-blue-700 transition-all duration-300"
           >
-            Begin Diagnosis
+            Get Started
           </Button>
         </div>
 

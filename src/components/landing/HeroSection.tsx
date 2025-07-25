@@ -48,7 +48,7 @@ export const HeroSection = () => {
             <div className="pt-8">
               <Button 
                 size="lg" 
-                onClick={() => navigate('/onboarding')}
+                onClick={() => navigate('/auth')}
                 className="bg-white text-gray-900 hover:bg-gray-100 px-12 py-4 rounded-full text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 GET STARTED

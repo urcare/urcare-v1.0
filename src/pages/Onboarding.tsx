@@ -56,6 +56,13 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [pendingOnboardingData, setPendingOnboardingData] = useState<OnboardingData | null>(null);
 
+  // Redirect to /auth if user is not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, navigate]);
+
   // Restore onboarding data from localStorage after OAuth
   useEffect(() => {
     if (user && onboardingStep !== 'complete') {

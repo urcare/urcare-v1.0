@@ -37,7 +37,7 @@ export const CTASection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
             <Button 
               size="lg" 
-              onClick={() => navigate('/onboarding')}
+              onClick={() => navigate('/auth')}
               className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               Get Started for Free

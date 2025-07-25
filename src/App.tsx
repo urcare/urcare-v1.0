@@ -101,7 +101,7 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         
         {/* Onboarding route */}
-        <Route path="/onboarding" element={ <OnboardingRoute><Onboarding /></OnboardingRoute> } />
+        <Route path="/onboarding" element={ <ProtectedRoute><Onboarding /></ProtectedRoute> } />
         
         {/* Protected routes */}
         <Route path="/dashboard" element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } />
