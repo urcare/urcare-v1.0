@@ -182,11 +182,13 @@ const Onboarding = () => {
     }
 
     console.log('Starting comprehensive onboarding completion for user:', user.id);
+    console.log('Onboarding data received:', data);
     setLoading(true);
 
     try {
       // Step 1: Validate all collected data
       const validation = validateOnboardingData(data);
+      console.log('Data validation result:', validation);
       if (!validation.isValid) {
         toast.error('Incomplete Information', {
           description: `Please complete: ${validation.errors.join(', ')}`
@@ -201,6 +203,8 @@ const Onboarding = () => {
       const dataSummary = generateDataSummary(data);
 
       console.log('📊 Data completeness summary:', dataSummary);
+      console.log('Calculated date of birth:', dateOfBirth);
+      console.log('Calculated age:', age);
 
       // Step 3: Prepare comprehensive user profile data for user_profiles table
       // Build date_of_birth string
@@ -286,18 +290,24 @@ const Onboarding = () => {
       // Debug log before upsert
       console.log('Final userProfileData for upsert:', userProfileData);
       console.log('User id for upsert:', user.id);
+      console.log('Supabase client available:', !!supabase);
 
       // Step 4: Save to user_profiles table with upsert
+      console.log('Attempting to upsert user profile data...');
       const { error, data: upsertData } = await supabase
         .from('user_profiles')
         .upsert(userProfileData, { onConflict: 'id' });
 
       // Debug log after upsert
       console.log('Upsert result:', { error, upsertData });
+      console.log('Error details:', error?.message, error?.details, error?.hint);
 
       if (error) {
+        console.error('❌ Database upsert failed:', error);
         throw error;
       }
+
+      console.log('✅ Database upsert successful:', upsertData);
 
       // Step 5: Refresh auth context with updated profile
       try {

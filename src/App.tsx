@@ -67,29 +67,26 @@ function App() {
       );
     }
 
-    // If not authenticated, redirect to welcome page
-    if (!user) {
-      console.log('OnboardingRoute: No user, redirecting to welcome');
-      return <Navigate to="/welcome" replace />;
+    // If user is authenticated, check if onboarding is complete
+    if (user) {
+      const onboardingComplete = isOnboardingComplete();
+      console.log('OnboardingRoute check:', { 
+        user: !!user, 
+        onboardingComplete, 
+        profile: !!profile,
+        profileOnboardingCompleted: profile?.onboarding_completed 
+      });
+
+      // If onboarding is complete, redirect to custom plan
+      if (onboardingComplete) {
+        console.log('OnboardingRoute: Onboarding complete, redirecting to custom plan');
+        return <Navigate to="/custom-plan" replace />;
+      }
     }
 
-    const onboardingComplete = isOnboardingComplete();
-    console.log('OnboardingRoute check:', { 
-      user: !!user, 
-      onboardingComplete, 
-      profile: !!profile,
-      profileOnboardingCompleted: profile?.onboarding_completed 
-    });
-
-    // If user is authenticated but onboarding is incomplete, show onboarding
-    if (user && !onboardingComplete) {
-      console.log('OnboardingRoute: Showing onboarding');
-      return <>{children}</>;
-    }
-
-    // If onboarding is complete, redirect to custom plan
-    console.log('OnboardingRoute: Onboarding complete, redirecting to custom plan');
-    return <Navigate to="/custom-plan" replace />;
+    // Show onboarding for unauthenticated users or users with incomplete onboarding
+    console.log('OnboardingRoute: Showing onboarding');
+    return <>{children}</>;
   };
 
   return (
