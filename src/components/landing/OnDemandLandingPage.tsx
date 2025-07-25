@@ -21,10 +21,11 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
   // Unified login handler
   const handleLogin = async (provider: 'apple' | 'google' | 'email') => {
     let error = null;
+    const redirectTo = window.location.origin + '/welcome-screen';
     if (provider === 'google') {
-      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'google' }));
+      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } }));
     } else if (provider === 'apple') {
-      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'apple' }));
+      ({ error } = await supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo } }));
     } else if (provider === 'email') {
       // You may want to show an email/password form/modal here
       // For now, just return
