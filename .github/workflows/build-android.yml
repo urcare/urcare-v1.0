@@ -94,7 +94,7 @@ jobs:
         draft: false
         prerelease: false
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Create Nightly Release
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -123,7 +123,7 @@ jobs:
           **Changes in this build:**
           ${{ github.event.head_commit.message }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   notify:
     needs: build
