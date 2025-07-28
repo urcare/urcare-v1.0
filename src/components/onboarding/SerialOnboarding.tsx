@@ -29,7 +29,6 @@ import { EmergencyContactStep } from './steps/EmergencyContactStep';
 import { CriticalConditionsStep } from './steps/CriticalConditionsStep';
 import { HealthReportsStep } from './steps/HealthReportsStep';
 import { ReferralCodeStep } from './steps/ReferralCodeStep';
-import { AuthStep } from './steps/AuthStep';
 
 interface OnboardingData {
   fullName: string;
@@ -102,8 +101,7 @@ const steps = [
   { id: 'emergencyContact', title: 'Emergency contact person', type: 'emergencyContact', icon: User },
   { id: 'criticalConditions', title: 'Known allergies or critical conditions', type: 'textArea', icon: User },
   { id: 'healthReports', title: 'Existing health reports to upload?', type: 'fileUpload', icon: User },
-  { id: 'referralCode', title: 'Enter referral code (optional)', type: 'referralCode', icon: User },
-  { id: 'auth', title: '', type: 'auth', icon: User }
+  { id: 'referralCode', title: 'Enter referral code (optional)', type: 'referralCode', icon: User }
 ];
 
 // Helper functions for chronic conditions
@@ -682,13 +680,12 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         setData(updatedData);
       }
       
+      // Check if this is the last step (referralCode)
       if (currentStep === steps.length - 1) {
-        // If user is authenticated, skip auth step and complete onboarding
-        if (user) {
-          onComplete(data);
-          return;
-        }
-        // If not authenticated, go to auth step (handled by AuthOptions)
+        // Save all onboarding data to database
+        console.log('Saving onboarding data at referral step:', data);
+        onComplete(data);
+        return;
       } else {
         setCurrentStep(currentStep + 1);
       }
@@ -827,8 +824,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         return <HealthReportsStep hasHealthReports={data.hasHealthReports} healthReports={data.healthReports} onHasHealthReportsChange={v => updateData('hasHealthReports', v)} onAddHealthReport={file => updateData('healthReports', [...data.healthReports, file])} onRemoveHealthReport={file => updateData('healthReports', data.healthReports.filter(f => f !== file))} error={errors.healthReports} />;
       case 'referralCode':
         return <ReferralCodeStep value={data.referralCode} onChange={v => updateData('referralCode', v)} error={errors.referralCode} />;
-      case 'auth':
-        return <AuthStep onboardingData={data} onAuthSuccess={() => onComplete(data)} />;
       default:
         return null;
     }
@@ -901,23 +896,21 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         </motion.div>
       </div>
 
-      {/* Continue Button - Hide for auth step */}
-      {currentStepData.type !== 'auth' && (
-        <div className="p-6 pb-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+      {/* Continue Button */}
+      <div className="p-6 pb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Button
+            onClick={handleNext}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            <Button
-              onClick={handleNext}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              {currentStep === steps.length - 1 ? 'Complete Setup' : 'Continue'}
-            </Button>
-          </motion.div>
-        </div>
-      )}
+            {currentStep === steps.length - 1 ? 'Save Progress' : 'Continue'}
+          </Button>
+        </motion.div>
+      </div>
     </div>
   );
 }; 
