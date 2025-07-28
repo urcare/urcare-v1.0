@@ -15,6 +15,12 @@ export const AuthCallback: React.FC = () => {
       console.log('AuthCallback: URL hash:', window.location.hash);
       console.log('AuthCallback: URL search params:', window.location.search);
 
+      // Add a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.error('AuthCallback: Timeout reached, redirecting to landing page');
+        navigate('/');
+      }, 10000); // 10 seconds timeout
+
       try {
         // Check if we have OAuth tokens in the URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -77,7 +83,7 @@ export const AuthCallback: React.FC = () => {
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if user has a profile and onboarding status
-          const { data: profileData, error: profileError } = await supabase
+          let { data: profileData, error: profileError } = await supabase
             .from('user_profiles')
             .select('onboarding_completed, preferences')
             .eq('id', session.user.id)
@@ -86,7 +92,27 @@ export const AuthCallback: React.FC = () => {
           console.log('AuthCallback: Profile data:', profileData);
           console.log('AuthCallback: Profile error:', profileError);
 
-          if (profileError && profileError.code !== 'PGRST116') {
+          // If profile doesn't exist, create one
+          if (profileError && profileError.code === 'PGRST116') {
+            console.log('AuthCallback: Profile not found, creating new profile...');
+            const { data: newProfile, error: createError } = await supabase
+              .from('user_profiles')
+              .insert([{
+                id: session.user.id,
+                full_name: session.user.user_metadata?.full_name || session.user.email,
+                onboarding_completed: false
+              }])
+              .select('onboarding_completed, preferences')
+              .single();
+
+            if (createError) {
+              console.error('AuthCallback: Error creating profile:', createError);
+            } else {
+              console.log('AuthCallback: Profile created successfully:', newProfile);
+              profileData = newProfile;
+              profileError = null;
+            }
+          } else if (profileError) {
             console.error('AuthCallback: Error fetching profile:', profileError);
             // Don't redirect on profile error, just log it
           }
@@ -94,10 +120,15 @@ export const AuthCallback: React.FC = () => {
           // Determine where to redirect based on onboarding status
           if (!profileData || !profileData.onboarding_completed) {
             console.log('AuthCallback: Redirecting to welcome screen');
+            console.log('AuthCallback: Profile data is null or onboarding not completed');
+            console.log('AuthCallback: profileData:', profileData);
+            console.log('AuthCallback: onboarding_completed:', profileData?.onboarding_completed);
             navigate('/welcome-screen');
           } else {
             // Check subscription status
             const isSubscribed = profileData.preferences?.subscription === 'active';
+            console.log('AuthCallback: User has completed onboarding, checking subscription');
+            console.log('AuthCallback: isSubscribed:', isSubscribed);
             if (isSubscribed) {
               console.log('AuthCallback: Redirecting to dashboard');
               navigate('/dashboard');
@@ -114,6 +145,8 @@ export const AuthCallback: React.FC = () => {
         console.error('AuthCallback: Unexpected error:', error);
         toast.error('Authentication failed', { description: 'An unexpected error occurred' });
         navigate('/');
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 
