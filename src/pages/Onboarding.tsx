@@ -320,6 +320,19 @@ const Onboarding = () => {
       console.log('Final userProfileData for upsert:', userProfileData);
       console.log('User id for upsert:', user.id);
       console.log('Supabase client available:', !!supabase);
+      console.log('Supabase URL configured:', !!import.meta.env.VITE_SUPABASE_URL);
+      console.log('Supabase key configured:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+      // Check if Supabase is properly configured
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.error('❌ Supabase environment variables are missing!');
+        toast.error('Configuration Error', {
+          description: 'Supabase is not properly configured. Please check your environment variables.',
+          duration: 6000
+        });
+        setLoading(false);
+        return;
+      }
 
       // Step 4: Save to user_profiles table with upsert
       console.log('Attempting to upsert user profile data...');
@@ -333,6 +346,29 @@ const Onboarding = () => {
 
       if (error) {
         console.error('❌ Database upsert failed:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
+        
+        // Provide more specific error messages
+        let errorMessage = 'There was an error saving your profile.';
+        if (error.code === 'PGRST116') {
+          errorMessage = 'User profile not found. Please try signing in again.';
+        } else if (error.code === '42501') {
+          errorMessage = 'Permission denied. Please check your database permissions.';
+        } else if (error.message?.includes('duplicate')) {
+          errorMessage = 'Profile already exists. Updating existing profile...';
+        } else if (error.message?.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message?.includes('validation')) {
+          errorMessage = 'Data validation error. Please check your information.';
+        }
+        
+        toast.error('Database Error', {
+          description: errorMessage,
+          duration: 6000
+        });
         throw error;
       }
 
