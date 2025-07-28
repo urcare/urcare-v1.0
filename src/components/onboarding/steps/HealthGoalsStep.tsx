@@ -1,5 +1,4 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
 
 interface HealthGoalsStepProps {
   selected: string[];
@@ -20,20 +19,27 @@ const healthGoals = [
 ];
 
 export const HealthGoalsStep: React.FC<HealthGoalsStepProps> = ({ selected, onToggle, error }) => (
-  <div>
-    <Label>What are your main health goals?</Label>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+  <div className="space-y-4">
+    <div className="grid grid-cols-1 gap-3">
       {healthGoals.map(goal => (
-        <label key={goal} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <input
-            type="checkbox"
-            checked={selected.includes(goal)}
-            onChange={() => onToggle(goal)}
-          />
-          {goal}
-        </label>
+        <button
+          key={goal}
+          onClick={() => onToggle(goal)}
+          className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
+            selected.includes(goal)
+              ? 'border-gray-900 bg-gray-900 text-white shadow-lg scale-105'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <span className="font-medium text-sm">{goal}</span>
+        </button>
       ))}
     </div>
-    {error && <div style={{ color: 'red', marginTop: 4 }}>{error}</div>}
+    
+    {error && (
+      <div className="text-red-500 text-sm text-center mt-2">
+        {error}
+      </div>
+    )}
   </div>
 ); 

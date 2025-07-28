@@ -1,5 +1,4 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
 
 interface ChronicConditionsStepProps {
   selected: string[];
@@ -26,20 +25,27 @@ const chronicConditions = [
 ];
 
 export const ChronicConditionsStep: React.FC<ChronicConditionsStepProps> = ({ selected, onToggle, error }) => (
-  <div>
-    <Label>Do you have any chronic conditions?</Label>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+  <div className="space-y-4">
+    <div className="grid grid-cols-1 gap-3">
       {chronicConditions.map(condition => (
-        <label key={condition} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <input
-            type="checkbox"
-            checked={selected.includes(condition)}
-            onChange={() => onToggle(condition)}
-          />
-          {condition}
-        </label>
+        <button
+          key={condition}
+          onClick={() => onToggle(condition)}
+          className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
+            selected.includes(condition)
+              ? 'border-gray-900 bg-gray-900 text-white shadow-lg scale-105'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <span className="font-medium text-sm">{condition}</span>
+        </button>
       ))}
     </div>
-    {error && <div style={{ color: 'red', marginTop: 4 }}>{error}</div>}
+    
+    {error && (
+      <div className="text-red-500 text-sm text-center mt-2">
+        {error}
+      </div>
+    )}
   </div>
 ); 

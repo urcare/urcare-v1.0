@@ -1,5 +1,4 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
 
 interface DietTypeStepProps {
   value: string;
@@ -19,22 +18,27 @@ const dietTypes = [
 ];
 
 export const DietTypeStep: React.FC<DietTypeStepProps> = ({ value, onChange, error }) => (
-  <div>
-    <Label>Diet Type</Label>
-    <div style={{ display: 'flex', gap: 16 }}>
+  <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-3">
       {dietTypes.map(type => (
-        <label key={type} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <input
-            type="radio"
-            name="dietType"
-            value={type}
-            checked={value === type}
-            onChange={() => onChange(type)}
-          />
-          {type}
-        </label>
+        <button
+          key={type}
+          onClick={() => onChange(type)}
+          className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center ${
+            value === type
+              ? 'border-gray-900 bg-gray-900 text-white shadow-lg scale-105'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <span className="font-medium text-sm">{type}</span>
+        </button>
       ))}
     </div>
-    {error && <div style={{ color: 'red', marginTop: 4 }}>{error}</div>}
+    
+    {error && (
+      <div className="text-red-500 text-sm text-center mt-2">
+        {error}
+      </div>
+    )}
   </div>
 ); 
