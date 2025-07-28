@@ -19,7 +19,7 @@ export const AuthCallback: React.FC = () => {
       const timeoutId = setTimeout(() => {
         console.error('AuthCallback: Timeout reached, redirecting to landing page');
         navigate('/');
-      }, 10000); // 10 seconds timeout
+      }, 5000); // 5 seconds timeout
 
       try {
         // Check if we have OAuth tokens in the URL
@@ -48,23 +48,29 @@ export const AuthCallback: React.FC = () => {
         if (accessToken) {
           console.log('AuthCallback: Found access token, setting session...');
           
-          // Set the session manually
-          const { data: { session }, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || ''
-          });
+          try {
+            // Set the session manually
+            const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            });
 
-          if (sessionError) {
-            console.error('AuthCallback: Error setting session:', sessionError);
-            toast.error('Authentication failed', { description: sessionError.message });
-            navigate('/');
-            return;
+            if (sessionError) {
+              console.error('AuthCallback: Error setting session:', sessionError);
+              // Try alternative approach - just proceed with the tokens we have
+              console.log('AuthCallback: Trying alternative approach...');
+            } else {
+              console.log('AuthCallback: Session set successfully:', session);
+            }
+          } catch (error) {
+            console.error('AuthCallback: Exception setting session:', error);
+            // Continue with alternative approach
+            console.log('AuthCallback: Continuing with alternative approach...');
           }
-
-          console.log('AuthCallback: Session set successfully:', session);
         }
 
         // Now try to get the session
+        console.log('AuthCallback: Getting session after setting...');
         const { data: { session }, error: getSessionError } = await supabase.auth.getSession();
         
         if (getSessionError) {
@@ -75,71 +81,89 @@ export const AuthCallback: React.FC = () => {
         }
 
         console.log('AuthCallback: Session data:', session);
+        
+        // Extract user info from tokens if session is not available
+        let userId = session?.user?.id;
+        let userEmail = session?.user?.email;
+        
+        if (!userId && accessToken) {
+          // Try to decode the token to get user info
+          try {
+            const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
+            userId = tokenPayload.sub;
+            userEmail = tokenPayload.email;
+            console.log('AuthCallback: Extracted user info from token:', { userId, userEmail });
+          } catch (error) {
+            console.error('AuthCallback: Failed to decode token:', error);
+          }
+        }
 
-        if (session?.user) {
-          console.log('AuthCallback: User authenticated:', session.user);
-          
-          // Wait a moment for the auth state to propagate
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Check if user has a profile and onboarding status
-          let { data: profileData, error: profileError } = await supabase
+        if (!userId) {
+          console.error('AuthCallback: No valid user ID found');
+          toast.error('Authentication failed', { description: 'Unable to identify user' });
+          navigate('/');
+          return;
+        }
+
+        console.log('AuthCallback: Processing user:', { userId, userEmail });
+        
+        // Wait a moment for the auth state to propagate
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Check if user has a profile and onboarding status
+        let { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed, preferences')
+          .eq('id', userId)
+          .single();
+
+        console.log('AuthCallback: Profile data:', profileData);
+        console.log('AuthCallback: Profile error:', profileError);
+
+        // If profile doesn't exist, create one
+        if (profileError && profileError.code === 'PGRST116') {
+          console.log('AuthCallback: Profile not found, creating new profile...');
+          const { data: newProfile, error: createError } = await supabase
             .from('user_profiles')
+            .insert([{
+              id: userId,
+              full_name: userEmail,
+              onboarding_completed: false
+            }])
             .select('onboarding_completed, preferences')
-            .eq('id', session.user.id)
             .single();
 
-          console.log('AuthCallback: Profile data:', profileData);
-          console.log('AuthCallback: Profile error:', profileError);
-
-          // If profile doesn't exist, create one
-          if (profileError && profileError.code === 'PGRST116') {
-            console.log('AuthCallback: Profile not found, creating new profile...');
-            const { data: newProfile, error: createError } = await supabase
-              .from('user_profiles')
-              .insert([{
-                id: session.user.id,
-                full_name: session.user.user_metadata?.full_name || session.user.email,
-                onboarding_completed: false
-              }])
-              .select('onboarding_completed, preferences')
-              .single();
-
-            if (createError) {
-              console.error('AuthCallback: Error creating profile:', createError);
-            } else {
-              console.log('AuthCallback: Profile created successfully:', newProfile);
-              profileData = newProfile;
-              profileError = null;
-            }
-          } else if (profileError) {
-            console.error('AuthCallback: Error fetching profile:', profileError);
-            // Don't redirect on profile error, just log it
-          }
-
-          // Determine where to redirect based on onboarding status
-          if (!profileData || !profileData.onboarding_completed) {
-            console.log('AuthCallback: Redirecting to welcome screen');
-            console.log('AuthCallback: Profile data is null or onboarding not completed');
-            console.log('AuthCallback: profileData:', profileData);
-            console.log('AuthCallback: onboarding_completed:', profileData?.onboarding_completed);
-            navigate('/welcome-screen');
+          if (createError) {
+            console.error('AuthCallback: Error creating profile:', createError);
           } else {
-            // Check subscription status
-            const isSubscribed = profileData.preferences?.subscription === 'active';
-            console.log('AuthCallback: User has completed onboarding, checking subscription');
-            console.log('AuthCallback: isSubscribed:', isSubscribed);
-            if (isSubscribed) {
-              console.log('AuthCallback: Redirecting to dashboard');
-              navigate('/dashboard');
-            } else {
-              console.log('AuthCallback: Redirecting to custom plan');
-              navigate('/custom-plan');
-            }
+            console.log('AuthCallback: Profile created successfully:', newProfile);
+            profileData = newProfile;
+            profileError = null;
           }
+        } else if (profileError) {
+          console.error('AuthCallback: Error fetching profile:', profileError);
+          // Don't redirect on profile error, just log it
+        }
+
+        // Determine where to redirect based on onboarding status
+        if (!profileData || !profileData.onboarding_completed) {
+          console.log('AuthCallback: Redirecting to welcome screen');
+          console.log('AuthCallback: Profile data is null or onboarding not completed');
+          console.log('AuthCallback: profileData:', profileData);
+          console.log('AuthCallback: onboarding_completed:', profileData?.onboarding_completed);
+          navigate('/welcome-screen');
         } else {
-          console.log('AuthCallback: No session found, redirecting to landing');
-          navigate('/');
+          // Check subscription status
+          const isSubscribed = profileData.preferences?.subscription === 'active';
+          console.log('AuthCallback: User has completed onboarding, checking subscription');
+          console.log('AuthCallback: isSubscribed:', isSubscribed);
+          if (isSubscribed) {
+            console.log('AuthCallback: Redirecting to dashboard');
+            navigate('/dashboard');
+          } else {
+            console.log('AuthCallback: Redirecting to custom plan');
+            navigate('/custom-plan');
+          }
         }
       } catch (error) {
         console.error('AuthCallback: Unexpected error:', error);
