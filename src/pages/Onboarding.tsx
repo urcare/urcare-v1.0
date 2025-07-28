@@ -270,51 +270,54 @@ const Onboarding = () => {
         }
       };
 
-      const userProfileData = {
+      // Clean and validate data before sending to database
+      const cleanUserProfileData = {
         id: user.id,
-        full_name: data.fullName.trim(),
-        age: age,
-        date_of_birth,
-        gender: data.gender,
-        unit_system: data.unitSystem,
-        height_feet: data.heightFeet,
-        height_inches: data.heightInches,
-        height_cm: data.heightCm,
-        weight_lb: data.weightLb,
-        weight_kg: data.weightKg,
-        wake_up_time: data.wakeUpTime,
-        sleep_time: data.sleepTime,
-        work_start: data.workStart,
-        work_end: data.workEnd,
+        full_name: data.fullName?.trim() || '',
+        age: age || 0,
+        date_of_birth: date_of_birth || null,
+        gender: data.gender || null,
+        unit_system: data.unitSystem || 'imperial',
+        height_feet: data.heightFeet || null,
+        height_inches: data.heightInches || null,
+        height_cm: data.heightCm || null,
+        weight_lb: data.weightLb || null,
+        weight_kg: data.weightKg || null,
+        wake_up_time: data.wakeUpTime || null,
+        sleep_time: data.sleepTime || null,
+        work_start: data.workStart || null,
+        work_end: data.workEnd || null,
         chronic_conditions: Array.isArray(data.chronicConditions) ? data.chronicConditions : [],
-        takes_medications: data.takesMedications,
+        takes_medications: data.takesMedications || null,
         medications: Array.isArray(data.medications) ? data.medications : [],
-        has_surgery: data.hasSurgery,
+        has_surgery: data.hasSurgery || null,
         surgery_details: Array.isArray(data.surgeryDetails) ? data.surgeryDetails : [],
         health_goals: Array.isArray(data.healthGoals) ? data.healthGoals : [],
-        diet_type: data.dietType,
-        blood_group: data.bloodGroup,
-        breakfast_time: data.breakfastTime,
-        lunch_time: data.lunchTime,
-        dinner_time: data.dinnerTime,
-        workout_time: data.workoutTime,
-        routine_flexibility: data.routineFlexibility,
-        uses_wearable: data.usesWearable,
-        wearable_type: data.wearableType,
-        track_family: data.trackFamily,
-        share_progress: data.shareProgress,
-        emergency_contact_name: data.emergencyContactName,
-        emergency_contact_phone: data.emergencyContactPhone,
-        critical_conditions: data.criticalConditions,
-        has_health_reports: data.hasHealthReports,
+        diet_type: data.dietType || null,
+        blood_group: data.bloodGroup || null,
+        breakfast_time: data.breakfastTime || null,
+        lunch_time: data.lunchTime || null,
+        dinner_time: data.dinnerTime || null,
+        workout_time: data.workoutTime || null,
+        routine_flexibility: data.routineFlexibility || null,
+        uses_wearable: data.usesWearable || null,
+        wearable_type: data.wearableType || null,
+        track_family: data.trackFamily || null,
+        share_progress: data.shareProgress || null,
+        emergency_contact_name: data.emergencyContactName || null,
+        emergency_contact_phone: data.emergencyContactPhone || null,
+        critical_conditions: data.criticalConditions || null,
+        has_health_reports: data.hasHealthReports || null,
         health_reports: Array.isArray(data.healthReports) ? data.healthReports : [],
-        referral_code: data.referralCode,
-        save_progress: data.saveProgress,
+        referral_code: data.referralCode || null,
+        save_progress: data.saveProgress || null,
         onboarding_completed: true,
         status: 'active',
-        preferences,
+        preferences: preferences || {},
         updated_at: new Date().toISOString()
       };
+
+      const userProfileData = cleanUserProfileData;
 
       // Debug log before upsert
       console.log('Final userProfileData for upsert:', userProfileData);
@@ -336,9 +339,17 @@ const Onboarding = () => {
 
       // Step 4: Save to user_profiles table with upsert
       console.log('Attempting to upsert user profile data...');
-      const { error, data: upsertData } = await supabase
+      
+      // Add timeout protection for the database operation
+      const upsertPromise = supabase
         .from('user_profiles')
         .upsert(userProfileData, { onConflict: 'id' });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database operation timed out')), 10000)
+      );
+      
+      const { error, data: upsertData } = await Promise.race([upsertPromise, timeoutPromise]) as any;
 
       // Debug log after upsert
       console.log('Upsert result:', { error, upsertData });
@@ -351,25 +362,37 @@ const Onboarding = () => {
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
         
-        // Provide more specific error messages
-        let errorMessage = 'There was an error saving your profile.';
-        if (error.code === 'PGRST116') {
-          errorMessage = 'User profile not found. Please try signing in again.';
-        } else if (error.code === '42501') {
-          errorMessage = 'Permission denied. Please check your database permissions.';
-        } else if (error.message?.includes('duplicate')) {
-          errorMessage = 'Profile already exists. Updating existing profile...';
-        } else if (error.message?.includes('network')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (error.message?.includes('validation')) {
-          errorMessage = 'Data validation error. Please check your information.';
-        }
+        // Try fallback approach - insert instead of upsert
+        console.log('Trying fallback insert approach...');
+        const { error: insertError, data: insertData } = await supabase
+          .from('user_profiles')
+          .insert(userProfileData);
         
-        toast.error('Database Error', {
-          description: errorMessage,
-          duration: 6000
-        });
-        throw error;
+        if (insertError) {
+          console.error('❌ Fallback insert also failed:', insertError);
+          
+          // Provide more specific error messages
+          let errorMessage = 'There was an error saving your profile.';
+          if (error.code === 'PGRST116') {
+            errorMessage = 'User profile not found. Please try signing in again.';
+          } else if (error.code === '42501') {
+            errorMessage = 'Permission denied. Please check your database permissions.';
+          } else if (error.message?.includes('duplicate')) {
+            errorMessage = 'Profile already exists. Updating existing profile...';
+          } else if (error.message?.includes('network')) {
+            errorMessage = 'Network error. Please check your connection and try again.';
+          } else if (error.message?.includes('validation')) {
+            errorMessage = 'Data validation error. Please check your information.';
+          }
+          
+          toast.error('Database Error', {
+            description: errorMessage,
+            duration: 6000
+          });
+          throw error;
+        } else {
+          console.log('✅ Fallback insert successful:', insertData);
+        }
       }
 
       console.log('✅ Database upsert successful:', upsertData);
