@@ -14,18 +14,23 @@ export const AuthCallback: React.FC = () => {
       console.log('AuthCallback: Current URL:', window.location.href);
 
       try {
-        // Get the current session after OAuth redirect
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // First, try to get the session from the URL hash/fragment
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('AuthCallback: Error getting session:', error);
-          toast.error('Authentication failed', { description: error.message });
+        if (sessionError) {
+          console.error('AuthCallback: Error getting session:', sessionError);
+          toast.error('Authentication failed', { description: sessionError.message });
           navigate('/');
           return;
         }
 
+        console.log('AuthCallback: Session data:', session);
+
         if (session?.user) {
           console.log('AuthCallback: User authenticated:', session.user);
+          
+          // Wait a moment for the auth state to propagate
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Check if user has a profile and onboarding status
           const { data: profileData, error: profileError } = await supabase
@@ -34,8 +39,12 @@ export const AuthCallback: React.FC = () => {
             .eq('id', session.user.id)
             .single();
 
+          console.log('AuthCallback: Profile data:', profileData);
+          console.log('AuthCallback: Profile error:', profileError);
+
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('AuthCallback: Error fetching profile:', profileError);
+            // Don't redirect on profile error, just log it
           }
 
           // Determine where to redirect based on onboarding status

@@ -211,16 +211,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       console.log('Calling supabase.auth.signInWithOAuth for Google');
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      await supabase.auth.signInWithOAuth({ 
+      
+      // Determine the correct redirect URL based on environment
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const redirectTo = isDevelopment 
+        ? 'http://localhost:8080/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      
+      console.log('Using redirect URL:', redirectTo);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({ 
         provider: 'google',
-        options: { redirectTo }
+        options: { 
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
       });
-      console.log('supabase.auth.signInWithOAuth for Google finished (should redirect or popup)');
+      
+      if (error) {
+        console.error('OAuth error:', error);
+        throw error;
+      }
+      
+      console.log('OAuth initiated successfully:', data);
+      
+      // If we're in development and get a URL, redirect manually
+      if (isDevelopment && data?.url) {
+        window.location.href = data.url;
+      }
+      
     } catch (error: any) {
       setLoading(false);
       console.error('Google sign-in failed:', error);
-      toast.error('Google sign-in failed', { description: error.message || 'Failed to initialize Google sign-in' });
+      toast.error('Google sign-in failed', { 
+        description: error.message || 'Failed to initialize Google sign-in' 
+      });
       throw error;
     }
   };
@@ -228,14 +256,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithApple = async () => {
     setLoading(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      await supabase.auth.signInWithOAuth({ 
+      // Determine the correct redirect URL based on environment
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const redirectTo = isDevelopment 
+        ? 'http://localhost:8080/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      
+      console.log('Using redirect URL for Apple:', redirectTo);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({ 
         provider: 'apple',
-        options: { redirectTo }
+        options: { 
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
       });
+      
+      if (error) {
+        console.error('Apple OAuth error:', error);
+        throw error;
+      }
+      
+      console.log('Apple OAuth initiated successfully:', data);
+      
+      // If we're in development and get a URL, redirect manually
+      if (isDevelopment && data?.url) {
+        window.location.href = data.url;
+      }
+      
     } catch (error: any) {
       setLoading(false);
-      toast.error('Apple sign-in failed', { description: error.message || 'Failed to initialize Apple sign-in' });
+      console.error('Apple sign-in failed:', error);
+      toast.error('Apple sign-in failed', { 
+        description: error.message || 'Failed to initialize Apple sign-in' 
+      });
       throw error;
     }
   };
