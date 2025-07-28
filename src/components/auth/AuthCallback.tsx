@@ -12,14 +12,58 @@ export const AuthCallback: React.FC = () => {
     const handleAuthCallback = async () => {
       console.log('AuthCallback: Starting OAuth callback handling...');
       console.log('AuthCallback: Current URL:', window.location.href);
+      console.log('AuthCallback: URL hash:', window.location.hash);
+      console.log('AuthCallback: URL search params:', window.location.search);
 
       try {
-        // First, try to get the session from the URL hash/fragment
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Check if we have OAuth tokens in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        if (sessionError) {
-          console.error('AuthCallback: Error getting session:', sessionError);
-          toast.error('Authentication failed', { description: sessionError.message });
+        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+        const error = urlParams.get('error') || hashParams.get('error');
+        const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+
+        console.log('AuthCallback: Parsed tokens:', { 
+          hasAccessToken: !!accessToken, 
+          hasRefreshToken: !!refreshToken,
+          error,
+          errorDescription
+        });
+
+        if (error) {
+          console.error('AuthCallback: OAuth error:', error, errorDescription);
+          toast.error('Authentication failed', { description: errorDescription || error });
+          navigate('/');
+          return;
+        }
+
+        if (accessToken) {
+          console.log('AuthCallback: Found access token, setting session...');
+          
+          // Set the session manually
+          const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
+
+          if (sessionError) {
+            console.error('AuthCallback: Error setting session:', sessionError);
+            toast.error('Authentication failed', { description: sessionError.message });
+            navigate('/');
+            return;
+          }
+
+          console.log('AuthCallback: Session set successfully:', session);
+        }
+
+        // Now try to get the session
+        const { data: { session }, error: getSessionError } = await supabase.auth.getSession();
+        
+        if (getSessionError) {
+          console.error('AuthCallback: Error getting session:', getSessionError);
+          toast.error('Authentication failed', { description: getSessionError.message });
           navigate('/');
           return;
         }
@@ -30,7 +74,7 @@ export const AuthCallback: React.FC = () => {
           console.log('AuthCallback: User authenticated:', session.user);
           
           // Wait a moment for the auth state to propagate
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if user has a profile and onboarding status
           const { data: profileData, error: profileError } = await supabase
@@ -81,6 +125,7 @@ export const AuthCallback: React.FC = () => {
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gray-600 dark:text-gray-400">Completing authentication...</p>
+        <p className="text-sm text-gray-500 mt-2">Please wait while we set up your account...</p>
       </div>
     </div>
   );

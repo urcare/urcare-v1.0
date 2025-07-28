@@ -212,18 +212,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Calling supabase.auth.signInWithOAuth for Google');
       
-      // Determine the correct redirect URL based on environment
-      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const redirectTo = isDevelopment 
-        ? 'http://localhost:8080/auth/callback'
-        : `${window.location.origin}/auth/callback`;
-      
-      console.log('Using redirect URL:', redirectTo);
-      
+      // Use a simpler approach that works better
       const { data, error } = await supabase.auth.signInWithOAuth({ 
         provider: 'google',
         options: { 
-          redirectTo,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -238,8 +231,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('OAuth initiated successfully:', data);
       
-      // If we're in development and get a URL, redirect manually
-      if (isDevelopment && data?.url) {
+      // The redirect should happen automatically
+      // If we get a URL, it means we need to redirect manually
+      if (data?.url) {
+        console.log('Redirecting to OAuth URL:', data.url);
         window.location.href = data.url;
       }
       
@@ -256,18 +251,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithApple = async () => {
     setLoading(true);
     try {
-      // Determine the correct redirect URL based on environment
-      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const redirectTo = isDevelopment 
-        ? 'http://localhost:8080/auth/callback'
-        : `${window.location.origin}/auth/callback`;
-      
-      console.log('Using redirect URL for Apple:', redirectTo);
+      console.log('Calling supabase.auth.signInWithOAuth for Apple');
       
       const { data, error } = await supabase.auth.signInWithOAuth({ 
         provider: 'apple',
         options: { 
-          redirectTo,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -282,8 +271,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Apple OAuth initiated successfully:', data);
       
-      // If we're in development and get a URL, redirect manually
-      if (isDevelopment && data?.url) {
+      // The redirect should happen automatically
+      // If we get a URL, it means we need to redirect manually
+      if (data?.url) {
+        console.log('Redirecting to Apple OAuth URL:', data.url);
         window.location.href = data.url;
       }
       
