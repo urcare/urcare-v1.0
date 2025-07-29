@@ -1,4 +1,5 @@
 import React from 'react';
+import { User, Users, UserCheck, UserX } from 'lucide-react';
 
 interface GenderStepProps {
   value: string;
@@ -7,10 +8,10 @@ interface GenderStepProps {
 }
 
 const genderOptions = [
-  'Male',
-  'Female',
-  'Other',
-  'Prefer not to say',
+  { value: 'Male', icon: User, color: 'text-blue-600' },
+  { value: 'Female', icon: User, color: 'text-pink-600' },
+  { value: 'Other', icon: Users, color: 'text-purple-600' },
+  { value: 'Prefer not to say', icon: UserX, color: 'text-gray-600' },
 ];
 
 export const GenderStep: React.FC<GenderStepProps> = ({ value, onChange, error }) => (
@@ -18,19 +19,29 @@ export const GenderStep: React.FC<GenderStepProps> = ({ value, onChange, error }
     <div className="flex justify-center">
       <div className="w-full max-w-sm">
         <div className="grid grid-cols-2 gap-4">
-          {genderOptions.map(option => (
-            <button
-              key={option}
-              onClick={() => onChange(option)}
-              className={`p-6 rounded-2xl border-2 transition-all duration-200 text-center font-medium ${
-                value === option
-                  ? 'border-blue-500 bg-blue-500 text-white shadow-lg scale-105'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <span className="text-base font-semibold">{option}</span>
-            </button>
-          ))}
+          {genderOptions.map(option => {
+            const IconComponent = option.icon;
+            return (
+              <button
+                key={option.value}
+                onClick={() => onChange(option.value)}
+                className={`p-6 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-3 ${
+                  value === option.value
+                    ? 'border-blue-500 bg-blue-500 text-white shadow-lg scale-105'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <IconComponent 
+                  className={`w-8 h-8 ${
+                    value === option.value 
+                      ? 'text-white' 
+                      : option.color
+                  }`} 
+                />
+                <span className="text-base font-semibold">{option.value}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
