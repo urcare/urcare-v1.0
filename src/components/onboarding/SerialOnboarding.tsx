@@ -29,6 +29,7 @@ import { EmergencyContactStep } from './steps/EmergencyContactStep';
 import { CriticalConditionsStep } from './steps/CriticalConditionsStep';
 import { HealthReportsStep } from './steps/HealthReportsStep';
 import { ReferralCodeStep } from './steps/ReferralCodeStep';
+import { WelcomeStep } from './steps/WelcomeStep';
 
 interface OnboardingData {
   fullName: string;
@@ -217,6 +218,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   const selectedIndex = options.indexOf(selectedValue);
   const visibleItems = 7; // Show 7 items at a time (3 above, 1 center, 3 below)
   const itemHeight = 50; // Height of each item in pixels
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Touch and scroll state
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
@@ -286,15 +288,26 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
     }
   };
 
-  // Handle mouse wheel scrolling
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) {
-      moveDown();
-    } else {
-      moveUp();
-    }
-  };
+  // Use useEffect to add wheel event listener with passive: false
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        moveDown();
+      } else {
+        moveUp();
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [selectedIndex]); // Re-add listener when selectedIndex changes
 
   // Handle touch start
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -369,8 +382,8 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   return (
     <div 
+      ref={containerRef}
       className={`relative ${width} h-56 overflow-hidden flex flex-col justify-center focus:outline-none rounded-xl`}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -782,6 +795,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
     switch (currentStepData.id) {
       case 'fullName':
         return <FullNameStep value={data.fullName} onChange={v => updateData('fullName', v)} error={errors.fullName} />;
+      case 'welcome':
+        return <WelcomeStep fullName={data.fullName} />;
       case 'dateOfBirth':
         return <DateOfBirthStep month={data.birthMonth} day={data.birthDay} year={data.birthYear} onChange={updateData} error={errors.dateOfBirth} />;
       case 'gender':
@@ -830,9 +845,9 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header with back button and progress */}
-      <div className="flex items-center justify-between p-4 pt-12">
+      <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -843,7 +858,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         </Button>
         
         {/* Progress bar */}
-        <div className="flex-1 mx-8">
+        <div className="flex-1 mx-4 sm:mx-8">
           <div className="w-full bg-gray-200 rounded-full h-1">
             <div 
               className="bg-gray-800 h-1 rounded-full transition-all duration-300"
@@ -855,32 +870,32 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         <div className="w-10"></div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col px-6 pt-4">
+      {/* Main content - scrollable area */}
+      <div className="flex-1 flex flex-col px-4 sm:px-6 pt-4 overflow-y-auto">
         {/* Question */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 text-center"
+          className="mb-4 sm:mb-6 text-center flex-shrink-0"
         >
           {currentStepData.type !== 'welcome' && (
             <>
-              <h1 className="text-xl font-normal text-gray-900 mb-2 leading-tight">
+              <h1 className="text-lg sm:text-xl font-normal text-gray-900 mb-2 leading-tight px-2">
                 {currentStepData.title}
               </h1>
             </>
           )}
         </motion.div>
 
-        {/* Input Section */}
+        {/* Input Section - scrollable content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className={`flex-1 flex items-${currentStepData.type === 'welcome' ? 'center' : 'start'} justify-center`}
+          className={`flex-1 flex items-${currentStepData.type === 'welcome' ? 'center' : 'start'} justify-center min-h-0`}
         >
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md px-2 sm:px-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -888,6 +903,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
+                className="w-full"
               >
                 {renderStepContent()}
               </motion.div>
@@ -896,8 +912,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         </motion.div>
       </div>
 
-      {/* Continue Button */}
-      <div className="p-6 pb-6">
+      {/* Continue Button - fixed at bottom */}
+      <div className="p-4 sm:p-6 pb-6 flex-shrink-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

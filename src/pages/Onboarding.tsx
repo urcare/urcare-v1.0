@@ -456,10 +456,26 @@ const Onboarding = () => {
   // Show completion
   if (onboardingStep === 'complete') {
     return (
-      <div>
-        <h2>Profile Setup Complete!</h2>
-        <p>Your profile has been successfully saved. You can now start using UrCare.</p>
-        <button onClick={() => navigate('/custom-plan')}>Continue to Custom Plan</button>
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 px-4 overflow-hidden">
+        <div className="text-center max-w-sm sm:max-w-md">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            Profile Setup Complete!
+          </h2>
+          <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8">
+            Your profile has been successfully saved. You can now start using UrCare.
+          </p>
+          <button 
+            onClick={() => navigate('/custom-plan')}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            Continue to Custom Plan
+          </button>
+        </div>
       </div>
     );
   }

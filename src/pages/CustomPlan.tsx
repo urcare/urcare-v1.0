@@ -136,33 +136,33 @@ const CustomPlan: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="relative w-full max-w-xl bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+      <div className="relative w-full max-w-sm sm:max-w-xl bg-white rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center mx-4">
         {step === 'progress' && (
           <>
             <ProgressBar />
-            <div className="flex flex-col items-center mt-8">
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-6">
-                <span className="text-4xl">🧠</span>
+            <div className="flex flex-col items-center mt-6 sm:mt-8">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4 sm:mb-6">
+                <span className="text-2xl sm:text-4xl">🧠</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Time to generate your custom plan!</h1>
-              <p className="text-gray-600 text-base text-center max-w-md">We’re analyzing your onboarding data to create a personalized health plan just for you. This may take a few moments…</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">Time to generate your custom plan!</h1>
+              <p className="text-gray-600 text-sm sm:text-base text-center max-w-md px-2">We're analyzing your onboarding data to create a personalized health plan just for you. This may take a few moments…</p>
             </div>
           </>
         )}
         {step === 'ready' && report && (
           <>
-            <div className="flex flex-col items-center mt-2 mb-6">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <span className="text-4xl">🎉</span>
+            <div className="flex flex-col items-center mt-2 mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-100 flex items-center justify-center mb-3 sm:mb-4">
+                <span className="text-2xl sm:text-4xl">🎉</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Congratulations, your custom plan is ready!</h1>
-              <p className="text-gray-600 text-base text-center max-w-md mb-4">Here are your key recommendations based on your onboarding data:</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">Congratulations, your custom plan is ready!</h1>
+              <p className="text-gray-600 text-sm sm:text-base text-center max-w-md mb-4 px-2">Here are your key recommendations based on your onboarding data:</p>
             </div>
-            <div className="w-full bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="w-full bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
               <ul className="space-y-2">
                 {report.recommendations.map((rec: string, idx: number) => (
-                  <li key={idx} className="text-gray-800 text-base font-medium flex items-start">
+                  <li key={idx} className="text-gray-800 text-sm sm:text-base font-medium flex items-start">
                     <span className="mr-2 text-blue-600 font-bold">•</span> {rec}
                   </li>
                 ))}
@@ -172,18 +172,18 @@ const CustomPlan: React.FC = () => {
             {!isSubscribed && <Paywall />}
             {/* Show detailed report if subscribed */}
             {isSubscribed && (
-              <div className="w-full bg-white border border-gray-200 rounded-lg p-4 mt-2">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Your Full Report</h3>
-                <pre className="text-gray-700 text-sm whitespace-pre-wrap">{report.detailedReport}</pre>
+              <div className="w-full bg-white border border-gray-200 rounded-lg p-3 sm:p-4 mt-2">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Your Full Report</h3>
+                <pre className="text-gray-700 text-xs sm:text-sm whitespace-pre-wrap">{report.detailedReport}</pre>
               </div>
             )}
             {/* Option to go to dashboard */}
-            <div className="w-full flex justify-center mt-6">
-              <Button className="w-40" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+            <div className="w-full flex justify-center mt-4 sm:mt-6">
+              <Button className="w-32 sm:w-40 text-sm sm:text-base" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
             </div>
             {/* After showing the custom plan, add a button to go to /paywall */}
-            <div className="w-full flex justify-center mt-6">
-              <Button className="w-40" onClick={() => navigate('/paywall')}>Proceed to Paywall</Button>
+            <div className="w-full flex justify-center mt-4 sm:mt-6">
+              <Button className="w-32 sm:w-40 text-sm sm:text-base" onClick={() => navigate('/paywall')}>Proceed to Paywall</Button>
             </div>
           </>
         )}

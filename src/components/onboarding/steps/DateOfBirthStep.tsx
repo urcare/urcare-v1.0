@@ -21,6 +21,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   const selectedIndex = options.indexOf(selectedValue);
   const visibleItems = 7;
   const itemHeight = 50;
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const [touchStartY, setTouchStartY] = React.useState<number | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -86,14 +87,26 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
     }
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) {
-      moveDown();
-    } else {
-      moveUp();
-    }
-  };
+  // Use useEffect to add wheel event listener with passive: false
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        moveDown();
+      } else {
+        moveUp();
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [selectedIndex]); // Re-add listener when selectedIndex changes
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -161,8 +174,8 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   return (
     <div 
+      ref={containerRef}
       className={`relative ${width} h-56 overflow-hidden flex flex-col justify-center focus:outline-none rounded-xl`}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
