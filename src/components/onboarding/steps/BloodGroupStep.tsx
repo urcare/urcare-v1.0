@@ -1,4 +1,5 @@
 import React from 'react';
+import { Droplets } from 'lucide-react';
 
 interface BloodGroupStepProps {
   value: string;
@@ -11,25 +12,36 @@ const bloodGroups = [
 ];
 
 export const BloodGroupStep: React.FC<BloodGroupStepProps> = ({ value, onChange, error }) => (
-  <div className="space-y-4">
-    <div className="grid grid-cols-4 gap-3">
-      {bloodGroups.map(bloodGroup => (
-        <button
-          key={bloodGroup}
-          onClick={() => onChange(bloodGroup)}
-          className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center ${
-            value === bloodGroup
-              ? 'border-gray-900 bg-gray-900 text-white shadow-lg scale-105'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <span className="font-medium text-sm">{bloodGroup}</span>
-        </button>
-      ))}
+  <div className="w-full space-y-6">
+    <div className="flex justify-center">
+      <div className="w-full max-w-md">
+        <div className="grid grid-cols-4 gap-3">
+          {bloodGroups.map(bloodGroup => (
+            <button
+              key={bloodGroup}
+              onClick={() => onChange(bloodGroup)}
+              className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-2 ${
+                value === bloodGroup
+                  ? 'border-red-500 bg-red-500 text-white shadow-lg scale-105'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <Droplets 
+                className={`w-6 h-6 ${
+                  value === bloodGroup 
+                    ? 'text-white' 
+                    : 'text-red-500'
+                }`} 
+              />
+              <span className="text-lg font-bold">{bloodGroup}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
     
     {error && (
-      <div className="text-red-500 text-sm text-center mt-2">
+      <div className="text-red-500 text-sm text-center mt-3">
         {error}
       </div>
     )}
