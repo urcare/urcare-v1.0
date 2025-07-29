@@ -29,7 +29,6 @@ import { EmergencyContactStep } from './steps/EmergencyContactStep';
 import { CriticalConditionsStep } from './steps/CriticalConditionsStep';
 import { HealthReportsStep } from './steps/HealthReportsStep';
 import { ReferralCodeStep } from './steps/ReferralCodeStep';
-import { WelcomeStep } from './steps/WelcomeStep';
 
 interface OnboardingData {
   fullName: string;
@@ -81,7 +80,6 @@ interface SerialOnboardingProps {
 
 const steps = [
   { id: 'fullName', title: 'What\'s your full name?', type: 'text', icon: User },
-  { id: 'welcome', title: '', type: 'welcome', icon: User },
   { id: 'dateOfBirth', title: 'When were you born?', type: 'dateOfBirth', icon: Calendar },
   { id: 'gender', title: 'What\'s your gender?', type: 'choice', icon: Users },
   { id: 'heightWeight', title: 'Height & weight', type: 'heightWeight', icon: Ruler },
@@ -541,9 +539,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
           newErrors.fullName = 'Name must be at least 2 characters';
         }
         break;
-      case 'welcome':
-        // Welcome screen doesn't need validation
-        break;
       case 'dateOfBirth':
         if (!data.birthMonth || !data.birthDay || !data.birthYear) {
           newErrors.dateOfBirth = 'Please select your date of birth';
@@ -795,8 +790,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
     switch (currentStepData.id) {
       case 'fullName':
         return <FullNameStep value={data.fullName} onChange={v => updateData('fullName', v)} error={errors.fullName} />;
-      case 'welcome':
-        return <WelcomeStep fullName={data.fullName} />;
       case 'dateOfBirth':
         return <DateOfBirthStep month={data.birthMonth} day={data.birthDay} year={data.birthYear} onChange={updateData} error={errors.dateOfBirth} />;
       case 'gender':
@@ -845,9 +838,9 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Header with back button and progress */}
-      <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0 bg-gray-50">
         <Button
           variant="ghost"
           size="sm"
@@ -870,32 +863,28 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         <div className="w-10"></div>
       </div>
 
-      {/* Main content - scrollable area */}
-      <div className="flex-1 flex flex-col px-4 sm:px-6 pt-4 overflow-y-auto">
-        {/* Question */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-4 sm:mb-6 text-center flex-shrink-0"
-        >
-          {currentStepData.type !== 'welcome' && (
-            <>
-              <h1 className="text-lg sm:text-xl font-normal text-gray-900 mb-2 leading-tight px-2">
-                {currentStepData.title}
-              </h1>
-            </>
-          )}
-        </motion.div>
+      {/* Main content - centered and scrollable */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 overflow-y-auto">
+        <div className="w-full max-w-md">
+          {/* Question */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6 sm:mb-8 text-center"
+          >
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 leading-tight">
+              {currentStepData.title}
+            </h1>
+          </motion.div>
 
-        {/* Input Section - scrollable content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className={`flex-1 flex items-${currentStepData.type === 'welcome' ? 'center' : 'start'} justify-center min-h-0`}
-        >
-          <div className="w-full max-w-md px-2 sm:px-0">
+          {/* Input Section - centered content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-full"
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -908,12 +897,12 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
                 {renderStepContent()}
               </motion.div>
             </AnimatePresence>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
 
       {/* Continue Button - fixed at bottom */}
-      <div className="p-4 sm:p-6 pb-6 flex-shrink-0">
+      <div className="p-4 sm:p-6 pb-6 flex-shrink-0 bg-gray-50">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -921,7 +910,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         >
           <Button
             onClick={handleNext}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
             {currentStep === steps.length - 1 ? 'Save Progress' : 'Continue'}
           </Button>

@@ -14,25 +14,29 @@ const genderOptions = [
 ];
 
 export const GenderStep: React.FC<GenderStepProps> = ({ value, onChange, error }) => (
-  <div className="space-y-4">
-    <div className="grid grid-cols-2 gap-3">
-      {genderOptions.map(option => (
-        <button
-          key={option}
-          onClick={() => onChange(option)}
-          className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center ${
-            value === option
-              ? 'border-gray-900 bg-gray-900 text-white shadow-lg scale-105'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <span className="font-medium text-sm">{option}</span>
-        </button>
-      ))}
+  <div className="w-full space-y-6">
+    <div className="flex justify-center">
+      <div className="w-full max-w-sm">
+        <div className="grid grid-cols-2 gap-4">
+          {genderOptions.map(option => (
+            <button
+              key={option}
+              onClick={() => onChange(option)}
+              className={`p-6 rounded-2xl border-2 transition-all duration-200 text-center font-medium ${
+                value === option
+                  ? 'border-blue-500 bg-blue-500 text-white shadow-lg scale-105'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="text-base font-semibold">{option}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
     
     {error && (
-      <div className="text-red-500 text-sm text-center mt-2">
+      <div className="text-red-500 text-sm text-center mt-3">
         {error}
       </div>
     )}
