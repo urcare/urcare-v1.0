@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, Crown, Users, Star, Shield, Zap } from 'lucide-react';
+import RazorpayCheckout from '@/components/payment/RazorpayCheckout';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SubscriptionTier {
   id: string;
@@ -17,9 +19,11 @@ interface SubscriptionTier {
 
 const Paywall: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedTier, setSelectedTier] = useState<string>('family');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const subscriptionTiers: SubscriptionTier[] = [
     {
@@ -98,8 +102,24 @@ const Paywall: React.FC = () => {
   };
 
   const handleSubscribe = () => {
-    // TODO: Implement actual subscription logic
-    alert(`Subscribing to ${selectedTierData?.name} plan for $${getCurrentPrice(selectedTierData!)}`);
+    if (!user) {
+      alert('Please log in to subscribe');
+      return;
+    }
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutSuccess = () => {
+    setShowCheckout(false);
+    navigate('/dashboard');
+  };
+
+  const handleCheckoutError = (error: string) => {
+    alert(`Payment failed: ${error}`);
+  };
+
+  const handleCheckoutCancel = () => {
+    setShowCheckout(false);
   };
 
   return (
@@ -247,67 +267,79 @@ const Paywall: React.FC = () => {
 
       {/* CTA Section */}
       <div className="max-w-md mx-auto px-4 pb-8">
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Ready to Start Your Health Journey?
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Join thousands of users who have transformed their health with UrCare
-            </p>
+        {showCheckout ? (
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <RazorpayCheckout
+              planSlug={selectedTier}
+              billingCycle={billingCycle}
+              onSuccess={handleCheckoutSuccess}
+              onError={handleCheckoutError}
+              onCancel={handleCheckoutCancel}
+            />
           </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Ready to Start Your Health Journey?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Join thousands of users who have transformed their health with UrCare
+              </p>
+            </div>
 
-          {/* Selected Plan Summary */}
-          {selectedTierData && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold text-gray-900">{selectedTierData.name} Plan</h4>
-                  <p className="text-sm text-gray-600">
-                    {isAnnual ? 'Annual billing' : 'Monthly billing'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-gray-900">
-                    ${getCurrentPrice(selectedTierData)}
+            {/* Selected Plan Summary */}
+            {selectedTierData && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{selectedTierData.name} Plan</h4>
+                    <p className="text-sm text-gray-600">
+                      {isAnnual ? 'Annual billing' : 'Monthly billing'}
+                    </p>
                   </div>
-                  {isAnnual && (
-                    <div className="text-sm text-gray-500">
-                      ${(getCurrentPrice(selectedTierData) / 12).toFixed(2)}/mo
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-gray-900">
+                      ${getCurrentPrice(selectedTierData)}
                     </div>
-                  )}
+                    {isAnnual && (
+                      <div className="text-sm text-gray-500">
+                        ${(getCurrentPrice(selectedTierData) / 12).toFixed(2)}/mo
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Subscribe Button */}
+            <Button 
+              onClick={handleSubscribe}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl text-lg"
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Start Your {selectedTierData?.name} Plan
+            </Button>
+
+            {/* Trust Indicators */}
+            <div className="mt-6 text-center">
+              <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Secure Payment
+                </div>
+                <div className="flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  30-Day Guarantee
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  Cancel Anytime
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Subscribe Button */}
-          <Button 
-            onClick={handleSubscribe}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl text-lg"
-          >
-            <Zap className="w-5 h-5 mr-2" />
-            Start Your {selectedTierData?.name} Plan
-          </Button>
-
-          {/* Trust Indicators */}
-          <div className="mt-6 text-center">
-            <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3" />
-                Secure Payment
-              </div>
-              <div className="flex items-center gap-1">
-                <Check className="w-3 h-3" />
-                30-Day Guarantee
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                Cancel Anytime
-              </div>
-            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Footer */}

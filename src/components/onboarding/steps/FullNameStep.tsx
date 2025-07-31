@@ -16,23 +16,12 @@ export const FullNameStep: React.FC<FullNameStepProps> = ({ value, onChange, err
       </Label>
     </div>
     
-    <div className="flex justify-center">
-      <div className="w-full max-w-sm">
-        <Input
-          id="fullName"
-          type="text"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="Enter your full name"
-          autoFocus
-          className="w-full h-16 sm:h-18 text-lg sm:text-xl px-6 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 text-center font-medium"
-        />
+    
         {error && (
           <div className="text-red-500 text-sm mt-3 text-center">
             {error}
           </div>
         )}
       </div>
-    </div>
-  </div>
+    
 ); 
