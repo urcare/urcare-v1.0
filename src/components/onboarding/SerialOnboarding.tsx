@@ -29,6 +29,7 @@ import { EmergencyContactStep } from './steps/EmergencyContactStep';
 import { CriticalConditionsStep } from './steps/CriticalConditionsStep';
 import { HealthReportsStep } from './steps/HealthReportsStep';
 import { ReferralCodeStep } from './steps/ReferralCodeStep';
+import { CompletionStep } from './steps/CompletionStep';
 
 interface OnboardingData {
   fullName: string;
@@ -100,7 +101,8 @@ const steps = [
   { id: 'emergencyContact', title: 'Emergency contact', type: 'emergencyContact', icon: User },
   { id: 'criticalConditions', title: 'Critical conditions', type: 'textArea', icon: User },
   { id: 'healthReports', title: 'Health reports', type: 'fileUpload', icon: User },
-  { id: 'referralCode', title: 'Referral code', type: 'referralCode', icon: User }
+  { id: 'referralCode', title: 'Referral code', type: 'referralCode', icon: User },
+  { id: 'completion', title: 'All done!', type: 'completion', icon: User }
 ];
 
 // Helper functions for chronic conditions
@@ -688,10 +690,17 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         setData(updatedData);
       }
       
-      // Check if this is the last step (referralCode)
+      // Check if this is the referral step (second to last)
+      if (currentStep === steps.length - 2) {
+        // Move to completion step
+        setCurrentStep(currentStep + 1);
+        return;
+      }
+      
+      // Check if this is the completion step (last step)
       if (currentStep === steps.length - 1) {
         // Save all onboarding data to database
-        console.log('Saving onboarding data at referral step:', data);
+        console.log('Saving onboarding data at completion step:', data);
         onComplete(data);
         return;
       } else {
@@ -832,6 +841,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         return <HealthReportsStep hasHealthReports={data.hasHealthReports} healthReports={data.healthReports} onHasHealthReportsChange={v => updateData('hasHealthReports', v)} onAddHealthReport={file => updateData('healthReports', [...data.healthReports, file])} onRemoveHealthReport={file => updateData('healthReports', data.healthReports.filter(f => f !== file))} error={errors.healthReports} />;
       case 'referralCode':
         return <ReferralCodeStep value={data.referralCode} onChange={v => updateData('referralCode', v)} error={errors.referralCode} />;
+      case 'completion':
+        return <CompletionStep onContinue={handleNext} />;
       default:
         return null;
     }
@@ -839,44 +850,48 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
 
   return (
     <div className="fixed inset-0 bg-gray-50 flex flex-col overflow-hidden">
-      {/* Header with back button and progress */}
-      <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0 bg-gray-50">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handlePrevious}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
-        </Button>
-        
-        {/* Progress bar */}
-        <div className="flex-1 mx-4 sm:mx-8">
-          <div className="w-full bg-gray-200 rounded-full h-1">
-            <div 
-              className="bg-gray-800 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+      {/* Header with back button and progress - hidden for completion step */}
+      {currentStepData.id !== 'completion' && (
+        <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0 bg-gray-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePrevious}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-600" />
+          </Button>
+          
+          {/* Progress bar */}
+          <div className="flex-1 mx-4 sm:mx-8">
+            <div className="w-full bg-gray-200 rounded-full h-1">
+              <div 
+                className="bg-gray-800 h-1 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
           </div>
+          
+          <div className="w-10"></div>
         </div>
-        
-        <div className="w-10"></div>
-      </div>
+      )}
 
       {/* Main content - centered and scrollable */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 overflow-y-auto">
         <div className="w-full max-w-md">
-          {/* Question */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-6 sm:mb-8 text-center"
-          >
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 leading-tight">
-              {currentStepData.title}
-            </h1>
-          </motion.div>
+          {/* Question - hidden for completion step */}
+          {currentStepData.id !== 'completion' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-6 sm:mb-8 text-center"
+            >
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 leading-tight">
+                {currentStepData.title}
+              </h1>
+            </motion.div>
+          )}
 
           {/* Input Section - centered content */}
           <motion.div
@@ -901,21 +916,23 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({ onComplete, 
         </div>
       </div>
 
-      {/* Continue Button - fixed at bottom */}
-      <div className="p-4 sm:p-6 pb-6 flex-shrink-0 bg-gray-50">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Button
-            onClick={handleNext}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+      {/* Continue Button - fixed at bottom - hidden for completion step */}
+      {currentStepData.id !== 'completion' && (
+        <div className="p-4 sm:p-6 pb-6 flex-shrink-0 bg-gray-50">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            {currentStep === steps.length - 1 ? 'Save Progress' : 'Continue'}
-          </Button>
-        </motion.div>
-      </div>
+            <Button
+              onClick={handleNext}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              {currentStep === steps.length - 2 ? 'Continue' : 'Continue'}
+            </Button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }; 
