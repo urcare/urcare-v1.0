@@ -1,0 +1,3 @@
+[33mc0f3a61[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Clean up documentation: Remove outdated setup guides
+[33mb78668e[m[33m ([m[1;33mtag: [m[1;33mnightly-88[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Initial setup: Install dependencies and configure project
+[33md31cba3[m[33m ([m[1;33mtag: [m[1;33mnightly-87[m[33m)[m fix: Remove redundant title and add missing input field in FullNameStep
