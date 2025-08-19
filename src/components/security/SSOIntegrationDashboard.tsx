@@ -1,22 +1,18 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Building, 
-  Users, 
-  Key,
-  Globe,
-  CheckCircle,
-  AlertCircle,
-  Settings,
-  Download,
-  Upload
+import { Switch } from '@/components/ui/switch';
+import {
+    Building,
+    Download,
+    Settings,
+    Upload,
+    Users
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface SSOProvider {
   id: string;
@@ -44,7 +40,7 @@ export const SSOIntegrationDashboard = () => {
       users: 1247,
       lastSync: new Date(Date.now() - 300000),
       configuration: {
-        entityId: 'urn:urcare:hospital:azure',
+        entityId: 'urn:urcare:healthcare:azure',
         ssoUrl: 'https://login.microsoftonline.com/tenant/saml2',
         certificate: 'MIICertificate...'
       }

@@ -1,8 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, Stethoscope, Brain, Bot, Shield, Zap } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Bot, Brain, Heart, Shield, Stethoscope, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   return (
@@ -188,7 +187,7 @@ const Index = () => {
       <footer className="border-t border-border bg-background-secondary mt-24">
         <div className="container mx-auto px-6 py-8">
           <div className="text-center text-body-sm text-muted-foreground">
-            © 2024 UrCare Healthcare Management System. All rights reserved.
+            © 2024 UrCare Healthcare Platform. All rights reserved.
           </div>
         </div>
       </footer>

@@ -1,8 +1,8 @@
 
 {
-  "name": "UrCare - Hospital Management System",
+  "name": "UrCare - Healthcare Platform",
   "short_name": "UrCare",
-  "description": "Excellence in Healthcare Management",
+  "description": "Excellence in Healthcare",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
