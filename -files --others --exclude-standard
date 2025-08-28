@@ -1,5 +1,0 @@
-[33me9bd752[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;33mtag: [m[1;33mnightly-85[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Major onboarding design overhaul: modernize routine flexibility, wearable, family tracking, progress sharing, health reports steps and remove redundant text
-[33m7c23c77[m[33m ([m[1;33mtag: [m[1;33mnightly-84[m[33m)[m Improve single-option selection steps: add icons and modern design to workout time, diet type, and blood group steps
-[33m58a5ec6[m[33m ([m[1;33mtag: [m[1;33mnightly-83[m[33m)[m Add gender icons to onboarding gender selection step
-[33med3bc53[m[33m ([m[1;33mtag: [m[1;33mnightly-82[m[33m)[m Fix onboarding design issues: remove duplicate fullName step, fix scrolling, improve input centering and styling
-[33m621fa37[m[33m ([m[1;33mtag: [m[1;33mnightly-81[m[33m)[m Fix GitHub Actions permissions for release creation
