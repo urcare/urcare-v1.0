@@ -5,7 +5,8 @@ import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
 import CustomPlan from './pages/CustomPlan';
 import Paywall from './pages/Paywall';
-import { Dashboard } from './pages/Dashboard';
+import Dashboard from './pages/Dashboard';
+import Subscription from './pages/Subscription';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { TestAuth } from './pages/TestAuth';
@@ -62,6 +63,22 @@ function App() {
         <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
         {/* Dashboard (protected) */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* Subscription (protected) */}
+        <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+        {/* Profile (protected) */}
+        <Route path="/profile" element={<ProtectedRoute><div className="p-4">Profile Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Progress (protected) */}
+        <Route path="/progress" element={<ProtectedRoute><div className="p-4">Progress Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Calendar (protected) */}
+        <Route path="/calendar" element={<ProtectedRoute><div className="p-4">Calendar Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Notifications (protected) */}
+        <Route path="/notifications" element={<ProtectedRoute><div className="p-4">Notifications Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Settings (protected) */}
+        <Route path="/settings" element={<ProtectedRoute><div className="p-4">Settings Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Help (protected) */}
+        <Route path="/help" element={<ProtectedRoute><div className="p-4">Help & Support Page - Coming Soon</div></ProtectedRoute>} />
+        {/* Payment (protected) */}
+        <Route path="/payment" element={<ProtectedRoute><div className="p-4">Payment Page - Coming Soon</div></ProtectedRoute>} />
         {/* Catch-all: redirect to landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
