@@ -1,366 +1,389 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  Heart, 
-  Stethoscope, 
-  Users, 
-  Shield, 
-  Zap, 
-  Brain, 
+  Home, 
+  Menu, 
+  X, 
   Activity, 
-  Calendar,
-  FileText,
-  Bell,
-  CheckCircle,
-  ArrowRight,
-  Play,
-  Star,
-  Globe,
-  Clock,
+  Heart, 
+  Apple, 
+  Dumbbell, 
   TrendingUp,
-  BarChart3,
-  Microscope,
-  Pill,
-  Phone,
-  MessageSquare,
-  Video,
-  MapPin,
-  UserCheck,
-  Database,
-  Cpu,
-  Smartphone,
-  Tablet,
   User,
   Settings,
-  LogOut
+  CreditCard,
+  BookOpen,
+  Target,
+  Calendar,
+  Bell
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { HealthCharts, WeeklyActivityChart, HealthScoreProgress } from '@/components/health/HealthCharts';
 
-export const Dashboard = () => {
-  const { user, profile, signOut } = useAuth();
+interface HealthWidget {
+  id: string;
+  title: string;
+  value: string;
+  unit: string;
+  icon: React.ReactNode;
+  color: string;
+  trend?: string;
+}
 
-  const quickActions = [
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { profile, user } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Health widgets data
+  const healthWidgets: HealthWidget[] = [
     {
-      title: 'AI Diagnostics',
-      description: 'Get AI-powered health insights',
-      icon: Brain,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-      href: '/ai-diagnostics'
-    },
-    {
-      title: 'Appointments',
-      description: 'Schedule and manage appointments',
-      icon: Calendar,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      href: '/appointments'
-    },
-    {
-      title: 'Health Records',
-      description: 'View your medical history',
-      icon: FileText,
+      id: 'health-score',
+      title: 'Health Score',
+      value: '85',
+      unit: '/100',
+      icon: <Activity className="h-6 w-6" />,
       color: 'text-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      href: '/medical-records'
+      trend: '+5 this week'
     },
     {
-      title: 'Mental Health',
-      description: 'Access mental health resources',
-      icon: Heart,
-      color: 'text-pink-500',
-      bgColor: 'bg-pink-50 dark:bg-pink-900/20',
-      href: '/mental-health'
-    }
-  ];
-
-  const recentActivity = [
-    {
-      type: 'appointment',
-      title: 'Upcoming Appointment',
-      description: 'Dr. Smith - Cardiology',
-      time: 'Tomorrow at 2:00 PM',
-      icon: Calendar,
-      color: 'text-blue-500'
+      id: 'calories',
+      title: 'Daily Calories',
+      value: '2,100',
+      unit: 'kcal',
+      icon: <Apple className="h-6 w-6" />,
+      color: 'text-blue-500',
+      trend: 'On track'
     },
     {
-      type: 'medication',
-      title: 'Medication Reminder',
-      description: 'Take your daily medication',
-      time: 'Due in 2 hours',
-      icon: Pill,
-      color: 'text-green-500'
+      id: 'steps',
+      title: 'Steps Today',
+      value: '8,432',
+      unit: 'steps',
+      icon: <TrendingUp className="h-6 w-6" />,
+      color: 'text-purple-500',
+      trend: '+12% vs yesterday'
     },
     {
-      type: 'test',
-      title: 'Lab Results Available',
-      description: 'Blood work results ready',
-      time: '2 hours ago',
-      icon: Microscope,
-      color: 'text-purple-500'
-    }
-  ];
-
-  const healthMetrics = [
-    {
+      id: 'heart-rate',
       title: 'Heart Rate',
       value: '72',
       unit: 'bpm',
-      status: 'normal',
-      icon: Heart,
-      color: 'text-red-500'
-    },
-    {
-      title: 'Blood Pressure',
-      value: '120/80',
-      unit: 'mmHg',
-      status: 'normal',
-      icon: Activity,
-      color: 'text-blue-500'
-    },
-    {
-      title: 'Weight',
-      value: '68',
-      unit: 'kg',
-      status: 'stable',
-      icon: TrendingUp,
-      color: 'text-green-500'
-    },
-    {
-      title: 'Sleep',
-      value: '7.5',
-      unit: 'hours',
-      status: 'good',
-      icon: Clock,
-      color: 'text-indigo-500'
+      icon: <Heart className="h-6 w-6" />,
+      color: 'text-red-500',
+      trend: 'Resting'
     }
   ];
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
+  // Chart data for health insights
+  const chartData = [
+    {
+      label: 'Sleep Quality',
+      value: 85,
+      unit: '%',
+      trend: 'up' as const,
+      change: '+5%',
+      color: 'bg-indigo-500'
+    },
+    {
+      label: 'Water Intake',
+      value: 68,
+      unit: '%',
+      trend: 'down' as const,
+      change: '-3%',
+      color: 'bg-blue-500'
+    },
+    {
+      label: 'Exercise Consistency',
+      value: 92,
+      unit: '%',
+      trend: 'up' as const,
+      change: '+8%',
+      color: 'bg-green-500'
+    },
+    {
+      label: 'Stress Level',
+      value: 35,
+      unit: '%',
+      trend: 'down' as const,
+      change: '-12%',
+      color: 'bg-yellow-500'
     }
+  ];
+
+  const menuItems = [
+    { id: 'profile', label: 'Profile', icon: <User className="h-5 w-5" />, action: () => navigate('/profile') },
+    { id: 'subscription', label: 'Subscription', icon: <CreditCard className="h-5 w-5" />, action: () => navigate('/subscription') },
+    { id: 'health-plan', label: 'Health Plan', icon: <Target className="h-5 w-5" />, action: () => navigate('/custom-plan') },
+    { id: 'progress', label: 'Progress', icon: <TrendingUp className="h-5 w-5" />, action: () => navigate('/progress') },
+    { id: 'calendar', label: 'Calendar', icon: <Calendar className="h-5 w-5" />, action: () => navigate('/calendar') },
+    { id: 'notifications', label: 'Notifications', icon: <Bell className="h-5 w-5" />, action: () => navigate('/notifications') },
+    { id: 'settings', label: 'Settings', icon: <Settings className="h-5 w-5" />, action: () => navigate('/settings') },
+    { id: 'help', label: 'Help & Support', icon: <BookOpen className="h-5 w-5" />, action: () => navigate('/help') }
+  ];
+
+  const bottomTabs = [
+    { id: 'home', label: 'Home', icon: <Home className="h-5 w-5" /> },
+    { id: 'health', label: 'Health', icon: <Heart className="h-5 w-5" /> },
+    { id: 'fitness', label: 'Fitness', icon: <Dumbbell className="h-5 w-5" /> },
+    { id: 'nutrition', label: 'Nutrition', icon: <Apple className="h-5 w-5" /> }
+  ];
+
+  useEffect(() => {
+    if (!profile) {
+      navigate('/onboarding');
+    }
+  }, [profile, navigate]);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleMenuAction = (action: () => void) => {
+    action();
+    setIsMenuOpen(false);
+  };
+
+  if (!profile) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Navigation */}
-      <nav className="medical-nav px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/urcare-logo.svg" alt="UrCare Logo" className="w-6 h-6" />
-            </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              UrCare
-            </span>
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-hidden">
+      {/* Header */}
+      <div className="relative z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={toggleMenu}
+            className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 transition-colors"
+          >
+            <Menu className="h-6 w-6 text-green-600" />
+          </button>
+          
+          <div className="text-center">
+            <h1 className="text-lg font-semibold text-gray-800">UrCare</h1>
+            <p className="text-xs text-gray-500">Welcome back, {profile.full_name?.split(' ')[0]}</p>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Bell className="w-4 h-4 mr-2" />
-              Notifications
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">
+              {profile.full_name?.charAt(0).toUpperCase()}
+            </span>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Welcome back, {profile?.full_name || 'User'}!
-              </h1>
-              <p className="text-muted-foreground">
-                Here's what's happening with your health today.
-              </p>
+      {/* Animated Menu Overlay */}
+      <div 
+        className={`fixed inset-0 z-30 transition-opacity duration-300 ${
+          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+          onClick={toggleMenu}
+        />
+        
+        {/* Menu Panel */}
+        <div 
+          className={`absolute left-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ${
+            isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          {/* Menu Header */}
+          <div className="bg-gradient-to-r from-green-500 to-green-600 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Menu</h2>
+              <button
+                onClick={toggleMenu}
+                className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <X className="h-5 w-5 text-white" />
+              </button>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="px-3 py-1">
-                <User className="w-4 h-4 mr-2" />
-                {profile?.role || 'Patient'}
-              </Badge>
-              <Avatar className="h-12 w-12">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
-                  {profile?.full_name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
+            
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-white font-semibold text-lg">
+                  {profile.full_name?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <p className="text-white font-semibold">{profile.full_name}</p>
+                <p className="text-green-100 text-sm">Premium Member</p>
+              </div>
             </div>
+          </div>
+
+          {/* Menu Items */}
+          <div className="p-4 space-y-2">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleMenuAction(item.action)}
+                className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 transition-colors group"
+              >
+                <div className="text-green-600 group-hover:text-green-700">
+                  {item.icon}
+                </div>
+                <span className="text-gray-700 font-medium">{item.label}</span>
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Zap className="w-5 h-5 mr-2 text-blue-500" />
-                  Quick Actions
-                </CardTitle>
-                <CardDescription>
-                  Access your most frequently used features
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {quickActions.map((action, index) => {
-                    const Icon = action.icon;
-                    return (
-                      <Link key={index} to={action.href}>
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 cursor-pointer">
-                          <CardContent className="p-4">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-10 h-10 ${action.bgColor} rounded-lg flex items-center justify-center`}>
-                                <Icon className={`w-5 h-5 ${action.color}`} />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-foreground">{action.title}</h3>
-                                <p className="text-sm text-muted-foreground">{action.description}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
-                  })}
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="p-4 space-y-6">
+          {/* Health Score Overview */}
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Your Health Score</h3>
+                  <p className="text-green-100 text-sm">Based on your recent activity</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-green-500" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription>
-                  Your latest health-related activities
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={index} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
-                        <div className={`w-10 h-10 bg-background rounded-lg flex items-center justify-center`}>
-                          <Icon className={`w-5 h-5 ${activity.color}`} />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-foreground">{activity.title}</h4>
-                          <p className="text-sm text-muted-foreground">{activity.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">{activity.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <Activity className="h-8 w-8 text-green-200" />
+              </div>
+              
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2">85</div>
+                <div className="text-green-100 text-sm">Excellent</div>
+                <div className="w-full bg-green-400/30 rounded-full h-2 mt-3">
+                  <div className="bg-white h-2 rounded-full" style={{ width: '85%' }}></div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Health Metrics */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2 text-purple-500" />
-                  Health Metrics
-                </CardTitle>
-                <CardDescription>
-                  Your current health indicators
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {healthMetrics.map((metric, index) => {
-                    const Icon = metric.icon;
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                        <div className="flex items-center space-x-3">
-                          <Icon className={`w-5 h-5 ${metric.color}`} />
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{metric.title}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{metric.status}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-foreground">{metric.value}</p>
-                          <p className="text-xs text-muted-foreground">{metric.unit}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Emergency Contacts */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Phone className="w-5 h-5 mr-2 text-red-500" />
-                  Emergency Contacts
-                </CardTitle>
-                <CardDescription>
-                  Quick access to emergency contacts
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
-                    <p className="font-medium text-foreground">{profile?.emergency_contact || 'Not set'}</p>
-                    <p className="text-sm text-muted-foreground">{profile?.emergency_phone || 'No phone number'}</p>
+          {/* Health Widgets Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {healthWidgets.map((widget) => (
+              <Card key={widget.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`p-2 rounded-lg bg-gray-100 ${widget.color}`}>
+                      {widget.icon}
+                    </div>
+                    <span className="text-xs text-gray-500">{widget.trend}</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Emergency
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  
+                  <div className="mb-1">
+                    <span className="text-2xl font-bold text-gray-800">{widget.value}</span>
+                    <span className="text-sm text-gray-500 ml-1">{widget.unit}</span>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">{widget.title}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-            {/* Health Tips */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="w-5 h-5 mr-2 text-yellow-500" />
-                  Daily Health Tip
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                  <p className="text-sm text-foreground">
-                    "Staying hydrated is crucial for your health. Aim to drink at least 8 glasses of water daily."
-                  </p>
+          {/* Health Insights Charts */}
+          <HealthCharts data={chartData} />
+
+          {/* Weekly Activity Chart */}
+          <WeeklyActivityChart />
+
+          {/* Recent Activity */}
+          <Card className="border-0 shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <span>Recent Activity</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Completed morning workout</p>
+                    <p className="text-xs text-gray-500">30 minutes ago</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Logged breakfast meal</p>
+                    <p className="text-xs text-gray-500">2 hours ago</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Updated weight measurement</p>
+                    <p className="text-xs text-gray-500">1 day ago</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card className="border-0 shadow-md">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  onClick={() => navigate('/custom-plan')}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                >
+                  View Health Plan
+                </Button>
+                <Button 
+                  onClick={() => navigate('/progress')}
+                  variant="outline"
+                  className="border-green-200 text-green-600 hover:bg-green-50"
+                >
+                  Track Progress
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Glassy Bottom Menu */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <div className="bg-white/80 backdrop-blur-md border-t border-gray-200/50 mx-4 mb-4 rounded-2xl shadow-lg">
+          <div className="flex items-center justify-around p-2">
+            {bottomTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center space-y-1 p-3 rounded-xl transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                }`}
+              >
+                {tab.icon}
+                <span className="text-xs font-medium">{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
-}; 
+};
+
+export default Dashboard; 
