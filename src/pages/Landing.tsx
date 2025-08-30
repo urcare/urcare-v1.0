@@ -15,7 +15,10 @@ const Landing = () => {
 
   useEffect(() => {
     if (isInitialized && !loading && user && profile?.onboarding_completed) {
-      navigate('/custom-plan', { replace: true });
+      // Only redirect if we're not already on the landing page
+      if (window.location.pathname === '/') {
+        navigate('/custom-plan', { replace: true });
+      }
     }
   }, [isInitialized, loading, user, profile, navigate]);
 
@@ -58,8 +61,17 @@ const Landing = () => {
             </div>
             <AuthOptions onboardingData={{}} onAuthSuccess={() => {
               setShowAuth(false);
+              // Only handle non-OAuth flows here (like email sign-in)
+              // OAuth flows are handled by AuthCallback component
               if (authMode === 'signup') {
                 navigate('/welcome-screen');
+              } else if (authMode === 'signin') {
+                // For signin, check if user has completed onboarding
+                if (profile?.onboarding_completed) {
+                  navigate('/custom-plan');
+                } else {
+                  navigate('/welcome-screen');
+                }
               }
             }} mode={authMode} />
           </div>

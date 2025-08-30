@@ -69,6 +69,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
       await signInWithApple();
       console.log('signInWithApple completed');
       // OAuth will redirect to /auth/callback, so we don't need to call onAuthSuccess here
+      // The AuthCallback component will handle the post-login flow
     } catch (error) {
       console.error('Apple sign-in error:', error);
       setIsProcessing(false);
@@ -92,6 +93,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({ onboardingData, onAuth
       await signInWithGoogle();
       console.log('signInWithGoogle completed');
       // OAuth will redirect to /auth/callback, so we don't need to call onAuthSuccess here
+      // The AuthCallback component will handle the post-login flow
     } catch (error) {
       console.error('Google sign-in error:', error);
       setIsProcessing(false);
