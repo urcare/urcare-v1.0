@@ -11,7 +11,9 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 // Helper function to parse and structure the AI response
 function parseHealthPlanResponse(rawResponse) {
@@ -101,11 +103,182 @@ function extractKeyRecommendations(text) {
   return recommendations.slice(0, 5); // Return top 5 recommendations
 }
 
+// Validation functions
+function validateBMI(height, weight, calculatedBMI) {
+  if (!height || !weight || !calculatedBMI) return false;
+
+  // Convert to metric if needed
+  let heightM = height;
+  let weightKg = weight;
+
+  // If height is in feet, convert to meters
+  if (height < 10) {
+    // Assuming feet format
+    heightM = height * 0.3048;
+  }
+
+  // If weight is in pounds, convert to kg
+  if (weight > 200) {
+    // Assuming pounds
+    weightKg = weight * 0.453592;
+  }
+
+  const expectedBMI = weightKg / (heightM * heightM);
+  const calculated = parseFloat(calculatedBMI);
+
+  // Allow 10% tolerance
+  return Math.abs(expectedBMI - calculated) / expectedBMI < 0.1;
+}
+
+function validateCalories(age, gender, height, weight, calculatedCalories) {
+  if (!age || !gender || !height || !weight || !calculatedCalories)
+    return false;
+
+  // Convert to metric if needed
+  let heightCm = height;
+  let weightKg = weight;
+
+  // If height is in feet, convert to cm
+  if (height < 10) {
+    heightCm = height * 30.48;
+  }
+
+  // If weight is in pounds, convert to kg
+  if (weight > 200) {
+    weightKg = weight * 0.453592;
+  }
+
+  // Basic BMR calculation (Mifflin-St Jeor Equation)
+  let bmr;
+  if (gender.toLowerCase() === "male") {
+    bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+  } else {
+    bmr = 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+  }
+
+  // Add activity factor (sedentary = 1.2)
+  const tdee = bmr * 1.2;
+  const calculated = parseFloat(calculatedCalories);
+
+  // Allow 20% tolerance
+  return Math.abs(tdee - calculated) / tdee < 0.2;
+}
+
+// Generate mock health plan when OpenAI is not available
+function generateMockHealthPlan(profile) {
+  const age = profile.age || 30;
+  const gender = profile.gender || 'male';
+  const height = profile.height_cm || 170;
+  const weight = profile.weight_kg || 70;
+  
+  // Calculate BMI
+  const heightM = height / 100;
+  const bmi = (weight / (heightM * heightM)).toFixed(1);
+  
+  // Calculate BMR and TDEE
+  let bmr;
+  if (gender.toLowerCase() === 'male') {
+    bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+  } else {
+    bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+  }
+  const tdee = Math.round(bmr * 1.2);
+  
+  // Calculate health score (basic algorithm)
+  let healthScore = 75; // Base score
+  if (bmi >= 18.5 && bmi <= 24.9) healthScore += 15;
+  if (age >= 18 && age <= 65) healthScore += 10;
+  
+  const mockResponse = `HEALTH ASSESSMENT
+Based on your profile data:
+• BMI: ${bmi} (${bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese'})
+• Health Score: ${healthScore}/100
+• Current Status: ${healthScore >= 80 ? 'Good' : healthScore >= 60 ? 'Fair' : 'Needs Improvement'}
+
+NUTRITION PLAN
+• Daily Calorie Target: ${tdee} kcal
+• Protein: ${Math.round(weight * 1.2)}g (1.2g/kg body weight)
+• Carbohydrates: ${Math.round(tdee * 0.5 / 4)}g (50% of calories)
+• Fats: ${Math.round(tdee * 0.3 / 9)}g (30% of calories)
+• Meal Timing: Based on your schedule preferences
+
+FITNESS PLAN
+• Workout Frequency: 3-4 days per week
+• Exercise Types: Cardio + Strength training
+• Duration: 30-45 minutes per session
+• Focus: General fitness and health maintenance
+
+LIFESTYLE OPTIMIZATION
+• Sleep: 7-9 hours per night
+• Stress Management: Daily meditation or relaxation
+• Hydration: 8-10 glasses of water daily
+• Regular Health Checkups: Annual physical
+
+HEALTH MONITORING
+• Track: Weight, BMI, energy levels
+• Measure: Progress every 2 weeks
+• Adjust: Plan based on results
+
+POTENTIAL HEALTH RISKS
+• Monitor: Blood pressure, cholesterol
+• Prevention: Regular exercise, balanced diet
+• Consultation: Healthcare provider for concerns
+
+HOW UR CARE WILL HELP
+• Personalized tracking dashboard
+• Progress monitoring and insights
+• Community support and motivation
+• Expert guidance and resources
+
+ACTIONABLE NEXT STEPS
+1. Start with 30-minute daily walks
+2. Track your food intake for 1 week
+3. Set up regular meal times
+4. Schedule your first workout session
+5. Monitor your progress weekly`;
+
+  return {
+    summary: {
+      healthScore: healthScore.toString(),
+      calorieTarget: tdee.toString(),
+      bmi: bmi,
+      keyRecommendations: [
+        "Start with 30-minute daily walks",
+        "Track your food intake for 1 week", 
+        "Set up regular meal times",
+        "Schedule your first workout session",
+        "Monitor your progress weekly"
+      ],
+    },
+    sections: {
+      healthAssessment: "Based on your profile data, your current health status is good with room for improvement.",
+      nutritionPlan: `Daily calorie target: ${tdee} kcal with balanced macronutrients.`,
+      fitnessPlan: "3-4 days per week of combined cardio and strength training.",
+      lifestyleOptimization: "Focus on sleep, stress management, and hydration.",
+      healthMonitoring: "Track weight, BMI, and energy levels regularly.",
+      potentialRisks: "Monitor blood pressure and cholesterol levels.",
+      urCareBenefits: "Personalized tracking and community support.",
+      nextSteps: "Start with walking and food tracking."
+    },
+    rawResponse: mockResponse,
+  };
+}
+
 app.post("/api/generate-plan", async (req, res) => {
   try {
     const { profile } = req.body;
     if (!profile) {
       return res.status(400).json({ error: "Missing profile data" });
+    }
+
+    // If OpenAI is not configured, return a mock response
+    if (!openai) {
+      console.log("OpenAI not configured, returning mock response");
+      const mockResponse = generateMockHealthPlan(profile);
+      return res.json({
+        report: mockResponse.rawResponse,
+        structured: mockResponse,
+      });
     }
 
     // Extract key information from profile
