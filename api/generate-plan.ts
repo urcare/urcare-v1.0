@@ -3,6 +3,9 @@
 
 import { OpenAI } from "openai";
 
+// Get OpenAI API key from environment
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+
 type BillingUnitSystem = "metric" | "imperial";
 
 interface Preferences {
@@ -129,8 +132,8 @@ export default async function handler(req: any, res: any) {
     }
 
     // Check if OpenAI is configured
-    const openai = process.env.OPENAI_API_KEY
-      ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const openai = OPENAI_API_KEY
+      ? new OpenAI({ apiKey: OPENAI_API_KEY })
       : null;
 
     if (!openai) {
