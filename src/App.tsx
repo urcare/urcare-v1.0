@@ -9,7 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Subscription from './pages/Subscription';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { AuthCallback } from './components/auth/AuthCallback';
-import { TestAuth } from './pages/TestAuth';
+
 
 // Robust ProtectedRoute
 const ProtectedRoute = ({ children, requireOnboardingComplete = false }: { children: React.ReactNode, requireOnboardingComplete?: boolean }) => {
@@ -51,8 +51,7 @@ function App() {
         <Route path="/welcome-screen" element={<WelcomeScreen />} />
         {/* Auth Callback for OAuth redirects */}
         <Route path="/auth/callback" element={<AuthCallback />} />
-        {/* Test Auth Page for debugging */}
-        <Route path="/test-auth" element={<TestAuth />} />
+
         {/* Auth - removed */}
         {/* <Route path="/auth" element={<Auth />} /> */}
         {/* Onboarding (no longer protected) */}
