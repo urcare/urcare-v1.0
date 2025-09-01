@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
       id: "health-plan",
       label: "Health Plan",
       icon: <Target className="h-5 w-5" />,
-      action: () => navigate("/custom-plan"),
+      action: () => navigate("/health-plan"),
     },
 
     {

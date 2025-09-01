@@ -9,6 +9,7 @@ import {
 import { useAuth } from "./contexts/AuthContext";
 import CustomPlan from "./pages/CustomPlan";
 import Dashboard from "./pages/Dashboard";
+import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
@@ -78,6 +79,15 @@ function App() {
           element={
             <ProtectedRoute requireOnboardingComplete={true}>
               <CustomPlan />
+            </ProtectedRoute>
+          }
+        />
+        {/* Health Plan (protected, require onboarding complete) */}
+        <Route
+          path="/health-plan"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <HealthPlan />
             </ProtectedRoute>
           }
         />
