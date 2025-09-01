@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Home, 
-  Menu, 
-  X, 
-  Activity, 
-  Heart, 
-  Apple, 
-  Dumbbell, 
+import {
+  HealthCharts,
+  WeeklyActivityChart,
+} from "@/components/health/HealthCharts";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Activity,
+  Apple,
+  Bell,
+  BookOpen,
+  Calendar,
+  CreditCard,
+  Dumbbell,
+  Heart,
+  Home,
+  Menu,
+  Settings,
+  Target,
   TrendingUp,
   User,
-  Settings,
-  CreditCard,
-  BookOpen,
-  Target,
-  Calendar,
-  Bell
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { HealthCharts, WeeklyActivityChart, HealthScoreProgress } from '@/components/health/HealthCharts';
+  X,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 interface HealthWidget {
   id: string;
@@ -37,105 +39,150 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
 
   // Health widgets data
   const healthWidgets: HealthWidget[] = [
     {
-      id: 'health-score',
-      title: 'Health Score',
-      value: '85',
-      unit: '/100',
+      id: "health-score",
+      title: "Health Score",
+      value: "85",
+      unit: "/100",
       icon: <Activity className="h-6 w-6" />,
-      color: 'text-green-500',
-      trend: '+5 this week'
+      color: "text-green-500",
+      trend: "+5 this week",
     },
     {
-      id: 'calories',
-      title: 'Daily Calories',
-      value: '2,100',
-      unit: 'kcal',
+      id: "calories",
+      title: "Daily Calories",
+      value: "2,100",
+      unit: "kcal",
       icon: <Apple className="h-6 w-6" />,
-      color: 'text-blue-500',
-      trend: 'On track'
+      color: "text-blue-500",
+      trend: "On track",
     },
     {
-      id: 'steps',
-      title: 'Steps Today',
-      value: '8,432',
-      unit: 'steps',
+      id: "steps",
+      title: "Steps Today",
+      value: "8,432",
+      unit: "steps",
       icon: <TrendingUp className="h-6 w-6" />,
-      color: 'text-purple-500',
-      trend: '+12% vs yesterday'
+      color: "text-purple-500",
+      trend: "+12% vs yesterday",
     },
     {
-      id: 'heart-rate',
-      title: 'Heart Rate',
-      value: '72',
-      unit: 'bpm',
+      id: "heart-rate",
+      title: "Heart Rate",
+      value: "72",
+      unit: "bpm",
       icon: <Heart className="h-6 w-6" />,
-      color: 'text-red-500',
-      trend: 'Resting'
-    }
+      color: "text-red-500",
+      trend: "Resting",
+    },
   ];
 
   // Chart data for health insights
   const chartData = [
     {
-      label: 'Sleep Quality',
+      label: "Sleep Quality",
       value: 85,
-      unit: '%',
-      trend: 'up' as const,
-      change: '+5%',
-      color: 'bg-indigo-500'
+      unit: "%",
+      trend: "up" as const,
+      change: "+5%",
+      color: "bg-indigo-500",
     },
     {
-      label: 'Water Intake',
+      label: "Water Intake",
       value: 68,
-      unit: '%',
-      trend: 'down' as const,
-      change: '-3%',
-      color: 'bg-blue-500'
+      unit: "%",
+      trend: "down" as const,
+      change: "-3%",
+      color: "bg-blue-500",
     },
     {
-      label: 'Exercise Consistency',
+      label: "Exercise Consistency",
       value: 92,
-      unit: '%',
-      trend: 'up' as const,
-      change: '+8%',
-      color: 'bg-green-500'
+      unit: "%",
+      trend: "up" as const,
+      change: "+8%",
+      color: "bg-green-500",
     },
     {
-      label: 'Stress Level',
+      label: "Stress Level",
       value: 35,
-      unit: '%',
-      trend: 'down' as const,
-      change: '-12%',
-      color: 'bg-yellow-500'
-    }
+      unit: "%",
+      trend: "down" as const,
+      change: "-12%",
+      color: "bg-yellow-500",
+    },
   ];
 
   const menuItems = [
-    { id: 'profile', label: 'Profile', icon: <User className="h-5 w-5" />, action: () => navigate('/profile') },
-    { id: 'subscription', label: 'Subscription', icon: <CreditCard className="h-5 w-5" />, action: () => navigate('/subscription') },
-    { id: 'health-plan', label: 'Health Plan', icon: <Target className="h-5 w-5" />, action: () => navigate('/custom-plan') },
-    { id: 'progress', label: 'Progress', icon: <TrendingUp className="h-5 w-5" />, action: () => navigate('/progress') },
-    { id: 'calendar', label: 'Calendar', icon: <Calendar className="h-5 w-5" />, action: () => navigate('/calendar') },
-    { id: 'notifications', label: 'Notifications', icon: <Bell className="h-5 w-5" />, action: () => navigate('/notifications') },
-    { id: 'settings', label: 'Settings', icon: <Settings className="h-5 w-5" />, action: () => navigate('/settings') },
-    { id: 'help', label: 'Help & Support', icon: <BookOpen className="h-5 w-5" />, action: () => navigate('/help') }
+    {
+      id: "profile",
+      label: "Profile",
+      icon: <User className="h-5 w-5" />,
+      action: () => navigate("/profile"),
+    },
+    {
+      id: "subscription",
+      label: "Subscription",
+      icon: <CreditCard className="h-5 w-5" />,
+      action: () => navigate("/subscription"),
+    },
+    {
+      id: "health-plan",
+      label: "Health Plan",
+      icon: <Target className="h-5 w-5" />,
+      action: () => navigate("/custom-plan"),
+    },
+
+    {
+      id: "progress",
+      label: "Progress",
+      icon: <TrendingUp className="h-5 w-5" />,
+      action: () => navigate("/progress"),
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      icon: <Calendar className="h-5 w-5" />,
+      action: () => navigate("/calendar"),
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: <Bell className="h-5 w-5" />,
+      action: () => navigate("/notifications"),
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <Settings className="h-5 w-5" />,
+      action: () => navigate("/settings"),
+    },
+    {
+      id: "help",
+      label: "Help & Support",
+      icon: <BookOpen className="h-5 w-5" />,
+      action: () => navigate("/help"),
+    },
   ];
 
   const bottomTabs = [
-    { id: 'home', label: 'Home', icon: <Home className="h-5 w-5" /> },
-    { id: 'health', label: 'Health', icon: <Heart className="h-5 w-5" /> },
-    { id: 'fitness', label: 'Fitness', icon: <Dumbbell className="h-5 w-5" /> },
-    { id: 'nutrition', label: 'Nutrition', icon: <Apple className="h-5 w-5" /> }
+    { id: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
+    { id: "health", label: "Health", icon: <Heart className="h-5 w-5" /> },
+    { id: "fitness", label: "Fitness", icon: <Dumbbell className="h-5 w-5" /> },
+    {
+      id: "nutrition",
+      label: "Nutrition",
+      icon: <Apple className="h-5 w-5" />,
+    },
   ];
 
   useEffect(() => {
     if (!profile) {
-      navigate('/onboarding');
+      navigate("/onboarding");
     }
   }, [profile, navigate]);
 
@@ -170,12 +217,14 @@ const Dashboard: React.FC = () => {
           >
             <Menu className="h-6 w-6 text-green-600" />
           </button>
-          
+
           <div className="text-center">
             <h1 className="text-lg font-semibold text-gray-800">UrCare</h1>
-            <p className="text-xs text-gray-500">Welcome back, {profile.full_name?.split(' ')[0]}</p>
+            <p className="text-xs text-gray-500">
+              Welcome back, {profile.full_name?.split(" ")[0]}
+            </p>
           </div>
-          
+
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
             <span className="text-white font-semibold text-sm">
               {profile.full_name?.charAt(0).toUpperCase()}
@@ -185,21 +234,23 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Animated Menu Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 z-30 transition-opacity duration-300 ${
-          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          isMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
       >
         {/* Backdrop */}
-        <div 
+        <div
           className="absolute inset-0 bg-black/20 backdrop-blur-sm"
           onClick={toggleMenu}
         />
-        
+
         {/* Menu Panel */}
-        <div 
+        <div
           className={`absolute left-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ${
-            isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           {/* Menu Header */}
@@ -213,7 +264,7 @@ const Dashboard: React.FC = () => {
                 <X className="h-5 w-5 text-white" />
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-white font-semibold text-lg">
@@ -254,16 +305,21 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold">Your Health Score</h3>
-                  <p className="text-green-100 text-sm">Based on your recent activity</p>
+                  <p className="text-green-100 text-sm">
+                    Based on your recent activity
+                  </p>
                 </div>
                 <Activity className="h-8 w-8 text-green-200" />
               </div>
-              
+
               <div className="text-center">
                 <div className="text-4xl font-bold mb-2">85</div>
                 <div className="text-green-100 text-sm">Excellent</div>
                 <div className="w-full bg-green-400/30 rounded-full h-2 mt-3">
-                  <div className="bg-white h-2 rounded-full" style={{ width: '85%' }}></div>
+                  <div
+                    className="bg-white h-2 rounded-full"
+                    style={{ width: "85%" }}
+                  ></div>
                 </div>
               </div>
             </CardContent>
@@ -272,20 +328,31 @@ const Dashboard: React.FC = () => {
           {/* Health Widgets Grid */}
           <div className="grid grid-cols-2 gap-4">
             {healthWidgets.map((widget) => (
-              <Card key={widget.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <Card
+                key={widget.id}
+                className="border-0 shadow-md hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <div className={`p-2 rounded-lg bg-gray-100 ${widget.color}`}>
+                    <div
+                      className={`p-2 rounded-lg bg-gray-100 ${widget.color}`}
+                    >
                       {widget.icon}
                     </div>
-                    <span className="text-xs text-gray-500">{widget.trend}</span>
+                    <span className="text-xs text-gray-500">
+                      {widget.trend}
+                    </span>
                   </div>
-                  
+
                   <div className="mb-1">
-                    <span className="text-2xl font-bold text-gray-800">{widget.value}</span>
-                    <span className="text-sm text-gray-500 ml-1">{widget.unit}</span>
+                    <span className="text-2xl font-bold text-gray-800">
+                      {widget.value}
+                    </span>
+                    <span className="text-sm text-gray-500 ml-1">
+                      {widget.unit}
+                    </span>
                   </div>
-                  
+
                   <p className="text-sm text-gray-600">{widget.title}</p>
                 </CardContent>
               </Card>
@@ -311,11 +378,13 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Completed morning workout</p>
+                    <p className="text-sm font-medium">
+                      Completed morning workout
+                    </p>
                     <p className="text-xs text-gray-500">30 minutes ago</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <div className="flex-1">
@@ -323,11 +392,13 @@ const Dashboard: React.FC = () => {
                     <p className="text-xs text-gray-500">2 hours ago</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Updated weight measurement</p>
+                    <p className="text-sm font-medium">
+                      Updated weight measurement
+                    </p>
                     <p className="text-xs text-gray-500">1 day ago</p>
                   </div>
                 </div>
@@ -342,14 +413,14 @@ const Dashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
-                <Button 
-                  onClick={() => navigate('/custom-plan')}
+                <Button
+                  onClick={() => navigate("/custom-plan")}
                   className="bg-green-500 hover:bg-green-600 text-white"
                 >
                   View Health Plan
                 </Button>
-                <Button 
-                  onClick={() => navigate('/progress')}
+                <Button
+                  onClick={() => navigate("/progress")}
                   variant="outline"
                   className="border-green-200 text-green-600 hover:bg-green-50"
                 >
@@ -371,8 +442,8 @@ const Dashboard: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex flex-col items-center space-y-1 p-3 rounded-xl transition-all ${
                   activeTab === tab.id
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                    ? "bg-green-500 text-white shadow-md"
+                    : "text-gray-600 hover:text-green-600 hover:bg-green-50"
                 }`}
               >
                 {tab.icon}
@@ -386,4 +457,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
