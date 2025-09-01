@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API Test</title>
+  </head>
+  <body>
+    <h1>Test Generate Plan API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+      async function testAPI() {
+        const testProfile = {
+          full_name: "Test User",
+          age: 30,
+          gender: "male",
+          height_cm: 175,
+          weight_kg: 70,
+          preferences: {
+            health: {
+              blood_group: "O+",
+              chronic_conditions: [],
+              health_goals: ["lose weight", "get fitter"],
+            },
+            meals: {
+              breakfast_time: "08:00",
+              diet_type: "balanced",
+            },
+            schedule: {
+              wake_up_time: "07:00",
+              sleep_time: "23:00",
+              workout_time: "18:00",
+            },
+          },
+        };
+
+        try {
+          console.log("Testing API with profile:", testProfile);
+
+          const response = await fetch("/api/generate-plan", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ profile: testProfile }),
+          });
+
+          console.log("Response status:", response.status);
+          console.log("Response headers:", response.headers);
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Success:", data);
+            document.getElementById(
+              "result"
+            ).innerHTML = `<h3>Success!</h3><pre>${JSON.stringify(
+              data,
+              null,
+              2
+            )}</pre>`;
+          } else {
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
+            document.getElementById(
+              "result"
+            ).innerHTML = `<h3>Error ${response.status}</h3><pre>${errorText}</pre>`;
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+          document.getElementById(
+            "result"
+          ).innerHTML = `<h3>Fetch Error</h3><pre>${error.message}</pre>`;
+        }
+      }
+    </script>
+  </body>
+</html>

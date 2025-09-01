@@ -4,7 +4,8 @@
 import { OpenAI } from "openai";
 
 // Get OpenAI API key from environment
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+const OPENAI_API_KEY =
+  process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
 
 type BillingUnitSystem = "metric" | "imperial";
 
@@ -119,7 +120,30 @@ ACTIONABLE NEXT STEPS
   };
 }
 
-export default async function handler(req: any, res: any) {
+// Define types for Vercel serverless function
+interface VercelRequest {
+  method: string;
+  body: Record<string, unknown>;
+}
+
+interface VercelResponse {
+  status: (code: number) => VercelResponse;
+  json: (data: Record<string, unknown>) => void;
+  setHeader: (name: string, value: string) => void;
+  end: () => void;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -139,7 +163,9 @@ export default async function handler(req: any, res: any) {
     if (!openai) {
       console.log("OpenAI not configured, returning mock response");
       const mock = generateMockHealthPlan(profile);
-      return res.status(200).json({ report: mock.rawResponse, structured: mock });
+      return res
+        .status(200)
+        .json({ report: mock.rawResponse, structured: mock });
     }
 
     // Use OpenAI to generate a personalized plan
@@ -260,7 +286,8 @@ Remember: Accuracy over completeness. If you cannot calculate something from the
       temperature: 0.3,
     });
 
-    const gptResponse = completion.choices[0]?.message?.content || "No response generated.";
+    const gptResponse =
+      completion.choices[0]?.message?.content || "No response generated.";
 
     // Parse and structure the response (simplified version)
     const structuredResponse = {
@@ -275,7 +302,8 @@ Remember: Accuracy over completeness. If you cannot calculate something from the
         ],
       },
       sections: {
-        healthAssessment: "Based on your profile data, your current health status has room for improvement.",
+        healthAssessment:
+          "Based on your profile data, your current health status has room for improvement.",
         nutritionPlan: "Daily calorie target: 2000 kcal with balanced macros",
         fitnessPlan: "3-4 days/week of cardio and strength",
         lifestyleOptimization: "Focus on sleep, stress management, hydration",
@@ -287,11 +315,11 @@ Remember: Accuracy over completeness. If you cannot calculate something from the
       rawResponse: gptResponse,
     };
 
-    return res.status(200).json({ report: gptResponse, structured: structuredResponse });
+    return res
+      .status(200)
+      .json({ report: gptResponse, structured: structuredResponse });
   } catch (err) {
     console.error("/api/generate-plan error:", err);
     return res.status(500).json({ error: "Failed to generate plan." });
   }
 }
-
-
