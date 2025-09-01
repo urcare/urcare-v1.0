@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
@@ -15,7 +14,7 @@ export const HeroSection = () => {
       {/* Woman Image in Corner */}
       <div className="absolute right-0 top-0 h-full w-1/2 lg:w-2/5">
         <img 
-          src="/lovable-uploads/fe7592b1-6478-474b-8953-1c8dd7c079ad.png" 
+          src="/images/meditation-wellness.jpg" 
           alt="Happy woman using healthcare app" 
           className="h-full w-full object-cover object-left"
         />
