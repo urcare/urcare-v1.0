@@ -61,7 +61,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     <div className="relative h-screen overflow-hidden">
       {/* Mobile Navigation Drawer - Full Screen */}
       <div
-        className={`fixed inset-0 bg-gradient-to-b from-green-700 to-green-900 backdrop-blur-md bg-opacity-95 z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-0 bg-gradient-to-b from-green-700 to-green-900 backdrop-blur-md bg-opacity-67 z-50 transform transition-transform duration-300 ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
