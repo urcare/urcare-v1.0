@@ -66,6 +66,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<AuthCallback />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         
         {/* Protected Routes */}
         <Route

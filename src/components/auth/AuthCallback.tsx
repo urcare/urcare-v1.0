@@ -18,7 +18,7 @@ export const AuthCallback: React.FC = () => {
           "AuthCallback: Timeout reached, redirecting to landing page"
         );
         navigate("/", { replace: true });
-      }, 8000); // 8 seconds timeout
+      }, 15000); // 15 seconds timeout - increased from 8 seconds
 
       try {
         // Let Supabase handle the OAuth callback automatically
@@ -81,7 +81,7 @@ export const AuthCallback: React.FC = () => {
           } else {
             console.log("AuthCallback: Profile created successfully");
             // Redirect to welcome screen for new users
-            navigate("/welcome-screen");
+            navigate("/welcome-screen", { replace: true });
             return;
           }
         } else if (profileError) {
@@ -111,10 +111,19 @@ export const AuthCallback: React.FC = () => {
         }
       } catch (error) {
         console.error("AuthCallback: Unexpected error:", error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error("AuthCallback: Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
         toast.error("Authentication failed", {
-          description: "An unexpected error occurred",
+          description: "An unexpected error occurred. Please try again.",
         });
-        navigate("/", { replace: true });
+        // Don't redirect to landing page on error, let user retry
+        // navigate("/", { replace: true });
       } finally {
         clearTimeout(timeoutId);
       }

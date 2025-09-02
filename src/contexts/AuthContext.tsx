@@ -110,7 +110,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // No profile exists, create a blank one
       const { error: insertError } = await supabase
         .from('user_profiles')
-        .insert([{ id: user.id, full_name: user.user_metadata?.full_name || user.email }]);
+        .insert([{ 
+          id: user.id, 
+          full_name: user.user_metadata?.full_name || user.email,
+          onboarding_completed: false,
+          status: 'active'
+        }]);
       if (insertError) {
         console.error('Error inserting blank user profile:', insertError);
       } else {
