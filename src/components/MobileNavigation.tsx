@@ -7,7 +7,6 @@ import {
   Home,
   LogOut,
   Menu,
-  ShoppingCart,
   Store,
   ThumbsUp,
   User,
@@ -124,18 +123,47 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         <div className="px-4 sm:px-6 mt-4 sm:mt-6">{children}</div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center">
-              <Home className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-              <div className="w-1 h-1 bg-orange-500 rounded-full mt-1"></div>
+        <div className="fixed bottom-4 left-4 right-4">
+          <div className="bg-gray-200 rounded-full px-2 py-2">
+            <div className="flex items-center justify-between px-2">
+              {/* Home Icon */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <Home className="w-6 h-6 text-green-600" />
+              </div>
+
+              {/* Cloche Icon */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
+                  <div className="w-3 h-0.5 bg-black mt-1"></div>
+                </div>
+              </div>
+
+              {/* Active Fork & Knife Icon */}
+              <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
+                <div className="flex items-center space-x-1">
+                  <div className="w-0.5 h-4 bg-black"></div>
+                  <div className="w-0.5 h-4 bg-black"></div>
+                </div>
+              </div>
+
+              {/* Bar Chart Icon */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <div className="flex items-end space-x-1">
+                  <div className="w-1 h-3 bg-black"></div>
+                  <div className="w-1 h-5 bg-black"></div>
+                  <div className="w-1 h-2 bg-black"></div>
+                </div>
+              </div>
+
+              {/* Book Icon */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <div className="flex items-center">
+                  <div className="w-4 h-3 border border-black rounded-sm"></div>
+                  <div className="w-1 h-1 bg-black ml-1"></div>
+                </div>
+              </div>
             </div>
-            <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500 rounded-full flex items-center justify-center">
-              <Grid className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-            <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
           </div>
         </div>
       </div>
