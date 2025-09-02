@@ -14,19 +14,25 @@ import {
   Zap,
   AlertCircle,
   CheckCircle,
-  Lightbulb
+  Lightbulb,
+  Bell,
+  BellOff,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingToHealthProfileMapper } from '@/services/onboardingToHealthProfileMapper';
 import { aiHealthAssistantService, UserHealthProfile, PersonalizedDailyPlan } from '@/services/aiHealthAssistantService';
+import { HealthNotificationScheduler } from '@/services/healthNotificationScheduler';
+import { notificationService } from '@/services/notificationService';
 import AIDailyHealthPlan from '@/components/health/AIDailyHealthPlan';
+import NotificationSettings from '@/components/notifications/NotificationSettings';
 
 interface AIHealthDashboardProps {
   className?: string;
 }
 
 const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' }) => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [healthProfile, setHealthProfile] = useState<UserHealthProfile | null>(null);
   const [dailyPlan, setDailyPlan] = useState<PersonalizedDailyPlan | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,12 +42,29 @@ const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' })
     recommendations: string[];
     nextSteps: string[];
   } | null>(null);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [notificationSummary, setNotificationSummary] = useState<{
+    total: number;
+    pending: number;
+    acknowledged: number;
+    missed: number;
+    nextNotification?: {
+      title: string;
+      eventTime: string;
+    };
+  } | null>(null);
 
   useEffect(() => {
     if (profile) {
       generateHealthProfile();
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (dailyPlan && user) {
+      loadNotificationSummary();
+    }
+  }, [dailyPlan, user]);
 
   const generateHealthProfile = () => {
     if (!profile) return;
@@ -79,12 +102,15 @@ const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' })
   };
 
   const generateDailyPlan = async () => {
-    if (!healthProfile) return;
+    if (!healthProfile || !user) return;
 
     setIsGenerating(true);
     try {
       const plan = await aiHealthAssistantService.generateDailyPlan(healthProfile);
       setDailyPlan(plan);
+      
+      // Automatically schedule notifications for the new plan
+      await schedulePlanNotifications(plan);
       
       // Save plan to database (would need actual user ID)
       // await aiHealthAssistantService.savePlan(userId, plan);
@@ -95,14 +121,72 @@ const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' })
     }
   };
 
+  const schedulePlanNotifications = async (plan: PersonalizedDailyPlan) => {
+    if (!user) return;
+
+    try {
+      console.log('Scheduling notifications for new health plan...');
+      
+      // Schedule all notifications for the plan
+      const schedule = await HealthNotificationScheduler.schedulePlanNotifications(
+        user.id,
+        plan
+      );
+      
+      console.log(`Successfully scheduled ${schedule.notifications.length} notifications`);
+      
+      // Load notification summary
+      await loadNotificationSummary();
+      
+    } catch (error) {
+      console.error('Failed to schedule plan notifications:', error);
+    }
+  };
+
+  const loadNotificationSummary = async () => {
+    if (!user || !dailyPlan) return;
+
+    try {
+      const summary = await HealthNotificationScheduler.getPlanNotificationSummary(
+        user.id,
+        dailyPlan.date || `plan-${Date.now()}`
+      );
+      setNotificationSummary(summary);
+    } catch (error) {
+      console.error('Failed to load notification summary:', error);
+    }
+  };
+
   const handlePlanGenerated = (plan: PersonalizedDailyPlan) => {
     setDailyPlan(plan);
+  };
+
+  const toggleNotificationSettings = () => {
+    setShowNotificationSettings(!showNotificationSettings);
   };
 
   if (!profile || !healthProfile) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (showNotificationSettings) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={toggleNotificationSettings}
+            className="flex items-center gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
+        </div>
+        <NotificationSettings />
       </div>
     );
   }
@@ -168,6 +252,72 @@ const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' })
           </CardContent>
         </Card>
       </div>
+
+      {/* Notification Status */}
+      {notificationSummary && (
+        <Card className="border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-purple-600" />
+              Notification Status
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Track your health reminders and notifications
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="text-lg font-semibold text-blue-700">{notificationSummary.total}</div>
+                <div className="text-xs text-blue-600">Total</div>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="text-lg font-semibold text-green-700">{notificationSummary.pending}</div>
+                <div className="text-xs text-green-600">Pending</div>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <div className="text-lg font-semibold text-purple-700">{notificationSummary.acknowledged}</div>
+                <div className="text-xs text-purple-600">Completed</div>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded-lg">
+                <div className="text-lg font-semibold text-red-700">{notificationSummary.missed}</div>
+                <div className="text-xs text-red-600">Missed</div>
+              </div>
+            </div>
+            
+            {notificationSummary.nextNotification && (
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <span className="font-medium text-yellow-800">Next Reminder:</span>
+                  <span className="text-yellow-700">
+                    {notificationSummary.nextNotification.title} at {notificationSummary.nextNotification.eventTime}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between mt-4">
+              <Button
+                variant="outline"
+                onClick={toggleNotificationSettings}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Notification Settings
+              </Button>
+              
+              {notificationSummary.pending > 0 && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Bell className="w-3 h-3 mr-1" />
+                  {notificationSummary.pending} reminders active
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI Recommendations */}
       {insights && (
@@ -299,15 +449,23 @@ const AIHealthDashboard: React.FC<AIHealthDashboardProps> = ({ className = '' })
                     Plan generated on {new Date(dailyPlan.date).toLocaleDateString()}
                   </span>
                 </div>
-                <Button 
-                  onClick={generateDailyPlan} 
-                  disabled={isGenerating}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Regenerate
-                </Button>
+                <div className="flex items-center gap-2">
+                  {notificationSummary && notificationSummary.pending > 0 && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Bell className="w-3 h-3 mr-1" />
+                      {notificationSummary.pending} reminders active
+                    </Badge>
+                  )}
+                  <Button 
+                    onClick={generateDailyPlan} 
+                    disabled={isGenerating}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Regenerate
+                  </Button>
+                </div>
               </div>
               
               {/* Quick Plan Preview */}
