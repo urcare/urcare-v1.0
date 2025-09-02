@@ -61,7 +61,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     <div className="relative h-screen overflow-hidden">
       {/* Mobile Navigation Drawer - Full Screen */}
       <div
-        className={`fixed inset-0 bg-gradient-to-b from-green-400 to-green-600 z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-0 bg-gradient-to-b from-green-700 to-green-900 backdrop-blur-md bg-opacity-95 z-50 transform transition-transform duration-300 ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -75,7 +75,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         {/* Close Button */}
         <button
           onClick={closeMenu}
-          className="absolute top-4 right-4 w-8 h-8 bg-green-500/50 rounded-full flex items-center justify-center hover:bg-green-500/70 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 bg-green-600/80 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors backdrop-blur-sm"
         >
           <X className="w-4 h-4 text-white" />
         </button>
@@ -87,7 +87,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             return (
               <div
                 key={item.label}
-                className={`flex items-center gap-3 sm:gap-4 text-white cursor-pointer hover:bg-green-500/30 p-2 sm:p-3 rounded-lg transition-all duration-300 transform ${
+                className={`flex items-center gap-3 sm:gap-4 text-white cursor-pointer hover:bg-green-600/40 p-2 sm:p-3 rounded-lg transition-all duration-300 transform backdrop-blur-sm ${
                   animateItems
                     ? "translate-x-0 opacity-100"
                     : "-translate-x-full opacity-0"
@@ -106,17 +106,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         </div>
       </div>
 
-      {/* Main Content Area - Shrinks to right side when menu is open */}
+      {/* Main Content Area - Remains at normal size when menu is open */}
       <div
         className={`h-full transition-all duration-300 ease-in-out relative z-10 ${
-          isMenuOpen
-            ? "transform translate-x-[50%] scale-[0.5] origin-right rounded-2xl overflow-hidden shadow-2xl"
-            : "translate-x-0 scale-100"
+          isMenuOpen ? "transform translate-x-[25%]" : "translate-x-0"
         }`}
-        style={{
-          marginTop: isMenuOpen ? "25vh" : "0",
-          marginBottom: isMenuOpen ? "25vh" : "0",
-        }}
       >
         {/* Hamburger Menu Button */}
         <button
