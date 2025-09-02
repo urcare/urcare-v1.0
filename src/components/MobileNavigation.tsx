@@ -113,10 +113,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`h-full transition-transform duration-300 ease-in-out ${
+        className={`h-full transition-all duration-300 ease-in-out ${
           isMenuOpen
-            ? "translate-x-64 sm:translate-x-72 md:translate-x-80"
-            : "translate-x-0"
+            ? "translate-x-32 sm:translate-x-36 md:translate-x-40 scale-50 origin-left"
+            : "translate-x-0 scale-100"
         }`}
       >
         {/* Hamburger Menu Button */}
