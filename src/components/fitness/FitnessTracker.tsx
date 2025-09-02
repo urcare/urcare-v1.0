@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Progress, Badge, Separator } from '../ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
   Activity, 
   Play, 
@@ -15,7 +19,7 @@ import {
 import { FitnessTrackingService, FitnessSession } from '../../services/fitnessTrackingService';
 import { UserFitnessProfile } from '../../services/stepCounterService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '@/hooks/use-toast';
 
 interface FitnessTrackerProps {
   userProfile?: UserFitnessProfile;

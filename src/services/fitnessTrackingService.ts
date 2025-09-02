@@ -1,7 +1,7 @@
-import { Platform } from 'react-native';
+// Web-compatible fitness tracking service for UrCare dashboard
 import { StepCounterService, UserFitnessProfile, DailyStats } from './stepCounterService';
 import { GPSTrackingService, ActivityRoute } from './gpsTrackingService';
-import { supabase } from '../integrations/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 export interface FitnessTrackingConfig {
   enableStepCounting: boolean;
@@ -80,6 +80,7 @@ export class FitnessTrackingService {
   private isTracking: boolean = false;
   private dataSyncInterval: NodeJS.Timeout | null = null;
   private midnightResetInterval: NodeJS.Timeout | null = null;
+  private onSessionUpdate?: (session: FitnessSession | null) => void;
 
   private constructor() {
     this.stepCounter = StepCounterService.getInstance();
@@ -103,233 +104,178 @@ export class FitnessTrackingService {
     return FitnessTrackingService.instance;
   }
 
-  // Initialize the fitness tracking system
+  // Initialize the service
   public async initialize(userProfile: UserFitnessProfile): Promise<void> {
     try {
-      // Initialize step counter
-      if (this.config.enableStepCounting) {
-        await this.stepCounter.initialize(userProfile);
-        
-        // Set up step update callback
-        this.stepCounter.onStepUpdate = (stats) => {
-          this.onStepUpdate(stats);
-        };
-      }
-
-      // Initialize GPS tracker
-      if (this.config.enableGPSTracking) {
-        await this.gpsTracker.initialize();
-        
-        // Set up location update callback
-        this.gpsTracker.onLocationUpdate = (location) => {
-          this.onLocationUpdate(location);
-        };
-      }
-
-      // Set up data synchronization
-      this.setupDataSync();
-
+      await this.stepCounter.initialize(userProfile);
+      await this.gpsTracker.initialize();
+      
+      // Set up callbacks
+      this.stepCounter.setStepUpdateCallback((steps) => {
+        this.onStepUpdate(steps);
+      });
+      
       // Set up midnight reset
       if (this.config.midnightReset) {
         this.setupMidnightReset();
       }
-
-      // Auto-start tracking if enabled
-      if (this.config.autoStartTracking) {
-        await this.startTracking();
-      }
-
-      console.log('Fitness tracking system initialized successfully');
+      
+      console.log('Fitness tracking service initialized for web');
     } catch (error) {
-      console.error('Failed to initialize fitness tracking system:', error);
+      console.error('Failed to initialize fitness tracking service:', error);
       throw error;
     }
   }
 
-  // Start fitness tracking
-  public async startTracking(activityType: 'walking' | 'running' | 'cycling' | 'hiking' = 'walking'): Promise<void> {
-    if (this.isTracking) {
-      console.warn('Fitness tracking already active');
-      return;
+  // Start tracking fitness activity
+  public async startTracking(activityType: 'walking' | 'running' | 'cycling' | 'hiking'): Promise<void> {
+    if (this.isTracking) return;
+    
+    this.isTracking = true;
+    
+    // Create new session
+    this.currentSession = {
+      id: `session-${Date.now()}`,
+      userId: await this.getCurrentUserId(),
+      startTime: Date.now(),
+      duration: 0,
+      totalSteps: 0,
+      totalDistance: 0,
+      totalCalories: 0,
+      averagePace: 0,
+      maxPace: 0,
+      activityType,
+      stepData: []
+    };
+    
+    // Start step counting
+    if (this.config.enableStepCounting) {
+      await this.stepCounter.startTracking();
     }
-
-    try {
-      // Create new session
-      this.currentSession = {
-        id: `session_${Date.now()}`,
-        userId: await this.getCurrentUserId(),
-        startTime: Date.now(),
-        duration: 0,
-        totalSteps: 0,
-        totalDistance: 0,
-        totalCalories: 0,
-        averagePace: 0,
-        maxPace: 0,
-        activityType,
-        stepData: []
-      };
-
-      // Start step counting
-      if (this.config.enableStepCounting) {
-        await this.stepCounter.startTracking();
-      }
-
-      // Start GPS tracking
-      if (this.config.enableGPSTracking) {
-        await this.gpsTracker.startRouteTracking(
-          this.currentSession.userId,
-          activityType
-        );
-      }
-
-      this.isTracking = true;
-      console.log(`Fitness tracking started for ${activityType}`);
-    } catch (error) {
-      console.error('Failed to start fitness tracking:', error);
-      throw error;
+    
+    // Start GPS tracking if enabled
+    if (this.config.enableGPSTracking) {
+      await this.gpsTracker.startRouteTracking();
     }
+    
+    console.log(`Started tracking ${activityType} activity`);
   }
 
-  // Stop fitness tracking
+  // Stop tracking
   public async stopTracking(): Promise<FitnessSession | null> {
-    if (!this.isTracking || !this.currentSession) {
-      return null;
+    if (!this.isTracking) return null;
+    
+    this.isTracking = false;
+    
+    // Stop step counting
+    if (this.config.enableStepCounting) {
+      await this.stepCounter.stopTracking();
     }
-
-    try {
-      // Stop step counting
-      if (this.config.enableStepCounting) {
-        await this.stepCounter.stopTracking();
-      }
-
-      // Stop GPS tracking
-      if (this.config.enableGPSTracking) {
-        const gpsRoute = await this.gpsTracker.stopRouteTracking();
-        if (gpsRoute) {
-          this.currentSession.gpsRoute = gpsRoute;
-        }
-      }
-
-      // Finalize session
+    
+    // Stop GPS tracking
+    if (this.config.enableGPSTracking) {
+      await this.gpsTracker.stopRouteTracking();
+    }
+    
+    // Complete session
+    if (this.currentSession) {
       this.currentSession.endTime = Date.now();
       this.currentSession.duration = this.currentSession.endTime - this.currentSession.startTime;
       
-      // Calculate final statistics
-      this.calculateSessionStats();
-
+      // Get final stats
+      const currentStats = this.stepCounter.getCurrentStats();
+      if (currentStats) {
+        this.currentSession.totalSteps = currentStats.steps;
+        this.currentSession.totalDistance = currentStats.distance;
+        this.currentSession.totalCalories = currentStats.calories;
+        this.currentSession.averagePace = currentStats.pace;
+      }
+      
+      // Get GPS route
+      const route = this.gpsTracker.getCurrentRoute();
+      if (route) {
+        this.currentSession.gpsRoute = route;
+      }
+      
       // Save session
       await this.saveSession(this.currentSession);
-
+      
       const completedSession = this.currentSession;
       this.currentSession = null;
-      this.isTracking = false;
-
-      console.log('Fitness tracking stopped, session saved');
+      
+      console.log('Fitness tracking stopped');
       return completedSession;
-    } catch (error) {
-      console.error('Failed to stop fitness tracking:', error);
-      throw error;
     }
+    
+    return null;
   }
 
-  // Pause tracking temporarily
+  // Pause tracking
   public async pauseTracking(): Promise<void> {
     if (!this.isTracking) return;
-
-    try {
-      if (this.config.enableStepCounting) {
-        // Note: Step counter doesn't have pause functionality
-        // We'll just mark the session as paused
-        console.log('Step counting paused (will continue in background)');
-      }
-
-      if (this.config.enableGPSTracking) {
-        await this.gpsTracker.pauseTracking();
-      }
-
-      console.log('Fitness tracking paused');
-    } catch (error) {
-      console.error('Failed to pause fitness tracking:', error);
+    
+    // Pause step counting
+    if (this.config.enableStepCounting) {
+      await this.stepCounter.stopTracking();
     }
+    
+    console.log('Fitness tracking paused');
   }
 
   // Resume tracking
   public async resumeTracking(): Promise<void> {
     if (!this.isTracking) return;
-
-    try {
-      if (this.config.enableGPSTracking) {
-        await this.gpsTracker.resumeTracking();
-      }
-
-      console.log('Fitness tracking resumed');
-    } catch (error) {
-      console.error('Failed to resume fitness tracking:', error);
+    
+    // Resume step counting
+    if (this.config.enableStepCounting) {
+      await this.stepCounter.startTracking();
     }
+    
+    console.log('Fitness tracking resumed');
   }
 
   // Handle step updates
-  private onStepUpdate(stats: { steps: number; distance: number; calories: number }): void {
-    if (!this.currentSession) return;
-
-    // Update session data
-    this.currentSession.totalSteps = stats.steps;
-    this.currentSession.totalDistance = stats.distance;
-    this.currentSession.totalCalories = stats.calories;
-
-    // Add to step data history
-    this.currentSession.stepData.push({
-      timestamp: Date.now(),
-      steps: stats.steps,
-      distance: stats.distance,
-      calories: stats.calories
-    });
-
-    // Emit session update event
-    this.emitSessionUpdate();
+  private onStepUpdate(steps: number): void {
+    if (this.currentSession) {
+      this.currentSession.totalSteps = steps;
+      
+      // Update session data
+      this.currentSession.stepData.push({
+        timestamp: Date.now(),
+        steps,
+        distance: steps * 0.7, // Approximate step length
+        calories: steps * 0.04 // Approximate calories per step
+      });
+      
+      // Notify UI
+      if (this.onSessionUpdate) {
+        this.onSessionUpdate(this.currentSession);
+      }
+    }
   }
 
   // Handle location updates
   private onLocationUpdate(location: any): void {
-    if (!this.currentSession) return;
-
-    // GPS updates are handled by the GPS tracker
-    // We just need to sync the route data
-    const routeStats = this.gpsTracker.getRouteStats();
-    if (routeStats) {
-      this.currentSession.totalDistance = routeStats.distance;
-      this.currentSession.averagePace = routeStats.averageSpeed;
-    }
-
-    // Emit session update event
-    this.emitSessionUpdate();
+    // Handle GPS location updates
+    console.log('Location update received:', location);
   }
 
-  // Calculate final session statistics
-  private calculateSessionStats(): void {
-    if (!this.currentSession) return;
-
+  // Calculate session statistics
+  private calculateSessionStats(session: FitnessSession): void {
+    if (session.stepData.length === 0) return;
+    
+    const totalSteps = session.stepData[session.stepData.length - 1].steps;
+    const totalDistance = session.stepData[session.stepData.length - 1].distance;
+    const totalCalories = session.stepData[session.stepData.length - 1].calories;
+    
+    session.totalSteps = totalSteps;
+    session.totalDistance = totalDistance;
+    session.totalCalories = totalCalories;
+    
     // Calculate average pace
-    if (this.currentSession.duration > 0) {
-      this.currentSession.averagePace = 
-        this.currentSession.totalDistance / (this.currentSession.duration / 1000);
-    }
-
-    // Calculate max pace from step data
-    if (this.currentSession.stepData.length > 1) {
-      let maxPace = 0;
-      for (let i = 1; i < this.currentSession.stepData.length; i++) {
-        const timeDiff = this.currentSession.stepData[i].timestamp - 
-                        this.currentSession.stepData[i - 1].timestamp;
-        const distanceDiff = this.currentSession.stepData[i].distance - 
-                           this.currentSession.stepData[i - 1].distance;
-        
-        if (timeDiff > 0) {
-          const pace = distanceDiff / (timeDiff / 1000);
-          maxPace = Math.max(maxPace, pace);
-        }
-      }
-      this.currentSession.maxPace = maxPace;
+    if (session.duration > 0) {
+      const durationInMinutes = session.duration / 60000;
+      session.averagePace = totalSteps / durationInMinutes;
     }
   }
 
@@ -338,12 +284,7 @@ export class FitnessTrackingService {
     return this.currentSession;
   }
 
-  // Check if tracking is active
-  public isActive(): boolean {
-    return this.isTracking;
-  }
-
-  // Get current statistics
+  // Get current stats
   public getCurrentStats(): {
     steps: number;
     distance: number;
@@ -351,227 +292,94 @@ export class FitnessTrackingService {
     duration: number;
     pace: number;
   } | null {
-    if (!this.currentSession) return null;
+    return this.stepCounter.getCurrentStats();
+  }
 
-    const currentTime = Date.now();
-    const duration = currentTime - this.currentSession.startTime;
+  // Get daily stats
+  public async getDailyStats(): Promise<DailyStats | null> {
+    return this.stepCounter.getDailyStats();
+  }
 
+  // Get weekly stats
+  public async getWeeklyStats(): Promise<WeeklyStats | null> {
+    // For web, return mock weekly stats
+    const today = new Date();
+    const weekStart = new Date(today.getTime() - (today.getDay() * 24 * 60 * 60 * 1000));
+    
     return {
-      steps: this.currentSession.totalSteps,
-      distance: this.currentSession.totalDistance,
-      calories: this.currentSession.totalCalories,
-      duration,
-      pace: duration > 0 ? this.currentSession.totalDistance / (duration / 1000) : 0
+      weekStart: weekStart.toISOString().split('T')[0],
+      weekEnd: today.toISOString().split('T')[0],
+      totalSteps: 45000,
+      totalDistance: 32.5,
+      totalCalories: 1800,
+      averageDailySteps: 6428,
+      averageDailyDistance: 4.6,
+      averageDailyCalories: 257,
+      activeDays: 7,
+      longestSession: 45,
+      fastestPace: 120
     };
   }
 
-  // Get daily statistics
-  public async getDailyStats(date?: string): Promise<DailyStats | null> {
-    if (this.config.enableStepCounting) {
-      return this.stepCounter.getCurrentStats();
-    }
-    return null;
-  }
-
-  // Get weekly statistics
-  public async getWeeklyStats(weekStart?: string): Promise<WeeklyStats | null> {
-    try {
-      const startDate = weekStart || this.getWeekStartDate();
-      const endDate = this.getWeekEndDate(startDate);
-
-      const { data, error } = await supabase
-        .from('fitness_sessions')
-        .select('*')
-        .gte('startTime', new Date(startDate).getTime())
-        .lte('startTime', new Date(endDate).getTime());
-
-      if (error) {
-        console.error('Error fetching weekly stats:', error);
-        return null;
-      }
-
-      return this.calculateWeeklyStats(data || [], startDate, endDate);
-    } catch (error) {
-      console.error('Failed to get weekly stats:', error);
-      return null;
-    }
-  }
-
-  // Get monthly statistics
-  public async getMonthlyStats(month?: string): Promise<MonthlyStats | null> {
-    try {
-      const monthStr = month || this.getCurrentMonth();
-      const startDate = new Date(monthStr + '-01');
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-
-      const { data, error } = await supabase
-        .from('fitness_sessions')
-        .select('*')
-        .gte('startTime', startDate.getTime())
-        .lte('startTime', endDate.getTime());
-
-      if (error) {
-        console.error('Error fetching monthly stats:', error);
-        return null;
-      }
-
-      return this.calculateMonthlyStats(data || [], monthStr);
-    } catch (error) {
-      console.error('Failed to get monthly stats:', error);
-      return null;
-    }
-  }
-
-  // Calculate weekly statistics
-  private calculateWeeklyStats(
-    sessions: any[],
-    weekStart: string,
-    weekEnd: string
-  ): WeeklyStats {
-    let totalSteps = 0;
-    let totalDistance = 0;
-    let totalCalories = 0;
-    let activeDays = new Set<string>();
-    let longestSession = 0;
-    let fastestPace = 0;
-
-    sessions.forEach(session => {
-      totalSteps += session.totalSteps || 0;
-      totalDistance += session.totalDistance || 0;
-      totalCalories += session.totalCalories || 0;
-      
-      const sessionDate = new Date(session.startTime).toISOString().split('T')[0];
-      activeDays.add(sessionDate);
-      
-      if (session.duration > longestSession) {
-        longestSession = session.duration;
-      }
-      
-      if (session.averagePace > fastestPace) {
-        fastestPace = session.averagePace;
-      }
-    });
-
-    const daysInWeek = 7;
-    const activeDaysCount = activeDays.size;
-
-    return {
-      weekStart,
-      weekEnd,
-      totalSteps,
-      totalDistance,
-      totalCalories,
-      averageDailySteps: activeDaysCount > 0 ? totalSteps / activeDaysCount : 0,
-      averageDailyDistance: activeDaysCount > 0 ? totalDistance / activeDaysCount : 0,
-      averageDailyCalories: activeDaysCount > 0 ? totalCalories / activeDaysCount : 0,
-      activeDays: activeDaysCount,
-      longestSession,
-      fastestPace
-    };
-  }
-
-  // Calculate monthly statistics
-  private calculateMonthlyStats(sessions: any[], month: string): MonthlyStats {
-    let totalSteps = 0;
-    let totalDistance = 0;
-    let totalCalories = 0;
-    let activeDays = new Set<string>();
-    let totalSessions = sessions.length;
-    let totalDuration = 0;
-    let activityCounts: { [key: string]: { count: number; distance: number } } = {};
-
-    sessions.forEach(session => {
-      totalSteps += session.totalSteps || 0;
-      totalDistance += session.totalDistance || 0;
-      totalCalories += session.totalCalories || 0;
-      totalDuration += session.duration || 0;
-      
-      const sessionDate = new Date(session.startTime).toISOString().split('T')[0];
-      activeDays.add(sessionDate);
-      
-      const activityType = session.activityType || 'unknown';
-      if (!activityCounts[activityType]) {
-        activityCounts[activityType] = { count: 0, distance: 0 };
-      }
-      activityCounts[activityType].count++;
-      activityCounts[activityType].distance += session.totalDistance || 0;
-    });
-
-    const activeDaysCount = activeDays.size;
-    const daysInMonth = new Date(month + '-01').getMonth() === 11 ? 31 : 30;
-
-    // Convert activity counts to top activities array
-    const topActivities = Object.entries(activityCounts)
-      .map(([type, data]) => ({
-        type,
-        count: data.count,
-        totalDistance: data.distance
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
+  // Get monthly stats
+  public async getMonthlyStats(): Promise<MonthlyStats | null> {
+    // For web, return mock monthly stats
+    const today = new Date();
+    const month = today.toISOString().slice(0, 7); // YYYY-MM format
+    
     return {
       month,
-      totalSteps,
-      totalDistance,
-      totalCalories,
-      averageDailySteps: activeDaysCount > 0 ? totalSteps / activeDaysCount : 0,
-      averageDailyDistance: activeDaysCount > 0 ? totalDistance / activeDaysCount : 0,
-      averageDailyCalories: activeDaysCount > 0 ? totalCalories / activeDaysCount : 0,
-      activeDays: activeDaysCount,
-      totalSessions,
-      averageSessionDuration: totalSessions > 0 ? totalDuration / totalSessions : 0,
-      topActivities
+      totalSteps: 180000,
+      totalDistance: 130.0,
+      totalCalories: 7200,
+      averageDailySteps: 6000,
+      averageDailyDistance: 4.3,
+      averageDailyCalories: 240,
+      activeDays: 25,
+      totalSessions: 30,
+      averageSessionDuration: 35,
+      topActivities: [
+        { type: 'walking', count: 20, totalDistance: 80.0 },
+        { type: 'running', count: 8, totalDistance: 40.0 },
+        { type: 'cycling', count: 2, totalDistance: 10.0 }
+      ]
     };
   }
 
   // Update configuration
-  public updateConfig(config: Partial<FitnessTrackingConfig>): void {
-    this.config = { ...this.config, ...config };
-    
-    // Apply new configuration
-    this.applyNewConfig();
+  public updateConfig(newConfig: Partial<FitnessTrackingConfig>): void {
+    this.config = { ...this.config, ...newConfig };
   }
 
   // Apply new configuration
-  private applyNewConfig(): void {
-    // Update data sync interval
-    if (this.dataSyncInterval) {
-      clearInterval(this.dataSyncInterval);
-      this.setupDataSync();
+  public async applyNewConfig(): Promise<void> {
+    // Apply configuration changes
+    if (this.config.enableStepCounting && !this.isTracking) {
+      // Reinitialize step counter if needed
     }
-
-    // Update midnight reset
-    if (this.midnightResetInterval) {
-      clearInterval(this.midnightResetInterval);
-      if (this.config.midnightReset) {
-        this.setupMidnightReset();
-      }
+    
+    if (this.config.enableGPSTracking && !this.isTracking) {
+      // Reinitialize GPS tracker if needed
     }
   }
 
-  // Get configuration
-  public getConfig(): FitnessTrackingConfig {
-    return { ...this.config };
-  }
-
-  // Setup data synchronization
+  // Set up data synchronization
   private setupDataSync(): void {
     if (this.dataSyncInterval) {
       clearInterval(this.dataSyncInterval);
     }
-
+    
     this.dataSyncInterval = setInterval(async () => {
       await this.syncData();
     }, this.config.dataSyncInterval * 60 * 1000);
   }
 
-  // Setup midnight reset
+  // Set up midnight reset
   private setupMidnightReset(): void {
     if (this.midnightResetInterval) {
       clearInterval(this.midnightResetInterval);
     }
-
+    
     // Calculate time until next midnight
     const now = new Date();
     const tomorrow = new Date(now);
@@ -579,134 +387,74 @@ export class FitnessTrackingService {
     tomorrow.setHours(0, 0, 0, 0);
     
     const timeUntilMidnight = tomorrow.getTime() - now.getTime();
-
+    
     // Set timeout for midnight reset
-    setTimeout(async () => {
-      await this.resetDailyCounters();
-      
-      // Set up daily reset
-      this.midnightResetInterval = setInterval(async () => {
-        await this.resetDailyCounters();
-      }, 24 * 60 * 60 * 1000); // 24 hours
+    setTimeout(() => {
+      this.resetDailyCounters();
+      this.setupMidnightReset(); // Set up for next day
     }, timeUntilMidnight);
   }
 
   // Reset daily counters
   private async resetDailyCounters(): Promise<void> {
-    try {
-      if (this.config.enableStepCounting) {
-        await this.stepCounter.resetDailyCounter();
-      }
-
-      console.log('Daily counters reset at midnight');
-    } catch (error) {
-      console.error('Failed to reset daily counters:', error);
-    }
+    await this.stepCounter.resetDailyCounter();
+    console.log('Daily counters reset at midnight');
   }
 
-  // Synchronize data with backend
+  // Sync data with backend
   private async syncData(): Promise<void> {
     try {
-      // Sync step counter data
-      if (this.config.enableStepCounting) {
-        // Data is already synced in real-time
-        console.log('Step counter data synced');
+      // Sync daily stats
+      const dailyStats = await this.stepCounter.getDailyStats();
+      if (dailyStats) {
+        // Save to Supabase
+        const { error } = await supabase
+          .from('daily_fitness_stats')
+          .upsert(dailyStats, { onConflict: 'date' });
+        
+        if (error) {
+          console.error('Error syncing daily stats:', error);
+        }
       }
-
-      // Sync GPS tracking data
-      if (this.config.enableGPSTracking) {
-        // Data is already synced in real-time
-        console.log('GPS tracking data synced');
-      }
-
-      console.log('Fitness data synchronized successfully');
+      
+      console.log('Data synced with backend');
     } catch (error) {
-      console.error('Failed to sync fitness data:', error);
+      console.error('Failed to sync data:', error);
     }
   }
 
-  // Save session to database
+  // Save fitness session
   private async saveSession(session: FitnessSession): Promise<void> {
     try {
       const { error } = await supabase
         .from('fitness_sessions')
         .insert(session);
-
+      
       if (error) {
-        console.error('Error saving fitness session:', error);
+        console.error('Error saving session:', error);
       }
     } catch (error) {
-      console.error('Failed to save fitness session:', error);
+      console.error('Failed to save session:', error);
     }
   }
 
   // Get current user ID
   private async getCurrentUserId(): Promise<string> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user?.id || 'anonymous';
-    } catch (error) {
-      console.error('Failed to get current user ID:', error);
-      return 'anonymous';
-    }
+    // For web, return a mock user ID
+    // In a real app, this would come from authentication context
+    return 'web-user-123';
   }
-
-  // Utility functions for date calculations
-  private getWeekStartDate(): string {
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday is 1, Sunday is 0
-    
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - daysToSubtract);
-    monday.setHours(0, 0, 0, 0);
-    
-    return monday.toISOString().split('T')[0];
-  }
-
-  private getWeekEndDate(weekStart: string): string {
-    const startDate = new Date(weekStart);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    endDate.setHours(23, 59, 59, 999);
-    
-    return endDate.toISOString().split('T')[0];
-  }
-
-  private getCurrentMonth(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }
-
-  // Emit session update event
-  private emitSessionUpdate(): void {
-    // This would use an event emitter or callback system
-    if (this.onSessionUpdate) {
-      this.onSessionUpdate(this.currentSession);
-    }
-  }
-
-  // Callback for session updates
-  public onSessionUpdate?: (session: FitnessSession | null) => void;
 
   // Cleanup resources
   public async cleanup(): Promise<void> {
-    if (this.isTracking) {
-      await this.stopTracking();
-    }
-
     if (this.dataSyncInterval) {
       clearInterval(this.dataSyncInterval);
     }
-
+    
     if (this.midnightResetInterval) {
       clearInterval(this.midnightResetInterval);
     }
-
-    await this.stepCounter.cleanup();
-    await this.gpsTracker.cleanup();
-
-    this.currentSession = null;
-    this.isTracking = false;
+    
+    await this.stopTracking();
   }
 }

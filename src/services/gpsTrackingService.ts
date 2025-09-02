@@ -1,64 +1,72 @@
-import { Platform } from 'react-native';
-import { supabase } from '../integrations/supabase';
-import { GPSPoint } from './stepCounterService';
+// Web-compatible GPS tracking service for UrCare dashboard
+import { supabase } from '../integrations/supabase/client';
 
 export interface GPSConfig {
-  updateInterval: number; // milliseconds
+  enableTracking: boolean;
+  updateInterval: number; // seconds
   accuracyThreshold: number; // meters
-  distanceFilter: number; // meters
-  backgroundUpdates: boolean;
   batteryOptimization: boolean;
+  backgroundTracking: boolean;
 }
 
 export interface RouteSegment {
   startTime: number;
   endTime: number;
-  startPoint: GPSPoint;
-  endPoint: GPSPoint;
+  startLocation: GPSPoint;
+  endLocation: GPSPoint;
   distance: number;
   duration: number;
   averageSpeed: number;
-  elevationGain: number;
-  elevationLoss: number;
+  activityType: 'walking' | 'running' | 'cycling' | 'hiking';
 }
 
 export interface ActivityRoute {
   id: string;
   userId: string;
   startTime: number;
-  endTime: number;
+  endTime?: number;
+  activityType: 'walking' | 'running' | 'cycling' | 'hiking';
   totalDistance: number;
   totalDuration: number;
   averageSpeed: number;
   maxSpeed: number;
   elevationGain: number;
-  elevationLoss: number;
-  gpsPoints: GPSPoint[];
   routeSegments: RouteSegment[];
-  activityType: 'walking' | 'running' | 'cycling' | 'hiking';
+  gpsPoints: GPSPoint[];
   weather?: {
     temperature: number;
     humidity: number;
     conditions: string;
+    windSpeed: number;
   };
+}
+
+export interface GPSPoint {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+  accuracy: number;
+  altitude?: number;
+  speed?: number;
+  heading?: number;
 }
 
 export class GPSTrackingService {
   private static instance: GPSTrackingService;
+  private config: GPSConfig;
   private isTracking: boolean = false;
   private currentRoute: ActivityRoute | null = null;
-  private gpsConfig: GPSConfig;
-  private lastLocation: GPSPoint | null = null;
-  private locationUpdateInterval: NodeJS.Timeout | null = null;
-  private batteryOptimizationMode: boolean = false;
+  private locationInterval: NodeJS.Timeout | null = null;
+  private onLocationUpdate?: (location: GPSPoint) => void;
+  private mockLocationIndex: number = 0;
 
   private constructor() {
-    this.gpsConfig = {
-      updateInterval: 5000, // 5 seconds
+    this.config = {
+      enableTracking: true,
+      updateInterval: 10, // 10 seconds
       accuracyThreshold: 10, // 10 meters
-      distanceFilter: 5, // 5 meters
-      backgroundUpdates: true,
-      batteryOptimization: true
+      batteryOptimization: true,
+      backgroundTracking: true
     };
   }
 
@@ -69,301 +77,226 @@ export class GPSTrackingService {
     return GPSTrackingService.instance;
   }
 
-  // Initialize GPS tracking
+  // Initialize the GPS service
   public async initialize(): Promise<void> {
     try {
-      // Request location permissions
+      // Request location permission (web simulation)
       const hasPermission = await this.requestLocationPermission();
-      if (!hasPermission) {
-        throw new Error('Location permission denied');
-      }
-
-      // Initialize platform-specific GPS
-      if (Platform.OS === 'ios') {
-        await this.initializeIOSGPS();
+      
+      if (hasPermission) {
+        console.log('GPS service initialized for web');
       } else {
-        await this.initializeAndroidGPS();
+        console.log('GPS service initialized without location permission');
       }
-
-      // Set up battery optimization
-      this.setupBatteryOptimization();
-
-      console.log('GPS tracking initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize GPS tracking:', error);
+      console.error('Failed to initialize GPS service:', error);
       throw error;
     }
   }
 
-  // Request location permissions
+  // Request location permission (web simulation)
   private async requestLocationPermission(): Promise<boolean> {
-    try {
-      // This would use react-native-permissions or similar
-      // For now, we'll assume permission is granted
-      console.log('Requesting location permission...');
-      return true;
-    } catch (error) {
-      console.error('Permission request failed:', error);
-      return false;
-    }
-  }
-
-  // Initialize iOS GPS using Core Location
-  private async initializeIOSGPS(): Promise<void> {
-    console.log('Initializing iOS GPS (Core Location)');
-    
-    // iOS-specific GPS setup
-    // - Configure accuracy levels
-    // - Set up background location updates
-    // - Configure significant location changes
-  }
-
-  // Initialize Android GPS using Location Services
-  private async initializeAndroidGPS(): Promise<void> {
-    console.log('Initializing Android GPS (Location Services)');
-    
-    // Android-specific GPS setup
-    // - Configure location providers
-    // - Set up location request
-    // - Configure background location updates
-  }
-
-  // Start GPS tracking for an activity
-  public async startRouteTracking(
-    userId: string,
-    activityType: 'walking' | 'running' | 'cycling' | 'hiking'
-  ): Promise<void> {
-    if (this.isTracking) {
-      console.warn('GPS tracking already active');
-      return;
-    }
-
-    try {
-      // Create new route
-      this.currentRoute = {
-        id: `route_${Date.now()}`,
-        userId,
-        startTime: Date.now(),
-        endTime: 0,
-        totalDistance: 0,
-        totalDuration: 0,
-        averageSpeed: 0,
-        maxSpeed: 0,
-        elevationGain: 0,
-        elevationLoss: 0,
-        gpsPoints: [],
-        routeSegments: [],
-        activityType
-      };
-
-      this.isTracking = true;
-
-      // Start location updates
-      await this.startLocationUpdates();
-
-      // Start background tracking if enabled
-      if (this.gpsConfig.backgroundUpdates) {
-        await this.startBackgroundTracking();
-      }
-
-      console.log(`GPS tracking started for ${activityType}`);
-    } catch (error) {
-      console.error('Failed to start GPS tracking:', error);
-      throw error;
-    }
-  }
-
-  // Stop GPS tracking
-  public async stopRouteTracking(): Promise<ActivityRoute | null> {
-    if (!this.isTracking || !this.currentRoute) {
-      return null;
-    }
-
-    try {
-      // Stop location updates
-      await this.stopLocationUpdates();
-
-      // Stop background tracking
-      if (this.gpsConfig.backgroundUpdates) {
-        await this.stopBackgroundTracking();
-      }
-
-      // Finalize route data
-      this.currentRoute.endTime = Date.now();
-      this.currentRoute.totalDuration = this.currentRoute.endTime - this.currentRoute.startTime;
-      this.currentRoute.averageSpeed = this.calculateAverageSpeed();
-
-      // Save route to database
-      await this.saveRoute(this.currentRoute);
-
-      const completedRoute = this.currentRoute;
-      this.currentRoute = null;
-      this.isTracking = false;
-
-      console.log('GPS tracking stopped, route saved');
-      return completedRoute;
-    } catch (error) {
-      console.error('Failed to stop GPS tracking:', error);
-      throw error;
-    }
-  }
-
-  // Start location updates
-  private async startLocationUpdates(): Promise<void> {
-    if (this.locationUpdateInterval) {
-      clearInterval(this.locationUpdateInterval);
-    }
-
-    // Set up periodic location updates
-    this.locationUpdateInterval = setInterval(async () => {
-      await this.updateLocation();
-    }, this.gpsConfig.updateInterval);
-
-    // Get initial location
-    await this.updateLocation();
-  }
-
-  // Stop location updates
-  private async stopLocationUpdates(): Promise<void> {
-    if (this.locationUpdateInterval) {
-      clearInterval(this.locationUpdateInterval);
-      this.locationUpdateInterval = null;
-    }
-  }
-
-  // Update current location
-  private async updateLocation(): Promise<void> {
-    try {
-      // This would get location from the device's GPS
-      // For now, we'll create a mock location update
-      const mockLocation = await this.getMockLocation();
-      
-      if (mockLocation && this.isValidLocation(mockLocation)) {
-        await this.processLocationUpdate(mockLocation);
-      }
-    } catch (error) {
-      console.error('Failed to update location:', error);
-    }
-  }
-
-  // Get mock location for testing (replace with actual GPS)
-  private async getMockLocation(): Promise<GPSPoint | null> {
-    // Simulate GPS location updates
-    // In production, this would use the device's actual GPS
-    const baseLat = 40.7128; // New York coordinates
-    const baseLon = -74.0060;
-    
-    // Add some random movement
-    const latOffset = (Math.random() - 0.5) * 0.001;
-    const lonOffset = (Math.random() - 0.5) * 0.001;
-    
-    return {
-      latitude: baseLat + latOffset,
-      longitude: baseLon + lonOffset,
-      timestamp: Date.now(),
-      accuracy: 5 + Math.random() * 10 // 5-15 meters accuracy
-    };
-  }
-
-  // Validate GPS location
-  private isValidLocation(location: GPSPoint): boolean {
-    // Check if location is within reasonable bounds
-    if (location.latitude < -90 || location.latitude > 90) return false;
-    if (location.longitude < -180 || location.longitude > 180) return false;
-    
-    // Check accuracy threshold
-    if (location.accuracy > this.gpsConfig.accuracyThreshold) return false;
-    
-    // Check distance filter
-    if (this.lastLocation) {
-      const distance = this.calculateDistance(
-        this.lastLocation.latitude, this.lastLocation.longitude,
-        location.latitude, location.longitude
-      );
-      
-      if (distance < this.gpsConfig.distanceFilter) return false;
-    }
-    
+    // In a real web app, this would use the Geolocation API
+    // For now, we'll simulate permission granted
     return true;
   }
 
-  // Process location update
-  private async processLocationUpdate(location: GPSPoint): Promise<void> {
-    if (!this.currentRoute) return;
+  // Initialize iOS GPS (web simulation)
+  private async initializeIOSGPS(): Promise<void> {
+    console.log('iOS GPS initialized (web simulation)');
+  }
 
+  // Initialize Android GPS (web simulation)
+  private async initializeAndroidGPS(): Promise<void> {
+    console.log('Android GPS initialized (web simulation)');
+  }
+
+  // Start route tracking
+  public async startRouteTracking(): Promise<void> {
+    if (this.isTracking) return;
+    
+    this.isTracking = true;
+    
+    // Create new route
+    this.currentRoute = {
+      id: `route-${Date.now()}`,
+      userId: await this.getCurrentUserId(),
+      startTime: Date.now(),
+      activityType: 'walking',
+      totalDistance: 0,
+      totalDuration: 0,
+      averageSpeed: 0,
+      maxSpeed: 0,
+      elevationGain: 0,
+      routeSegments: [],
+      gpsPoints: []
+    };
+    
+    // Start location updates
+    this.startLocationUpdates();
+    
+    console.log('GPS route tracking started');
+  }
+
+  // Stop route tracking
+  public async stopRouteTracking(): Promise<ActivityRoute | null> {
+    if (!this.isTracking) return null;
+    
+    this.isTracking = false;
+    
+    // Stop location updates
+    this.stopLocationUpdates();
+    
+    // Complete route
+    if (this.currentRoute) {
+      this.currentRoute.endTime = Date.now();
+      this.currentRoute.totalDuration = this.currentRoute.endTime - this.currentRoute.startTime;
+      
+      // Calculate final stats
+      this.calculateRouteStats();
+      
+      // Save route
+      await this.saveRoute(this.currentRoute);
+      
+      const completedRoute = this.currentRoute;
+      this.currentRoute = null;
+      
+      console.log('GPS route tracking stopped');
+      return completedRoute;
+    }
+    
+    return null;
+  }
+
+  // Start location updates
+  private startLocationUpdates(): void {
+    if (this.locationInterval) {
+      clearInterval(this.locationInterval);
+    }
+    
+    // Simulate GPS location updates for web
+    this.locationInterval = setInterval(() => {
+      if (this.isTracking && this.currentRoute) {
+        const mockLocation = this.getMockLocation();
+        this.updateLocation(mockLocation);
+      }
+    }, this.config.updateInterval * 1000);
+  }
+
+  // Stop location updates
+  private stopLocationUpdates(): void {
+    if (this.locationInterval) {
+      clearInterval(this.locationInterval);
+      this.locationInterval = null;
+    }
+  }
+
+  // Update location
+  private updateLocation(location: GPSPoint): void {
+    if (!this.currentRoute) return;
+    
     // Add to route points
     this.currentRoute.gpsPoints.push(location);
-
-    // Calculate distance and update route
-    if (this.lastLocation) {
-      const distance = this.calculateDistance(
-        this.lastLocation.latitude, this.lastLocation.longitude,
-        location.latitude, location.longitude
-      );
-
-      this.currentRoute.totalDistance += distance;
-
-      // Calculate elevation change (if available)
-      // This would require additional altitude data
-      const elevationChange = 0; // Placeholder
-      if (elevationChange > 0) {
-        this.currentRoute.elevationGain += elevationChange;
-      } else if (elevationChange < 0) {
-        this.currentRoute.elevationLoss += Math.abs(elevationChange);
-      }
-
-      // Update route segments
-      this.updateRouteSegments(location, distance);
+    
+    // Update route segments
+    this.updateRouteSegments(location);
+    
+    // Notify listeners
+    if (this.onLocationUpdate) {
+      this.onLocationUpdate(location);
     }
+  }
 
-    this.lastLocation = location;
+  // Get mock location for web simulation
+  private getMockLocation(): GPSPoint {
+    // Simulate walking in a park (circular route)
+    const centerLat = 40.7589; // New York Central Park
+    const centerLng = -73.9851;
+    const radius = 0.001; // Small radius for demo
+    
+    const angle = (this.mockLocationIndex * 0.1) % (2 * Math.PI);
+    const lat = centerLat + radius * Math.cos(angle);
+    const lng = centerLng + radius * Math.sin(angle);
+    
+    this.mockLocationIndex++;
+    
+    return {
+      latitude: lat,
+      longitude: lng,
+      timestamp: Date.now(),
+      accuracy: 5 + Math.random() * 10, // 5-15 meters accuracy
+      altitude: 10 + Math.random() * 5, // 10-15 meters altitude
+      speed: 1.2 + Math.random() * 0.8, // 1.2-2.0 m/s (walking speed)
+      heading: (angle * 180 / Math.PI + 360) % 360
+    };
+  }
 
-    // Emit location update event
-    this.emitLocationUpdate(location);
+  // Validate location data
+  private isValidLocation(location: GPSPoint): boolean {
+    return (
+      location.latitude >= -90 && location.latitude <= 90 &&
+      location.longitude >= -180 && location.longitude <= 180 &&
+      location.accuracy > 0 && location.accuracy < 100 &&
+      location.timestamp > 0
+    );
+  }
+
+  // Process location update
+  private processLocationUpdate(location: GPSPoint): void {
+    if (!this.isValidLocation(location)) {
+      console.warn('Invalid location data received:', location);
+      return;
+    }
+    
+    // Update route with new location
+    this.updateLocation(location);
   }
 
   // Update route segments
-  private updateRouteSegments(location: GPSPoint, distance: number): void {
-    if (!this.currentRoute) return;
-
-    const now = Date.now();
-    const lastSegment = this.currentRoute.routeSegments[this.currentRoute.routeSegments.length - 1];
-
-    if (lastSegment && (now - lastSegment.endTime) < 30000) { // 30 seconds
-      // Extend current segment
-      lastSegment.endTime = now;
-      lastSegment.endPoint = location;
-      lastSegment.distance += distance;
-      lastSegment.duration = lastSegment.endTime - lastSegment.startTime;
-      lastSegment.averageSpeed = lastSegment.distance / (lastSegment.duration / 1000); // m/s
-    } else {
-      // Create new segment
-      const newSegment: RouteSegment = {
-        startTime: now,
-        endTime: now,
-        startPoint: location,
-        endPoint: location,
-        distance,
-        duration: 0,
-        averageSpeed: 0,
-        elevationGain: 0,
-        elevationLoss: 0
-      };
-
-      this.currentRoute.routeSegments.push(newSegment);
+  private updateRouteSegments(location: GPSPoint): void {
+    if (!this.currentRoute || this.currentRoute.gpsPoints.length < 2) return;
+    
+    const currentPoint = location;
+    const previousPoint = this.currentRoute.gpsPoints[this.currentRoute.gpsPoints.length - 2];
+    
+    // Calculate segment stats
+    const distance = this.calculateDistance(previousPoint, currentPoint);
+    const duration = currentPoint.timestamp - previousPoint.timestamp;
+    const speed = duration > 0 ? distance / (duration / 1000) : 0;
+    
+    // Create new segment
+    const segment: RouteSegment = {
+      startTime: previousPoint.timestamp,
+      endTime: currentPoint.timestamp,
+      startLocation: previousPoint,
+      endLocation: currentPoint,
+      distance,
+      duration,
+      averageSpeed: speed,
+      activityType: this.determineActivityType(speed)
+    };
+    
+    // Add to route segments
+    this.currentRoute.routeSegments.push(segment);
+    
+    // Update route totals
+    this.currentRoute.totalDistance += distance;
+    this.currentRoute.totalDuration = currentPoint.timestamp - this.currentRoute.startTime;
+    this.currentRoute.averageSpeed = this.currentRoute.totalDistance / (this.currentRoute.totalDuration / 1000);
+    
+    // Update max speed
+    if (speed > this.currentRoute.maxSpeed) {
+      this.currentRoute.maxSpeed = speed;
     }
   }
 
   // Calculate distance between two GPS points using Haversine formula
-  private calculateDistance(
-    lat1: number, lon1: number,
-    lat2: number, lon2: number
-  ): number {
+  private calculateDistance(point1: GPSPoint, point2: GPSPoint): number {
     const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const φ1 = point1.latitude * Math.PI / 180;
+    const φ2 = point2.latitude * Math.PI / 180;
+    const Δφ = (point2.latitude - point1.latitude) * Math.PI / 180;
+    const Δλ = (point2.longitude - point1.longitude) * Math.PI / 180;
     
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
               Math.cos(φ1) * Math.cos(φ2) *
@@ -374,62 +307,37 @@ export class GPSTrackingService {
     return R * c;
   }
 
-  // Calculate average speed for the route
+  // Calculate average speed
   private calculateAverageSpeed(): number {
-    if (!this.currentRoute || this.currentRoute.totalDuration === 0) return 0;
+    if (!this.currentRoute || this.currentRoute.routeSegments.length === 0) return 0;
     
-    return this.currentRoute.totalDistance / (this.currentRoute.totalDuration / 1000); // m/s
+    const totalSpeed = this.currentRoute.routeSegments.reduce((sum, segment) => sum + segment.averageSpeed, 0);
+    return totalSpeed / this.currentRoute.routeSegments.length;
+  }
+
+  // Determine activity type based on speed
+  private determineActivityType(speed: number): 'walking' | 'running' | 'cycling' | 'hiking' {
+    if (speed < 0.5) return 'hiking';
+    if (speed < 1.5) return 'walking';
+    if (speed < 3.0) return 'running';
+    return 'cycling';
   }
 
   // Start background tracking
-  private async startBackgroundTracking(): Promise<void> {
-    if (Platform.OS === 'ios') {
-      await this.startIOSBackgroundTracking();
-    } else {
-      await this.startAndroidBackgroundTracking();
-    }
+  public async startBackgroundTracking(): Promise<void> {
+    // For web, background tracking is simulated
+    console.log('Background GPS tracking started (web simulation)');
   }
 
   // Stop background tracking
-  private async stopBackgroundTracking(): Promise<void> {
-    if (Platform.OS === 'ios') {
-      await this.stopIOSBackgroundTracking();
-    } else {
-      await this.stopAndroidBackgroundTracking();
-    }
-  }
-
-  // iOS background tracking
-  private async startIOSBackgroundTracking(): Promise<void> {
-    console.log('iOS background GPS tracking started');
-    // Use Core Location's background location updates
-    // Configure significant location changes for battery efficiency
-  }
-
-  // Android background tracking
-  private async startAndroidBackgroundTracking(): Promise<void> {
-    console.log('Android background GPS tracking started');
-    // Use Foreground Service with location updates
-    // Implement WorkManager for reliable background execution
-  }
-
-  // Stop iOS background tracking
-  private async stopIOSBackgroundTracking(): Promise<void> {
-    console.log('iOS background GPS tracking stopped');
-  }
-
-  // Stop Android background tracking
-  private async stopAndroidBackgroundTracking(): Promise<void> {
-    console.log('Android background GPS tracking stopped');
+  public async stopBackgroundTracking(): Promise<void> {
+    console.log('Background GPS tracking stopped');
   }
 
   // Setup battery optimization
   private setupBatteryOptimization(): void {
-    if (!this.gpsConfig.batteryOptimization) return;
-
-    // Monitor battery level and adjust GPS frequency
-    // Reduce update frequency when battery is low
-    // Use significant location changes when possible
+    // For web, this is not applicable
+    console.log('Battery optimization not applicable for web');
   }
 
   // Save route to database
@@ -438,7 +346,7 @@ export class GPSTrackingService {
       const { error } = await supabase
         .from('activity_routes')
         .insert(route);
-
+      
       if (error) {
         console.error('Error saving route:', error);
       }
@@ -452,48 +360,33 @@ export class GPSTrackingService {
     return this.currentRoute;
   }
 
-  // Check if tracking is active
-  public isActive(): boolean {
-    return this.isTracking;
-  }
-
-  // Update GPS configuration
-  public updateConfig(config: Partial<GPSConfig>): void {
-    this.gpsConfig = { ...this.gpsConfig, ...config };
-    
-    // Apply new configuration
-    if (this.isTracking) {
-      this.applyNewConfig();
-    }
+  // Update configuration
+  public updateConfig(newConfig: Partial<GPSConfig>): void {
+    this.config = { ...this.config, ...newConfig };
   }
 
   // Apply new configuration
-  private async applyNewConfig(): Promise<void> {
-    if (this.locationUpdateInterval) {
-      clearInterval(this.locationUpdateInterval);
-      await this.startLocationUpdates();
+  public async applyNewConfig(): Promise<void> {
+    // Apply configuration changes
+    if (this.isTracking) {
+      // Restart location updates with new interval
+      this.stopLocationUpdates();
+      this.startLocationUpdates();
     }
   }
 
-  // Get GPS configuration
-  public getConfig(): GPSConfig {
-    return { ...this.gpsConfig };
-  }
-
-  // Pause tracking temporarily
+  // Pause tracking
   public async pauseTracking(): Promise<void> {
-    if (!this.isTracking) return;
-    
-    await this.stopLocationUpdates();
+    this.stopLocationUpdates();
     console.log('GPS tracking paused');
   }
 
   // Resume tracking
   public async resumeTracking(): Promise<void> {
-    if (!this.isTracking) return;
-    
-    await this.startLocationUpdates();
-    console.log('GPS tracking resumed');
+    if (this.isTracking) {
+      this.startLocationUpdates();
+      console.log('GPS tracking resumed');
+    }
   }
 
   // Get route statistics
@@ -501,42 +394,42 @@ export class GPSTrackingService {
     distance: number;
     duration: number;
     averageSpeed: number;
-    elevationGain: number;
-    elevationLoss: number;
+    maxSpeed: number;
+    points: number;
   } | null {
     if (!this.currentRoute) return null;
-
+    
     return {
       distance: this.currentRoute.totalDistance,
       duration: this.currentRoute.totalDuration,
       averageSpeed: this.currentRoute.averageSpeed,
-      elevationGain: this.currentRoute.elevationGain,
-      elevationLoss: this.currentRoute.elevationLoss
+      maxSpeed: this.currentRoute.maxSpeed,
+      points: this.currentRoute.gpsPoints.length
     };
   }
 
-  // Emit location update event
-  private emitLocationUpdate(location: GPSPoint): void {
-    // This would use an event emitter or callback system
-    if (this.onLocationUpdate) {
-      this.onLocationUpdate(location);
-    }
+  // Calculate route statistics
+  private calculateRouteStats(): void {
+    if (!this.currentRoute) return;
+    
+    // Calculate final stats
+    this.currentRoute.averageSpeed = this.calculateAverageSpeed();
+    
+    // Calculate elevation gain (simulated)
+    this.currentRoute.elevationGain = this.currentRoute.gpsPoints.length * 0.5; // 0.5m per point
   }
 
-  // Callback for location updates
-  public onLocationUpdate?: (location: GPSPoint) => void;
+  // Get current user ID
+  private async getCurrentUserId(): Promise<string> {
+    // For web, return a mock user ID
+    return 'web-user-123';
+  }
 
   // Cleanup resources
   public async cleanup(): Promise<void> {
-    if (this.isTracking) {
-      await this.stopRouteTracking();
-    }
-    
-    if (this.locationUpdateInterval) {
-      clearInterval(this.locationUpdateInterval);
-    }
-    
+    this.stopLocationUpdates();
+    this.isTracking = false;
     this.currentRoute = null;
-    this.lastLocation = null;
   }
 }
+
