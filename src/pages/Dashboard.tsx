@@ -4,6 +4,8 @@ import {
 } from "@/components/health/HealthCharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   Activity,
   Apple,
@@ -22,11 +24,23 @@ import {
   X,
   Brain,
   Zap,
+  Droplets,
+  Utensils,
+  Clock,
+  Map,
+  Footprints,
+  Flame,
+  Target as TargetIcon,
+  BarChart3,
+  Play,
+  Pause,
+  Square,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import AIHealthDashboard from "@/components/dashboard/AIHealthDashboard";
+import { FitnessTracker } from "@/components/fitness/FitnessTracker";
 
 interface HealthWidget {
   id: string;
@@ -36,6 +50,16 @@ interface HealthWidget {
   icon: React.ReactNode;
   color: string;
   trend?: string;
+  progress?: number;
+}
+
+interface NutritionIntake {
+  type: string;
+  current: number;
+  target: number;
+  unit: string;
+  icon: React.ReactNode;
+  color: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -43,8 +67,21 @@ const Dashboard: React.FC = () => {
   const { profile, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
+  const [isTracking, setIsTracking] = useState(false);
 
-  // Health widgets data - now using real data when available
+  // Real-time fitness data (would come from FitnessTrackingService)
+  const [fitnessData, setFitnessData] = useState({
+    steps: 8432,
+    distance: 6.2,
+    calories: 420,
+    activeMinutes: 45,
+    heartRate: 72,
+    waterIntake: 1800,
+    sleepHours: 7.5,
+    stressLevel: 35,
+  });
+
+  // Health widgets data with real-time updates
   const healthWidgets: HealthWidget[] = [
     {
       id: "health-score",
@@ -54,33 +91,73 @@ const Dashboard: React.FC = () => {
       icon: <Activity className="h-6 w-6" />,
       color: "text-green-500",
       trend: "+5 this week",
+      progress: 85,
     },
     {
       id: "calories",
-      title: "Daily Calories",
-      value: "2,100",
+      title: "Calories Burned",
+      value: fitnessData.calories.toString(),
       unit: "kcal",
-      icon: <Apple className="h-6 w-6" />,
-      color: "text-blue-500",
+      icon: <Flame className="h-6 w-6" />,
+      color: "text-orange-500",
       trend: "On track",
+      progress: 70,
     },
     {
       id: "steps",
       title: "Steps Today",
-      value: "8,432",
+      value: fitnessData.steps.toLocaleString(),
       unit: "steps",
-      icon: <TrendingUp className="h-6 w-6" />,
+      icon: <Footprints className="h-6 w-6" />,
       color: "text-purple-500",
       trend: "+12% vs yesterday",
+      progress: 84,
     },
     {
       id: "heart-rate",
       title: "Heart Rate",
-      value: "72",
+      value: fitnessData.heartRate.toString(),
       unit: "bpm",
       icon: <Heart className="h-6 w-6" />,
       color: "text-red-500",
       trend: "Resting",
+      progress: 60,
+    },
+  ];
+
+  // Nutrition intake tracking
+  const nutritionIntakes: NutritionIntake[] = [
+    {
+      type: "Water",
+      current: fitnessData.waterIntake,
+      target: 2500,
+      unit: "ml",
+      icon: <Droplets className="h-5 w-5" />,
+      color: "text-blue-500",
+    },
+    {
+      type: "Calories",
+      current: 1850,
+      target: 2100,
+      unit: "kcal",
+      icon: <Utensils className="h-5 w-5" />,
+      color: "text-green-500",
+    },
+    {
+      type: "Protein",
+      current: 85,
+      target: 120,
+      unit: "g",
+      icon: <TargetIcon className="h-5 w-5" />,
+      color: "text-purple-500",
+    },
+    {
+      type: "Carbs",
+      current: 220,
+      target: 250,
+      unit: "g",
+      icon: <Apple className="h-5 w-5" />,
+      color: "text-yellow-500",
     },
   ];
 
@@ -96,7 +173,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: "Water Intake",
-      value: 68,
+      value: Math.round((fitnessData.waterIntake / 2500) * 100),
       unit: "%",
       trend: "down" as const,
       change: "-3%",
@@ -112,7 +189,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: "Stress Level",
-      value: 35,
+      value: fitnessData.stressLevel,
       unit: "%",
       trend: "down" as const,
       change: "-12%",
@@ -195,6 +272,20 @@ const Dashboard: React.FC = () => {
     }
   }, [profile, navigate]);
 
+  // Simulate real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFitnessData(prev => ({
+        ...prev,
+        steps: prev.steps + Math.floor(Math.random() * 10),
+        calories: prev.calories + Math.floor(Math.random() * 5),
+        activeMinutes: prev.activeMinutes + Math.floor(Math.random() * 2),
+      }));
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -243,6 +334,137 @@ const Dashboard: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Fitness Tracking Section */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center space-x-2 text-xl">
+            <Activity className="h-6 w-6 text-blue-600" />
+            <span>Fitness Tracking</span>
+            <Badge variant={isTracking ? "default" : "secondary"} className="ml-auto">
+              {isTracking ? "Active" : "Inactive"}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Real-time Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-3xl font-bold text-blue-600">
+                {fitnessData.steps.toLocaleString()}
+              </div>
+              <div className="text-sm text-blue-700 font-medium">Steps</div>
+              <div className="text-xs text-blue-600 mt-1">Goal: 10,000</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-3xl font-bold text-green-600">
+                {fitnessData.distance.toFixed(1)}
+              </div>
+              <div className="text-sm text-green-700 font-medium">Km</div>
+              <div className="text-xs text-green-600 mt-1">Today</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-3xl font-bold text-orange-600">
+                {fitnessData.calories}
+              </div>
+              <div className="text-sm text-orange-700 font-medium">Calories</div>
+              <div className="text-xs text-orange-600 mt-1">Burned</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-3xl font-bold text-purple-600">
+                {fitnessData.activeMinutes}
+              </div>
+              <div className="text-sm text-purple-700 font-medium">Minutes</div>
+              <div className="text-xs text-purple-600 mt-1">Active</div>
+            </div>
+          </div>
+
+          {/* Step Progress */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Daily Steps Progress</span>
+              <span className="text-sm text-gray-500">
+                {fitnessData.steps.toLocaleString()} / 10,000
+              </span>
+            </div>
+            <Progress value={(fitnessData.steps / 10000) * 100} className="h-3" />
+            <div className="mt-2 text-xs text-gray-500">
+              {fitnessData.steps >= 10000 ? 'Goal achieved! 🎉' : `${Math.round(100 - (fitnessData.steps / 10000) * 100)}% remaining`}
+            </div>
+          </div>
+
+          {/* Tracking Controls */}
+          <div className="flex space-x-3">
+            {!isTracking ? (
+              <Button
+                onClick={() => setIsTracking(true)}
+                className="flex-1 bg-green-500 hover:bg-green-600"
+                size="lg"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Start Tracking
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setIsTracking(false)}
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                >
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause
+                </Button>
+                <Button
+                  onClick={() => setIsTracking(false)}
+                  variant="destructive"
+                  className="flex-1"
+                  size="lg"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  Stop
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Nutrition & Intake Tracking */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-xl">
+            <Utensils className="h-6 w-6 text-green-600" />
+            <span>Nutrition & Intake</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {nutritionIntakes.map((intake) => (
+              <div key={intake.type} className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className={`p-2 rounded-lg bg-white ${intake.color}`}>
+                      {intake.icon}
+                    </div>
+                    <span className="font-medium text-gray-700">{intake.type}</span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {intake.current}/{intake.target} {intake.unit}
+                  </span>
+                </div>
+                <Progress 
+                  value={(intake.current / intake.target) * 100} 
+                  className="h-2" 
+                />
+                <div className="mt-2 text-xs text-gray-500">
+                  {Math.round((intake.current / intake.target) * 100)}% of daily goal
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Health Widgets Grid */}
       <div className="grid grid-cols-2 gap-4">
         {healthWidgets.map((widget) => (
@@ -272,6 +494,12 @@ const Dashboard: React.FC = () => {
               </div>
 
               <p className="text-sm text-gray-600">{widget.title}</p>
+              
+              {widget.progress && (
+                <div className="mt-2">
+                  <Progress value={widget.progress} className="h-1" />
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -282,47 +510,6 @@ const Dashboard: React.FC = () => {
 
       {/* Weekly Activity Chart */}
       <WeeklyActivityChart />
-
-      {/* Recent Activity */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <span>Recent Activity</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Completed morning workout
-                </p>
-                <p className="text-xs text-gray-500">30 minutes ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Logged breakfast meal</p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Updated weight measurement
-                </p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Quick Actions */}
       <Card className="border-0 shadow-md">
@@ -343,8 +530,74 @@ const Dashboard: React.FC = () => {
               variant="outline"
               className="border-green-200 text-green-600 hover:bg-green-50"
             >
-              Track Progress
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Analytics
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderFitnessTab = () => (
+    <div className="space-y-6">
+      <FitnessTracker />
+    </div>
+  );
+
+  const renderNutritionTab = () => (
+    <div className="space-y-6">
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-xl">
+            <Apple className="h-6 w-6 text-green-600" />
+            <span>Nutrition Dashboard</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Daily Nutrition Summary */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Today's Intake</h3>
+              {nutritionIntakes.map((intake) => (
+                <div key={intake.type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg bg-white ${intake.color}`}>
+                      {intake.icon}
+                    </div>
+                    <span className="font-medium text-gray-700">{intake.type}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-gray-800">
+                      {intake.current} / {intake.target}
+                    </div>
+                    <div className="text-sm text-gray-500">{intake.unit}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Meal Planning */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Meal Planning</h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                  <div className="font-medium text-green-800">Breakfast</div>
+                  <div className="text-sm text-green-600">Oats with fruits & nuts</div>
+                  <div className="text-xs text-green-500 mt-1">8:00 AM • 350 kcal</div>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                  <div className="font-medium text-blue-800">Lunch</div>
+                  <div className="text-sm text-blue-600">Grilled chicken salad</div>
+                  <div className="text-xs text-blue-500 mt-1">1:00 PM • 450 kcal</div>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                  <div className="font-medium text-purple-800">Dinner</div>
+                  <div className="text-sm text-purple-600">Salmon with vegetables</div>
+                  <div className="text-xs text-purple-500 mt-1">7:00 PM • 400 kcal</div>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -359,6 +612,10 @@ const Dashboard: React.FC = () => {
     switch (activeTab) {
       case "ai-health":
         return renderAIHealthTab();
+      case "fitness":
+        return renderFitnessTab();
+      case "nutrition":
+        return renderNutritionTab();
       case "home":
       default:
         return renderHomeTab();
