@@ -1,5 +1,4 @@
-import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart } from "lucide-react";
 
 export const HealthContent = () => {
   return (
@@ -24,7 +23,7 @@ export const HealthContent = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Navigation Dots */}
           <div className="flex justify-center gap-2 mt-4">
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
