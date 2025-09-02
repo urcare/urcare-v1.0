@@ -14,6 +14,7 @@ import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import Subscription from "./pages/Subscription";
+import AIHealthAssistantDemo from "./pages/AIHealthAssistantDemo";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
@@ -62,18 +63,29 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Main Landing Page */}
+        {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        {/* Welcome Screen (before onboarding) */}
-        <Route path="/welcome-screen" element={<WelcomeScreen />} />
-        {/* Auth Callback for OAuth redirects */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
-
-        {/* Auth - removed */}
-        {/* <Route path="/auth" element={<Auth />} /> */}
-        {/* Onboarding (no longer protected) */}
-        <Route path="/onboarding" element={<Onboarding />} />
-        {/* Custom Plan (protected, require onboarding complete) */}
+        <Route path="/auth" element={<AuthCallback />} />
+        
+        {/* Protected Routes */}
+        <Route
+          path="/welcome-screen"
+          element={
+            <ProtectedRoute>
+              <WelcomeScreen />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
+        
         <Route
           path="/custom-plan"
           element={
@@ -82,7 +94,34 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Health Plan (protected, require onboarding complete) */}
+        
+        <Route
+          path="/paywall"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <Paywall />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/subscription"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <Subscription />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        
         <Route
           path="/health-plan"
           element={
@@ -91,98 +130,18 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Paywall (protected) */}
+        
+        {/* AI Health Assistant Demo Route */}
         <Route
-          path="/paywall"
+          path="/ai-health-assistant-demo"
           element={
-            <ProtectedRoute>
-              <Paywall />
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <AIHealthAssistantDemo />
             </ProtectedRoute>
           }
         />
-        {/* Dashboard (protected) */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        {/* Subscription (protected) */}
-        <Route
-          path="/subscription"
-          element={
-            <ProtectedRoute>
-              <Subscription />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Profile (protected) */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Profile Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Progress (protected) */}
-        <Route
-          path="/progress"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Progress Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Calendar (protected) */}
-        <Route
-          path="/calendar"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Calendar Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Notifications (protected) */}
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Notifications Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Settings (protected) */}
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Settings Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Help (protected) */}
-        <Route
-          path="/help"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Help & Support Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Payment (protected) */}
-        <Route
-          path="/payment"
-          element={
-            <ProtectedRoute>
-              <div className="p-4">Payment Page - Coming Soon</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Catch-all: redirect to landing */}
+        
+        {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

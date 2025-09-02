@@ -20,10 +20,13 @@ import {
   TrendingUp,
   User,
   X,
+  Brain,
+  Zap,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import AIHealthDashboard from "@/components/dashboard/AIHealthDashboard";
 
 interface HealthWidget {
   id: string;
@@ -41,7 +44,7 @@ const Dashboard: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
-  // Health widgets data
+  // Health widgets data - now using real data when available
   const healthWidgets: HealthWidget[] = [
     {
       id: "health-score",
@@ -136,7 +139,12 @@ const Dashboard: React.FC = () => {
       icon: <Target className="h-5 w-5" />,
       action: () => navigate("/health-plan"),
     },
-
+    {
+      id: "ai-health",
+      label: "AI Health Assistant",
+      icon: <Brain className="h-5 w-5" />,
+      action: () => setActiveTab("ai-health"),
+    },
     {
       id: "progress",
       label: "Progress",
@@ -178,6 +186,7 @@ const Dashboard: React.FC = () => {
       label: "Nutrition",
       icon: <Apple className="h-5 w-5" />,
     },
+    { id: "ai-health", label: "AI Health", icon: <Brain className="h-5 w-5" /> },
   ];
 
   useEffect(() => {
@@ -205,6 +214,156 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
+
+  const renderHomeTab = () => (
+    <div className="space-y-6">
+      {/* Health Score Overview */}
+      <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-lg">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Your Health Score</h3>
+              <p className="text-green-100 text-sm">
+                Based on your recent activity
+              </p>
+            </div>
+            <Activity className="h-8 w-8 text-green-200" />
+          </div>
+
+          <div className="text-center">
+            <div className="text-4xl font-bold mb-2">85</div>
+            <div className="text-green-100 text-sm">Excellent</div>
+            <div className="w-full bg-green-400/30 rounded-full h-2 mt-3">
+              <div
+                className="bg-white h-2 rounded-full"
+                style={{ width: "85%" }}
+              ></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Health Widgets Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {healthWidgets.map((widget) => (
+          <Card
+            key={widget.id}
+            className="border-0 shadow-md hover:shadow-lg transition-shadow"
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div
+                  className={`p-2 rounded-lg bg-gray-100 ${widget.color}`}
+                >
+                  {widget.icon}
+                </div>
+                <span className="text-xs text-gray-500">
+                  {widget.trend}
+                </span>
+              </div>
+
+              <div className="mb-1">
+                <span className="text-2xl font-bold text-gray-800">
+                  {widget.value}
+                </span>
+                <span className="text-sm text-gray-500 ml-1">
+                  {widget.unit}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-600">{widget.title}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Health Insights Charts */}
+      <HealthCharts data={chartData} />
+
+      {/* Weekly Activity Chart */}
+      <WeeklyActivityChart />
+
+      {/* Recent Activity */}
+      <Card className="border-0 shadow-md">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            <span>Recent Activity</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Completed morning workout
+                </p>
+                <p className="text-xs text-gray-500">30 minutes ago</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Logged breakfast meal</p>
+                <p className="text-xs text-gray-500">2 hours ago</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Updated weight measurement
+                </p>
+                <p className="text-xs text-gray-500">1 day ago</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card className="border-0 shadow-md">
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={() => setActiveTab("ai-health")}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              AI Health Assistant
+            </Button>
+            <Button
+              onClick={() => navigate("/progress")}
+              variant="outline"
+              className="border-green-200 text-green-600 hover:bg-green-50"
+            >
+              Track Progress
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderAIHealthTab = () => (
+    <AIHealthDashboard />
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "ai-health":
+        return renderAIHealthTab();
+      case "home":
+      default:
+        return renderHomeTab();
+    }
+  };
 
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-hidden">
@@ -298,137 +457,8 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto pb-20">
-        <div className="p-4 space-y-6">
-          {/* Health Score Overview */}
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">Your Health Score</h3>
-                  <p className="text-green-100 text-sm">
-                    Based on your recent activity
-                  </p>
-                </div>
-                <Activity className="h-8 w-8 text-green-200" />
-              </div>
-
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2">85</div>
-                <div className="text-green-100 text-sm">Excellent</div>
-                <div className="w-full bg-green-400/30 rounded-full h-2 mt-3">
-                  <div
-                    className="bg-white h-2 rounded-full"
-                    style={{ width: "85%" }}
-                  ></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Health Widgets Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {healthWidgets.map((widget) => (
-              <Card
-                key={widget.id}
-                className="border-0 shadow-md hover:shadow-lg transition-shadow"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div
-                      className={`p-2 rounded-lg bg-gray-100 ${widget.color}`}
-                    >
-                      {widget.icon}
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {widget.trend}
-                    </span>
-                  </div>
-
-                  <div className="mb-1">
-                    <span className="text-2xl font-bold text-gray-800">
-                      {widget.value}
-                    </span>
-                    <span className="text-sm text-gray-500 ml-1">
-                      {widget.unit}
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-gray-600">{widget.title}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Health Insights Charts */}
-          <HealthCharts data={chartData} />
-
-          {/* Weekly Activity Chart */}
-          <WeeklyActivityChart />
-
-          {/* Recent Activity */}
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <span>Recent Activity</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      Completed morning workout
-                    </p>
-                    <p className="text-xs text-gray-500">30 minutes ago</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Logged breakfast meal</p>
-                    <p className="text-xs text-gray-500">2 hours ago</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      Updated weight measurement
-                    </p>
-                    <p className="text-xs text-gray-500">1 day ago</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  onClick={() => navigate("/custom-plan")}
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                >
-                  View Health Plan
-                </Button>
-                <Button
-                  onClick={() => navigate("/progress")}
-                  variant="outline"
-                  className="border-green-200 text-green-600 hover:bg-green-50"
-                >
-                  Track Progress
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="p-4">
+          {renderTabContent()}
         </div>
       </div>
 
