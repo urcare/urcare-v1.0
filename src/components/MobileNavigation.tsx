@@ -131,20 +131,22 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 <Home className="w-6 h-6 text-green-600" />
               </div>
 
-              {/* Cloche Icon */}
+              {/* Healthy Icon */}
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <div className="flex flex-col items-center">
-                  <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-                  <div className="w-3 h-0.5 bg-black mt-1"></div>
-                </div>
+                <svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
               </div>
 
-              {/* Active Fork & Knife Icon */}
+              {/* Active Gym Icon */}
               <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
-                <div className="flex items-center space-x-1">
-                  <div className="w-0.5 h-4 bg-black"></div>
-                  <div className="w-0.5 h-4 bg-black"></div>
-                </div>
+                <svg
+                  className="w-6 h-6 text-black"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L22 22l5.71-5.71-1.43-1.43L22 18.86l-1.43-1.43z" />
+                </svg>
               </div>
 
               {/* Bar Chart Icon */}
