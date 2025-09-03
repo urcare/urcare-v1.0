@@ -128,44 +128,43 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <div className="flex items-center justify-between px-2">
               {/* Home Icon */}
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <Home className="w-6 h-6 text-green-600" />
-              </div>
-
-              {/* Healthy Icon - Second Icon */}
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                {/* Using external healthy icon from Flaticon */}
                 <img 
-                  src="/icons/healthy-icon.svg" 
-                  alt="Healthy" 
-                  className="w-6 h-6 text-green-600"
+                  src="/icons/home.png" 
+                  alt="Home" 
+                  className="w-6 h-6"
                 />
               </div>
 
-              {/* Gym Icon - Third Icon */}
+              {/* Profile Icon */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <img 
+                  src="/icons/profile.png" 
+                  alt="Profile" 
+                  className="w-6 h-6"
+                />
+              </div>
+
+              {/* Gym Icon */}
               <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
-                {/* Using external gym icon from Flaticon */}
                 <img 
-                  src="/icons/gym-icon.svg" 
+                  src="/icons/gym.png" 
                   alt="Gym" 
-                  className="w-6 h-6 text-black"
+                  className="w-6 h-6"
                 />
               </div>
 
-              {/* Bar Chart Icon */}
+              {/* Diet Icon */}
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <div className="flex items-end space-x-1">
-                  <div className="w-1 h-3 bg-black"></div>
-                  <div className="w-1 h-5 bg-black"></div>
-                  <div className="w-1 h-2 bg-black"></div>
-                </div>
+                <img 
+                  src="/icons/diet.png" 
+                  alt="Diet" 
+                  className="w-6 h-6"
+                />
               </div>
 
-              {/* Book Icon */}
+              {/* Menu Icon - Keep this for the hamburger menu */}
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <div className="flex items-center">
-                  <div className="w-4 h-3 border border-black rounded-sm"></div>
-                  <div className="w-1 h-1 bg-black ml-1"></div>
-                </div>
+                <Menu className="w-6 h-6 text-gray-700" />
               </div>
             </div>
           </div>
