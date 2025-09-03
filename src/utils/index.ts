@@ -422,14 +422,8 @@ export const throttle = <T extends (...args: any[]) => any>(
   };
 };
 
-// Development utilities
-export const isDevelopment = (): boolean => {
-  return process.env.NODE_ENV === 'development';
-};
-
-export const isProduction = (): boolean => {
-  return process.env.NODE_ENV === 'production';
-};
+// Development utilities - Import from environment config
+export { isDevelopment, isProduction } from '@/config/environment';
 
 export const logger = {
   log: (...args: any[]): void => {

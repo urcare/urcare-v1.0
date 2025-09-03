@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { env } from '@/config/environment';
 
 export interface UserHealthProfile {
   age: number;
@@ -75,7 +76,7 @@ export interface PersonalizedDailyPlan {
 }
 
 class AIHealthAssistantService {
-  private readonly OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+  private readonly OPENAI_API_KEY = env.OPENAI_API_KEY;
   private readonly OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
   /**
