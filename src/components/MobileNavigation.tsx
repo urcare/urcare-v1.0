@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 // Helper functions for header
 const getGreeting = () => {
@@ -59,6 +60,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const [animateItems, setAnimateItems] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [currentDate, setCurrentDate] = useState("");
+  const { user, profile } = useAuth();
 
   // Initialize greeting and date on component mount
   useEffect(() => {
@@ -68,9 +70,9 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       if (hour < 12) newGreeting = "Good Morning";
       else if (hour < 17) newGreeting = "Good Afternoon";
       else newGreeting = "Good Evening";
-      
+
       setGreeting(newGreeting);
-      
+
       const options: Intl.DateTimeFormatOptions = {
         weekday: "long",
         month: "long",
@@ -80,10 +82,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     };
 
     updateGreetingAndDate();
-    
+
     // Update every minute to keep time-based greetings current
     const interval = setInterval(updateGreetingAndDate, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -167,7 +169,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             {/* Left Side - Greeting */}
             <div className="flex flex-col">
               <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                {greeting}, {getUserName()}
+                {greeting}, {user?.username || "Guest"}
               </h1>
               <p className="text-sm sm:text-base text-gray-500 mt-1">
                 {currentDate}
@@ -190,7 +192,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* User Profile Picture */}
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
                 <img
-                  src="/images/profile-placeholder.jpg"
+                  src={profile?.avatar || "/images/profile-placeholder.jpg"}
                   alt="Profile"
                   className="w-full h-full object-cover"
                   onError={(e) => {
