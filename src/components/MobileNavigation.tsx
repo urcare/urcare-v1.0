@@ -123,48 +123,43 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         <div className="px-4 sm:px-6 mt-4 sm:mt-6">{children}</div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-4 left-4 right-4">
-          <div className="bg-gray-200 rounded-full px-2 py-2">
-            <div className="flex items-center justify-between px-2">
+        <div className="fixed bottom-6 left-4 right-4">
+          <div className="bg-white rounded-full px-4 py-3 shadow-lg border border-gray-200">
+            <div className="flex items-center justify-between">
               {/* Home Icon */}
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
                 <img 
                   src="/icons/home.png" 
                   alt="Home" 
-                  className="w-6 h-6"
+                  className="w-7 h-7"
+                />
+              </div>
+
+              {/* Meals Icon */}
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
+                <img 
+                  src="/icons/diet.png" 
+                  alt="Meals" 
+                  className="w-7 h-7"
+                />
+              </div>
+
+              {/* Workout Icon */}
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
+                <img 
+                  src="/icons/gym.png" 
+                  alt="Workout" 
+                  className="w-7 h-7"
                 />
               </div>
 
               {/* Profile Icon */}
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
                 <img 
                   src="/icons/profile.png" 
                   alt="Profile" 
-                  className="w-6 h-6"
+                  className="w-7 h-7"
                 />
-              </div>
-
-              {/* Gym Icon */}
-              <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
-                <img 
-                  src="/icons/gym.png" 
-                  alt="Gym" 
-                  className="w-6 h-6"
-                />
-              </div>
-
-              {/* Diet Icon */}
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <img 
-                  src="/icons/diet.png" 
-                  alt="Diet" 
-                  className="w-6 h-6"
-                />
-              </div>
-
-              {/* Menu Icon - Keep this for the hamburger menu */}
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <Menu className="w-6 h-6 text-gray-700" />
               </div>
             </div>
           </div>
