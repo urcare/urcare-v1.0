@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { nutritionTrackingService } from "@/services/nutritionTrackingService";
-import { Bell, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FoodLogger } from "./FoodLogger";
 
@@ -20,7 +20,6 @@ interface DashboardData {
     current: number;
     target: number;
   };
-  userName: string;
 }
 
 const CircularProgress: React.FC<{
@@ -126,17 +125,7 @@ export const FitnessDashboard: React.FC = () => {
     null
   );
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState("");
 
-  useEffect(() => {
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    };
-    setCurrentDate(now.toLocaleDateString("en-US", options));
-  }, []);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -146,7 +135,7 @@ export const FitnessDashboard: React.FC = () => {
         setLoading(true);
 
         // Get user's name
-        const userName = profile.full_name?.split(" ")[0] || "User";
+      
 
         // Calculate target calories and macros from user profile
         let targetCalories = 2000; // Default
@@ -218,7 +207,7 @@ export const FitnessDashboard: React.FC = () => {
             current: currentSteps,
             target: 10000, // Default step target
           },
-          userName,
+
         });
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -231,7 +220,7 @@ export const FitnessDashboard: React.FC = () => {
             fat: { current: 32, target: 55 },
           },
           steps: { current: 8500, target: 10000 },
-          userName: profile?.full_name?.split(" ")[0] || "User",
+
         });
       } finally {
         setLoading(false);
@@ -301,30 +290,7 @@ export const FitnessDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Hello, {dashboardData.userName}
-          </h1>
-          <p className="text-gray-500">{currentDate}</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Bell className="w-6 h-6 text-gray-400" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-          </div>
-          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
-            <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${dashboardData.userName}`}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50 px-6 py-4">
       {/* Calories Card */}
       <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-3xl p-8 mb-6 relative overflow-hidden">
         <div className="flex items-center justify-center">

@@ -57,6 +57,35 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [animateItems, setAnimateItems] = useState(false);
+  const [greeting, setGreeting] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
+
+  // Initialize greeting and date on component mount
+  useEffect(() => {
+    const updateGreetingAndDate = () => {
+      const hour = new Date().getHours();
+      let newGreeting = "";
+      if (hour < 12) newGreeting = "Good Morning";
+      else if (hour < 17) newGreeting = "Good Afternoon";
+      else newGreeting = "Good Evening";
+      
+      setGreeting(newGreeting);
+      
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      };
+      setCurrentDate(new Date().toLocaleDateString("en-US", options));
+    };
+
+    updateGreetingAndDate();
+    
+    // Update every minute to keep time-based greetings current
+    const interval = setInterval(updateGreetingAndDate, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -138,10 +167,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             {/* Left Side - Greeting */}
             <div className="flex flex-col">
               <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                {getGreeting()}, {getUserName()}
+                {greeting}, {getUserName()}
               </h1>
               <p className="text-sm sm:text-base text-gray-500 mt-1">
-                {getCurrentDate()}
+                {currentDate}
               </p>
             </div>
 
