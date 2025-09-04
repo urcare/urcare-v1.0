@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Helper functions for header
 const getGreeting = () => {
