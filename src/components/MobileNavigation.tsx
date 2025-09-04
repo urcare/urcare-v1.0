@@ -4,7 +4,6 @@ import {
   Gift,
   Grid,
   Heart,
-  Home,
   LogOut,
   Menu,
   Store,
@@ -14,6 +13,28 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+
+// Helper functions for header
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+};
+
+const getUserName = () => {
+  // You can replace this with actual user data from your auth context
+  return "John";
+};
+
+const getCurrentDate = () => {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  };
+  return new Date().toLocaleDateString("en-US", options);
+};
 
 interface MobileNavigationProps {
   children: React.ReactNode;
@@ -111,6 +132,48 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           isMenuOpen ? "transform translate-x-[25%]" : "translate-x-0"
         }`}
       >
+        {/* Header with Greeting and User Profile */}
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+          <div className="flex items-center justify-between">
+            {/* Left Side - Greeting */}
+            <div className="flex flex-col">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+                {getGreeting()}, {getUserName()}
+              </h1>
+              <p className="text-sm sm:text-base text-gray-500 mt-1">
+                {getCurrentDate()}
+              </p>
+            </div>
+
+            {/* Right Side - Notification and Profile */}
+            <div className="flex items-center space-x-3">
+              {/* Notification Bell */}
+              <div className="relative">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-600 rounded-full flex items-center justify-center">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full"></div>
+                  </div>
+                </div>
+                {/* Notification Dot */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full"></div>
+              </div>
+
+              {/* User Profile Picture */}
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+                <img
+                  src="/images/profile-placeholder.jpg"
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Hamburger Menu Button */}
         <button
           onClick={toggleMenu}
@@ -124,40 +187,28 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
         {/* Bottom Navigation */}
         <div className="fixed bottom-6 left-4 right-4">
-          <div className="bg-white rounded-full px-4 py-3 shadow-lg border border-gray-200">
+          <div className="bg-white/20 backdrop-blur-xl rounded-full px-4 py-3 shadow-2xl border border-white/30 ring-1 ring-white/20">
             <div className="flex items-center justify-between">
               {/* Home Icon */}
-              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
-                <img 
-                  src="/icons/home.png" 
-                  alt="Home" 
-                  className="w-7 h-7"
-                />
+              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+                <img src="/icons/home.png" alt="Home" className="w-7 h-7" />
               </div>
 
               {/* Meals Icon */}
-              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
-                <img 
-                  src="/icons/diet.png" 
-                  alt="Meals" 
-                  className="w-7 h-7"
-                />
+              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+                <img src="/icons/diet.png" alt="Meals" className="w-7 h-7" />
               </div>
 
               {/* Workout Icon */}
-              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
-                <img 
-                  src="/icons/gym.png" 
-                  alt="Workout" 
-                  className="w-7 h-7"
-                />
+              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+                <img src="/icons/gym.png" alt="Workout" className="w-7 h-7" />
               </div>
 
               {/* Profile Icon */}
-              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer">
-                <img 
-                  src="/icons/profile.png" 
-                  alt="Profile" 
+              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+                <img
+                  src="/icons/profile.png"
+                  alt="Profile"
                   className="w-7 h-7"
                 />
               </div>
