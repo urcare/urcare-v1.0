@@ -133,17 +133,30 @@ const ActivityChart: React.FC<{ steps: number; target: number }> = ({
 
 export const FitnessDashboard: React.FC = () => {
   const { user, profile } = useAuth();
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
+  
+  // Set default data immediately to prevent loading screen on tab switches
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    calories: { consumed: 1280, target: 2000, remaining: 720 },
+    macros: {
+      carbs: { current: 88, target: 120 },
+      protein: { current: 24, target: 70 },
+      fat: { current: 32, target: 55 },
+    },
+    steps: { current: 8500, target: 10000 },
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!user || !profile) return;
 
       try {
-        setLoading(true);
+        // Only show loading on initial load, not on tab switches
+        if (isInitialLoad) {
+          setLoading(true);
+        }
 
         // Get user's name
 
@@ -232,55 +245,61 @@ export const FitnessDashboard: React.FC = () => {
         });
       } finally {
         setLoading(false);
+        setIsInitialLoad(false);
       }
     };
 
     loadDashboardData();
-  }, [user, profile]);
+  }, [user, profile, isInitialLoad]);
 
   const handleFoodAdded = () => {
-    // Reload dashboard data when food is added
+    // Reload dashboard data when food is added (without showing loading)
     if (user && profile) {
       const loadData = async () => {
-        const today = new Date().toISOString().split("T")[0];
-        const nutritionData = await nutritionTrackingService.getDailyNutrition(
-          user.id,
-          today
-        );
+        try {
+          const today = new Date().toISOString().split("T")[0];
+          const nutritionData = await nutritionTrackingService.getDailyNutrition(
+            user.id,
+            today
+          );
 
-        if (nutritionData && dashboardData) {
-          setDashboardData({
-            ...dashboardData,
-            calories: {
-              ...dashboardData.calories,
-              consumed: nutritionData.totalCalories,
-              remaining: Math.max(
-                0,
-                dashboardData.calories.target - nutritionData.totalCalories
-              ),
-            },
-            macros: {
-              carbs: {
-                current: nutritionData.carbs,
-                target: dashboardData.macros.carbs.target,
+          if (nutritionData && dashboardData) {
+            setDashboardData({
+              ...dashboardData,
+              calories: {
+                ...dashboardData.calories,
+                consumed: nutritionData.totalCalories,
+                remaining: Math.max(
+                  0,
+                  dashboardData.calories.target - nutritionData.totalCalories
+                ),
               },
-              protein: {
-                current: nutritionData.protein,
-                target: dashboardData.macros.protein.target,
+              macros: {
+                carbs: {
+                  current: nutritionData.carbs,
+                  target: dashboardData.macros.carbs.target,
+                },
+                protein: {
+                  current: nutritionData.protein,
+                  target: dashboardData.macros.protein.target,
+                },
+                fat: {
+                  current: nutritionData.fat,
+                  target: dashboardData.macros.fat.target,
+                },
               },
-              fat: {
-                current: nutritionData.fat,
-                target: dashboardData.macros.fat.target,
-              },
-            },
-          });
+            });
+          }
+        } catch (error) {
+          console.error("Error updating nutrition data:", error);
         }
       };
       loadData();
     }
   };
 
-  if (loading || !dashboardData) {
+  // Only show loading screen on initial load
+  if (loading && isInitialLoad) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-500">Loading...</div>
@@ -298,7 +317,14 @@ export const FitnessDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-4">
+    <div className="min-h-screen bg-gray-50 px-6 py-4 relative">
+      {/* Subtle loading indicator for background updates */}
+      {loading && !isInitialLoad && (
+        <div className="absolute top-4 right-4 z-10">
+          <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+      
       {/* Calories Card */}
       <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-3xl p-8 mb-6 relative overflow-hidden">
         <div className="flex items-center justify-center">
