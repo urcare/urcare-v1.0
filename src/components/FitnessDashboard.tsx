@@ -139,7 +139,7 @@ export const FitnessDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 px-3 py-2 relative overflow-hidden">
+    <div className="h-screen bg-transparent px-3 py-2 relative overflow-hidden">
       {/* Subtle loading indicator for background updates */}
       {loading && !isInitialLoad && (
         <div className="absolute top-2 right-2 z-10">
