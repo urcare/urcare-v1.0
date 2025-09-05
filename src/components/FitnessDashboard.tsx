@@ -235,18 +235,32 @@ export const FitnessDashboard: React.FC = () => {
 
         // Get today's nutrition data using the nutrition service
         const today = new Date().toISOString().split("T")[0];
-        const nutritionData = await nutritionTrackingService.getDailyNutrition(
-          user.id,
-          today
-        );
+        let nutritionData = null;
+        let fitnessData = null;
 
-        // Get today's fitness data (steps)
-        const { data: fitnessData } = await supabase
-          .from("daily_fitness_stats")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("date", today)
-          .single();
+        try {
+          nutritionData = await nutritionTrackingService.getDailyNutrition(
+            user.id,
+            today
+          );
+        } catch (error) {
+          console.warn("Nutrition data not available:", error);
+          // Use default values if nutrition data is not available
+        }
+
+        try {
+          // Get today's fitness data (steps)
+          const { data: fitnessDataResult } = await supabase
+            .from("daily_fitness_stats")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("date", today)
+            .single();
+          fitnessData = fitnessDataResult;
+        } catch (error) {
+          console.warn("Fitness data not available:", error);
+          // Use default values if fitness data is not available
+        }
 
         const consumedCalories = nutritionData?.totalCalories || 0;
         const consumedCarbs = nutritionData?.carbs || 0;
