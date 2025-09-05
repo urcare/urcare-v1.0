@@ -16,7 +16,6 @@ interface DashboardData {
   };
 }
 
-
 export const FitnessDashboard: React.FC = () => {
   const { user, profile } = useAuth();
 
@@ -130,7 +129,6 @@ export const FitnessDashboard: React.FC = () => {
     loadDashboardData();
   }, [user, profile, isInitialLoad]);
 
-
   // Only show loading screen on initial load
   if (loading && isInitialLoad) {
     return (
@@ -140,9 +138,8 @@ export const FitnessDashboard: React.FC = () => {
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 py-4 relative">
+    <div className="h-screen bg-gray-50 px-4 sm:px-6 py-4 relative overflow-hidden">
       {/* Subtle loading indicator for background updates */}
       {loading && !isInitialLoad && (
         <div className="absolute top-4 right-4 z-10">
@@ -151,12 +148,14 @@ export const FitnessDashboard: React.FC = () => {
       )}
 
       {/* Calories Dashboard */}
-      <CalorieCard
-        consumed={dashboardData.calories.consumed}
-        target={dashboardData.calories.target}
-        remaining={dashboardData.calories.remaining}
-        macros={dashboardData.macros}
-      />
+      <div className="h-full overflow-y-auto">
+        <CalorieCard
+          consumed={dashboardData.calories.consumed}
+          target={dashboardData.calories.target}
+          remaining={dashboardData.calories.remaining}
+          macros={dashboardData.macros}
+        />
+      </div>
     </div>
   );
 };

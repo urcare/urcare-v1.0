@@ -58,7 +58,7 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
   };
 
   return (
-    <div className={`space-y-4 sm:space-y-6 ${className}`}>
+    <div className={`space-y-3 sm:space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
@@ -66,8 +66,12 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
             <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Daily Calories</h2>
-            <p className="text-xs sm:text-sm text-gray-600">Track your energy intake</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              Daily Calories
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Track your energy intake
+            </p>
           </div>
         </div>
         <div className="text-left sm:text-right">
@@ -81,13 +85,13 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-5">
         {/* Circular Progress */}
         <div className="flex items-center justify-center px-4">
           <div className="relative">
             {/* Background Circle */}
             <svg
-              className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 transform -rotate-90"
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 transform -rotate-90"
               viewBox="0 0 120 120"
             >
               <circle
@@ -136,10 +140,10 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
 
             {/* Center Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+              <div className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
                 {consumed.toLocaleString()}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">kcal</div>
+              <div className="text-xs text-gray-600">kcal</div>
               <div className="text-xs text-gray-500 mt-1">
                 of {target.toLocaleString()}
               </div>
@@ -148,36 +152,36 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="text-center p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-base sm:text-lg font-semibold text-gray-900">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+          <div className="text-center p-2 sm:p-3 bg-transparent rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-sm sm:text-base font-semibold text-gray-900">
               {target.toLocaleString()}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
-              <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+            <div className="text-xs text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <Target className="w-3 h-3" />
               Target
             </div>
           </div>
-          <div className="text-center p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
+          <div className="text-center p-2 sm:p-3 bg-transparent rounded-xl border border-gray-200 shadow-sm">
             <div
-              className={`text-base sm:text-lg font-semibold ${
+              className={`text-sm sm:text-base font-semibold ${
                 isOverTarget ? "text-red-600" : "text-gray-900"
               }`}
             >
               {isOverTarget ? "+" : ""}
               {Math.abs(remaining).toLocaleString()}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
-              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+            <div className="text-xs text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <TrendingUp className="w-3 h-3" />
               {isOverTarget ? "Over" : "Remaining"}
             </div>
           </div>
-          <div className="text-center p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-base sm:text-lg font-semibold text-gray-900">
+          <div className="text-center p-2 sm:p-3 bg-transparent rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-sm sm:text-base font-semibold text-gray-900">
               {percentage.toFixed(0)}%
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
-              <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+            <div className="text-xs text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <Zap className="w-3 h-3" />
               Progress
             </div>
           </div>
@@ -185,12 +189,12 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
 
         {/* Macro Breakdown */}
         {macros && macroPercentages && (
-          <div className="bg-gray-50 rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
-            <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+          <div className="bg-transparent rounded-xl border border-gray-200 shadow-sm p-3 sm:p-4">
+            <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 sm:mb-3">
               Macronutrients
             </h4>
 
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-2 sm:space-y-3">
               {/* Carbs */}
               <div className="space-y-1 sm:space-y-2">
                 <div className="flex justify-between text-xs sm:text-sm">
@@ -243,13 +247,13 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
         )}
 
         {/* Motivational Message */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-3 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg flex-shrink-0">
-              <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-2 sm:p-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-500 rounded-lg flex-shrink-0">
+              <Zap className="w-3 h-3 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs sm:text-sm font-medium text-blue-900">
+              <div className="text-xs font-medium text-blue-900">
                 {isOverTarget
                   ? "Time to burn some calories!"
                   : isNearTarget
