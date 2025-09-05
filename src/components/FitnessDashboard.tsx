@@ -22,43 +22,83 @@ interface DashboardData {
   };
 }
 
-const CircularProgress: React.FC<{
+const SpeedometerProgress: React.FC<{
   percentage: number;
   size: number;
   strokeWidth: number;
-  color: string;
-  backgroundColor: string;
   children?: React.ReactNode;
-}> = ({ percentage, size, strokeWidth, color, backgroundColor, children }) => {
+}> = ({ percentage, size, strokeWidth, children }) => {
   const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const centerX = size / 2;
+  const centerY = size / 2;
+  
+  // Create a semicircle arc (180 degrees)
+  const startAngle = -90; // Start from top
+  const endAngle = 90; // End at bottom
+  const angleRange = endAngle - startAngle;
+  const currentAngle = startAngle + (percentage / 100) * angleRange;
+  
+  // Convert angles to radians
+  const startAngleRad = (startAngle * Math.PI) / 180;
+  const endAngleRad = (endAngle * Math.PI) / 180;
+  const currentAngleRad = (currentAngle * Math.PI) / 180;
+  
+  // Calculate arc path
+  const startX = centerX + radius * Math.cos(startAngleRad);
+  const startY = centerY + radius * Math.sin(startAngleRad);
+  const endX = centerX + radius * Math.cos(endAngleRad);
+  const endY = centerY + radius * Math.sin(endAngleRad);
+  const currentX = centerX + radius * Math.cos(currentAngleRad);
+  const currentY = centerY + radius * Math.sin(currentAngleRad);
+  
+  // Create dotted background arc
+  const dottedArc = `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  
+  // Create progress arc
+  const progressArc = `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${currentX} ${currentY}`;
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="transform -rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={backgroundColor}
+      <svg width={size} height={size} className="absolute inset-0">
+        {/* Dotted background arc */}
+        <path
+          d={dottedArc}
+          stroke="rgba(255, 255, 255, 0.3)"
           strokeWidth={strokeWidth}
           fill="none"
+          strokeDasharray="8 8"
+          strokeLinecap="round"
         />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={color}
+        
+        {/* Progress arc */}
+        <path
+          d={progressArc}
+          stroke="white"
           strokeWidth={strokeWidth}
           fill="none"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           className="transition-all duration-500 ease-in-out"
         />
+        
+        {/* Pointer */}
+        <g transform={`translate(${currentX}, ${currentY})`}>
+          <circle
+            cx="0"
+            cy="0"
+            r="8"
+            fill="#374151"
+            className="transition-all duration-500 ease-in-out"
+          />
+          {/* Pointer tail */}
+          <polygon
+            points="0,0 0,20 -3,15 3,15"
+            fill="#374151"
+            className="transition-all duration-500 ease-in-out"
+          />
+        </g>
       </svg>
+      
+      {/* Center content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {children}
       </div>
@@ -262,12 +302,10 @@ export const FitnessDashboard: React.FC = () => {
       {/* Calories Card */}
       <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-3xl p-8 mb-6 relative overflow-hidden">
         <div className="flex items-center justify-center">
-          <CircularProgress
+          <SpeedometerProgress
             percentage={caloriesPercentage}
             size={200}
             strokeWidth={12}
-            color="white"
-            backgroundColor="rgba(255, 255, 255, 0.3)"
           >
             <div className="text-center">
               <div className="text-4xl font-bold text-white">
@@ -275,7 +313,7 @@ export const FitnessDashboard: React.FC = () => {
               </div>
               <div className="text-white text-opacity-80">kcal</div>
             </div>
-          </CircularProgress>
+          </SpeedometerProgress>
         </div>
 
         {/* Decorative elements */}
