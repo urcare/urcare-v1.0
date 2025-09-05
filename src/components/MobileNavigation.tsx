@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Helper functions for header
 const getGreeting = () => {
@@ -49,6 +50,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const [animateItems, setAnimateItems] = useState(false);
   const [greeting, setGreeting] = useState("");
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   // Initialize greeting on component mount
   useEffect(() => {
@@ -62,6 +64,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const closeMenu = () => {
     setIsMenuOpen(false);
     setAnimateItems(false);
+  };
+
+  const handleDietNavigation = () => {
+    navigate("/diet");
   };
 
   useEffect(() => {
@@ -197,7 +203,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </div>
 
               {/* Meals Icon */}
-              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+              <div
+                onClick={handleDietNavigation}
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+              >
                 <img src="/icons/diet.png" alt="Meals" className="w-7 h-7" />
               </div>
 

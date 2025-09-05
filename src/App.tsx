@@ -7,14 +7,15 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
+import AIHealthAssistantDemo from "./pages/AIHealthAssistantDemo";
 import CustomPlan from "./pages/CustomPlan";
 import Dashboard from "./pages/Dashboard";
+import Diet from "./pages/Diet";
 import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import Subscription from "./pages/Subscription";
-import AIHealthAssistantDemo from "./pages/AIHealthAssistantDemo";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
@@ -67,7 +68,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<AuthCallback />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        
+
         {/* Protected Routes */}
         <Route
           path="/welcome-screen"
@@ -77,7 +78,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/onboarding"
           element={
@@ -86,7 +87,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/custom-plan"
           element={
@@ -95,7 +96,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/paywall"
           element={
@@ -104,7 +105,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/subscription"
           element={
@@ -113,7 +114,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/dashboard"
           element={
@@ -122,7 +123,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/health-plan"
           element={
@@ -131,7 +132,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
+        <Route
+          path="/diet"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <Diet />
+            </ProtectedRoute>
+          }
+        />
+
         {/* AI Health Assistant Demo Route */}
         <Route
           path="/ai-health-assistant-demo"
@@ -141,7 +151,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
