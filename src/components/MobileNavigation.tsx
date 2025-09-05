@@ -74,6 +74,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     navigate("/workout");
   };
 
+  const handleHomeNavigation = () => {
+    navigate("/dashboard");
+  };
+
   useEffect(() => {
     if (isMenuOpen) {
       // Start animation after menu is visible
@@ -195,14 +199,19 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         </div>
 
         {/* Content */}
-        <div className="px-4 sm:px-6 mt-4 sm:mt-6">{children}</div>
+        <div className="px-4 sm:px-6 mt-4 sm:mt-6 pb-24 overflow-y-auto max-h-[calc(100vh-120px)]">
+          {children}
+        </div>
 
         {/* Bottom Navigation */}
         <div className="fixed bottom-6 left-4 right-4">
           <div className="bg-white/20 backdrop-blur-xl rounded-full px-4 py-3 shadow-2xl border border-white/30 ring-1 ring-white/20">
             <div className="flex items-center justify-between">
               {/* Home Icon */}
-              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+              <div
+                onClick={handleHomeNavigation}
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+              >
                 <img src="/icons/home.png" alt="Home" className="w-7 h-7" />
               </div>
 
