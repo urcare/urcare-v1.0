@@ -66,34 +66,6 @@ const CircularProgress: React.FC<{
   );
 };
 
-const MacroBar: React.FC<{
-  current: number;
-  target: number;
-  color: string;
-  label: string;
-}> = ({ current, target, color, label }) => {
-  const percentage = Math.min((current / target) * 100, 100);
-
-  return (
-    <div className="flex-1">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-white">{current}</span>
-        <span className="text-xs text-gray-300">/{target}</span>
-      </div>
-      <div className="w-full bg-gray-600 rounded-full h-2">
-        <div
-          className="h-2 rounded-full transition-all duration-300"
-          style={{
-            width: `${percentage}%`,
-            backgroundColor: color,
-          }}
-        />
-      </div>
-      <span className="text-xs text-gray-300 mt-1 block">{label}</span>
-    </div>
-  );
-};
-
 const ActivityChart: React.FC<{ steps: number; target: number }> = ({
   steps,
   target,
@@ -126,7 +98,6 @@ export const FitnessDashboard: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!user || !profile) return;
@@ -135,7 +106,6 @@ export const FitnessDashboard: React.FC = () => {
         setLoading(true);
 
         // Get user's name
-      
 
         // Calculate target calories and macros from user profile
         let targetCalories = 2000; // Default
@@ -207,7 +177,6 @@ export const FitnessDashboard: React.FC = () => {
             current: currentSteps,
             target: 10000, // Default step target
           },
-
         });
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -220,7 +189,6 @@ export const FitnessDashboard: React.FC = () => {
             fat: { current: 32, target: 55 },
           },
           steps: { current: 8500, target: 10000 },
-
         });
       } finally {
         setLoading(false);
@@ -313,30 +281,6 @@ export const FitnessDashboard: React.FC = () => {
         {/* Decorative elements */}
         <div className="absolute top-6 left-6 w-16 h-16 bg-white bg-opacity-20 rounded-full"></div>
         <div className="absolute bottom-8 right-8 w-24 h-24 bg-white bg-opacity-10 rounded-full"></div>
-      </div>
-
-      {/* Macros Display */}
-      <div className="bg-gray-800 rounded-2xl p-6 mb-6">
-        <div className="flex items-center justify-between space-x-6">
-          <MacroBar
-            current={dashboardData.macros.carbs.current}
-            target={dashboardData.macros.carbs.target}
-            color="#10B981"
-            label="Carbs"
-          />
-          <MacroBar
-            current={dashboardData.macros.protein.current}
-            target={dashboardData.macros.protein.target}
-            color="#3B82F6"
-            label="Protein"
-          />
-          <MacroBar
-            current={dashboardData.macros.fat.current}
-            target={dashboardData.macros.fat.target}
-            color="#F59E0B"
-            label="Fat"
-          />
-        </div>
       </div>
 
       {/* Bottom Cards */}
