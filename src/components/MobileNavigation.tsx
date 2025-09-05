@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Crown,
   FileText,
@@ -13,7 +14,6 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 
 // Helper functions for header
 const getGreeting = () => {
@@ -192,7 +192,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* User Profile Picture */}
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
                 <img
-                  src={profile?.avatar || "/images/profile-placeholder.jpg"}
+                  src={
+                    user?.user_metadata?.avatar_url ||
+                    user?.user_metadata?.picture ||
+                    "/images/profile-placeholder.jpg"
+                  }
                   alt="Profile"
                   className="w-full h-full object-cover"
                   onError={(e) => {
