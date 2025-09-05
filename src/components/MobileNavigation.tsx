@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  Bell,
   Crown,
   FileText,
   Gift,
@@ -28,15 +29,6 @@ const getUserName = () => {
   return "John";
 };
 
-const getCurrentDate = () => {
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  };
-  return new Date().toLocaleDateString("en-US", options);
-};
-
 interface MobileNavigationProps {
   children: React.ReactNode;
 }
@@ -59,12 +51,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [animateItems, setAnimateItems] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const [currentDate, setCurrentDate] = useState("");
   const { user, profile } = useAuth();
 
-  // Initialize greeting and date on component mount
+  // Initialize greeting on component mount
   useEffect(() => {
-    const updateGreetingAndDate = () => {
+    const updateGreeting = () => {
       const hour = new Date().getHours();
       let newGreeting = "";
       if (hour < 12) newGreeting = "Good Morning";
@@ -72,19 +63,12 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       else newGreeting = "Good Evening";
 
       setGreeting(newGreeting);
-
-      const options: Intl.DateTimeFormatOptions = {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      };
-      setCurrentDate(new Date().toLocaleDateString("en-US", options));
     };
 
-    updateGreetingAndDate();
+    updateGreeting();
 
     // Update every minute to keep time-based greetings current
-    const interval = setInterval(updateGreetingAndDate, 60000);
+    const interval = setInterval(updateGreeting, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -166,14 +150,25 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         {/* Header with Greeting and User Profile */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
           <div className="flex items-center justify-between">
-            {/* Left Side - Greeting */}
-            <div className="flex flex-col">
-              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                {greeting}, {user?.username || "Guest"}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-500 mt-1">
-                {currentDate}
-              </p>
+            {/* Left Side - Menu Button and Greeting */}
+            <div className="flex items-center gap-4">
+              {/* Hamburger Menu Button */}
+              <button
+                onClick={toggleMenu}
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
+              >
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+              </button>
+
+              {/* Greeting */}
+              <div className="flex flex-col">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+                  {greeting},{" "}
+                  {user?.user_metadata?.full_name ||
+                    user?.email?.split("@")[0] ||
+                    "Guest"}
+                </h1>
+              </div>
             </div>
 
             {/* Right Side - Notification and Profile */}
@@ -181,9 +176,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* Notification Bell */}
               <div className="relative">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-600 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full"></div>
-                  </div>
+                  <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
                 </div>
                 {/* Notification Dot */}
                 <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full"></div>
@@ -208,14 +201,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Hamburger Menu Button */}
-        <button
-          onClick={toggleMenu}
-          className="ml-4 sm:ml-6 mt-4 sm:mt-6 w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
-        >
-          <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
-        </button>
 
         {/* Content */}
         <div className="px-4 sm:px-6 mt-4 sm:mt-6">{children}</div>
