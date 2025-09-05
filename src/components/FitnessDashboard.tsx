@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { nutritionTrackingService } from "@/services/nutritionTrackingService";
 import { Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { CalorieCard } from "./CalorieCard";
 import { FoodLogger } from "./FoodLogger";
 
 interface DashboardData {
@@ -21,129 +22,6 @@ interface DashboardData {
     target: number;
   };
 }
-
-const CalorieTrackerWidget: React.FC<{
-  percentage: number;
-  size: number;
-  children?: React.ReactNode;
-}> = ({ percentage, size, children }) => {
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const outerRadius = size * 0.35;
-  const innerRadius = size * 0.25;
-  const segmentWidth = 8;
-  
-  // Create 4 segments for the arc
-  const segmentAngles = [45, 45, 45, 45]; // Each segment is 45 degrees
-  const totalAngle = 180; // Semi-circle
-  const startAngle = -90; // Start from top
-  
-  // Calculate which segments should be filled
-  const filledSegments = Math.floor((percentage / 100) * 4);
-  const partialSegment = ((percentage / 100) * 4) % 1;
-  
-  const createSegmentPath = (segmentIndex: number, isFilled: boolean, partialFill: number = 1) => {
-    const segmentStartAngle = startAngle + (segmentIndex * 45);
-    const segmentEndAngle = segmentStartAngle + (45 * partialFill);
-    
-    const startAngleRad = (segmentStartAngle * Math.PI) / 180;
-    const endAngleRad = (segmentEndAngle * Math.PI) / 180;
-    
-    const outerStartX = centerX + outerRadius * Math.cos(startAngleRad);
-    const outerStartY = centerY + outerRadius * Math.sin(startAngleRad);
-    const outerEndX = centerX + outerRadius * Math.cos(endAngleRad);
-    const outerEndY = centerY + outerRadius * Math.sin(endAngleRad);
-    
-    const innerStartX = centerX + innerRadius * Math.cos(startAngleRad);
-    const innerStartY = centerY + innerRadius * Math.sin(startAngleRad);
-    const innerEndX = centerX + innerRadius * Math.cos(endAngleRad);
-    const innerEndY = centerY + innerRadius * Math.sin(endAngleRad);
-    
-    // Create pill-shaped segment
-    const path = `
-      M ${outerStartX} ${outerStartY}
-      A ${outerRadius} ${outerRadius} 0 0 1 ${outerEndX} ${outerEndY}
-      L ${innerEndX} ${innerEndY}
-      A ${innerRadius} ${innerRadius} 0 0 0 ${innerStartX} ${innerStartY}
-      Z
-    `;
-    
-    return path;
-  };
-  
-  // Calculate pointer position
-  const pointerAngle = startAngle + (percentage / 100) * totalAngle;
-  const pointerAngleRad = (pointerAngle * Math.PI) / 180;
-  const pointerX = centerX + outerRadius * Math.cos(pointerAngleRad);
-  const pointerY = centerY + outerRadius * Math.sin(pointerAngleRad);
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="absolute inset-0">
-        {/* Inner accent arc (dashed) */}
-        <path
-          d={`M ${centerX - innerRadius} ${centerY} A ${innerRadius} ${innerRadius} 0 0 1 ${centerX + innerRadius} ${centerY}`}
-          stroke="#9CA3AF"
-          strokeWidth="2"
-          fill="none"
-          strokeDasharray="4 4"
-          strokeLinecap="round"
-        />
-        
-        {/* Segment tracks (background) */}
-        {segmentAngles.map((_, index) => (
-          <path
-            key={`track-${index}`}
-            d={createSegmentPath(index, false)}
-            fill="#6B7280"
-            className="transition-all duration-300"
-          />
-        ))}
-        
-        {/* Filled segments */}
-        {Array.from({ length: filledSegments }, (_, index) => (
-          <path
-            key={`filled-${index}`}
-            d={createSegmentPath(index, true)}
-            fill="white"
-            className="transition-all duration-500 ease-in-out"
-          />
-        ))}
-        
-        {/* Partial segment */}
-        {partialSegment > 0 && (
-          <path
-            d={createSegmentPath(filledSegments, true, partialSegment)}
-            fill="white"
-            className="transition-all duration-500 ease-in-out"
-          />
-        )}
-        
-        {/* Progress indicator handle */}
-        <g transform={`translate(${pointerX}, ${pointerY})`}>
-          <circle
-            cx="0"
-            cy="0"
-            r="8"
-            fill="#374151"
-            className="transition-all duration-500 ease-in-out"
-          />
-          {/* Speech bubble pointer */}
-          <polygon
-            points="0,0 0,16 -4,12 4,12"
-            fill="#374151"
-            className="transition-all duration-500 ease-in-out"
-          />
-        </g>
-      </svg>
-      
-      {/* Center content */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        {children}
-      </div>
-    </div>
-  );
-};
 
 const ActivityChart: React.FC<{ steps: number; target: number }> = ({
   steps,
@@ -172,7 +50,7 @@ const ActivityChart: React.FC<{ steps: number; target: number }> = ({
 
 export const FitnessDashboard: React.FC = () => {
   const { user, profile } = useAuth();
-  
+
   // Set default data immediately to prevent loading screen on tab switches
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     calories: { consumed: 1280, target: 2000, remaining: 720 },
@@ -183,7 +61,7 @@ export const FitnessDashboard: React.FC = () => {
     },
     steps: { current: 8500, target: 10000 },
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -250,12 +128,13 @@ export const FitnessDashboard: React.FC = () => {
 
         try {
           // Get today's fitness data (steps) - remove .single() to handle empty results
-          const { data: fitnessDataResult, error: fitnessError } = await supabase
-            .from("daily_fitness_stats")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("date", today);
-          
+          const { data: fitnessDataResult, error: fitnessError } =
+            await supabase
+              .from("daily_fitness_stats")
+              .select("*")
+              .eq("user_id", user.id)
+              .eq("date", today);
+
           if (fitnessError) {
             console.warn("Fitness data error:", fitnessError);
           } else if (fitnessDataResult && fitnessDataResult.length > 0) {
@@ -317,10 +196,8 @@ export const FitnessDashboard: React.FC = () => {
       const loadData = async () => {
         try {
           const today = new Date().toISOString().split("T")[0];
-          const nutritionData = await nutritionTrackingService.getDailyNutrition(
-            user.id,
-            today
-          );
+          const nutritionData =
+            await nutritionTrackingService.getDailyNutrition(user.id, today);
 
           if (nutritionData && dashboardData) {
             setDashboardData({
@@ -366,10 +243,6 @@ export const FitnessDashboard: React.FC = () => {
     );
   }
 
-  const caloriesPercentage = Math.min(
-    (dashboardData.calories.consumed / dashboardData.calories.target) * 100,
-    100
-  );
   const stepsPercentage = Math.min(
     (dashboardData.steps.current / dashboardData.steps.target) * 100,
     100
@@ -383,26 +256,15 @@ export const FitnessDashboard: React.FC = () => {
           <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-      
-      {/* Calories Card */}
-      <div className="bg-green-200 rounded-3xl p-8 mb-6 relative overflow-hidden">
-        <div className="flex items-center justify-center">
-          <CalorieTrackerWidget
-            percentage={caloriesPercentage}
-            size={200}
-          >
-            <div className="text-center">
-              <div className="text-4xl font-bold text-white">
-                {dashboardData.calories.consumed}
-              </div>
-              <div className="text-white text-opacity-90 text-lg">kcal</div>
-            </div>
-          </CalorieTrackerWidget>
-        </div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-6 left-6 w-16 h-16 bg-white bg-opacity-20 rounded-full"></div>
-        <div className="absolute bottom-8 right-8 w-24 h-24 bg-white bg-opacity-10 rounded-full"></div>
+      {/* Calories Card */}
+      <div className="mb-6">
+        <CalorieCard
+          consumed={dashboardData.calories.consumed}
+          target={dashboardData.calories.target}
+          remaining={dashboardData.calories.remaining}
+          macros={dashboardData.macros}
+        />
       </div>
 
       {/* Bottom Cards */}
