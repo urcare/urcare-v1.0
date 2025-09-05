@@ -249,14 +249,20 @@ export const FitnessDashboard: React.FC = () => {
         }
 
         try {
-          // Get today's fitness data (steps)
-          const { data: fitnessDataResult } = await supabase
+          // Get today's fitness data (steps) - remove .single() to handle empty results
+          const { data: fitnessDataResult, error: fitnessError } = await supabase
             .from("daily_fitness_stats")
             .select("*")
             .eq("user_id", user.id)
-            .eq("date", today)
-            .single();
-          fitnessData = fitnessDataResult;
+            .eq("date", today);
+          
+          if (fitnessError) {
+            console.warn("Fitness data error:", fitnessError);
+          } else if (fitnessDataResult && fitnessDataResult.length > 0) {
+            fitnessData = fitnessDataResult[0]; // Take the first result if multiple exist
+          } else {
+            console.log("No fitness data found for today, using defaults");
+          }
         } catch (error) {
           console.warn("Fitness data not available:", error);
           // Use default values if fitness data is not available

@@ -132,12 +132,14 @@ class NutritionTrackingService {
         .from("daily_nutrition")
         .select("*")
         .eq("user_id", userId)
-        .eq("date", date)
-        .single();
+        .eq("date", date);
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error) {
+        console.error("Error getting daily nutrition:", error);
+        return null;
+      }
 
-      if (!data) {
+      if (!data || data.length === 0) {
         // Return empty nutrition data if no entries exist
         return {
           userId,
@@ -152,7 +154,8 @@ class NutritionTrackingService {
         };
       }
 
-      return this.mapDailyNutritionFromDb(data);
+      // Take the first result if multiple exist (shouldn't happen due to unique constraint)
+      return this.mapDailyNutritionFromDb(data[0]);
     } catch (error) {
       console.error("Error getting daily nutrition:", error);
       return null;
