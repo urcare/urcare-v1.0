@@ -70,6 +70,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     navigate("/diet");
   };
 
+  const handleWorkoutNavigation = () => {
+    navigate("/workout");
+  };
+
   useEffect(() => {
     if (isMenuOpen) {
       // Start animation after menu is visible
@@ -211,7 +215,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </div>
 
               {/* Workout Icon */}
-              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+              <div
+                onClick={handleWorkoutNavigation}
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+              >
                 <img src="/icons/gym.png" alt="Workout" className="w-7 h-7" />
               </div>
 

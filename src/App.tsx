@@ -16,6 +16,7 @@ import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import Subscription from "./pages/Subscription";
+import Workout from "./pages/Workout";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
@@ -138,6 +139,15 @@ function App() {
           element={
             <ProtectedRoute requireOnboardingComplete={true}>
               <Diet />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/workout"
+          element={
+            <ProtectedRoute requireOnboardingComplete={true}>
+              <Workout />
             </ProtectedRoute>
           }
         />
