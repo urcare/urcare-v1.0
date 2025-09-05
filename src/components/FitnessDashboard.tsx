@@ -150,15 +150,13 @@ export const FitnessDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Calories Card */}
-      <div className="mb-6">
-        <CalorieCard
-          consumed={dashboardData.calories.consumed}
-          target={dashboardData.calories.target}
-          remaining={dashboardData.calories.remaining}
-          macros={dashboardData.macros}
-        />
-      </div>
+      {/* Calories Dashboard */}
+      <CalorieCard
+        consumed={dashboardData.calories.consumed}
+        target={dashboardData.calories.target}
+        remaining={dashboardData.calories.remaining}
+        macros={dashboardData.macros}
+      />
     </div>
   );
 };

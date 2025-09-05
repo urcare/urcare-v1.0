@@ -58,46 +58,36 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
   };
 
   return (
-    <div
-      className={`bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden ${className}`}
-    >
+    <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex-shrink-0">
-              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                Daily Calories
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 truncate">
-                Track your energy intake
-              </p>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+            <Flame className="w-5 h-5 text-white" />
           </div>
-          <div className="text-right flex-shrink-0 ml-2">
-            <div
-              className={`text-xs sm:text-sm font-medium ${getStatusColor()}`}
-            >
-              {getStatusText()}
-            </div>
-            <div className="text-xs text-gray-500">
-              {percentage.toFixed(0)}% complete
-            </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Daily Calories</h2>
+            <p className="text-sm text-gray-600">Track your energy intake</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className={`text-sm font-medium ${getStatusColor()}`}>
+            {getStatusText()}
+          </div>
+          <div className="text-xs text-gray-500">
+            {percentage.toFixed(0)}% complete
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-4 sm:p-6">
+      <div className="space-y-6">
         {/* Circular Progress */}
-        <div className="flex items-center justify-center mb-6">
+        <div className="flex items-center justify-center">
           <div className="relative">
             {/* Background Circle */}
             <svg
-              className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transform -rotate-90"
+              className="w-32 h-32 md:w-40 md:h-40 transform -rotate-90"
               viewBox="0 0 120 120"
             >
               <circle
@@ -146,10 +136,10 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
 
             {/* Center Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+              <div className="text-2xl md:text-3xl font-bold text-gray-900">
                 {consumed.toLocaleString()}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">kcal</div>
+              <div className="text-sm text-gray-600">kcal</div>
               <div className="text-xs text-gray-500 mt-1">
                 of {target.toLocaleString()}
               </div>
@@ -158,108 +148,108 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-          <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl">
-            <div className="text-sm sm:text-lg font-semibold text-gray-900">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-lg font-semibold text-gray-900">
               {target.toLocaleString()}
             </div>
-            <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
-              <Target className="w-3 h-3" />
-              <span className="hidden sm:inline">Target</span>
+            <div className="text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <Target className="w-4 h-4" />
+              Target
             </div>
           </div>
-          <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl">
+          <div className="text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div
-              className={`text-sm sm:text-lg font-semibold ${
+              className={`text-lg font-semibold ${
                 isOverTarget ? "text-red-600" : "text-gray-900"
               }`}
             >
               {isOverTarget ? "+" : ""}
               {Math.abs(remaining).toLocaleString()}
             </div>
-            <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              <span className="hidden sm:inline">
-                {isOverTarget ? "Over" : "Remaining"}
-              </span>
+            <div className="text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <TrendingUp className="w-4 h-4" />
+              {isOverTarget ? "Over" : "Remaining"}
             </div>
           </div>
-          <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl">
-            <div className="text-sm sm:text-lg font-semibold text-gray-900">
+          <div className="text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-lg font-semibold text-gray-900">
               {percentage.toFixed(0)}%
             </div>
-            <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
-              <Zap className="w-3 h-3" />
-              <span className="hidden sm:inline">Progress</span>
+            <div className="text-sm text-gray-600 flex items-center justify-center gap-1 mt-1">
+              <Zap className="w-4 h-4" />
+              Progress
             </div>
           </div>
         </div>
 
         {/* Macro Breakdown */}
         {macros && macroPercentages && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-900 mb-3">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">
               Macronutrients
             </h4>
 
-            {/* Carbs */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Carbohydrates</span>
-                <span className="font-medium text-gray-900">
-                  {macros.carbs.current}g / {macros.carbs.target}g
-                </span>
+            <div className="space-y-4">
+              {/* Carbs */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Carbohydrates</span>
+                  <span className="font-medium text-gray-900">
+                    {macros.carbs.current}g / {macros.carbs.target}g
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${macroPercentages.carbs}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${macroPercentages.carbs}%` }}
-                />
-              </div>
-            </div>
 
-            {/* Protein */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Protein</span>
-                <span className="font-medium text-gray-900">
-                  {macros.protein.current}g / {macros.protein.target}g
-                </span>
+              {/* Protein */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Protein</span>
+                  <span className="font-medium text-gray-900">
+                    {macros.protein.current}g / {macros.protein.target}g
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${macroPercentages.protein}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${macroPercentages.protein}%` }}
-                />
-              </div>
-            </div>
 
-            {/* Fat */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Fat</span>
-                <span className="font-medium text-gray-900">
-                  {macros.fat.current}g / {macros.fat.target}g
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${macroPercentages.fat}%` }}
-                />
+              {/* Fat */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Fat</span>
+                  <span className="font-medium text-gray-900">
+                    {macros.fat.current}g / {macros.fat.target}g
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${macroPercentages.fat}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Motivational Message */}
-        <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg flex-shrink-0">
-              <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500 rounded-lg flex-shrink-0">
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs sm:text-sm font-medium text-blue-900">
+            <div className="flex-1">
+              <div className="text-sm font-medium text-blue-900">
                 {isOverTarget
                   ? "Time to burn some calories!"
                   : isNearTarget
