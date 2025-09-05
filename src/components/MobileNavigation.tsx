@@ -84,7 +84,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       >
         {/* Profile Icon - Top Left */}
         <div className="absolute top-4 left-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent rounded-full flex items-center justify-center shadow-md">
             <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
           </div>
         </div>
@@ -137,7 +137,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* Hamburger Menu Button */}
               <button
                 onClick={toggleMenu}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
+                className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
               >
                 <Menu className="w-4 h-4 text-gray-700" />
               </button>
@@ -157,7 +157,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <div className="flex items-center space-x-2">
               {/* Notification Bell */}
               <div className="relative">
-                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
                   <Bell className="w-4 h-4 text-gray-600" />
                 </div>
                 {/* Notification Dot */}
