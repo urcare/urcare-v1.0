@@ -18,10 +18,7 @@ import React, { useEffect, useState } from "react";
 
 // Helper functions for header
 const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 17) return "Good Afternoon";
-  return "Good Evening";
+  return "Hello";
 };
 
 const getUserName = () => {
@@ -55,22 +52,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
   // Initialize greeting on component mount
   useEffect(() => {
-    const updateGreeting = () => {
-      const hour = new Date().getHours();
-      let newGreeting = "";
-      if (hour < 12) newGreeting = "Good Morning";
-      else if (hour < 17) newGreeting = "Good Afternoon";
-      else newGreeting = "Good Evening";
-
-      setGreeting(newGreeting);
-    };
-
-    updateGreeting();
-
-    // Update every minute to keep time-based greetings current
-    const interval = setInterval(updateGreeting, 60000);
-
-    return () => clearInterval(interval);
+    setGreeting("Hello");
   }, []);
 
   const toggleMenu = () => {
@@ -148,21 +130,21 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         }`}
       >
         {/* Header with Greeting and User Profile */}
-        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+        <div className="px-3 pt-2 pb-2">
           <div className="flex items-center justify-between">
             {/* Left Side - Menu Button and Greeting */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               {/* Hamburger Menu Button */}
               <button
                 onClick={toggleMenu}
-                className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
+                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
               >
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                <Menu className="w-4 h-4 text-gray-700" />
               </button>
 
               {/* Greeting */}
               <div className="flex flex-col">
-                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+                <h1 className="text-sm font-semibold text-gray-800">
                   {greeting},{" "}
                   {user?.user_metadata?.full_name ||
                     user?.email?.split("@")[0] ||
@@ -172,18 +154,18 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             </div>
 
             {/* Right Side - Notification and Profile */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               {/* Notification Bell */}
               <div className="relative">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-                  <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                  <Bell className="w-4 h-4 text-gray-600" />
                 </div>
                 {/* Notification Dot */}
-                <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
               </div>
 
               {/* User Profile Picture */}
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
                 <img
                   src={
                     user?.user_metadata?.avatar_url ||
