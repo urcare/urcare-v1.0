@@ -1,7 +1,7 @@
 import { devUtils, isDevelopment } from "@/config/development";
 import { supabase } from "@/integrations/supabase/client";
 import { devAuthService } from "@/services/devAuthService";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 
 export interface UserProfile {
@@ -216,7 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -237,9 +237,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -255,9 +255,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     console.log("signInWithGoogle called");
     setLoading(true);
     try {
@@ -302,9 +302,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       throw error;
     }
-  };
+  }, []);
 
-  const signInWithApple = async () => {
+  const signInWithApple = useCallback(async () => {
     setLoading(true);
     try {
       if (isDevelopment()) {
@@ -347,9 +347,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       throw error;
     }
-  };
+  }, []);
 
-  const signInWithEmail = async () => {
+  const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
       // For now, we'll use a simple email/password form approach
@@ -364,9 +364,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
@@ -381,9 +381,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateProfile = async (
+  const updateProfile = useCallback(async (
     updates: Partial<UserProfile>
   ): Promise<void> => {
     if (!user) throw new Error("No user logged in");
@@ -406,9 +406,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, refreshProfile]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -420,17 +420,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const isOnboardingComplete = (): boolean => {
+  const isOnboardingComplete = useCallback((): boolean => {
     if (!profile) {
       console.log("isOnboardingComplete: No profile found");
       return false;
     }
     return !!profile.onboarding_completed;
-  };
+  }, [profile]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     profile,
     loading,
@@ -444,7 +444,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signInWithApple,
     signInWithEmail,
     isOnboardingComplete,
-  };
+  }), [
+    user,
+    profile,
+    loading,
+    isInitialized,
+    signUp,
+    signIn,
+    signOut,
+    updateProfile,
+    refreshProfile,
+    signInWithGoogle,
+    signInWithApple,
+    signInWithEmail,
+    isOnboardingComplete,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
