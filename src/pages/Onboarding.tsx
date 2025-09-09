@@ -167,6 +167,22 @@ const Onboarding = () => {
 
         console.log("Profile data to be saved:", profileData);
 
+        // Save raw onboarding answers into onboarding_profiles (separate table)
+        const { error: onboardingError } = await supabase
+          .from("onboarding_profiles")
+          .upsert(
+            {
+              user_id: user.id,
+              details: data as any,
+            },
+            { onConflict: "user_id" }
+          );
+
+        if (onboardingError) {
+          console.error("Error saving onboarding details:", onboardingError);
+          throw onboardingError;
+        }
+
         const { error: profileError } = await supabase
           .from("user_profiles")
           .upsert(profileData, { onConflict: "id" });

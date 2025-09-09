@@ -125,7 +125,7 @@ serve(async (req) => {
       });
     }
 
-    // Get user profile
+    // Get user profile (basic) and onboarding details (separate table)
     const { data: profile, error: profileError } = await supabaseClient
       .from("user_profiles")
       .select("*")
@@ -137,6 +137,16 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
+    }
+
+    const { data: onboarding, error: onboardingError } = await supabaseClient
+      .from("onboarding_profiles")
+      .select("details")
+      .eq("user_id", user.id)
+      .single();
+
+    if (onboardingError) {
+      console.warn("No onboarding_profiles row found; proceeding with profile only");
     }
 
     // Check if user has completed onboarding
@@ -173,7 +183,7 @@ serve(async (req) => {
     }
 
     // Generate health plan using OpenAI
-    const healthPlan = await generateHealthPlan(profile);
+    const healthPlan = await generateHealthPlan(profile, onboarding?.details);
 
     // Calculate plan dates (next 2 days)
     const today = new Date();
@@ -227,7 +237,7 @@ serve(async (req) => {
   }
 });
 
-async function generateHealthPlan(profile: UserProfile): Promise<TwoDayPlan> {
+async function generateHealthPlan(profile: UserProfile, onboardingDetails?: any): Promise<TwoDayPlan> {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
   if (!OPENAI_API_KEY) {
@@ -256,6 +266,7 @@ async function generateHealthPlan(profile: UserProfile): Promise<TwoDayPlan> {
       dinner: profile.dinner_time,
       workout: profile.workout_time,
     },
+    onboarding: onboardingDetails || {},
   };
 
   const prompt = `You are an expert health and wellness AI coach. Generate a personalized 2-day health plan based on the user's profile data.
