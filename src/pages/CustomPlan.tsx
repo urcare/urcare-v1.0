@@ -375,79 +375,92 @@ async function generateBasicHealthPlan(
 ): Promise<HealthPlanReport> {
   console.log("Generating basic health plan for profile:", profile);
 
-  // Calculate basic health metrics
+  // Calculate basic health metrics with better defaults
   const age =
     profile.age ||
-    new Date().getFullYear() -
-      new Date(profile.date_of_birth || "1990-01-01").getFullYear();
-  const height = parseFloat(profile.height_cm || "170");
-  const weight = parseFloat(profile.weight_kg || "70");
+    (profile.date_of_birth
+      ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
+      : 30);
+  const height = parseFloat(profile.height_cm || profile.height_feet || "170");
+  const weight = parseFloat(profile.weight_kg || profile.weight_lb || "70");
 
-  const heightM = height / 100;
-  const bmi = (weight / (heightM * heightM)).toFixed(1);
+  // Convert to metric if needed
+  const heightCm = height < 10 ? height * 30.48 : height;
+  const weightKg = weight > 200 ? weight * 0.453592 : weight;
 
+  const heightM = heightCm / 100;
+  const bmi = (weightKg / (heightM * heightM)).toFixed(1);
+
+  // Calculate BMR using Mifflin-St Jeor equation
   let bmr: number;
   const gender = (profile.gender || "male").toLowerCase();
   if (gender === "male") {
-    bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+    bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
   } else {
-    bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+    bmr = 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
   }
   const tdee = Math.round(bmr * 1.2);
 
-  let healthScore = 75;
-  if (parseFloat(bmi) >= 18.5 && parseFloat(bmi) <= 24.9) healthScore += 15;
+  // Calculate health score
+  let healthScore = 70;
+  if (parseFloat(bmi) >= 18.5 && parseFloat(bmi) <= 24.9) healthScore += 20;
   if (age >= 18 && age <= 65) healthScore += 10;
+  if (age >= 25 && age <= 45) healthScore += 5;
 
-  const basicReport = `HEALTH ASSESSMENT
-• BMI: ${bmi}
+  const bmiCategory =
+    parseFloat(bmi) < 18.5
+      ? "Underweight"
+      : parseFloat(bmi) > 24.9
+      ? "Overweight"
+      : "Normal weight";
+
+  const basicReport = `**HEALTH ASSESSMENT**
+• BMI: ${bmi} (${bmiCategory})
 • Health Score: ${healthScore}/100
-• Current status: Based on your profile, there's room for improvement
+• Age: ${age} years
+• Status: ${bmiCategory} - ${
+    parseFloat(bmi) < 18.5
+      ? "Consider consulting a nutritionist"
+      : parseFloat(bmi) > 24.9
+      ? "Focus on balanced diet and exercise"
+      : "Maintain current healthy habits"
+  }
 
-NUTRITION PLAN
+**NUTRITION PLAN**
 • Daily Calorie Target: ${tdee} kcal
-• Balanced macronutrients and regular meals
-• Focus on whole foods and proper hydration
+• Protein: ${Math.round(weightKg * 1.2)}g per day (${Math.round(
+    weightKg * 1.2 * 4
+  )} kcal)
+• Carbs: 50% of calories (${Math.round(tdee * 0.5)} kcal)
+• Fats: 25% of calories (${Math.round(tdee * 0.25)} kcal)
 
-FITNESS PLAN
-• 3-4 days/week cardio + strength training
-• 30-45 minutes per session
-• Progressive intensity based on fitness level
+**FITNESS PLAN**
+• Frequency: 3-4 days per week
+• Duration: 30-45 minutes per session
+• Focus: Mix of cardio and strength training
+• Intensity: Moderate to vigorous
 
-LIFESTYLE OPTIMIZATION
-• Sleep: 7-9 hours nightly
-• Stress management techniques
-• Regular meal timing
+**LIFESTYLE TIPS**
+• Sleep: 7-9 hours per night consistently
+• Hydration: 8-10 glasses of water daily
+• Stress: Practice mindfulness and relaxation techniques
+• Meal timing: Regular meal times to support metabolism
 
-HEALTH MONITORING
-• Track weight, BMI, energy levels
-• Monitor progress weekly
-
-POTENTIAL HEALTH RISKS
-• Monitor blood pressure and lipid levels
-• Regular health check-ups recommended
-
-HOW UR CARE WILL HELP
-• Personalized tracking and insights
-• Community support and motivation
-• Evidence-based recommendations
-
-ACTIONABLE NEXT STEPS
-1. Start with 30-minute daily walks
-2. Track your food intake for 1 week
-3. Establish regular meal times
-4. Get 7-8 hours of sleep nightly
-5. Stay hydrated throughout the day`;
+**NEXT STEPS**
+• Start with 10 minutes of daily exercise
+• Track your water intake throughout the day
+• Establish a regular sleep routine
+• Plan your meals in advance
+• Set realistic weekly goals and track progress`;
 
   return {
     summary: `Your basic health plan is ready! Health Score: ${healthScore}/100`,
     recommendations: [
       `Daily Calorie Target: ${tdee} kcal`,
-      `BMI: ${bmi}`,
-      `Health Score: ${healthScore}/100`,
-      "Start with 30-minute daily walks",
-      "Track your food intake for 1 week",
-      "Establish regular meal times",
+      `BMI: ${bmi} (${bmiCategory})`,
+      `Exercise: 3-4 days per week`,
+      `Sleep: 7-9 hours nightly`,
+      `Hydration: 8-10 glasses daily`,
     ],
     detailedReport: basicReport,
     structured: {
@@ -456,20 +469,19 @@ ACTIONABLE NEXT STEPS
         calorieTarget: tdee.toString(),
         bmi: bmi,
         keyRecommendations: [
-          "Start with 30-minute daily walks",
-          "Track your food intake for 1 week",
-          "Establish regular meal times",
+          "Start with 10 minutes of daily exercise",
+          "Track your water intake",
+          "Establish a regular sleep routine",
+          "Plan meals in advance",
+          "Set weekly goals",
         ],
       },
       sections: {
-        healthAssessment: `BMI: ${bmi}, Health Score: ${healthScore}/100`,
-        nutritionPlan: `Daily calorie target: ${tdee} kcal with balanced macros`,
-        fitnessPlan: "3-4 days/week of cardio and strength training",
-        lifestyleOptimization: "Focus on sleep, stress management, hydration",
-        healthMonitoring: "Track weight, BMI, energy levels",
-        potentialRisks: "Monitor blood pressure and cholesterol",
-        urCareBenefits: "Personalized tracking and community support",
-        nextSteps: "Start with walking and food tracking",
+        healthAssessment: `BMI: ${bmi} (${bmiCategory}), Health Score: ${healthScore}/100`,
+        nutritionPlan: `Daily target: ${tdee} kcal with balanced macronutrients`,
+        fitnessPlan: `3-4 days per week, 30-45 minutes per session`,
+        lifestyleOptimization: `Focus on sleep, hydration, and stress management`,
+        nextSteps: `Start small and build healthy habits gradually`,
       },
     },
   };
@@ -521,7 +533,11 @@ const CustomPlan: React.FC = () => {
   // Single initialization function - defined without useCallback to avoid dependency issues
   const initializeHealthData = async () => {
     // Use ref to check initialization status to avoid dependency issues
-    if (!profile || initializationRef.current || lastInitializedProfileId.current === profile?.id) {
+    if (
+      !profile ||
+      initializationRef.current ||
+      lastInitializedProfileId.current === profile?.id
+    ) {
       console.log("Skipping initializeHealthData due to guard:", {
         profile: profile?.id,
         initializationRef: initializationRef.current,
@@ -643,7 +659,10 @@ const CustomPlan: React.FC = () => {
 
     // Prevent processing the same profile multiple times
     if (lastProcessedProfileId.current === profile.id) {
-      console.log("CustomPlan: Profile already processed, skipping:", profile.id);
+      console.log(
+        "CustomPlan: Profile already processed, skipping:",
+        profile.id
+      );
       return;
     }
 
@@ -818,6 +837,8 @@ const CustomPlan: React.FC = () => {
     }, 1500);
 
     try {
+      console.log("Starting health plan generation...");
+
       // Try serverless AI endpoint first
       const response = await fetch(`/api/generate-plan`, {
         method: "POST",
@@ -825,28 +846,39 @@ const CustomPlan: React.FC = () => {
         body: JSON.stringify({ profile }),
       });
 
+      console.log("API response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log("API response data:", data);
+
         const structured = data?.structured;
         const reportText = data?.report || "";
 
-        if (structured) {
+        if (structured && structured.summary) {
           const planReport: HealthPlanReport = {
-            summary: `Your AI health plan is ready! Health Score: ${structured.summary.healthScore}/100`,
+            summary: `Your health plan is ready! Health Score: ${structured.summary.healthScore}/100`,
             recommendations: [
               `Daily Calorie Target: ${structured.summary.calorieTarget} kcal`,
               `BMI: ${structured.summary.bmi}`,
-              ...structured.summary.keyRecommendations.slice(0, 3),
+              ...(structured.summary.keyRecommendations || []).slice(0, 3),
             ],
             detailedReport: reportText,
             structured,
           };
           setReport(planReport);
           setStep("ready");
-          toast.success("Your AI health plan is ready!");
+
+          if (structured.fallback) {
+            toast.success("Your health plan is ready! (Basic recommendations)");
+          } else {
+            toast.success("Your AI health plan is ready!");
+          }
           return;
         }
       }
+
+      console.log("API failed, falling back to basic generator");
 
       // Fallback to basic generator
       const planReport = await generateBasicHealthPlan(profile);
