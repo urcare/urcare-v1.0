@@ -507,6 +507,7 @@ const CustomPlan: React.FC = () => {
   const lastInitializedProfileId = useRef<string | null>(null);
   const navigateRef = useRef(navigate);
   const lastProcessedProfileId = useRef<string | null>(null);
+  const isProcessingRef = useRef(false);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -593,6 +594,7 @@ const CustomPlan: React.FC = () => {
     initializationRef.current = false;
     lastInitializedProfileId.current = null;
     lastProcessedProfileId.current = null;
+    isProcessingRef.current = false;
     setState({
       isLoading: false,
       isInitialized: false,
@@ -629,6 +631,7 @@ const CustomPlan: React.FC = () => {
     // Early returns for various conditions
     if (!isInitialized || loading) return; // wait for auth/profile to load
     if (hasNavigatedRef.current) return; // prevent navigation throttling
+    if (isProcessingRef.current) return; // prevent concurrent processing
 
     // If profile is null (database timeout), allow OAuth users to proceed
     if (!profile) {
@@ -644,13 +647,16 @@ const CustomPlan: React.FC = () => {
       return;
     }
 
-    console.log("CustomPlan: Processing profile:", profile.id);
+    // Set processing flag and profile ID immediately to prevent race conditions
+    isProcessingRef.current = true;
     lastProcessedProfileId.current = profile.id;
+    console.log("CustomPlan: Processing profile:", profile.id);
 
     // Check onboarding completion
     if (!profile.onboarding_completed) {
       toast.error("Please complete your onboarding first.");
       safeNavigate("/onboarding");
+      isProcessingRef.current = false; // Reset processing flag
       return;
     }
 
@@ -673,6 +679,7 @@ const CustomPlan: React.FC = () => {
     if (required.some((v) => !v)) {
       toast.error("Please complete your onboarding first.");
       safeNavigate("/onboarding");
+      isProcessingRef.current = false; // Reset processing flag
       return;
     }
 
@@ -680,6 +687,9 @@ const CustomPlan: React.FC = () => {
     if (!initializationRef.current) {
       initializeHealthData();
     }
+
+    // Reset processing flag after completion
+    isProcessingRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, isInitialized, loading, safeNavigate]);
 
@@ -693,6 +703,7 @@ const CustomPlan: React.FC = () => {
       initializationRef.current = false;
       lastInitializedProfileId.current = null;
       lastProcessedProfileId.current = null;
+      isProcessingRef.current = false;
     };
   }, []);
 
