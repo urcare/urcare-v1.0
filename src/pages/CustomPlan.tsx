@@ -39,64 +39,124 @@ interface HealthMetric {
   icon: React.ReactNode;
 }
 
-const healthMetrics: HealthMetric[] = [
-  {
+// Generate health metrics based on user onboarding data
+const generateHealthMetrics = (profile: UserProfile, onboardingData: any): HealthMetric[] => {
+  const metrics: HealthMetric[] = [];
+  
+  // Stress Score - based on chronic conditions and medications
+  const stressFactors = (profile.chronic_conditions?.length || 0) + (profile.medications?.length || 0);
+  const stressScore = Math.min(50 + (stressFactors * 8), 100);
+  metrics.push({
     id: "stress",
     name: "50+ stress score",
-    value: "65",
+    value: stressScore.toString(),
     target: "50",
-    status: "bad",
+    status: stressScore > 50 ? "bad" : "good",
     icon: <Heart className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Alcohol - check if user has alcohol-related conditions or mentions
+  const hasAlcoholIssues = profile.chronic_conditions?.some(condition => 
+    condition.toLowerCase().includes('liver') || 
+    condition.toLowerCase().includes('alcohol')
+  ) || false;
+  metrics.push({
     id: "alcohol",
     name: "Alcohol",
-    value: "0.0 drinks",
+    value: hasAlcoholIssues ? "2.5 drinks" : "0.0 drinks",
     target: "0",
-    status: "bad",
+    status: hasAlcoholIssues ? "bad" : "good",
     icon: <Wine className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Caffeine - based on sleep issues and work schedule
+  const hasSleepIssues = profile.sleep_time && profile.wake_up_time ? 
+    (new Date(`2000-01-01 ${profile.sleep_time}`).getTime() - new Date(`2000-01-01 ${profile.wake_up_time}`).getTime()) < 8 * 60 * 60 * 1000 : false;
+  const caffeineIntake = hasSleepIssues ? 180 : 95;
+  metrics.push({
     id: "caffeine",
     name: "Caffeine",
-    value: "95 mg",
+    value: `${caffeineIntake} mg`,
     target: "100",
-    status: "good",
+    status: caffeineIntake > 150 ? "bad" : "good",
     icon: <Coffee className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Hydration - based on health goals and conditions
+  const needsMoreHydration = profile.health_goals?.some(goal => 
+    goal.toLowerCase().includes('hydration') || 
+    goal.toLowerCase().includes('water')
+  ) || profile.chronic_conditions?.some(condition => 
+    condition.toLowerCase().includes('kidney')
+  ) || false;
+  const hydrationAmount = needsMoreHydration ? 48 : 64;
+  metrics.push({
     id: "hydration",
     name: "Hydration",
-    value: "64.0 fl oz",
+    value: `${hydrationAmount}.0 fl oz`,
     target: "64",
-    status: "good",
+    status: hydrationAmount >= 64 ? "good" : "bad",
     icon: <Droplets className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Steps - based on fitness goals and work schedule
+  const hasFitnessGoals = profile.health_goals?.some(goal => 
+    goal.toLowerCase().includes('fitness') || 
+    goal.toLowerCase().includes('exercise') ||
+    goal.toLowerCase().includes('weight')
+  ) || false;
+  const stepCount = hasFitnessGoals ? 8500 : 12500;
+  metrics.push({
     id: "steps",
     name: "10,000+ steps",
-    value: "12,500",
+    value: stepCount.toLocaleString(),
     target: "10,000",
-    status: "good",
+    status: stepCount >= 10000 ? "good" : "bad",
     icon: <Footprints className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Nutrition Score - based on diet type and health goals
+  const hasNutritionGoals = profile.health_goals?.some(goal => 
+    goal.toLowerCase().includes('nutrition') || 
+    goal.toLowerCase().includes('diet')
+  ) || false;
+  const isHealthyDiet = profile.diet_type && ['vegetarian', 'vegan', 'mediterranean'].includes(profile.diet_type.toLowerCase());
+  const nutritionScore = (hasNutritionGoals && isHealthyDiet) ? 78 : 65;
+  metrics.push({
     id: "nutrition",
     name: "67+ nutrition score",
-    value: "72",
+    value: nutritionScore.toString(),
     target: "67",
-    status: "good",
+    status: nutritionScore >= 67 ? "good" : "bad",
     icon: <Apple className="h-5 w-5" />
-  },
-  {
+  });
+
+  // Late Meal - based on dinner time and sleep schedule
+  const dinnerTime = profile.dinner_time;
+  const sleepTime = profile.sleep_time;
+  let lateMealStatus = "good";
+  let lateMealTime = "7:30 PM";
+  
+  if (dinnerTime && sleepTime) {
+    const dinnerHour = parseInt(dinnerTime.split(':')[0]);
+    const sleepHour = parseInt(sleepTime.split(':')[0]);
+    if (dinnerHour > 20 || (sleepHour - dinnerHour) < 2) {
+      lateMealStatus = "bad";
+      lateMealTime = dinnerTime;
+    }
+  }
+  
+  metrics.push({
     id: "late-meal",
     name: "Late meal",
-    value: "9:30 PM",
+    value: lateMealTime,
     target: "8:00 PM",
-    status: "bad",
+    status: lateMealStatus as "good" | "bad",
     icon: <Clock className="h-5 w-5" />
-  }
-];
+  });
+
+  return metrics;
+};
 
 // Rotating Wheel Component
 const RotatingWheel: React.FC<{ metrics: HealthMetric[] }> = ({ metrics }) => {
@@ -274,6 +334,8 @@ const CustomPlan: React.FC = () => {
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
   const [currentProgressStep, setCurrentProgressStep] = useState(0);
+  const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
   const hasNavigatedRef = useRef(false);
 
   // Progress steps for the generation process
@@ -284,6 +346,48 @@ const CustomPlan: React.FC = () => {
     "Generating lifestyle recommendations",
     "Finalizing your custom plan",
   ];
+
+  // Fetch onboarding data and generate health metrics
+  useEffect(() => {
+    const fetchOnboardingData = async () => {
+      if (!profile) return;
+      
+      try {
+        // Import supabase client
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          import.meta.env.VITE_SUPABASE_URL,
+          import.meta.env.VITE_SUPABASE_ANON_KEY
+        );
+
+        // Fetch onboarding data
+        const { data: onboarding, error } = await supabase
+          .from('onboarding_profiles')
+          .select('details')
+          .eq('user_id', profile.id)
+          .single();
+
+        if (error) {
+          console.warn('Could not fetch onboarding data:', error);
+        } else {
+          setOnboardingData(onboarding?.details || {});
+        }
+
+        // Generate health metrics based on profile and onboarding data
+        const metrics = generateHealthMetrics(profile, onboarding?.details || {});
+        setHealthMetrics(metrics);
+      } catch (error) {
+        console.error('Error fetching onboarding data:', error);
+        // Fallback to basic metrics
+        const metrics = generateHealthMetrics(profile, {});
+        setHealthMetrics(metrics);
+      }
+    };
+
+    if (profile && profile.onboarding_completed) {
+      fetchOnboardingData();
+    }
+  }, [profile]);
 
   // Check if user has completed onboarding
   useEffect(() => {
@@ -562,6 +666,18 @@ const CustomPlan: React.FC = () => {
     );
   }
 
+  // Show loading state while generating metrics
+  if (healthMetrics.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Analyzing your health data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
       <div className="max-w-md w-full mx-auto p-6">
@@ -605,7 +721,7 @@ const CustomPlan: React.FC = () => {
         </div>
 
         {/* Rotating Wheel */}
-        <RotatingWheel metrics={healthMetrics} />
+        {healthMetrics.length > 0 && <RotatingWheel metrics={healthMetrics} />}
 
         {/* Main Content */}
         <div className="text-center mb-8">
@@ -619,7 +735,7 @@ const CustomPlan: React.FC = () => {
 
         {/* Action Button */}
         <Button 
-          onClick={handleGeneratePlan} 
+          onClick={() => navigate('/paywall')} 
           className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-medium"
           size="lg"
         >
