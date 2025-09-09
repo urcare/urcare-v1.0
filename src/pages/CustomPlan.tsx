@@ -1,8 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  AIThinkingAnimation,
-  ProgressSteps,
-} from "@/components/ui/loading-animation";
+import { ProgressSteps } from "@/components/ui/loading-animation";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -32,54 +29,110 @@ interface HealthPlanReport {
   } | null;
 }
 
-// Call backend API for GPT-4 report generation
-async function fetchCustomPlanReport(
+// Generate basic health plan without AI
+async function generateBasicHealthPlan(
   profile: UserProfile
 ): Promise<HealthPlanReport> {
-  try {
-    const res = await fetch("/api/generate-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile }),
-    });
-    if (!res.ok) throw new Error("Failed to generate plan");
-    const data = await res.json();
+  console.log("Generating basic health plan for profile:", profile);
 
-    // Use structured response if available, fallback to raw response
-    if (data.structured) {
-      const { structured } = data;
-      return {
-        summary: `Your custom plan is ready! Health Score: ${structured.summary.healthScore}/100`,
-        recommendations: [
-          `Daily Calorie Target: ${structured.summary.calorieTarget} kcal`,
-          `BMI: ${structured.summary.bmi}`,
-          `Health Score: ${structured.summary.healthScore}/100`,
-          ...structured.summary.keyRecommendations.slice(0, 3),
-        ],
-        detailedReport: data.report || "No report generated.",
-        structured: structured,
-      };
-    } else {
-      // Fallback to original format
-      return {
-        summary: "Your custom plan is ready! (see below)",
-        recommendations: [
-          "Daily Calorie Intake: 2100 kcal",
-          "Carbohydrates: 250g",
-          "Protein: 90g",
-          "Fats: 70g",
-          "Health Score: 82/100",
-          "Potential Complications: See full report.",
-          "Product Benefit: See full report.",
-        ],
-        detailedReport: data.report || "No report generated.",
-        structured: null,
-      };
-    }
-  } catch (err) {
-    console.error("Error fetching custom plan:", err);
-    throw new Error("Failed to generate custom plan. Please try again.");
+  // Calculate basic health metrics
+  const age =
+    profile.age ||
+    new Date().getFullYear() -
+      new Date(profile.date_of_birth || "1990-01-01").getFullYear();
+  const height = profile.height_cm || 170;
+  const weight = profile.weight_kg || 70;
+
+  const heightM = height / 100;
+  const bmi = (weight / (heightM * heightM)).toFixed(1);
+
+  let bmr: number;
+  const gender = (profile.gender || "male").toLowerCase();
+  if (gender === "male") {
+    bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+  } else {
+    bmr = 10 * weight + 6.25 * height - 5 * age - 161;
   }
+  const tdee = Math.round(bmr * 1.2);
+
+  let healthScore = 75;
+  if (parseFloat(bmi) >= 18.5 && parseFloat(bmi) <= 24.9) healthScore += 15;
+  if (age >= 18 && age <= 65) healthScore += 10;
+
+  const basicReport = `HEALTH ASSESSMENT
+• BMI: ${bmi}
+• Health Score: ${healthScore}/100
+• Current status: Based on your profile, there's room for improvement
+
+NUTRITION PLAN
+• Daily Calorie Target: ${tdee} kcal
+• Balanced macronutrients and regular meals
+• Focus on whole foods and proper hydration
+
+FITNESS PLAN
+• 3-4 days/week cardio + strength training
+• 30-45 minutes per session
+• Progressive intensity based on fitness level
+
+LIFESTYLE OPTIMIZATION
+• Sleep: 7-9 hours nightly
+• Stress management techniques
+• Regular meal timing
+
+HEALTH MONITORING
+• Track weight, BMI, energy levels
+• Monitor progress weekly
+
+POTENTIAL HEALTH RISKS
+• Monitor blood pressure and lipid levels
+• Regular health check-ups recommended
+
+HOW UR CARE WILL HELP
+• Personalized tracking and insights
+• Community support and motivation
+• Evidence-based recommendations
+
+ACTIONABLE NEXT STEPS
+1. Start with 30-minute daily walks
+2. Track your food intake for 1 week
+3. Establish regular meal times
+4. Get 7-8 hours of sleep nightly
+5. Stay hydrated throughout the day`;
+
+  return {
+    summary: `Your basic health plan is ready! Health Score: ${healthScore}/100`,
+    recommendations: [
+      `Daily Calorie Target: ${tdee} kcal`,
+      `BMI: ${bmi}`,
+      `Health Score: ${healthScore}/100`,
+      "Start with 30-minute daily walks",
+      "Track your food intake for 1 week",
+      "Establish regular meal times",
+    ],
+    detailedReport: basicReport,
+    structured: {
+      summary: {
+        healthScore: healthScore.toString(),
+        calorieTarget: tdee.toString(),
+        bmi: bmi,
+        keyRecommendations: [
+          "Start with 30-minute daily walks",
+          "Track your food intake for 1 week",
+          "Establish regular meal times",
+        ],
+      },
+      sections: {
+        healthAssessment: `BMI: ${bmi}, Health Score: ${healthScore}/100`,
+        nutritionPlan: `Daily calorie target: ${tdee} kcal with balanced macros`,
+        fitnessPlan: "3-4 days/week of cardio and strength training",
+        lifestyleOptimization: "Focus on sleep, stress management, hydration",
+        healthMonitoring: "Track weight, BMI, energy levels",
+        potentialRisks: "Monitor blood pressure and cholesterol",
+        urCareBenefits: "Personalized tracking and community support",
+        nextSteps: "Start with walking and food tracking",
+      },
+    },
+  };
 }
 
 type PlanStep = "initial" | "generating" | "ready" | "error";
@@ -103,8 +156,6 @@ const CustomPlan: React.FC = () => {
   // Check if user has completed onboarding
   useEffect(() => {
     if (!profile) {
-      toast.error("Profile not found. Please complete onboarding.");
-      navigate("/onboarding");
       return;
     }
 
@@ -114,7 +165,6 @@ const CustomPlan: React.FC = () => {
       return;
     }
 
-    // Check for required onboarding data
     const preferences = profile.preferences as {
       meals?: { breakfast_time?: string };
       schedule?: { sleep_time?: string; wake_up_time?: string };
@@ -132,9 +182,7 @@ const CustomPlan: React.FC = () => {
     ];
 
     if (required.some((v) => !v)) {
-      toast.error(
-        "Some onboarding data is missing. Please complete your profile setup."
-      );
+      toast.error("Please complete your onboarding first.");
       navigate("/onboarding");
       return;
     }
@@ -163,225 +211,149 @@ const CustomPlan: React.FC = () => {
     }, 1500);
 
     try {
-      const planReport = await fetchCustomPlanReport(profile);
+      // Try serverless AI endpoint first
+      const response = await fetch(`/api/generate-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const structured = data?.structured;
+        const reportText = data?.report || "";
+
+        if (structured) {
+          const planReport: HealthPlanReport = {
+            summary: `Your AI health plan is ready! Health Score: ${structured.summary.healthScore}/100`,
+            recommendations: [
+              `Daily Calorie Target: ${structured.summary.calorieTarget} kcal`,
+              `BMI: ${structured.summary.bmi}`,
+              ...structured.summary.keyRecommendations.slice(0, 3),
+            ],
+            detailedReport: reportText,
+            structured,
+          };
+          setReport(planReport);
+          setStep("ready");
+          toast.success("Your AI health plan is ready!");
+          return;
+        }
+      }
+
+      // Fallback to basic generator
+      const planReport = await generateBasicHealthPlan(profile);
       setReport(planReport);
       setStep("ready");
-      toast.success("Your custom health plan is ready!");
+      toast.success("Your basic health plan is ready!");
     } catch (error) {
       console.error("Error generating plan:", error);
       setStep("error");
-      toast.error("Failed to generate custom plan. Please try again.");
+      toast.error("Failed to generate health plan. Please try again.");
     } finally {
       clearInterval(progressInterval);
     }
   };
 
-  // Modern success circle component
-  const SuccessCircle = () => (
-    <div className="relative w-20 h-20 mb-6">
-      {/* Outer ring */}
-      <div className="absolute inset-0 rounded-full border-4 border-medical-green-200 bg-gradient-to-br from-medical-green-50 to-medical-green-100 animate-scale-in">
-        {/* Inner circle */}
-        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-medical-green-400 to-medical-green-600 flex items-center justify-center">
-          <div className="text-white text-2xl animate-fade-in">✓</div>
+  if (step === "generating") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="max-w-md w-full mx-auto p-6">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Generating Your Plan</h2>
+            <p className="text-muted-foreground">
+              Creating your personalized health plan...
+            </p>
+          </div>
+          <ProgressSteps
+            steps={progressSteps}
+            currentStep={currentProgressStep}
+          />
         </div>
       </div>
+    );
+  }
 
-      {/* Animated particles */}
-      {[0, 1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="absolute w-2 h-2 bg-medical-green-400 rounded-full animate-pulse"
-          style={{
-            top: `${25 + 25 * Math.sin((i * Math.PI) / 2)}%`,
-            left: `${25 + 25 * Math.cos((i * Math.PI) / 2)}%`,
-            animationDelay: `${i * 0.2}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-
-  // Paywall overlay
-  const Paywall = () => (
-    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-xl border border-gray-200">
-      <div className="text-center space-y-4 px-6 max-w-sm">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-medical-blue-400 to-medical-blue-600 flex items-center justify-center">
-          <span className="text-white text-2xl">🔒</span>
-        </div>
-        <h2 className="text-xl font-bold text-gray-900">
-          Unlock Your Full Custom Plan
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Subscribe to access your detailed GPT-4 powered health report with
-          personalized diet, workout, and lifestyle recommendations.
-        </p>
-        <Button
-          className="w-full bg-gradient-to-r from-medical-blue-500 to-medical-blue-600 hover:from-medical-blue-600 hover:to-medical-blue-700 text-white font-semibold py-3"
-          onClick={() => navigate("/paywall")}
-        >
-          Subscribe Now
-        </Button>
-        <p className="text-gray-500 text-xs">
-          Already subscribed?{" "}
-          <span
-            className="underline cursor-pointer text-medical-blue-600"
-            onClick={() => window.location.reload()}
-          >
-            Refresh
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue-50 via-white to-medical-teal-50 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-medical-lg border border-gray-100 overflow-hidden">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-medical-blue-500 to-medical-teal-500 p-6 text-white text-center">
-          <h1 className="text-xl font-bold mb-2">Your Custom Health Plan</h1>
-          <p className="text-medical-blue-100 text-sm">
-            Personalized recommendations based on your data
-          </p>
-        </div>
-
-        <div className="p-6">
-          {step === "initial" && (
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-medical-blue-100 to-medical-blue-200 flex items-center justify-center">
-                <span className="text-3xl">🧠</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">
-                  Time to generate your custom plan!
-                </h2>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  We'll analyze your onboarding data to create a personalized
-                  health plan including diet recommendations, workout routines,
-                  and lifestyle optimization.
-                </p>
-              </div>
-
-              <div className="bg-medical-blue-50 rounded-lg p-4 border border-medical-blue-200">
-                <h3 className="font-semibold text-medical-blue-900 mb-2">
-                  What you'll get:
-                </h3>
-                <ul className="text-sm text-medical-blue-800 space-y-1">
-                  <li>• Personalized nutrition plan with calorie targets</li>
-                  <li>• Custom workout routine based on your goals</li>
-                  <li>• Lifestyle optimization recommendations</li>
-                  <li>• Health monitoring guidelines</li>
-                </ul>
-              </div>
-
-              <Button
-                onClick={handleGeneratePlan}
-                className="w-full bg-gradient-to-r from-medical-blue-500 to-medical-blue-600 hover:from-medical-blue-600 hover:to-medical-blue-700 text-white font-semibold py-3 rounded-lg shadow-medical"
-              >
-                Generate My Custom Plan
-              </Button>
+  if (step === "ready" && report) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-2">Your Health Plan</h1>
+              <p className="text-muted-foreground">{report.summary}</p>
             </div>
-          )}
 
-          {step === "generating" && (
-            <div className="text-center space-y-6">
-              <AIThinkingAnimation />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Creating your personalized plan...
+            <div className="grid gap-6">
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-xl font-semibold mb-4">
+                  Key Recommendations
                 </h3>
-
-                <ProgressSteps
-                  steps={progressSteps}
-                  currentStep={currentProgressStep}
-                />
-              </div>
-            </div>
-          )}
-
-          {step === "ready" && report && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <SuccessCircle />
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Congratulations! Your custom plan is ready!
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  Here are your key recommendations based on your data:
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-br from-medical-green-50 to-medical-teal-50 rounded-lg p-4 border border-medical-green-200">
                 <ul className="space-y-2">
-                  {report.recommendations.map((rec: string, idx: number) => (
-                    <li
-                      key={idx}
-                      className="text-gray-800 text-sm font-medium flex items-start animate-fade-in"
-                      style={{ animationDelay: `${idx * 0.1}s` }}
-                    >
-                      <span className="mr-2 text-medical-green-600 font-bold">
-                        •
-                      </span>
-                      {rec}
+                  {report.recommendations.map((rec, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span>{rec}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Paywall for detailed report */}
-              <Paywall />
-
-              <div className="flex flex-col space-y-3">
-                <Button
-                  onClick={() => navigate("/dashboard")}
-                  className="w-full bg-gradient-to-r from-medical-green-500 to-medical-green-600 hover:from-medical-green-600 hover:to-medical-green-700 text-white font-semibold py-3"
-                >
-                  Go to Dashboard
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/paywall")}
-                  className="w-full border-medical-blue-200 text-medical-blue-700 hover:bg-medical-blue-50"
-                >
-                  View Full Report
-                </Button>
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-xl font-semibold mb-4">Detailed Plan</h3>
+                <div className="whitespace-pre-line text-sm">
+                  {report.detailedReport}
+                </div>
               </div>
             </div>
-          )}
 
-          {step === "error" && (
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
-                <span className="text-3xl">⚠️</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Something went wrong
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  We couldn't generate your custom plan. Please try again.
-                </p>
-              </div>
-
-              <div className="flex space-x-3">
-                <Button
-                  onClick={handleGeneratePlan}
-                  className="flex-1 bg-gradient-to-r from-medical-blue-500 to-medical-blue-600 hover:from-medical-blue-600 hover:to-medical-blue-700 text-white font-semibold py-3"
-                >
-                  Try Again
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/onboarding")}
-                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Back to Onboarding
-                </Button>
-              </div>
+            <div className="text-center mt-8">
+              <Button onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </Button>
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "error") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">
+            We couldn't generate your health plan. Please try again.
+          </p>
+          <Button onClick={() => setStep("initial")}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="max-w-md w-full mx-auto p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Custom Health Plan</h1>
+          <p className="text-muted-foreground">
+            Generate a personalized health plan based on your profile
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <Button onClick={handleGeneratePlan} className="w-full" size="lg">
+            Generate My Health Plan
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+            className="w-full"
+          >
+            Back to Dashboard
+          </Button>
         </div>
       </div>
     </div>

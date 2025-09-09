@@ -1,17 +1,15 @@
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Bell,
+  Calendar,
   Crown,
   FileText,
-  Gift,
   Grid,
   Heart,
   LogOut,
   Menu,
-  Store,
-  ThumbsUp,
+  Target,
   User,
-  Wallet,
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -32,15 +30,15 @@ interface MobileNavigationProps {
 }
 
 const menuItems = [
-  { icon: Grid, label: "Categories", delay: 0 },
-  { icon: Wallet, label: "Wallet", delay: 100 },
-  { icon: Gift, label: "Gift Ideas", delay: 200 },
-  { icon: Crown, label: "Subscription", delay: 300 },
-  { icon: Store, label: "Store Locator", delay: 400 },
-  { icon: ThumbsUp, label: "Loyalty Program", delay: 500 },
-  { icon: FileText, label: "Blog & Articles", delay: 600 },
-  { icon: Heart, label: "Help & Support", delay: 700 },
-  { icon: LogOut, label: "Logout", delay: 800 },
+  { icon: Grid, label: "Dashboard", action: "dashboard", delay: 0 },
+  { icon: Target, label: "Health Plan", action: "health-plan", delay: 100 },
+  { icon: Heart, label: "Workout", action: "workout", delay: 200 },
+  { icon: FileText, label: "Diet", action: "diet", delay: 300 },
+  { icon: Calendar, label: "Planner", action: "planner", delay: 400 },
+  { icon: Crown, label: "Subscription", action: "subscription", delay: 500 },
+  { icon: Bell, label: "Notifications", action: "notifications", delay: 600 },
+  { icon: User, label: "Profile", action: "profile", delay: 700 },
+  { icon: LogOut, label: "Logout", action: "logout", delay: 800 },
 ];
 
 export const MobileNavigation: React.FC<MobileNavigationProps> = ({
@@ -74,8 +72,51 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     navigate("/workout");
   };
 
+  const handlePlannerNavigation = () => {
+    navigate("/planner");
+  };
+
   const handleHomeNavigation = () => {
     navigate("/dashboard");
+  };
+
+  const handleHealthPlanNavigation = () => {
+    navigate("/health-plan");
+  };
+
+  const handleMenuItemClick = (action: string) => {
+    closeMenu();
+    switch (action) {
+      case "dashboard":
+        navigate("/dashboard");
+        break;
+      case "health-plan":
+        navigate("/health-plan");
+        break;
+      case "workout":
+        navigate("/workout");
+        break;
+      case "diet":
+        navigate("/diet");
+        break;
+      case "planner":
+        navigate("/planner");
+        break;
+      case "subscription":
+        navigate("/subscription");
+        break;
+      case "notifications":
+        // Handle notifications
+        break;
+      case "profile":
+        // Handle profile navigation
+        break;
+      case "logout":
+        // Handle logout
+        break;
+      default:
+        break;
+    }
   };
 
   useEffect(() => {
@@ -106,7 +147,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         {/* Close Button */}
         <button
           onClick={closeMenu}
-          className="absolute top-4 right-4 w-8 h-8 bg-green-600/80 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors backdrop-blur-sm"
+          className="absolute top-4 right-4 w-8 h-8 bg-green-600/80 rounded-xl flex items-center justify-center hover:bg-green-600 transition-colors backdrop-blur-sm"
         >
           <X className="w-4 h-4 text-white" />
         </button>
@@ -118,7 +159,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             return (
               <div
                 key={item.label}
-                className={`flex items-center gap-3 sm:gap-4 text-white cursor-pointer hover:bg-green-600/40 p-2 sm:p-3 rounded-lg transition-all duration-300 transform backdrop-blur-sm ${
+                className={`flex items-center gap-3 sm:gap-4 text-white cursor-pointer hover:bg-green-600/40 p-2 sm:p-3 rounded-xl transition-all duration-300 transform backdrop-blur-sm ${
                   animateItems
                     ? "translate-x-0 opacity-100"
                     : "-translate-x-full opacity-0"
@@ -126,6 +167,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 style={{
                   transitionDelay: animateItems ? `${item.delay}ms` : "0ms",
                 }}
+                onClick={() => handleMenuItemClick(item.action)}
               >
                 <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span className="text-base sm:text-lg font-medium">
@@ -151,7 +193,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* Hamburger Menu Button */}
               <button
                 onClick={toggleMenu}
-                className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
+                className="w-8 h-8 bg-transparent rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors relative z-20"
               >
                 <Menu className="w-4 h-4 text-gray-700" />
               </button>
@@ -171,7 +213,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <div className="flex items-center space-x-2">
               {/* Notification Bell */}
               <div className="relative">
-                <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                <div className="w-8 h-8 bg-transparent rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
                   <Bell className="w-4 h-4 text-gray-600" />
                 </div>
                 {/* Notification Dot */}
@@ -179,7 +221,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </div>
 
               {/* User Profile Picture */}
-              <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
                 <img
                   src={
                     user?.user_metadata?.avatar_url ||
@@ -205,20 +247,32 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
         {/* Bottom Navigation */}
         <div className="fixed bottom-6 left-4 right-4">
-          <div className="bg-white/20 backdrop-blur-xl rounded-full px-4 py-3 shadow-2xl border border-white/30 ring-1 ring-white/20">
+          <div className="bg-white/20 backdrop-blur-xl rounded-3xl px-4 py-3 shadow-2xl border border-white/30 ring-1 ring-white/20">
             <div className="flex items-center justify-between">
               {/* Home Icon */}
               <div
                 onClick={handleHomeNavigation}
-                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
               >
                 <img src="/icons/home.png" alt="Home" className="w-7 h-7" />
+              </div>
+
+              {/* Planner Icon */}
+              <div
+                onClick={handlePlannerNavigation}
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+              >
+                <img
+                  src="/icons/planner.png"
+                  alt="Planner"
+                  className="w-7 h-7"
+                />
               </div>
 
               {/* Meals Icon */}
               <div
                 onClick={handleDietNavigation}
-                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
               >
                 <img src="/icons/diet.png" alt="Meals" className="w-7 h-7" />
               </div>
@@ -226,13 +280,13 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               {/* Workout Icon */}
               <div
                 onClick={handleWorkoutNavigation}
-                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
+                className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20"
               >
                 <img src="/icons/gym.png" alt="Workout" className="w-7 h-7" />
               </div>
 
               {/* Profile Icon */}
-              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
+              <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center hover:bg-white/40 transition-all duration-300 cursor-pointer border border-white/20">
                 <img
                   src="/icons/profile.png"
                   alt="Profile"

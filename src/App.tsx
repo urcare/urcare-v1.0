@@ -6,8 +6,9 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
-import { useAuth } from "./contexts/AuthContext";
-import AIHealthAssistantDemo from "./pages/AIHealthAssistantDemo";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useDevAuth } from "./hooks/useDevAuth";
+// AI Health Assistant Demo removed
 import CustomPlan from "./pages/CustomPlan";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
@@ -15,9 +16,12 @@ import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import Planner from "./pages/Planner";
 import Subscription from "./pages/Subscription";
 import Workout from "./pages/Workout";
 
+import { DevPanel } from "./components/DevPanel";
+import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 
@@ -29,7 +33,8 @@ const ProtectedRoute = ({
   children: React.ReactNode;
   requireOnboardingComplete?: boolean;
 }) => {
-  const { user, profile, loading, isInitialized } = useAuth();
+  const devAuth = useDevAuth();
+  const { user, profile, loading, isInitialized } = devAuth;
   const location = useLocation();
 
   if (!isInitialized || loading) {
@@ -63,109 +68,114 @@ const ProtectedRoute = ({
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<AuthCallback />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <DevRedirectHandler />
+        <DevPanel />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<AuthCallback />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/welcome-screen"
-          element={
-            <ProtectedRoute>
-              <WelcomeScreen />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/welcome-screen"
+            element={
+              <ProtectedRoute>
+                <WelcomeScreen />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/custom-plan"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <CustomPlan />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/custom-plan"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <CustomPlan />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/paywall"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <Paywall />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/paywall"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Paywall />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/subscription"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <Subscription />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/subscription"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Subscription />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/health-plan"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <HealthPlan />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/health-plan"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <HealthPlan />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/diet"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <Diet />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/diet"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Diet />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/workout"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <Workout />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/workout"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Workout />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* AI Health Assistant Demo Route */}
-        <Route
-          path="/ai-health-assistant-demo"
-          element={
-            <ProtectedRoute requireOnboardingComplete={true}>
-              <AIHealthAssistantDemo />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/planner"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Planner />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* AI Health Assistant Demo Route removed */}
+
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

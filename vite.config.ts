@@ -1,6 +1,6 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,6 +13,13 @@ export default defineConfig({
   server: {
     port: 8080,
     host: true,
+    hmr: {
+      overlay: true,
+    },
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
   },
   build: {
     outDir: "dist",
@@ -20,5 +27,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
+  },
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV === "development"),
   },
 });

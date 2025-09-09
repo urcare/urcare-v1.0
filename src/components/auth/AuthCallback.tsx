@@ -1,5 +1,8 @@
+import { devUtils, isDevelopment } from "@/config/development";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDevAuthFallback } from "@/hooks/useDevAuthFallback";
 import { supabase } from "@/integrations/supabase/client";
+import { devAuthService } from "@/services/devAuthService";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -7,18 +10,33 @@ import { toast } from "sonner";
 export const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { isDevAuthActive, forceDevAuth } = useDevAuthFallback();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       console.log("AuthCallback: Starting OAuth callback handling...");
+
+      // Check if we're in development and need to redirect to local URL
+      if (isDevelopment()) {
+        devUtils.log("Handling auth callback in development mode");
+        if (!devAuthService.checkDevelopmentUrl()) {
+          return; // Redirect is happening
+        }
+        // Let the development auth service handle the session check
+        await devAuthService.handleAuthCallback();
+        // Continue with the normal flow below - don't return here
+      }
 
       // Add a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         console.error(
           "AuthCallback: Timeout reached, redirecting to landing page"
         );
+        toast.error("Authentication timeout", {
+          description: "Please try logging in again",
+        });
         navigate("/", { replace: true });
-      }, 15000); // 15 seconds timeout - increased from 8 seconds
+      }, 10000); // 10 seconds timeout
 
       try {
         // Let Supabase handle the OAuth callback automatically
@@ -116,7 +134,7 @@ export const AuthCallback: React.FC = () => {
           console.error("AuthCallback: Error details:", {
             message: error.message,
             stack: error.stack,
-            name: error.name
+            name: error.name,
           });
         }
         toast.error("Authentication failed", {
@@ -137,11 +155,28 @@ export const AuthCallback: React.FC = () => {
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gray-600 dark:text-gray-400">
-          Completing authentication...
+          {isDevAuthActive
+            ? "Development authentication active..."
+            : "Completing authentication..."}
         </p>
         <p className="text-sm text-gray-500 mt-2">
           Please wait while we set up your account...
         </p>
+
+        {/* Development fallback button */}
+        {isDevelopment() && !isDevAuthActive && (
+          <div className="mt-6">
+            <button
+              onClick={forceDevAuth}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
+            >
+              🔧 Use Development Auth (Stuck?)
+            </button>
+            <p className="text-xs text-gray-400 mt-2">
+              Click if authentication is taking too long
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

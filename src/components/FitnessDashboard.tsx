@@ -139,7 +139,7 @@ export const FitnessDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-transparent px-3 py-2 relative overflow-hidden">
+    <div className="relative">
       {/* Subtle loading indicator for background updates */}
       {loading && !isInitialLoad && (
         <div className="absolute top-2 right-2 z-10">
@@ -148,14 +148,12 @@ export const FitnessDashboard: React.FC = () => {
       )}
 
       {/* Calories Dashboard */}
-      <div className="h-full overflow-y-auto">
-        <CalorieCard
-          consumed={dashboardData.calories.consumed}
-          target={dashboardData.calories.target}
-          remaining={dashboardData.calories.remaining}
-          macros={dashboardData.macros}
-        />
-      </div>
+      <CalorieCard
+        consumed={dashboardData.calories.consumed}
+        target={dashboardData.calories.target}
+        remaining={dashboardData.calories.remaining}
+        macros={dashboardData.macros}
+      />
     </div>
   );
 };

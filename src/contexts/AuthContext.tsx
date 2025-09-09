@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { devUtils, isDevelopment } from "@/config/development";
+import { supabase } from "@/integrations/supabase/client";
+import { devAuthService } from "@/services/devAuthService";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export interface UserProfile {
   id: string;
@@ -67,27 +69,55 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Fetch user profile from user_profiles table
-  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
+  const fetchUserProfile = async (
+    userId: string
+  ): Promise<UserProfile | null> => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      console.log("fetchUserProfile: Fetching profile for user:", userId);
+
+      // First, let's test if we can access the table at all
+      console.log("fetchUserProfile: Testing table access...");
+      const { data: testData, error: testError } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .limit(1);
+
+      if (testError) {
+        console.error("fetchUserProfile: Table access test failed:", testError);
         return null;
       }
+      console.log("fetchUserProfile: Table access test passed");
+
+      // Now try to fetch the specific user's profile
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        console.error(
+          "Error details:",
+          error.message,
+          error.details,
+          error.hint
+        );
+        return null;
+      }
+      console.log("fetchUserProfile: Successfully fetched profile:", data);
       return data as UserProfile;
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error("Error in fetchUserProfile:", error);
       return null;
     }
   };
@@ -95,31 +125,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper: Ensure user profile row exists
   const ensureUserProfile = async (user: any) => {
     if (!user) return;
-    // Try to fetch the profile
-    const { data: profile, error: fetchError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    if (fetchError && fetchError.code !== 'PGRST116') {
+
+    let profile, fetchError;
+
+    try {
+      const result = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      profile = result.data;
+      fetchError = result.error;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return;
+    }
+
+    if (fetchError && fetchError.code !== "PGRST116") {
       // Some error other than "no rows"
-      console.error('Error fetching user profile:', fetchError);
+      console.error("Error fetching user profile:", fetchError);
       return;
     }
     if (!profile) {
-      // No profile exists, create a blank one
       const { error: insertError } = await supabase
-        .from('user_profiles')
-        .insert([{ 
-          id: user.id, 
-          full_name: user.user_metadata?.full_name || user.email,
-          onboarding_completed: false,
-          status: 'active'
-        }]);
+        .from("user_profiles")
+        .insert([
+          {
+            id: user.id,
+            full_name: user.user_metadata?.full_name || user.email,
+            onboarding_completed: false,
+            status: "active",
+          },
+        ]);
       if (insertError) {
-        console.error('Error inserting blank user profile:', insertError);
-      } else {
-        console.log('Blank user profile created for', user.id);
+        console.error("Error inserting blank user profile:", insertError);
       }
     }
   };
@@ -130,21 +170,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       setLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (mounted) {
           setUser(user);
           if (user) {
             await ensureUserProfile(user);
             const profile = await fetchUserProfile(user.id);
             setProfile(profile);
-            console.log('AuthContext: Loaded user and profile on init', { user, profile });
           } else {
             setProfile(null);
-            console.log('AuthContext: No user on init');
           }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error("Error initializing auth:", error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -155,20 +195,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
 
     // Listen for auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      if (session?.user) {
-        setUser(session.user);
-        await ensureUserProfile(session.user);
-        const profile = await fetchUserProfile(session.user.id);
-        setProfile(profile);
-        console.log('AuthContext: Auth state changed, user logged in', { user: session.user, profile });
-      } else {
-        setUser(null);
-        setProfile(null);
-        console.log('AuthContext: Auth state changed, user logged out');
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        if (session?.user) {
+          setUser(session.user);
+          await ensureUserProfile(session.user);
+          const profile = await fetchUserProfile(session.user.id);
+          setProfile(profile);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
       }
-    });
+    );
     return () => {
       mounted = false;
       listener?.subscription?.unsubscribe();
@@ -186,10 +226,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
       if (error) throw error;
-      toast.success('Signup successful! Please check your email to confirm your account.');
+      toast.success(
+        "Signup successful! Please check your email to confirm your account."
+      );
     } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error('Signup failed', { description: error.message });
+      console.error("Signup error:", error);
+      toast.error("Signup failed", { description: error.message });
       throw error;
     } finally {
       setLoading(false);
@@ -199,12 +241,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
-      toast.success('Login successful!');
+      toast.success("Login successful!");
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error('Login failed', { description: error.message });
+      console.error("Login error:", error);
+      toast.error("Login failed", { description: error.message });
       throw error;
     } finally {
       setLoading(false);
@@ -212,42 +257,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-    console.log('signInWithGoogle called');
+    console.log("signInWithGoogle called");
     setLoading(true);
     try {
-      console.log('Calling supabase.auth.signInWithOAuth for Google');
-      
+      if (isDevelopment()) {
+        devUtils.log("Using development Google sign-in");
+        await devAuthService.signInWithGoogle();
+        return;
+      }
+
+      console.log("Calling supabase.auth.signInWithOAuth for Google");
+
       // Use a simpler approach that works better
-      const { data, error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'google',
-        options: { 
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
       });
-      
+
       if (error) {
-        console.error('OAuth error:', error);
+        console.error("OAuth error:", error);
         throw error;
       }
-      
-      console.log('OAuth initiated successfully:', data);
-      
+
+      console.log("OAuth initiated successfully:", data);
+
       // The redirect should happen automatically
       // If we get a URL, it means we need to redirect manually
       if (data?.url) {
-        console.log('Redirecting to OAuth URL:', data.url);
+        console.log("Redirecting to OAuth URL:", data.url);
         window.location.href = data.url;
       }
-      
     } catch (error: any) {
       setLoading(false);
-      console.error('Google sign-in failed:', error);
-      toast.error('Google sign-in failed', { 
-        description: error.message || 'Failed to initialize Google sign-in' 
+      console.error("Google sign-in failed:", error);
+      toast.error("Google sign-in failed", {
+        description: error.message || "Failed to initialize Google sign-in",
       });
       throw error;
     }
@@ -256,38 +306,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithApple = async () => {
     setLoading(true);
     try {
-      console.log('Calling supabase.auth.signInWithOAuth for Apple');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'apple',
-        options: { 
+      if (isDevelopment()) {
+        devUtils.log("Using development Apple sign-in");
+        await devAuthService.signInWithApple();
+        return;
+      }
+
+      console.log("Calling supabase.auth.signInWithOAuth for Apple");
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "apple",
+        options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
       });
-      
+
       if (error) {
-        console.error('Apple OAuth error:', error);
+        console.error("Apple OAuth error:", error);
         throw error;
       }
-      
-      console.log('Apple OAuth initiated successfully:', data);
-      
+
+      console.log("Apple OAuth initiated successfully:", data);
+
       // The redirect should happen automatically
       // If we get a URL, it means we need to redirect manually
       if (data?.url) {
-        console.log('Redirecting to Apple OAuth URL:', data.url);
+        console.log("Redirecting to Apple OAuth URL:", data.url);
         window.location.href = data.url;
       }
-      
     } catch (error: any) {
       setLoading(false);
-      console.error('Apple sign-in failed:', error);
-      toast.error('Apple sign-in failed', { 
-        description: error.message || 'Failed to initialize Apple sign-in' 
+      console.error("Apple sign-in failed:", error);
+      toast.error("Apple sign-in failed", {
+        description: error.message || "Failed to initialize Apple sign-in",
       });
       throw error;
     }
@@ -298,11 +353,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // For now, we'll use a simple email/password form approach
       // This could be enhanced with a modal or separate page
-      toast.info('Email sign-in feature coming soon!');
+      toast.info("Email sign-in feature coming soon!");
       // You can implement a modal or redirect to email sign-in page here
     } catch (error: any) {
-      console.error('Email sign-in error:', error);
-      toast.error('Email sign-in failed', { description: error.message || 'Failed to initialize email sign-in' });
+      console.error("Email sign-in error:", error);
+      toast.error("Email sign-in failed", {
+        description: error.message || "Failed to initialize email sign-in",
+      });
     } finally {
       setLoading(false);
     }
@@ -315,30 +372,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       setUser(null);
       setProfile(null);
-      toast.success('Signed out successfully');
+      toast.success("Signed out successfully");
     } catch (error: any) {
-      console.error('Signout error:', error);
-      toast.error('Signout failed', { description: error.message });
+      console.error("Signout error:", error);
+      toast.error("Signout failed", { description: error.message });
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
-    if (!user) throw new Error('No user logged in');
+  const updateProfile = async (
+    updates: Partial<UserProfile>
+  ): Promise<void> => {
+    if (!user) throw new Error("No user logged in");
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update(updates)
-        .eq('id', user.id);
+        .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
-      toast.success('Profile updated successfully!');
+      toast.success("Profile updated successfully!");
     } catch (error: any) {
-      console.error('Profile update error:', error);
-      toast.error('Profile update failed', { description: error.message || 'An error occurred while updating your profile.' });
+      console.error("Profile update error:", error);
+      toast.error("Profile update failed", {
+        description:
+          error.message || "An error occurred while updating your profile.",
+      });
       throw error;
     } finally {
       setLoading(false);
@@ -351,9 +413,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profile = await fetchUserProfile(user.id);
       setProfile(profile);
-      console.log('AuthContext: Profile refreshed', { profile });
+      console.log("AuthContext: Profile refreshed", { profile });
     } catch (error) {
-      console.error('Error refreshing profile:', error);
+      console.error("Error refreshing profile:", error);
     } finally {
       setLoading(false);
     }
@@ -361,7 +423,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isOnboardingComplete = (): boolean => {
     if (!profile) {
-      console.log('isOnboardingComplete: No profile found');
+      console.log("isOnboardingComplete: No profile found");
       return false;
     }
     return !!profile.onboarding_completed;
@@ -380,20 +442,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signInWithApple,
     signInWithEmail,
-    isOnboardingComplete
+    isOnboardingComplete,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
