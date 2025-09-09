@@ -36,12 +36,12 @@ export const AuthCallback: React.FC = () => {
       // Add a timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
         console.error(
-          "AuthCallback: Timeout reached, redirecting to landing page"
+          "AuthCallback: Timeout reached, redirecting to welcome screen"
         );
         toast.error("Authentication timeout", {
-          description: "Please try logging in again",
+          description: "Redirecting to welcome screen...",
         });
-        navigate("/", { replace: true });
+        navigate("/welcome-screen", { replace: true });
       }, 15000); // Increased to 15 seconds
 
       try {
@@ -94,13 +94,25 @@ export const AuthCallback: React.FC = () => {
     const handleUserSession = async (session: any) => {
       try {
         clearTimeout(timeoutId);
+        console.log("AuthCallback: Starting handleUserSession for user:", session.user.id);
         
-        // Create or get user profile
-        const { data: profileData, error: profileError } = await supabase
+        // Create or get user profile with timeout
+        console.log("AuthCallback: Fetching user profile...");
+        const profilePromise = supabase
           .from("user_profiles")
           .select("onboarding_completed, preferences")
           .eq("id", session.user.id)
           .single();
+
+        // Add a timeout to the profile fetch
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Profile fetch timeout")), 5000)
+        );
+
+        const { data: profileData, error: profileError } = await Promise.race([
+          profilePromise,
+          timeoutPromise
+        ]) as any;
 
         console.log("AuthCallback: Profile check:", {
           profileData,
@@ -110,32 +122,43 @@ export const AuthCallback: React.FC = () => {
         // If profile doesn't exist, create one
         if (profileError && profileError.code === "PGRST116") {
           console.log("AuthCallback: Creating new user profile...");
-          const { data: newProfile, error: createError } = await supabase
-            .from("user_profiles")
-            .insert([
-              {
-                id: session.user.id,
-                full_name:
-                  session.user.user_metadata?.full_name || session.user.email,
-                onboarding_completed: false,
-              },
-            ])
-            .select("onboarding_completed, preferences")
-            .single();
+          try {
+            const { data: newProfile, error: createError } = await supabase
+              .from("user_profiles")
+              .insert([
+                {
+                  id: session.user.id,
+                  full_name:
+                    session.user.user_metadata?.full_name || session.user.email,
+                  onboarding_completed: false,
+                },
+              ])
+              .select("onboarding_completed, preferences")
+              .single();
 
-          if (createError) {
-            console.error("AuthCallback: Error creating profile:", createError);
-            // Continue anyway, user can complete onboarding later
-          } else {
-            console.log("AuthCallback: Profile created successfully");
-            // Redirect to welcome screen for new users
+            if (createError) {
+              console.error("AuthCallback: Error creating profile:", createError);
+              // Fallback: redirect to welcome screen anyway
+              console.log("AuthCallback: Falling back to welcome screen due to profile creation error");
+              navigate("/welcome-screen", { replace: true });
+              return;
+            } else {
+              console.log("AuthCallback: Profile created successfully");
+              // Redirect to welcome screen for new users
+              navigate("/welcome-screen", { replace: true });
+              return;
+            }
+          } catch (createErr) {
+            console.error("AuthCallback: Exception during profile creation:", createErr);
+            // Fallback: redirect to welcome screen
             navigate("/welcome-screen", { replace: true });
             return;
           }
         } else if (profileError) {
           console.error("AuthCallback: Error fetching profile:", profileError);
-          // Continue anyway, redirect to welcome screen
-          navigate("/welcome-screen");
+          // Fallback: redirect to welcome screen
+          console.log("AuthCallback: Falling back to welcome screen due to profile fetch error");
+          navigate("/welcome-screen", { replace: true });
           return;
         }
 
@@ -162,7 +185,9 @@ export const AuthCallback: React.FC = () => {
         toast.error("Authentication failed", {
           description: "Failed to process user session. Please try again.",
         });
-        navigate("/", { replace: true });
+        // Fallback: redirect to welcome screen instead of landing page
+        console.log("AuthCallback: Final fallback - redirecting to welcome screen");
+        navigate("/welcome-screen", { replace: true });
       }
     };
 
