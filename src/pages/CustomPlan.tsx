@@ -391,6 +391,7 @@ const CustomPlan: React.FC = () => {
   const [metricsError, setMetricsError] = useState<string | null>(null);
   const [fallbackTriggered, setFallbackTriggered] = useState(false);
   const hasNavigatedRef = useRef(false);
+  const metricsGeneratedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Progress steps for the generation process
@@ -433,6 +434,7 @@ const CustomPlan: React.FC = () => {
     setMetricsError(null);
     setMetricsInitialized(false);
     setIsGeneratingMetrics(true);
+    metricsGeneratedRef.current = false; // Reset the ref to allow retry
 
     // Generate metrics immediately without fetching onboarding data
     try {
@@ -440,6 +442,7 @@ const CustomPlan: React.FC = () => {
       setHealthMetrics(metrics);
       setMetricsInitialized(true);
       setMetricsError(null);
+      metricsGeneratedRef.current = true; // Mark as completed
     } catch (error) {
       console.error("Error generating health metrics on retry:", error);
       setMetricsError("Unable to generate health metrics");
@@ -452,26 +455,34 @@ const CustomPlan: React.FC = () => {
     console.log("CustomPlan useEffect triggered:", { 
       profile: !!profile, 
       metricsInitialized, 
-      onboardingCompleted: profile?.onboarding_completed 
+      onboardingCompleted: profile?.onboarding_completed,
+      metricsGeneratedRef: metricsGeneratedRef.current
     });
 
-    const fetchOnboardingData = async () => {
-      if (!profile || metricsInitialized) {
-        console.log("Skipping fetchOnboardingData:", { profile: !!profile, metricsInitialized });
-        return; // Prevent re-running if metrics already initialized
-      }
+    // Prevent infinite loops - only run once per profile
+    if (!profile || metricsGeneratedRef.current) {
+      console.log("Skipping metrics generation:", { 
+        hasProfile: !!profile, 
+        alreadyGenerated: metricsGeneratedRef.current 
+      });
+      return;
+    }
 
+    const fetchOnboardingData = async () => {
       console.log("Starting fetchOnboardingData");
       setIsGeneratingMetrics(true);
       setMetricsError(null);
+      metricsGeneratedRef.current = true; // Mark as started to prevent re-runs
 
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
+        console.warn("Metrics generation timeout, using fallback");
         try {
           const metrics = generateHealthMetrics(profile, {});
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
           setMetricsError(null);
+          console.log("Timeout fallback completed successfully");
         } catch (error) {
           console.error("Fallback metrics generation failed:", error);
           setMetricsError("Unable to generate health metrics");
@@ -490,11 +501,13 @@ const CustomPlan: React.FC = () => {
         if (error) {
           console.warn("Could not fetch onboarding data:", error);
         } else {
+          console.log("Onboarding data fetched successfully");
           setOnboardingData(onboarding?.details || {});
         }
 
         // Generate health metrics based on profile and onboarding data
         try {
+          console.log("Generating health metrics...");
           const metrics = generateHealthMetrics(
             profile,
             onboarding?.details || {}
@@ -502,6 +515,7 @@ const CustomPlan: React.FC = () => {
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
           setMetricsError(null);
+          console.log("Health metrics generated successfully:", metrics.length);
         } catch (error) {
           console.error("Error generating health metrics:", error);
           setMetricsError("Failed to generate health metrics");
@@ -510,6 +524,7 @@ const CustomPlan: React.FC = () => {
             const basicMetrics = generateHealthMetrics(profile, {});
             setHealthMetrics(basicMetrics);
             setMetricsInitialized(true);
+            console.log("Basic metrics generated as fallback");
           } catch (fallbackError) {
             console.error("Fallback metrics generation failed:", fallbackError);
             setMetricsError("Unable to generate health metrics");
@@ -523,6 +538,7 @@ const CustomPlan: React.FC = () => {
           const metrics = generateHealthMetrics(profile, {});
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
+          console.log("Basic metrics generated after error");
         } catch (fallbackError) {
           console.error("Fallback metrics generation failed:", fallbackError);
           setMetricsError("Unable to generate health metrics");
@@ -530,20 +546,18 @@ const CustomPlan: React.FC = () => {
       } finally {
         clearTimeout(timeoutId);
         setIsGeneratingMetrics(false);
+        console.log("fetchOnboardingData completed");
       }
     };
 
-    if (profile && profile.onboarding_completed && !metricsInitialized) {
+    if (profile.onboarding_completed) {
       console.log("Profile has completed onboarding, fetching data");
       fetchOnboardingData();
-    } else if (
-      profile &&
-      !profile.onboarding_completed &&
-      !metricsInitialized
-    ) {
+    } else {
       console.log("Profile has not completed onboarding, generating basic metrics");
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
+      metricsGeneratedRef.current = true; // Mark as started
       try {
         const metrics = generateHealthMetrics(profile, {});
         setHealthMetrics(metrics);
@@ -555,14 +569,8 @@ const CustomPlan: React.FC = () => {
         setMetricsError("Unable to generate health metrics");
       }
       setIsGeneratingMetrics(false);
-    } else {
-      console.log("No action taken:", { 
-        hasProfile: !!profile, 
-        onboardingCompleted: profile?.onboarding_completed,
-        metricsInitialized 
-      });
     }
-  }, [profile, metricsInitialized]);
+  }, [profile]); // Remove metricsInitialized from dependencies
 
   // Fallback mechanism to prevent infinite loading
   useEffect(() => {
