@@ -337,6 +337,7 @@ const CustomPlan: React.FC = () => {
   const [currentProgressStep, setCurrentProgressStep] = useState(0);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [isGeneratingMetrics, setIsGeneratingMetrics] = useState(false);
   const hasNavigatedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -353,6 +354,8 @@ const CustomPlan: React.FC = () => {
   useEffect(() => {
     const fetchOnboardingData = async () => {
       if (!profile) return;
+      
+      setIsGeneratingMetrics(true);
       
       try {
         // Fetch onboarding data using existing supabase client
@@ -376,11 +379,19 @@ const CustomPlan: React.FC = () => {
         // Fallback to basic metrics
         const metrics = generateHealthMetrics(profile, {});
         setHealthMetrics(metrics);
+      } finally {
+        setIsGeneratingMetrics(false);
       }
     };
 
     if (profile && profile.onboarding_completed) {
       fetchOnboardingData();
+    } else if (profile && !profile.onboarding_completed) {
+      // If profile exists but onboarding not completed, generate basic metrics
+      setIsGeneratingMetrics(true);
+      const metrics = generateHealthMetrics(profile, {});
+      setHealthMetrics(metrics);
+      setIsGeneratingMetrics(false);
     }
   }, [profile]);
 
@@ -686,12 +697,27 @@ const CustomPlan: React.FC = () => {
   }
 
   // Show loading state while generating metrics
-  if (healthMetrics.length === 0) {
+  if (isGeneratingMetrics) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Analyzing your health data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: if no metrics and we have a profile, generate them immediately
+  if (profile && healthMetrics.length === 0) {
+    console.log("Fallback: Generating health metrics for profile:", profile);
+    const fallbackMetrics = generateHealthMetrics(profile, {});
+    setHealthMetrics(fallbackMetrics);
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Generating your health metrics...</p>
         </div>
       </div>
     );
