@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
+import { Heart, Wine, Coffee, Droplets, Footprints, Apple, Clock } from "lucide-react";
 
 interface HealthPlanReport {
   summary: string;
@@ -28,6 +29,136 @@ interface HealthPlanReport {
     };
   } | null;
 }
+
+interface HealthMetric {
+  id: string;
+  name: string;
+  value: string;
+  target: string;
+  status: "good" | "bad";
+  icon: React.ReactNode;
+}
+
+const healthMetrics: HealthMetric[] = [
+  {
+    id: "stress",
+    name: "50+ stress score",
+    value: "65",
+    target: "50",
+    status: "bad",
+    icon: <Heart className="h-5 w-5" />
+  },
+  {
+    id: "alcohol",
+    name: "Alcohol",
+    value: "0.0 drinks",
+    target: "0",
+    status: "bad",
+    icon: <Wine className="h-5 w-5" />
+  },
+  {
+    id: "caffeine",
+    name: "Caffeine",
+    value: "95 mg",
+    target: "100",
+    status: "good",
+    icon: <Coffee className="h-5 w-5" />
+  },
+  {
+    id: "hydration",
+    name: "Hydration",
+    value: "64.0 fl oz",
+    target: "64",
+    status: "good",
+    icon: <Droplets className="h-5 w-5" />
+  },
+  {
+    id: "steps",
+    name: "10,000+ steps",
+    value: "12,500",
+    target: "10,000",
+    status: "good",
+    icon: <Footprints className="h-5 w-5" />
+  },
+  {
+    id: "nutrition",
+    name: "67+ nutrition score",
+    value: "72",
+    target: "67",
+    status: "good",
+    icon: <Apple className="h-5 w-5" />
+  },
+  {
+    id: "late-meal",
+    name: "Late meal",
+    value: "9:30 PM",
+    target: "8:00 PM",
+    status: "bad",
+    icon: <Clock className="h-5 w-5" />
+  }
+];
+
+// Rotating Wheel Component
+const RotatingWheel: React.FC<{ metrics: HealthMetric[] }> = ({ metrics }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % metrics.length);
+        setIsAnimating(false);
+      }, 300);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [metrics.length]);
+
+  const currentMetric = metrics[currentIndex];
+
+  return (
+    <div className="flex justify-center mb-8">
+      <div className="relative w-32 h-32">
+        {/* Rotating wheel background */}
+        <div 
+          className={`absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 transition-transform duration-300 ${
+            isAnimating ? 'scale-110' : 'scale-100'
+          }`}
+          style={{
+            transform: `rotate(${currentIndex * (360 / metrics.length)}deg)`,
+            transition: 'transform 0.3s ease-in-out'
+          }}
+        />
+        
+        {/* Center content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+          <div className="text-2xl font-bold text-gray-800 mb-1">
+            {currentMetric.value}
+          </div>
+          <div className="text-xs text-gray-600 text-center px-2">
+            {currentMetric.name}
+          </div>
+        </div>
+
+        {/* Status indicator */}
+        <div className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${
+          currentMetric.status === 'good' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          {currentMetric.status === 'good' ? (
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Generate basic health plan without AI
 async function generateBasicHealthPlan(
@@ -432,28 +563,68 @@ const CustomPlan: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
       <div className="max-w-md w-full mx-auto p-6">
+        {/* Health Metrics Cards */}
+        <div className="space-y-3 mb-8">
+          {healthMetrics.map((metric) => (
+            <div
+              key={metric.id}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-full ${
+                  metric.status === 'good' ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                  {metric.icon}
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900">{metric.name}</div>
+                  <div className={`text-sm ${
+                    metric.status === 'good' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {metric.value}
+                  </div>
+                </div>
+              </div>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                metric.status === 'good' ? 'bg-green-500' : 'bg-red-500'
+              }`}>
+                {metric.status === 'good' ? (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Rotating Wheel */}
+        <RotatingWheel metrics={healthMetrics} />
+
+        {/* Main Content */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Custom Health Plan</h1>
-          <p className="text-muted-foreground">
-            Generate a personalized health plan based on your profile
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            Better health timeline
+          </h1>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            Your habits shape your health. UrCare helps you spot the ones that move the needle, so you can double down on what works.
           </p>
         </div>
 
-        <div className="space-y-4">
-          <Button onClick={handleGeneratePlan} className="w-full" size="lg">
-            Generate My Health Plan
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => navigate("/dashboard")}
-            className="w-full"
-          >
-            Back to Dashboard
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button 
+          onClick={handleGeneratePlan} 
+          className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-medium"
+          size="lg"
+        >
+          Continue
+        </Button>
       </div>
     </div>
   );
