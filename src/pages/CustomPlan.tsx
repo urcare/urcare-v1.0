@@ -393,6 +393,7 @@ const CustomPlan: React.FC = () => {
   const hasNavigatedRef = useRef(false);
   const metricsGeneratedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastProcessedProfileId = useRef<string | null>(null);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -435,6 +436,7 @@ const CustomPlan: React.FC = () => {
     setMetricsInitialized(false);
     setIsGeneratingMetrics(true);
     metricsGeneratedRef.current = false; // Reset the ref to allow retry
+    lastProcessedProfileId.current = null; // Reset the tracking
 
     // Generate metrics immediately without fetching onboarding data
     try {
@@ -443,6 +445,7 @@ const CustomPlan: React.FC = () => {
       setMetricsInitialized(true);
       setMetricsError(null);
       metricsGeneratedRef.current = true; // Mark as completed
+      lastProcessedProfileId.current = profile.id; // Mark as processed
     } catch (error) {
       console.error("Error generating health metrics on retry:", error);
       setMetricsError("Unable to generate health metrics");
@@ -457,11 +460,14 @@ const CustomPlan: React.FC = () => {
 
     console.log("CustomPlan useEffect triggered for profile:", profileId);
 
-    // Prevent infinite loops - only run once per profile
-    if (!profileId || metricsGeneratedRef.current) {
+    // Prevent infinite loops - only run once per profile ID
+    if (!profileId || profileId === lastProcessedProfileId.current) {
       console.log("Skipping metrics generation - already done or no profile");
       return;
     }
+
+    // Mark this profile as being processed
+    lastProcessedProfileId.current = profileId;
 
     const fetchOnboardingData = async () => {
       console.log("Starting fetchOnboardingData");
@@ -569,22 +575,14 @@ const CustomPlan: React.FC = () => {
     }
   }, [profile?.id]); // Use profile ID instead of whole profile object
 
-  // Reset ref when profile changes
-  useEffect(() => {
-    if (profile?.id) {
-      console.log("Profile changed, resetting metricsGeneratedRef");
-      metricsGeneratedRef.current = false;
-      setMetricsInitialized(false); // Also reset state
-    }
-  }, [profile?.id]);
-
   // Fallback mechanism to prevent infinite loading
   useEffect(() => {
     if (
       profile &&
       !metricsInitialized &&
       !isGeneratingMetrics &&
-      !fallbackTriggered
+      !fallbackTriggered &&
+      profile.id !== lastProcessedProfileId.current
     ) {
       const fallbackTimeout = setTimeout(() => {
         console.warn("Fallback triggered - showing content without metrics");
@@ -595,6 +593,7 @@ const CustomPlan: React.FC = () => {
           setHealthMetrics(basicMetrics);
           setMetricsInitialized(true);
           setIsGeneratingMetrics(false);
+          lastProcessedProfileId.current = profile.id; // Mark as processed
         } catch (error) {
           console.error("Fallback metrics generation failed:", error);
           setMetricsInitialized(true); // Still set to true to show content
@@ -604,7 +603,7 @@ const CustomPlan: React.FC = () => {
 
       return () => clearTimeout(fallbackTimeout);
     }
-  }, [profile, metricsInitialized, isGeneratingMetrics, fallbackTriggered]);
+  }, [profile?.id, metricsInitialized, isGeneratingMetrics, fallbackTriggered]);
 
   // Safe navigation function to prevent throttling
   const safeNavigate = useCallback(
@@ -675,6 +674,9 @@ const CustomPlan: React.FC = () => {
       if (navigationTimeoutRef.current) {
         clearTimeout(navigationTimeoutRef.current);
       }
+      // Reset tracking on unmount to prevent stale state
+      lastProcessedProfileId.current = null;
+      metricsGeneratedRef.current = false;
     };
   }, []);
 
