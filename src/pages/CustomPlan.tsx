@@ -452,19 +452,14 @@ const CustomPlan: React.FC = () => {
 
   // Fetch onboarding data and generate health metrics
   useEffect(() => {
-    console.log("CustomPlan useEffect triggered:", { 
-      profile: !!profile, 
-      metricsInitialized, 
-      onboardingCompleted: profile?.onboarding_completed,
-      metricsGeneratedRef: metricsGeneratedRef.current
-    });
+    // Use profile ID instead of profile object to prevent infinite loops
+    const profileId = profile?.id;
+
+    console.log("CustomPlan useEffect triggered for profile:", profileId);
 
     // Prevent infinite loops - only run once per profile
-    if (!profile || metricsGeneratedRef.current) {
-      console.log("Skipping metrics generation:", { 
-        hasProfile: !!profile, 
-        alreadyGenerated: metricsGeneratedRef.current 
-      });
+    if (!profileId || metricsGeneratedRef.current) {
+      console.log("Skipping metrics generation - already done or no profile");
       return;
     }
 
@@ -515,7 +510,7 @@ const CustomPlan: React.FC = () => {
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
           setMetricsError(null);
-          console.log("Health metrics generated successfully:", metrics.length);
+          console.log("Health metrics generated successfully");
         } catch (error) {
           console.error("Error generating health metrics:", error);
           setMetricsError("Failed to generate health metrics");
@@ -554,7 +549,9 @@ const CustomPlan: React.FC = () => {
       console.log("Profile has completed onboarding, fetching data");
       fetchOnboardingData();
     } else {
-      console.log("Profile has not completed onboarding, generating basic metrics");
+      console.log(
+        "Profile has not completed onboarding, generating basic metrics"
+      );
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
       metricsGeneratedRef.current = true; // Mark as started
@@ -563,18 +560,32 @@ const CustomPlan: React.FC = () => {
         setHealthMetrics(metrics);
         setMetricsInitialized(true);
         setMetricsError(null);
-        console.log("Basic metrics generated for incomplete onboarding");
+        console.log("Basic metrics generated successfully");
       } catch (error) {
         console.error("Error generating basic metrics:", error);
         setMetricsError("Unable to generate health metrics");
       }
       setIsGeneratingMetrics(false);
     }
-  }, [profile]); // Remove metricsInitialized from dependencies
+  }, [profile?.id]); // Use profile ID instead of whole profile object
+
+  // Reset ref when profile changes
+  useEffect(() => {
+    if (profile?.id) {
+      console.log("Profile changed, resetting metricsGeneratedRef");
+      metricsGeneratedRef.current = false;
+      setMetricsInitialized(false); // Also reset state
+    }
+  }, [profile?.id]);
 
   // Fallback mechanism to prevent infinite loading
   useEffect(() => {
-    if (profile && !metricsInitialized && !isGeneratingMetrics && !fallbackTriggered) {
+    if (
+      profile &&
+      !metricsInitialized &&
+      !isGeneratingMetrics &&
+      !fallbackTriggered
+    ) {
       const fallbackTimeout = setTimeout(() => {
         console.warn("Fallback triggered - showing content without metrics");
         setFallbackTriggered(true);
@@ -933,15 +944,17 @@ const CustomPlan: React.FC = () => {
 
   // Show loading state while generating metrics or if metrics not initialized yet
   // But allow fallback to show content if fallback is triggered
-  console.log("CustomPlan render state:", {
-    isGeneratingMetrics,
-    hasProfile: !!profile,
-    metricsInitialized,
-    fallbackTriggered,
-    shouldShowLoading: (isGeneratingMetrics || (profile && !metricsInitialized)) && !fallbackTriggered
-  });
+  console.log(
+    "CustomPlan render - Loading:",
+    (isGeneratingMetrics || (profile && !metricsInitialized)) &&
+      !fallbackTriggered
+  );
+  // Minor test change to verify push works
 
-  if ((isGeneratingMetrics || (profile && !metricsInitialized)) && !fallbackTriggered) {
+  if (
+    (isGeneratingMetrics || (profile && !metricsInitialized)) &&
+    !fallbackTriggered
+  ) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -949,10 +962,10 @@ const CustomPlan: React.FC = () => {
           <p className="text-gray-600">Analyzing your health data...</p>
           {/* Debug info */}
           <div className="mt-4 text-xs text-gray-400">
-            Debug: {isGeneratingMetrics ? 'Generating' : 'Waiting'} | 
-            Profile: {profile ? 'Yes' : 'No'} | 
-            Metrics: {metricsInitialized ? 'Yes' : 'No'} |
-            Fallback: {fallbackTriggered ? 'Yes' : 'No'}
+            Debug: {isGeneratingMetrics ? "Generating" : "Waiting"} | Profile:{" "}
+            {profile ? "Yes" : "No"} | Metrics:{" "}
+            {metricsInitialized ? "Yes" : "No"} | Fallback:{" "}
+            {fallbackTriggered ? "Yes" : "No"}
           </div>
         </div>
       </div>
