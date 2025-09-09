@@ -98,6 +98,29 @@ export const AuthCallback: React.FC = () => {
         
         // Create or get user profile with timeout
         console.log("AuthCallback: Fetching user profile...");
+        
+        // First, test if we can access the table at all
+        console.log("AuthCallback: Testing table access...");
+        const testPromise = supabase
+          .from("user_profiles")
+          .select("id")
+          .limit(1);
+        
+        const testTimeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Table access timeout")), 3000)
+        );
+        
+        try {
+          await Promise.race([testPromise, testTimeoutPromise]);
+          console.log("AuthCallback: Table access successful, fetching profile...");
+        } catch (testError) {
+          console.error("AuthCallback: Table access failed:", testError);
+          // If we can't access the table, assume user needs to go through onboarding
+          console.log("AuthCallback: Cannot access database - redirecting to welcome screen");
+          navigate("/welcome-screen", { replace: true });
+          return;
+        }
+        
         const profilePromise = supabase
           .from("user_profiles")
           .select("onboarding_completed, preferences")
@@ -182,6 +205,33 @@ export const AuthCallback: React.FC = () => {
         }
       } catch (error) {
         console.error("AuthCallback: Error handling user session:", error);
+        
+        // If it's a timeout error, try to redirect based on user metadata
+        if (error instanceof Error && (error.message === "Profile fetch timeout" || error.message === "Table access timeout")) {
+          console.log("AuthCallback: Database timeout - checking user metadata for routing");
+          
+          // Check if user has any metadata that might indicate they're returning
+          const userEmail = session.user.email;
+          const userMetadata = session.user.user_metadata;
+          
+          console.log("AuthCallback: User metadata:", userMetadata);
+          
+          // For OAuth users, they usually have metadata, so assume they're returning
+          if (userMetadata?.full_name || userEmail) {
+            console.log("AuthCallback: User appears to be returning - redirecting to custom plan");
+            toast.success("Welcome back!", {
+              description: "Redirecting to your dashboard...",
+            });
+            navigate("/custom-plan", { replace: true });
+            return;
+          }
+          
+          // If no metadata, they might be a new user
+          console.log("AuthCallback: No user metadata - redirecting to welcome screen");
+          navigate("/welcome-screen", { replace: true });
+          return;
+        }
+        
         toast.error("Authentication failed", {
           description: "Failed to process user session. Please try again.",
         });
