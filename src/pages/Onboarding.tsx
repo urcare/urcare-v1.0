@@ -96,6 +96,9 @@ const Onboarding = () => {
   useEffect(() => {
     if (profile && profile.onboarding_completed) {
       navigate("/custom-plan", { replace: true });
+    } else if (profile && !profile.onboarding_completed) {
+      // If profile exists but onboarding is not completed, show onboarding
+      setOnboardingStep("serial");
     }
   }, [profile, navigate]);
 
@@ -175,6 +178,9 @@ const Onboarding = () => {
 
         console.log("Profile saved successfully");
 
+        // Refresh the profile in AuthContext to get updated data
+        await refreshProfile();
+
         // Set onboarding step to complete
         setOnboardingStep("complete");
 
@@ -182,8 +188,8 @@ const Onboarding = () => {
           description: "Your profile has been saved.",
         });
 
-        // Navigate to custom plan page
-        navigate("/custom-plan", { replace: true });
+        // Let the redirect logic handle navigation based on updated profile
+        // The useEffect with profile dependency will redirect to /custom-plan
       } catch (error) {
         console.error("Error completing onboarding:", error);
         toast.error("Failed to complete onboarding", {
@@ -194,7 +200,7 @@ const Onboarding = () => {
         setLoading(false);
       }
     },
-    [user, navigate]
+    [user, navigate, refreshProfile]
   );
 
   // Restore onboarding data from localStorage after OAuth
@@ -222,7 +228,7 @@ const Onboarding = () => {
         .insert([
           { id: user.id, full_name: user.email, onboarding_completed: false },
         ])
-        .then(({ error }) => {
+        .then(async ({ error }) => {
           if (error) {
             console.error(
               "Failed to create user profile in onboarding fallback:",
@@ -233,10 +239,12 @@ const Onboarding = () => {
               "Created user profile in onboarding fallback for user:",
               user.id
             );
+            // Refresh the profile in AuthContext after creation
+            await refreshProfile();
           }
         });
     }
-  }, [user, profile]);
+  }, [user, profile, refreshProfile]);
 
   // Manual trigger for development
   useEffect(() => {
