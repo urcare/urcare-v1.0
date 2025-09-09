@@ -1,5 +1,6 @@
 import { config } from "../config";
 import { UserProfile } from "../contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface HealthPlanReport {
   summary: string;
@@ -34,45 +35,70 @@ class HealthReportService {
 
   async generateHealthPlan(profile: UserProfile): Promise<HealthPlanReport> {
     try {
-      const response = await fetch(`${this.apiBaseUrl}/api/generate-plan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ profile }),
+      // First try Supabase Edge Function (production)
+      const { data, error } = await supabase.functions.invoke("generate-health-plan", {
+        body: { profile },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server API error:", errorText);
-        throw new Error(`Server API error: ${response.status}`);
+      if (error) {
+        console.warn("Supabase function failed, trying server API:", error);
+        throw new Error(`Supabase function error: ${error.message}`);
       }
 
-      const data = await response.json();
-
-      // The server returns { report, structured } format
-      if (data.report && data.structured) {
-        return {
-          summary: data.structured.summary?.healthScore
-            ? `Your personalized health plan is ready! Health Score: ${data.structured.summary.healthScore}/100`
-            : "Your personalized health plan is ready!",
-          recommendations: data.structured.summary?.keyRecommendations || [
-            "Start with 10 minutes of daily exercise",
-            "Track your water intake",
-            "Establish a regular sleep routine",
-            "Plan meals in advance",
-            "Set weekly goals",
-          ],
-          detailedReport: data.report,
-          structured: data.structured,
-        };
+      if (!data.success) {
+        console.warn("Supabase function returned error, trying server API:", data.error);
+        throw new Error(data.error || "Failed to generate health plan");
       }
 
-      throw new Error("Invalid response format from server");
+      // The Supabase function returns a TwoDayPlan format, but we need HealthPlanReport format
+      // For now, let's use the server API which returns the correct format
+      throw new Error("Using server API for correct format");
+      
     } catch (error) {
-      console.error("Error generating health plan with server API:", error);
-      // Fallback to basic plan if server API fails
-      return this.generateBasicHealthPlan(profile);
+      console.log("Trying server API as fallback...");
+      
+      try {
+        // Fallback to server API
+        const response = await fetch(`${this.apiBaseUrl}/api/generate-plan`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ profile }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Server API error:", errorText);
+          throw new Error(`Server API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // The server returns { report, structured } format
+        if (data.report && data.structured) {
+          return {
+            summary: data.structured.summary?.healthScore
+              ? `Your personalized health plan is ready! Health Score: ${data.structured.summary.healthScore}/100`
+              : "Your personalized health plan is ready!",
+            recommendations: data.structured.summary?.keyRecommendations || [
+              "Start with 10 minutes of daily exercise",
+              "Track your water intake",
+              "Establish a regular sleep routine",
+              "Plan meals in advance",
+              "Set weekly goals",
+            ],
+            detailedReport: data.report,
+            structured: data.structured,
+          };
+        }
+
+        throw new Error("Invalid response format from server");
+      } catch (serverError) {
+        console.error("Both Supabase function and server API failed:", serverError);
+        // Final fallback to basic plan
+        return this.generateBasicHealthPlan(profile);
+      }
     }
   }
 
