@@ -62,6 +62,30 @@ const Onboarding = () => {
     useState<OnboardingData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
 
+  // Helper function to convert descriptive time to proper time format
+  const convertTimeToFormat = (timeValue: string | null): string | null => {
+    if (!timeValue) return null;
+
+    // If it's already in proper time format (HH:MM), return as is
+    if (/^\d{1,2}:\d{2}$/.test(timeValue)) {
+      return timeValue;
+    }
+
+    // Convert descriptive time to proper format
+    const timeMap: { [key: string]: string } = {
+      "Early Morning (05:00-07:00)": "06:00",
+      "Morning (06:00-10:00)": "08:00",
+      "Late Morning (10:00-12:00)": "11:00",
+      "Afternoon (12:00-15:00)": "13:30",
+      "Late Afternoon (15:00-17:00)": "16:00",
+      "Evening (17:00-20:00)": "18:30",
+      "Night (20:00-22:00)": "21:00",
+      "Late Night (22:00-24:00)": "23:00",
+    };
+
+    return timeMap[timeValue] || null;
+  };
+
   // Show auth popup if not authenticated
   useEffect(() => {
     if (!user) setShowAuth(true);
@@ -105,10 +129,10 @@ const Onboarding = () => {
           height_cm: data.heightCm || null,
           weight_lb: data.weightLb || null,
           weight_kg: data.weightKg || null,
-          wake_up_time: data.wakeUpTime || null,
-          sleep_time: data.sleepTime || null,
-          work_start: data.workStart || null,
-          work_end: data.workEnd || null,
+          wake_up_time: convertTimeToFormat(data.wakeUpTime),
+          sleep_time: convertTimeToFormat(data.sleepTime),
+          work_start: convertTimeToFormat(data.workStart),
+          work_end: convertTimeToFormat(data.workEnd),
           chronic_conditions: data.chronicConditions || null,
           takes_medications: data.takesMedications || null,
           medications: data.medications || null,
@@ -117,10 +141,10 @@ const Onboarding = () => {
           health_goals: data.healthGoals || null,
           diet_type: data.dietType || null,
           blood_group: data.bloodGroup || null,
-          breakfast_time: data.breakfastTime || null,
-          lunch_time: data.lunchTime || null,
-          dinner_time: data.dinnerTime || null,
-          workout_time: data.workoutTime || null,
+          breakfast_time: convertTimeToFormat(data.breakfastTime),
+          lunch_time: convertTimeToFormat(data.lunchTime),
+          dinner_time: convertTimeToFormat(data.dinnerTime),
+          workout_time: convertTimeToFormat(data.workoutTime),
           routine_flexibility: data.routineFlexibility || null,
           uses_wearable: data.usesWearable || null,
           wearable_type: data.wearableType || null,
