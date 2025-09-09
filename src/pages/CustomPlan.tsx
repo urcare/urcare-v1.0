@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { ProgressSteps } from "@/components/ui/loading-animation";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Activity,
-  AlertTriangle,
-  Apple,
-  Brain,
-  Heart,
-  Shield,
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Activity, 
+  Heart, 
+  Apple, 
+  Moon, 
+  Target, 
   TrendingUp,
+  CheckCircle,
+  AlertCircle,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
@@ -19,7 +22,7 @@ interface HealthPlanReport {
   summary: string;
   recommendations: string[];
   detailedReport: string;
-  structured?: {
+  structured: {
     summary: {
       healthScore: string;
       calorieTarget: string;
@@ -36,307 +39,18 @@ interface HealthPlanReport {
       urCareBenefits: string;
       nextSteps: string;
     };
-  } | null;
-}
-
-interface HealthMetric {
-  id: string;
-  name: string;
-  value: string;
-  target: string;
-  status: "good" | "bad";
-  icon: React.ReactNode;
-  description: string;
-}
-
-interface HealthAnalysis {
-  overallScore: number;
-  metrics: HealthMetric[];
-  riskFactors: string[];
-  recommendations: string[];
-}
-
-// Generate health analysis
-const generateHealthAnalysis = async (
-  profile: UserProfile,
-  onboardingData: Record<string, unknown>
-): Promise<HealthAnalysis> => {
-  try {
-    console.log("Generating health analysis...");
-    
-    // Use basic analysis directly (no AI)
-    return generateBasicHealthAnalysis(profile, onboardingData);
-  } catch (error) {
-    console.error("Error generating health analysis:", error);
-    // Fallback to basic analysis
-    return generateBasicHealthAnalysis(profile, onboardingData);
-  }
-};
-
-// Generate basic health analysis
-const generateBasicHealthAnalysis = (
-  profile: UserProfile,
-  onboardingData: Record<string, unknown>
-): HealthAnalysis => {
-  const metrics: HealthMetric[] = [];
-  let overallScore = 75;
-
-  // BMI Analysis
-  if (profile.height_cm && profile.weight_kg) {
-    const heightM = parseFloat(profile.height_cm) / 100;
-    const weightKg = parseFloat(profile.weight_kg);
-    const bmi = weightKg / (heightM * heightM);
-
-    let bmiStatus: "good" | "bad" = "good";
-    let bmiDescription = "Normal BMI range";
-
-    if (bmi < 18.5 || bmi > 24.9) {
-      bmiStatus = "bad";
-      bmiDescription = bmi < 18.5 ? "Underweight" : "Overweight";
-      overallScore -= 10;
-    } else {
-      overallScore += 10;
-    }
-
-    metrics.push({
-      id: "bmi",
-      name: "BMI Score",
-      value: bmi.toFixed(1),
-      target: "18.5-24.9",
-      status: bmiStatus,
-      icon: <TrendingUp className="h-5 w-5" />,
-      description: bmiDescription,
-    });
-  }
-
-  // Sleep Quality
-  if (profile.sleep_time && profile.wake_up_time) {
-    const sleepHour = parseInt(profile.sleep_time.split(":")[0]);
-    const wakeHour = parseInt(profile.wake_up_time.split(":")[0]);
-    const sleepDuration =
-      wakeHour >= sleepHour ? wakeHour - sleepHour : 24 - sleepHour + wakeHour;
-
-    const sleepStatus: "good" | "bad" =
-      sleepDuration >= 7 && sleepDuration <= 9 ? "good" : "bad";
-    if (sleepStatus === "good") overallScore += 15;
-    else overallScore -= 10;
-
-    metrics.push({
-      id: "sleep",
-      name: "Sleep Quality",
-      value: `${sleepDuration}h`,
-      target: "7-9h",
-      status: sleepStatus,
-      icon: <Brain className="h-5 w-5" />,
-      description:
-        sleepStatus === "good" ? "Optimal sleep duration" : "Needs improvement",
-    });
-  }
-
-  // Health Risk Assessment
-  const riskFactors = profile.chronic_conditions?.length || 0;
-  const medicationCount = profile.medications?.length || 0;
-  const totalRiskScore = Math.max(
-    0,
-    100 - (riskFactors * 15 + medicationCount * 10)
-  );
-
-  if (riskFactors > 0 || medicationCount > 0)
-    overallScore -= riskFactors * 5 + medicationCount * 3;
-
-  metrics.push({
-    id: "health-risk",
-    name: "Health Risk",
-    value: totalRiskScore.toString(),
-    target: "80+",
-    status: totalRiskScore >= 80 ? "good" : "bad",
-    icon: <Shield className="h-5 w-5" />,
-    description:
-      totalRiskScore >= 80
-        ? "Low risk profile"
-        : "Moderate risk factors present",
-  });
-
-  // Activity Level
-  const hasActiveGoals = profile.health_goals?.some(
-    (goal) =>
-      goal.toLowerCase().includes("fitness") ||
-      goal.toLowerCase().includes("exercise") ||
-      goal.toLowerCase().includes("active")
-  );
-
-  const activityScore = hasActiveGoals ? 85 : 65;
-  if (hasActiveGoals) overallScore += 10;
-
-  metrics.push({
-    id: "activity",
-    name: "Activity Level",
-    value: activityScore.toString(),
-    target: "75+",
-    status: activityScore >= 75 ? "good" : "bad",
-    icon: <Activity className="h-5 w-5" />,
-    description: hasActiveGoals
-      ? "Active lifestyle goals"
-      : "Could be more active",
-  });
-
-  // Nutrition Assessment
-  const hasHealthyDiet =
-    profile.diet_type &&
-    ["vegetarian", "vegan", "mediterranean", "balanced"].includes(
-      profile.diet_type.toLowerCase()
-    );
-
-  const nutritionScore = hasHealthyDiet ? 80 : 60;
-  if (hasHealthyDiet) overallScore += 5;
-
-  metrics.push({
-    id: "nutrition",
-    name: "Nutrition Score",
-    value: nutritionScore.toString(),
-    target: "70+",
-    status: nutritionScore >= 70 ? "good" : "bad",
-    icon: <Apple className="h-5 w-5" />,
-    description: hasHealthyDiet
-      ? "Healthy diet pattern"
-      : "Room for improvement",
-  });
-
-  // Stress Indicators
-  const stressIndicators =
-    (profile.chronic_conditions?.length || 0) +
-    (profile.medications?.length || 0);
-  const stressScore = Math.max(20, 100 - stressIndicators * 15);
-
-  metrics.push({
-    id: "stress",
-    name: "Stress Level",
-    value: stressScore.toString(),
-    target: "60+",
-    status: stressScore >= 60 ? "good" : "bad",
-    icon: <Heart className="h-5 w-5" />,
-    description:
-      stressScore >= 60 ? "Manageable stress levels" : "High stress indicators",
-  });
-
-  // Cap overall score
-  overallScore = Math.max(30, Math.min(100, overallScore));
-
-  const riskFactorsList = [];
-  if (riskFactors > 0)
-    riskFactorsList.push("Chronic health conditions present");
-  if (medicationCount > 0) riskFactorsList.push("Multiple medications");
-  if (!hasActiveGoals) riskFactorsList.push("Sedentary lifestyle indicators");
-  if (!hasHealthyDiet) riskFactorsList.push("Suboptimal nutrition patterns");
-
-  const recommendations = [
-    "Focus on consistent sleep schedule (7-9 hours)",
-    "Incorporate regular physical activity",
-    "Maintain balanced nutrition",
-    "Monitor and manage stress levels",
-    "Regular health check-ups",
-  ];
-
-  return {
-    overallScore,
-    metrics,
-    riskFactors: riskFactorsList,
-    recommendations,
   };
-};
+}
 
-// Rotating Wheel Component
-const RotatingWheel: React.FC<{ metrics: HealthMetric[] }> = ({ metrics }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % metrics.length);
-        setIsAnimating(false);
-      }, 300);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [metrics.length]);
-
-  const currentMetric = metrics[currentIndex];
-
-  return (
-    <div className="flex justify-center mb-8">
-      <div className="relative w-32 h-32">
-        {/* Rotating wheel background */}
-        <div
-          className={`absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 transition-transform duration-300 ${
-            isAnimating ? "scale-110" : "scale-100"
-          }`}
-          style={{
-            transform: `rotate(${currentIndex * (360 / metrics.length)}deg)`,
-            transition: "transform 0.3s ease-in-out",
-          }}
-        />
-
-        {/* Center content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-          <div className="text-2xl font-bold text-gray-800 mb-1">
-            {currentMetric.value}
-          </div>
-          <div className="text-xs text-gray-600 text-center px-2">
-            {currentMetric.name}
-          </div>
-        </div>
-
-        {/* Status indicator */}
-        <div
-          className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${
-            currentMetric.status === "good" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {currentMetric.status === "good" ? (
-            <svg
-              className="w-4 h-4 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-4 h-4 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Generate basic health plan without AI
-async function generateBasicHealthPlan(
-  profile: UserProfile
-): Promise<HealthPlanReport> {
-  console.log("Generating basic health plan for profile:", profile);
+// Generate basic health plan
+async function generateBasicHealthPlan(profile: UserProfile): Promise<HealthPlanReport> {
+  console.log("Generating health plan for profile:", profile);
 
   // Calculate basic health metrics with better defaults
-  const age =
-    profile.age ||
-    (profile.date_of_birth
-      ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
-      : 30);
+  const age = profile.age || 
+    (profile.date_of_birth ? 
+      new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear() : 
+      30);
   const height = parseFloat(profile.height_cm || profile.height_feet || "170");
   const weight = parseFloat(profile.weight_kg || profile.weight_lb || "70");
 
@@ -363,30 +77,26 @@ async function generateBasicHealthPlan(
   if (age >= 18 && age <= 65) healthScore += 10;
   if (age >= 25 && age <= 45) healthScore += 5;
 
-  const bmiCategory =
-    parseFloat(bmi) < 18.5
-      ? "Underweight"
-      : parseFloat(bmi) > 24.9
-      ? "Overweight"
-      : "Normal weight";
+  const bmiCategory = parseFloat(bmi) < 18.5 ? "Underweight" : 
+                     parseFloat(bmi) > 24.9 ? "Overweight" : "Normal weight";
 
   const basicReport = `**HEALTH ASSESSMENT**
 • BMI: ${bmi} (${bmiCategory})
 • Health Score: ${healthScore}/100
 • Age: ${age} years
 • Status: ${bmiCategory} - ${
-    parseFloat(bmi) < 18.5
-      ? "Consider consulting a nutritionist"
-      : parseFloat(bmi) > 24.9
-      ? "Focus on balanced diet and exercise"
-      : "Maintain current healthy habits"
-  }
+     parseFloat(bmi) < 18.5
+       ? "Consider consulting a nutritionist"
+       : parseFloat(bmi) > 24.9
+       ? "Focus on balanced diet and exercise"
+       : "Maintain current healthy habits"
+   }
 
 **NUTRITION PLAN**
 • Daily Calorie Target: ${tdee} kcal
 • Protein: ${Math.round(weightKg * 1.2)}g per day (${Math.round(
-    weightKg * 1.2 * 4
-  )} kcal)
+     weightKg * 1.2 * 4
+   )} kcal)
 • Carbs: 50% of calories (${Math.round(tdee * 0.5)} kcal)
 • Fats: 25% of calories (${Math.round(tdee * 0.25)} kcal)
 
@@ -410,7 +120,7 @@ async function generateBasicHealthPlan(
 • Set realistic weekly goals and track progress`;
 
   return {
-    summary: `Your basic health plan is ready! Health Score: ${healthScore}/100`,
+    summary: `Your personalized health plan is ready! Health Score: ${healthScore}/100`,
     recommendations: [
       `Daily Calorie Target: ${tdee} kcal`,
       `BMI: ${bmi} (${bmiCategory})`,
@@ -429,7 +139,7 @@ async function generateBasicHealthPlan(
           "Track your water intake",
           "Establish a regular sleep routine",
           "Plan meals in advance",
-          "Set weekly goals",
+          "Set weekly goals"
         ],
       },
       sections: {
@@ -448,357 +158,45 @@ async function generateBasicHealthPlan(
 
 type PlanStep = "initial" | "generating" | "ready" | "error";
 
-interface ComponentState {
-  isLoading: boolean;
-  isInitialized: boolean;
-  error: string | null;
-  healthAnalysis: HealthAnalysis | null;
-  onboardingData: Record<string, unknown>;
-}
-
 const CustomPlan: React.FC = () => {
   const navigate = useNavigate();
   const { profile, loading, isInitialized } = useAuth();
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
-  const [currentProgressStep, setCurrentProgressStep] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Simplified state management
-  const [state, setState] = useState<ComponentState>({
-    isLoading: false,
-    isInitialized: false,
-    error: null,
-    healthAnalysis: null,
-    onboardingData: {},
-  });
-
-  const hasNavigatedRef = useRef(false);
-  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const initializationRef = useRef(false);
-  const lastInitializedProfileId = useRef<string | null>(null);
-  const navigateRef = useRef(navigate);
-  const lastProcessedProfileId = useRef<string | null>(null);
-  const isProcessingRef = useRef(false);
-
-  // Progress steps for the generation process
-  const progressSteps = [
-    "Analyzing your health data",
-    "Calculating nutrition requirements",
-    "Creating workout routine",
-    "Generating lifestyle recommendations",
-    "Finalizing your custom plan",
-  ];
-
-  // Single initialization function - defined without useCallback to avoid dependency issues
-  const initializeHealthData = async () => {
-    // Use ref to check initialization status to avoid dependency issues
-    if (
-      !profile ||
-      initializationRef.current ||
-      lastInitializedProfileId.current === profile?.id
-    ) {
-      console.log("Skipping initializeHealthData due to guard:", {
-        profile: profile?.id,
-        initializationRef: initializationRef.current,
-        lastInitializedProfileId: lastInitializedProfileId.current,
-        authIsInitialized: isInitialized,
-        authLoading: loading,
-      });
-      return;
-    }
-
-    console.log("Initializing health data for profile:", profile.id);
-    initializationRef.current = true;
-    lastInitializedProfileId.current = profile.id;
-
-    setState((prev) => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
-
-    try {
-      let onboardingData: Record<string, unknown> = {}; // Explicitly typed
-
-      // Fetch onboarding data if available
-      if (profile.onboarding_completed) {
-        try {
-          const { data: onboarding, error } = await supabase
-            .from("onboarding_profiles")
-            .select("details")
-            .eq("user_id", profile.id)
-            .single();
-
-          if (!error && onboarding?.details) {
-            onboardingData = onboarding.details;
-            console.log("Onboarding data fetched successfully");
-          }
-        } catch (error) {
-          console.warn("Could not fetch onboarding data:", error);
-        }
-      }
-
-      // Generate health analysis
-      console.log("Generating health analysis...");
-      const healthAnalysis = await generateHealthAnalysis(
-        profile,
-        onboardingData
-      );
-      console.log("Health analysis generated successfully");
-
-      setState({
-        isLoading: false,
-        isInitialized: true,
-        error: null,
-        healthAnalysis,
-        onboardingData,
-      });
-    } catch (error) {
-      console.error("Error initializing health data:", error);
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: "Failed to load health data",
-        isInitialized: true, // Ensure state is initialized even on error
-      }));
-    }
-  };
-
-  // Retry function
-  const retryInitialization = useCallback(() => {
-    initializationRef.current = false;
-    lastInitializedProfileId.current = null;
-    lastProcessedProfileId.current = null;
-    isProcessingRef.current = false;
-    setState({
-      isLoading: false,
-      isInitialized: false,
-      error: null,
-      healthAnalysis: null,
-      onboardingData: {},
-    });
-  }, []);
-
-  // Update navigate ref when navigate changes
-  useEffect(() => {
-    navigateRef.current = navigate;
-  }, [navigate]);
-
-  // Safe navigation function to prevent throttling
-  const safeNavigate = useCallback((path: string) => {
-    if (hasNavigatedRef.current) return;
-
-    // Clear any existing timeout
-    if (navigationTimeoutRef.current) {
-      clearTimeout(navigationTimeoutRef.current);
-    }
-
-    hasNavigatedRef.current = true;
-
-    // Use timeout to ensure navigation happens after current render cycle
-    navigationTimeoutRef.current = setTimeout(() => {
-      navigateRef.current(path, { replace: true });
-    }, 100);
-  }, []); // No dependencies to avoid cycles
-
-  // Single comprehensive useEffect to handle all initialization logic
-  useEffect(() => {
-    // Early returns for various conditions
-    if (!isInitialized || loading) return; // wait for auth/profile to load
-    if (hasNavigatedRef.current) return; // prevent navigation throttling
-    if (isProcessingRef.current) return; // prevent concurrent processing
-
-    // If profile is null (database timeout), allow OAuth users to proceed
-    if (!profile) {
-      console.log(
-        "CustomPlan: Profile is null, allowing OAuth user to proceed"
-      );
-      return;
-    }
-
-    // Prevent processing the same profile multiple times
-    if (lastProcessedProfileId.current === profile.id) {
-      console.log(
-        "CustomPlan: Profile already processed, skipping:",
-        profile.id
-      );
-      return;
-    }
-
-    // Set processing flag and profile ID immediately to prevent race conditions
-    isProcessingRef.current = true;
-    lastProcessedProfileId.current = profile.id;
-    console.log("CustomPlan: Processing profile:", profile.id);
-
-    // Check onboarding completion
-    if (!profile.onboarding_completed) {
-      toast.error("Please complete your onboarding first.");
-      safeNavigate("/onboarding");
-      isProcessingRef.current = false; // Reset processing flag
-      return;
-    }
-
-    const preferences = profile.preferences as {
-      meals?: { breakfast_time?: string };
-      schedule?: { sleep_time?: string; wake_up_time?: string };
-      health?: { blood_group?: string };
-    };
-
-    const required = [
-      profile.full_name,
-      profile.date_of_birth,
-      profile.gender,
-      preferences?.meals?.breakfast_time,
-      preferences?.schedule?.sleep_time,
-      preferences?.schedule?.wake_up_time,
-      preferences?.health?.blood_group,
-    ];
-
-    if (required.some((v) => !v)) {
-      toast.error("Please complete your onboarding first.");
-      safeNavigate("/onboarding");
-      isProcessingRef.current = false; // Reset processing flag
-      return;
-    }
-
-    // Initialize health data if all checks pass
-    if (!initializationRef.current) {
-      initializeHealthData();
-    }
-
-    // Reset processing flag after completion
-    isProcessingRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, isInitialized, loading, safeNavigate]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (navigationTimeoutRef.current) {
-        clearTimeout(navigationTimeoutRef.current);
-      }
-      // Reset tracking on unmount to prevent stale state
-      initializationRef.current = false;
-      lastInitializedProfileId.current = null;
-      lastProcessedProfileId.current = null;
-      isProcessingRef.current = false;
-    };
-  }, []);
-
-  // Show loading state while AuthContext is initializing
+  // Redirect if not authenticated or profile not loaded
   if (!isInitialized || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
-  // Handle continue button click
+  if (!profile) {
+    navigate("/onboarding");
+    return null;
+  }
+
+  if (!profile.onboarding_completed) {
+    toast.error("Please complete your onboarding first.");
+    navigate("/onboarding");
+    return null;
+  }
+
+  // Handle plan generation
   const handleGeneratePlan = async () => {
-    if (!profile) {
-      // If profile is null due to database timeout, create a basic profile for OAuth users
-      console.log(
-        "CustomPlan: Profile is null, creating basic profile for OAuth user"
-      );
-      const basicProfile: UserProfile = {
-        id: "temp-oauth-user",
-        full_name: "OAuth User",
-        age: 30,
-        date_of_birth: "1994-01-01",
-        gender: "male",
-        unit_system: "metric",
-        height_cm: "170",
-        weight_kg: "70",
-        onboarding_completed: true,
-        status: "active",
-        preferences: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // Add all other required fields as null
-        height_feet: null,
-        height_inches: null,
-        weight_lb: null,
-        wake_up_time: null,
-        sleep_time: null,
-        work_start: null,
-        work_end: null,
-        chronic_conditions: null,
-        takes_medications: null,
-        medications: null,
-        has_surgery: null,
-        surgery_details: null,
-        health_goals: null,
-        diet_type: null,
-        blood_group: null,
-        breakfast_time: null,
-        lunch_time: null,
-        dinner_time: null,
-        workout_time: null,
-        routine_flexibility: null,
-        uses_wearable: null,
-        wearable_type: null,
-        track_family: null,
-        share_progress: null,
-        emergency_contact_name: null,
-        emergency_contact_phone: null,
-        critical_conditions: null,
-        has_health_reports: null,
-        health_reports: null,
-        referral_code: null,
-        save_progress: null,
-      };
-
-      setStep("generating");
-
-      // Simulate progress steps
-      const progressInterval = setInterval(() => {
-        setCurrentProgressStep((prev) => {
-          if (prev < progressSteps.length - 1) {
-            return prev + 1;
-          } else {
-            clearInterval(progressInterval);
-            return prev;
-          }
-        });
-      }, 1500);
-
-      try {
-        const planReport = await generateBasicHealthPlan(basicProfile);
-        setReport(planReport);
-        setStep("ready");
-        toast.success("Your basic health plan is ready!");
-      } catch (error) {
-        console.error("Error generating plan:", error);
-        setStep("error");
-        toast.error("Failed to generate health plan. Please try again.");
-      } finally {
-        clearInterval(progressInterval);
-      }
-      return;
-    }
-
+    setIsGenerating(true);
     setStep("generating");
 
-    // Simulate progress steps
-    const progressInterval = setInterval(() => {
-      setCurrentProgressStep((prev) => {
-        if (prev < progressSteps.length - 1) {
-          return prev + 1;
-        } else {
-          clearInterval(progressInterval);
-          return prev;
-        }
-      });
-    }, 1500);
-
     try {
-      console.log("Starting health plan generation...");
-
-      // Generate basic health plan directly (no AI)
+      // Simulate a brief loading period for better UX
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const planReport = await generateBasicHealthPlan(profile);
       setReport(planReport);
       setStep("ready");
@@ -808,65 +206,260 @@ const CustomPlan: React.FC = () => {
       setStep("error");
       toast.error("Failed to generate health plan. Please try again.");
     } finally {
-      clearInterval(progressInterval);
+      setIsGenerating(false);
     }
   };
 
-  if (step === "generating") {
+  // Initial state - Show plan generation button
+  if (step === "initial") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="max-w-md w-full mx-auto p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Generating Your Plan</h2>
-            <p className="text-muted-foreground">
-              Creating your personalized health plan...
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            {/* Header */}
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Your Custom Health Plan
+              </h1>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Get a personalized health plan based on your profile data, goals, and preferences.
+              </p>
+            </div>
+
+            {/* Profile Summary */}
+            <Card className="mb-8 text-left">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-red-500" />
+                  Your Profile Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Name</p>
+                    <p className="font-medium">{profile.full_name || "User"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Age</p>
+                    <p className="font-medium">{profile.age || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Gender</p>
+                    <p className="font-medium capitalize">{profile.gender || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">BMI</p>
+                    <p className="font-medium">
+                      {profile.height_cm && profile.weight_kg 
+                        ? ((Number(profile.weight_kg) / ((Number(profile.height_cm) / 100) ** 2)).toFixed(1))
+                        : "Calculate after generation"
+                      }
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* What You'll Get */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">What You'll Get</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Apple className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Nutrition Plan</h3>
+                    <p className="text-sm text-gray-600">Personalized calorie targets and meal recommendations</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Activity className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Fitness Plan</h3>
+                    <p className="text-sm text-gray-600">Custom workout routines and exercise schedules</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Moon className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Lifestyle Tips</h3>
+                    <p className="text-sm text-gray-600">Sleep, stress management, and wellness advice</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <Button 
+              onClick={handleGeneratePlan}
+              size="lg"
+              className="w-full md:w-auto px-8 py-3 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Generate My Health Plan
+            </Button>
+
+            <p className="text-sm text-gray-500 mt-4">
+              This will take just a few seconds to create your personalized plan
             </p>
           </div>
-          <ProgressSteps
-            steps={progressSteps}
-            currentStep={currentProgressStep}
-          />
         </div>
       </div>
     );
   }
 
+  // Generating state
+  if (step === "generating") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Creating Your Plan</h2>
+          <p className="text-gray-600 mb-6">
+            Analyzing your profile and generating personalized recommendations...
+          </p>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full animate-pulse" style={{ width: "70%" }}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ready state - Show the generated plan
   if (step === "ready" && report) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
+            {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2">Your Personalized Health Plan</h1>
-              <p className="text-muted-foreground">{report.summary}</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full mb-4">
+                <CheckCircle className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Health Plan is Ready!</h1>
+              <p className="text-gray-600">{report.summary}</p>
             </div>
 
-            <div className="grid gap-6">
-              <div className="bg-card rounded-lg border p-6">
-                <h3 className="text-xl font-semibold mb-4">
-                  Key Recommendations
-                </h3>
-                <ul className="space-y-2">
-                  {report.recommendations.map((rec, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <span>{rec}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="bg-card rounded-lg border p-6">
-                <h3 className="text-xl font-semibold mb-4">Detailed Plan</h3>
-                <div className="whitespace-pre-line text-sm">
-                  {report.detailedReport}
+            {/* Health Score */}
+            <Card className="mb-8">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-gray-900 mb-2">
+                    {report.structured.summary.healthScore}/100
+                  </div>
+                  <div className="text-sm text-gray-600 mb-4">Overall Health Score</div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-1000"
+                      style={{ width: `${report.structured.summary.healthScore}%` }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+
+            {/* Key Metrics */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Target className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold mb-1">Daily Calories</h3>
+                  <p className="text-2xl font-bold text-blue-600">{report.structured.summary.calorieTarget}</p>
+                  <p className="text-sm text-gray-500">kcal target</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold mb-1">BMI</h3>
+                  <p className="text-2xl font-bold text-green-600">{report.structured.summary.bmi}</p>
+                  <p className="text-sm text-gray-500">Body Mass Index</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Heart className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold mb-1">Health Score</h3>
+                  <p className="text-2xl font-bold text-purple-600">{report.structured.summary.healthScore}</p>
+                  <p className="text-sm text-gray-500">out of 100</p>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="text-center mt-8">
-              <Button onClick={() => navigate("/dashboard")}>
+            {/* Recommendations */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  Key Recommendations
+                </CardTitle>
+                <CardDescription>
+                  Personalized recommendations based on your profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {report.recommendations.map((rec, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-gray-700">{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Plan */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Detailed Health Plan</CardTitle>
+                <CardDescription>
+                  Your comprehensive health and wellness guide
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
+                    {report.detailedReport}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => navigate("/dashboard")}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
                 Go to Dashboard
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button 
+                onClick={() => setStep("initial")}
+                variant="outline"
+                size="lg"
+              >
+                Generate New Plan
               </Button>
             </div>
           </div>
@@ -875,33 +468,19 @@ const CustomPlan: React.FC = () => {
     );
   }
 
+  // Error state
   if (step === "error") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
-          <p className="text-muted-foreground mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
+          <p className="text-gray-600 mb-6">
             We couldn't generate your health plan. Please try again.
           </p>
-          <Button onClick={() => setStep("initial")}>Try Again</Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state if health data loading failed
-  if (state.error && !state.isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
-        <div className="text-center max-w-md mx-auto p-4 sm:p-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-gray-600 mb-6">{state.error}</p>
-          <Button onClick={retryInitialization} className="w-full">
+          <Button onClick={() => setStep("initial")} size="lg">
             Try Again
           </Button>
         </div>
@@ -909,156 +488,7 @@ const CustomPlan: React.FC = () => {
     );
   }
 
-  // Show loading state while analyzing health data
-  if (state.isLoading || (profile && !state.isInitialized)) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Analyzing your health data...</p>
-          <p className="text-sm text-gray-500 mt-2">
-            This may take a few moments
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Get health analysis data
-  const healthAnalysis = state.healthAnalysis;
-  const healthMetrics = healthAnalysis?.metrics || [];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      <div className="max-w-md w-full mx-auto p-4 sm:p-6">
-        {/* Overall Health Score */}
-        {healthAnalysis && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">
-                {healthAnalysis.overallScore}/100
-              </div>
-              <div className="text-sm text-gray-600">Overall Health Score</div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${healthAnalysis.overallScore}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Health Metrics Cards */}
-        <div className="space-y-3 mb-8">
-          {healthMetrics.map((metric) => (
-            <div
-              key={metric.id}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div
-                  className={`p-2 rounded-full ${
-                    metric.status === "good" ? "bg-green-100" : "bg-red-100"
-                  }`}
-                >
-                  {metric.icon}
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900">{metric.name}</div>
-                  <div className="text-xs text-gray-500 mb-1">
-                    {metric.description}
-                  </div>
-                  <div
-                    className={`text-sm font-semibold ${
-                      metric.status === "good"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {metric.value}{" "}
-                    <span className="text-gray-400">/ {metric.target}</span>
-                  </div>
-                </div>
-              </div>
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  metric.status === "good" ? "bg-green-500" : "bg-red-500"
-                }`}
-              >
-                {metric.status === "good" ? (
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Rotating Wheel */}
-        {healthMetrics.length > 0 && <RotatingWheel metrics={healthMetrics} />}
-
-        {/* Main Content */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Your Health Analysis
-          </h1>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            Based on your onboarding data, we've analyzed your health patterns
-            and identified key areas for improvement.
-          </p>
-        </div>
-
-        {/* Risk Factors */}
-        {healthAnalysis && healthAnalysis.riskFactors.length > 0 && (
-          <div className="bg-red-50 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              Areas of Concern
-            </h3>
-            <ul className="text-sm text-red-700 space-y-1">
-              {healthAnalysis.riskFactors.map((risk, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="w-1 h-1 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                  {risk}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Action Button */}
-        <Button
-          onClick={() => navigate("/paywall")}
-          className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-medium"
-          size="lg"
-        >
-          Get Personalized Plan
-        </Button>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default CustomPlan;
