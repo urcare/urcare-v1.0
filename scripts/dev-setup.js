@@ -5,8 +5,8 @@
  * Helps set up the development environment with fallbacks
  */
 
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
 console.log("🚀 Setting up UrCare Development Environment...\n");
 
