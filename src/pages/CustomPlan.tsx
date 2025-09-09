@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/ui/loading-animation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
@@ -143,6 +143,7 @@ const CustomPlan: React.FC = () => {
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
   const [currentProgressStep, setCurrentProgressStep] = useState(0);
+  const hasNavigatedRef = useRef(false);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -155,6 +156,10 @@ const CustomPlan: React.FC = () => {
 
   // Check if user has completed onboarding
   useEffect(() => {
+    // Prevent navigation throttling
+    if (hasNavigatedRef.current) return;
+    if (!isInitialized || loading) return; // wait for auth/profile to load
+
     // If profile is null (database timeout), allow OAuth users to proceed
     if (!profile) {
       console.log(
@@ -164,8 +169,9 @@ const CustomPlan: React.FC = () => {
     }
 
     if (!profile.onboarding_completed) {
+      hasNavigatedRef.current = true;
       toast.error("Please complete your onboarding first.");
-      navigate("/onboarding");
+      navigate("/onboarding", { replace: true });
       return;
     }
 
@@ -186,11 +192,12 @@ const CustomPlan: React.FC = () => {
     ];
 
     if (required.some((v) => !v)) {
+      hasNavigatedRef.current = true;
       toast.error("Please complete your onboarding first.");
-      navigate("/onboarding");
+      navigate("/onboarding", { replace: true });
       return;
     }
-  }, [profile, navigate]);
+  }, [isInitialized, loading, profile, navigate]);
 
   // Show loading state while AuthContext is initializing
   if (!isInitialized || loading) {

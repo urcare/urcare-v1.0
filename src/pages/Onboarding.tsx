@@ -111,6 +111,12 @@ const Onboarding = () => {
         return;
       }
 
+      // Guard against empty data - don't complete onboarding with no data
+      if (!data || Object.keys(data).length === 0) {
+        console.log("Skipping onboarding completion - no data provided");
+        return;
+      }
+
       console.log(
         "Starting comprehensive onboarding completion for user:",
         user.id
