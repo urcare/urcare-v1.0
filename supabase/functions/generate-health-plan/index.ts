@@ -119,7 +119,7 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
@@ -133,7 +133,7 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: "User profile not found" }), {
+      return new Response(JSON.stringify({ success: false, error: "User profile not found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
@@ -152,7 +152,7 @@ serve(async (req) => {
     // Check if user has completed onboarding
     if (!profile.onboarding_completed) {
       return new Response(
-        JSON.stringify({ error: "Onboarding not completed" }),
+        JSON.stringify({ success: false, error: "Onboarding not completed" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
@@ -172,6 +172,7 @@ serve(async (req) => {
     if (existingPlan && !existingPlanError) {
       return new Response(
         JSON.stringify({
+          success: true,
           message: "Active plan already exists",
           plan: existingPlan,
         }),
@@ -208,7 +209,7 @@ serve(async (req) => {
     if (saveError) {
       console.error("Error saving plan:", saveError);
       return new Response(
-        JSON.stringify({ error: "Failed to save health plan" }),
+        JSON.stringify({ success: false, error: "Failed to save health plan" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
@@ -230,7 +231,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error generating health plan:", error);
 
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ success: false, error: error.message || "An unexpected error occurred" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
