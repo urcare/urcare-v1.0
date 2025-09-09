@@ -82,42 +82,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     userId: string
   ): Promise<UserProfile | null> => {
     try {
-      console.log("fetchUserProfile: Fetching profile for user:", userId);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<null>((_, reject) => 
+        setTimeout(() => reject(new Error("Profile fetch timeout")), 5000)
+      );
 
-      // First, let's test if we can access the table at all
-      console.log("fetchUserProfile: Testing table access...");
-      const { data: testData, error: testError } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .limit(1);
+      const fetchPromise = async () => {
+        // First, test if we can access the table at all
+        const { data: testData, error: testError } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .limit(1);
 
-      if (testError) {
-        console.error("fetchUserProfile: Table access test failed:", testError);
-        return null;
-      }
-      console.log("fetchUserProfile: Table access test passed");
+        if (testError) {
+          return null;
+        }
 
-      // Now try to fetch the specific user's profile
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+        // Now try to fetch the specific user's profile
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-      if (error) {
-        console.error("Error fetching user profile:", error);
-        console.error(
-          "Error details:",
-          error.message,
-          error.details,
-          error.hint
-        );
-        return null;
-      }
-      console.log("fetchUserProfile: Successfully fetched profile:", data);
-      return data as UserProfile;
+        if (error) {
+          return null;
+        }
+        return data as UserProfile;
+      };
+
+      return await Promise.race([fetchPromise(), timeoutPromise]);
     } catch (error) {
-      console.error("Error in fetchUserProfile:", error);
+      // Timeout or other error - return null to allow app to continue
       return null;
     }
   };
@@ -126,41 +122,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const ensureUserProfile = async (user: any) => {
     if (!user) return;
 
-    let profile, fetchError;
-
     try {
-      const result = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Profile ensure timeout")), 5000)
+      );
 
-      profile = result.data;
-      fetchError = result.error;
+      const ensurePromise = async () => {
+        const result = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        const profile = result.data;
+        const fetchError = result.error;
+
+        if (fetchError && fetchError.code !== "PGRST116") {
+          // Some error other than "no rows"
+          return;
+        }
+        if (!profile) {
+          const { error: insertError } = await supabase
+            .from("user_profiles")
+            .insert([
+              {
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email,
+                onboarding_completed: false,
+                status: "active",
+              },
+            ]);
+          if (insertError) {
+            // Ignore insert errors - user can continue
+          }
+        }
+      };
+
+      await Promise.race([ensurePromise(), timeoutPromise]);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
-      return;
-    }
-
-    if (fetchError && fetchError.code !== "PGRST116") {
-      // Some error other than "no rows"
-      console.error("Error fetching user profile:", fetchError);
-      return;
-    }
-    if (!profile) {
-      const { error: insertError } = await supabase
-        .from("user_profiles")
-        .insert([
-          {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || user.email,
-            onboarding_completed: false,
-            status: "active",
-          },
-        ]);
-      if (insertError) {
-        console.error("Error inserting blank user profile:", insertError);
-      }
+      // Timeout or other error - ignore and allow app to continue
     }
   };
 

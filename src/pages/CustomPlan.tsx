@@ -139,7 +139,7 @@ type PlanStep = "initial" | "generating" | "ready" | "error";
 
 const CustomPlan: React.FC = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, loading, isInitialized } = useAuth();
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
   const [currentProgressStep, setCurrentProgressStep] = useState(0);
@@ -152,6 +152,18 @@ const CustomPlan: React.FC = () => {
     "Generating lifestyle recommendations",
     "Finalizing your custom plan",
   ];
+
+  // Show loading state while AuthContext is initializing
+  if (!isInitialized || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Check if user has completed onboarding
   useEffect(() => {
