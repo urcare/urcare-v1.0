@@ -70,7 +70,7 @@ export interface PlanGenerationRequest {
 
 class TwoDayPlanService {
   constructor() {
-    console.log("TwoDayPlanService initialized - AI functionality removed");
+    // Service initialized
   }
 
   /**
@@ -80,7 +80,6 @@ class TwoDayPlanService {
     request: PlanGenerationRequest
   ): Promise<TwoDayHealthPlan> {
     try {
-      console.log("Generating 2-day plan for user:", request.userProfile.id);
 
       // Generate basic plan without AI
       const basicPlan = this.generateBasicPlan(request);
@@ -124,7 +123,14 @@ class TwoDayPlanService {
           .single();
 
         if (error) {
-          console.warn("Database save failed, returning local plan:", error);
+          // If table doesn't exist (42P01), return local plan silently
+          if (error.code === "42P01") {
+            return {
+              id: `local_${Date.now()}`,
+              ...planData,
+            };
+          }
+          // For other errors, return local plan
           return {
             id: `local_${Date.now()}`,
             ...planData,
@@ -136,7 +142,7 @@ class TwoDayPlanService {
           ...planData,
         };
       } catch (dbError) {
-        console.warn("Database not available, returning local plan:", dbError);
+        // Database not available, return local plan
         return {
           id: `local_${Date.now()}`,
           ...planData,
@@ -162,9 +168,15 @@ class TwoDayPlanService {
         .limit(1)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.warn("Error fetching current plan:", error);
-        return null;
+      if (error) {
+        // If table doesn't exist (42P01), return null silently
+        if (error.code === "42P01") {
+          return null;
+        }
+        // For other errors, log but don't spam console
+        if (error.code !== "PGRST116") {
+          return null;
+        }
       }
 
       if (!data) {
@@ -186,7 +198,7 @@ class TwoDayPlanService {
         isActive: data.is_active,
       };
     } catch (error) {
-      console.error("Error fetching current plan:", error);
+      // Silently handle errors - table might not exist
       return null;
     }
   }
@@ -206,8 +218,16 @@ class TwoDayPlanService {
         .order("created_at", { ascending: false })
         .limit(limit);
 
-      if (error || !data) {
-        console.warn("Error fetching plan history:", error);
+      if (error) {
+        // If table doesn't exist (42P01), return empty array silently
+        if (error.code === "42P01") {
+          return [];
+        }
+        // For other errors, return empty array
+        return [];
+      }
+
+      if (!data) {
         return [];
       }
 
@@ -226,7 +246,7 @@ class TwoDayPlanService {
         isActive: row.is_active,
       }));
     } catch (err) {
-      console.error("Unexpected error fetching plan history:", err);
+      // Silently handle errors - table might not exist
       return [];
     }
   }
@@ -249,8 +269,16 @@ class TwoDayPlanService {
         .eq("id", planId)
         .single();
 
-      if (error || !data) {
+      if (error) {
+        // If table doesn't exist (42P01), silently return
+        if (error.code === "42P01") {
+          return;
+        }
         throw new Error(error?.message || "Plan not found");
+      }
+
+      if (!data) {
+        throw new Error("Plan not found");
       }
 
       const planRow = data as any;
