@@ -505,6 +505,8 @@ const CustomPlan: React.FC = () => {
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initializationRef = useRef(false);
   const lastInitializedProfileId = useRef<string | null>(null);
+  const navigateRef = useRef(navigate);
+  const lastProcessedProfileId = useRef<string | null>(null);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -590,6 +592,7 @@ const CustomPlan: React.FC = () => {
   const retryInitialization = useCallback(() => {
     initializationRef.current = false;
     lastInitializedProfileId.current = null;
+    lastProcessedProfileId.current = null;
     setState({
       isLoading: false,
       isInitialized: false,
@@ -599,39 +602,33 @@ const CustomPlan: React.FC = () => {
     });
   }, []);
 
-  // Initialize data when profile is available
+  // Update navigate ref when navigate changes
   useEffect(() => {
-    if (profile && isInitialized && !loading && !initializationRef.current) {
-      initializeHealthData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, isInitialized, loading]);
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   // Safe navigation function to prevent throttling
-  const safeNavigate = useCallback(
-    (path: string) => {
-      if (hasNavigatedRef.current) return;
-
-      // Clear any existing timeout
-      if (navigationTimeoutRef.current) {
-        clearTimeout(navigationTimeoutRef.current);
-      }
-
-      hasNavigatedRef.current = true;
-
-      // Use timeout to ensure navigation happens after current render cycle
-      navigationTimeoutRef.current = setTimeout(() => {
-        navigate(path, { replace: true });
-      }, 100);
-    },
-    [navigate]
-  );
-
-  // Check if user has completed onboarding
-  useEffect(() => {
-    // Prevent navigation throttling - only run once when profile changes
+  const safeNavigate = useCallback((path: string) => {
     if (hasNavigatedRef.current) return;
+
+    // Clear any existing timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+    }
+
+    hasNavigatedRef.current = true;
+
+    // Use timeout to ensure navigation happens after current render cycle
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigateRef.current(path, { replace: true });
+    }, 100);
+  }, []); // No dependencies to avoid cycles
+
+  // Single comprehensive useEffect to handle all initialization logic
+  useEffect(() => {
+    // Early returns for various conditions
     if (!isInitialized || loading) return; // wait for auth/profile to load
+    if (hasNavigatedRef.current) return; // prevent navigation throttling
 
     // If profile is null (database timeout), allow OAuth users to proceed
     if (!profile) {
@@ -641,6 +638,16 @@ const CustomPlan: React.FC = () => {
       return;
     }
 
+    // Prevent processing the same profile multiple times
+    if (lastProcessedProfileId.current === profile.id) {
+      console.log("CustomPlan: Profile already processed, skipping:", profile.id);
+      return;
+    }
+
+    console.log("CustomPlan: Processing profile:", profile.id);
+    lastProcessedProfileId.current = profile.id;
+
+    // Check onboarding completion
     if (!profile.onboarding_completed) {
       toast.error("Please complete your onboarding first.");
       safeNavigate("/onboarding");
@@ -668,7 +675,13 @@ const CustomPlan: React.FC = () => {
       safeNavigate("/onboarding");
       return;
     }
-  }, [profile, safeNavigate, isInitialized, loading]); // Include all dependencies
+
+    // Initialize health data if all checks pass
+    if (!initializationRef.current) {
+      initializeHealthData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, isInitialized, loading, safeNavigate]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -679,6 +692,7 @@ const CustomPlan: React.FC = () => {
       // Reset tracking on unmount to prevent stale state
       initializationRef.current = false;
       lastInitializedProfileId.current = null;
+      lastProcessedProfileId.current = null;
     };
   }, []);
 
