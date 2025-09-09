@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
 import { Heart, Wine, Coffee, Droplets, Footprints, Apple, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HealthPlanReport {
   summary: string;
@@ -353,14 +354,7 @@ const CustomPlan: React.FC = () => {
       if (!profile) return;
       
       try {
-        // Import supabase client
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          import.meta.env.VITE_SUPABASE_URL,
-          import.meta.env.VITE_SUPABASE_ANON_KEY
-        );
-
-        // Fetch onboarding data
+        // Fetch onboarding data using existing supabase client
         const { data: onboarding, error } = await supabase
           .from('onboarding_profiles')
           .select('details')
@@ -391,7 +385,7 @@ const CustomPlan: React.FC = () => {
 
   // Check if user has completed onboarding
   useEffect(() => {
-    // Prevent navigation throttling
+    // Prevent navigation throttling - only run once when profile changes
     if (hasNavigatedRef.current) return;
     if (!isInitialized || loading) return; // wait for auth/profile to load
 
@@ -432,7 +426,7 @@ const CustomPlan: React.FC = () => {
       navigate("/onboarding", { replace: true });
       return;
     }
-  }, [isInitialized, loading, profile, navigate]);
+  }, [profile]); // Only depend on profile, not all the other values
 
   // Show loading state while AuthContext is initializing
   if (!isInitialized || loading) {
