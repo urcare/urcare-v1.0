@@ -6,14 +6,9 @@ import {
   AlertTriangle,
   Apple,
   Brain,
-  Clock,
-  Coffee,
-  Droplets,
-  Footprints,
   Heart,
   Shield,
   TrendingUp,
-  Wine,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -68,7 +63,7 @@ const generateAIHealthAnalysis = async (
 ): Promise<AIHealthAnalysis> => {
   try {
     console.log("Generating AI health analysis...");
-    
+
     // Prepare data for AI analysis
     const analysisData = {
       demographics: {
@@ -101,22 +96,22 @@ const generateAIHealthAnalysis = async (
       onboardingDetails: onboardingData,
     };
 
-    const response = await fetch('/api/analyze-health', {
-      method: 'POST',
+    const response = await fetch("/api/analyze-health", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(analysisData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get AI health analysis');
+      throw new Error("Failed to get AI health analysis");
     }
 
     const aiAnalysis = await response.json();
     return aiAnalysis;
   } catch (error) {
-    console.error('Error generating AI health analysis:', error);
+    console.error("Error generating AI health analysis:", error);
     // Fallback to basic analysis
     return generateBasicHealthAnalysis(profile, onboardingData);
   }
@@ -135,10 +130,10 @@ const generateBasicHealthAnalysis = (
     const heightM = parseFloat(profile.height_cm) / 100;
     const weightKg = parseFloat(profile.weight_kg);
     const bmi = weightKg / (heightM * heightM);
-    
+
     let bmiStatus: "good" | "bad" = "good";
     let bmiDescription = "Normal BMI range";
-    
+
     if (bmi < 18.5 || bmi > 24.9) {
       bmiStatus = "bad";
       bmiDescription = bmi < 18.5 ? "Underweight" : "Overweight";
@@ -160,11 +155,13 @@ const generateBasicHealthAnalysis = (
 
   // Sleep Quality
   if (profile.sleep_time && profile.wake_up_time) {
-    const sleepHour = parseInt(profile.sleep_time.split(':')[0]);
-    const wakeHour = parseInt(profile.wake_up_time.split(':')[0]);
-    const sleepDuration = wakeHour >= sleepHour ? wakeHour - sleepHour : (24 - sleepHour) + wakeHour;
-    
-    const sleepStatus: "good" | "bad" = sleepDuration >= 7 && sleepDuration <= 9 ? "good" : "bad";
+    const sleepHour = parseInt(profile.sleep_time.split(":")[0]);
+    const wakeHour = parseInt(profile.wake_up_time.split(":")[0]);
+    const sleepDuration =
+      wakeHour >= sleepHour ? wakeHour - sleepHour : 24 - sleepHour + wakeHour;
+
+    const sleepStatus: "good" | "bad" =
+      sleepDuration >= 7 && sleepDuration <= 9 ? "good" : "bad";
     if (sleepStatus === "good") overallScore += 15;
     else overallScore -= 10;
 
@@ -175,16 +172,21 @@ const generateBasicHealthAnalysis = (
       target: "7-9h",
       status: sleepStatus,
       icon: <Brain className="h-5 w-5" />,
-      description: sleepStatus === "good" ? "Optimal sleep duration" : "Needs improvement",
+      description:
+        sleepStatus === "good" ? "Optimal sleep duration" : "Needs improvement",
     });
   }
 
   // Health Risk Assessment
   const riskFactors = profile.chronic_conditions?.length || 0;
   const medicationCount = profile.medications?.length || 0;
-  const totalRiskScore = Math.max(0, 100 - (riskFactors * 15 + medicationCount * 10));
-  
-  if (riskFactors > 0 || medicationCount > 0) overallScore -= (riskFactors * 5 + medicationCount * 3);
+  const totalRiskScore = Math.max(
+    0,
+    100 - (riskFactors * 15 + medicationCount * 10)
+  );
+
+  if (riskFactors > 0 || medicationCount > 0)
+    overallScore -= riskFactors * 5 + medicationCount * 3;
 
   metrics.push({
     id: "health-risk",
@@ -193,16 +195,20 @@ const generateBasicHealthAnalysis = (
     target: "80+",
     status: totalRiskScore >= 80 ? "good" : "bad",
     icon: <Shield className="h-5 w-5" />,
-    description: totalRiskScore >= 80 ? "Low risk profile" : "Moderate risk factors present",
+    description:
+      totalRiskScore >= 80
+        ? "Low risk profile"
+        : "Moderate risk factors present",
   });
 
   // Activity Level
-  const hasActiveGoals = profile.health_goals?.some(goal => 
-    goal.toLowerCase().includes('fitness') || 
-    goal.toLowerCase().includes('exercise') ||
-    goal.toLowerCase().includes('active')
+  const hasActiveGoals = profile.health_goals?.some(
+    (goal) =>
+      goal.toLowerCase().includes("fitness") ||
+      goal.toLowerCase().includes("exercise") ||
+      goal.toLowerCase().includes("active")
   );
-  
+
   const activityScore = hasActiveGoals ? 85 : 65;
   if (hasActiveGoals) overallScore += 10;
 
@@ -213,13 +219,18 @@ const generateBasicHealthAnalysis = (
     target: "75+",
     status: activityScore >= 75 ? "good" : "bad",
     icon: <Activity className="h-5 w-5" />,
-    description: hasActiveGoals ? "Active lifestyle goals" : "Could be more active",
+    description: hasActiveGoals
+      ? "Active lifestyle goals"
+      : "Could be more active",
   });
 
   // Nutrition Assessment
-  const hasHealthyDiet = profile.diet_type && 
-    ['vegetarian', 'vegan', 'mediterranean', 'balanced'].includes(profile.diet_type.toLowerCase());
-  
+  const hasHealthyDiet =
+    profile.diet_type &&
+    ["vegetarian", "vegan", "mediterranean", "balanced"].includes(
+      profile.diet_type.toLowerCase()
+    );
+
   const nutritionScore = hasHealthyDiet ? 80 : 60;
   if (hasHealthyDiet) overallScore += 5;
 
@@ -230,14 +241,17 @@ const generateBasicHealthAnalysis = (
     target: "70+",
     status: nutritionScore >= 70 ? "good" : "bad",
     icon: <Apple className="h-5 w-5" />,
-    description: hasHealthyDiet ? "Healthy diet pattern" : "Room for improvement",
+    description: hasHealthyDiet
+      ? "Healthy diet pattern"
+      : "Room for improvement",
   });
 
   // Stress Indicators
-  const stressIndicators = (profile.chronic_conditions?.length || 0) + 
-                          (profile.medications?.length || 0);
-  const stressScore = Math.max(20, 100 - (stressIndicators * 15));
-  
+  const stressIndicators =
+    (profile.chronic_conditions?.length || 0) +
+    (profile.medications?.length || 0);
+  const stressScore = Math.max(20, 100 - stressIndicators * 15);
+
   metrics.push({
     id: "stress",
     name: "Stress Level",
@@ -245,14 +259,16 @@ const generateBasicHealthAnalysis = (
     target: "60+",
     status: stressScore >= 60 ? "good" : "bad",
     icon: <Heart className="h-5 w-5" />,
-    description: stressScore >= 60 ? "Manageable stress levels" : "High stress indicators",
+    description:
+      stressScore >= 60 ? "Manageable stress levels" : "High stress indicators",
   });
 
   // Cap overall score
   overallScore = Math.max(30, Math.min(100, overallScore));
 
   const riskFactorsList = [];
-  if (riskFactors > 0) riskFactorsList.push("Chronic health conditions present");
+  if (riskFactors > 0)
+    riskFactorsList.push("Chronic health conditions present");
   if (medicationCount > 0) riskFactorsList.push("Multiple medications");
   if (!hasActiveGoals) riskFactorsList.push("Sedentary lifestyle indicators");
   if (!hasHealthyDiet) riskFactorsList.push("Suboptimal nutrition patterns");
@@ -475,7 +491,7 @@ const CustomPlan: React.FC = () => {
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
   const [currentProgressStep, setCurrentProgressStep] = useState(0);
-  
+
   // Simplified state management
   const [state, setState] = useState<ComponentState>({
     isLoading: false,
@@ -500,22 +516,29 @@ const CustomPlan: React.FC = () => {
 
   // Single initialization function to replace all useEffect logic
   const initializeHealthData = useCallback(async () => {
-    if (!profile || initializationRef.current || state.isInitialized) {
+    // Use ref to check initialization status to avoid dependency issues
+    if (!profile || initializationRef.current) {
+      console.log("Skipping initializeHealthData due to guard:", {
+        profile: profile?.id,
+        initializationRef: initializationRef.current,
+        authIsInitialized: isInitialized,
+        authLoading: loading,
+      });
       return;
     }
 
     console.log("Initializing health data for profile:", profile.id);
     initializationRef.current = true;
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isLoading: true,
       error: null,
     }));
 
     try {
-      let onboardingData = {};
-      
+      let onboardingData: Record<string, unknown> = {}; // Explicitly typed
+
       // Fetch onboarding data if available
       if (profile.onboarding_completed) {
         try {
@@ -536,7 +559,10 @@ const CustomPlan: React.FC = () => {
 
       // Generate health analysis
       console.log("Generating health analysis...");
-      const healthAnalysis = await generateAIHealthAnalysis(profile, onboardingData);
+      const healthAnalysis = await generateAIHealthAnalysis(
+        profile,
+        onboardingData
+      );
       console.log("Health analysis generated successfully");
 
       setState({
@@ -546,16 +572,16 @@ const CustomPlan: React.FC = () => {
         healthAnalysis,
         onboardingData,
       });
-
     } catch (error) {
       console.error("Error initializing health data:", error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: "Failed to load health data",
+        isInitialized: true, // Ensure state is initialized even on error
       }));
     }
-  }, [profile, state.isInitialized]);
+  }, [profile, isInitialized, loading]); // Only include stable dependencies
 
   // Retry function
   const retryInitialization = useCallback(() => {
@@ -571,7 +597,7 @@ const CustomPlan: React.FC = () => {
 
   // Initialize data when profile is available
   useEffect(() => {
-    if (profile && isInitialized && !loading) {
+    if (profile && isInitialized && !loading && !initializationRef.current) {
       initializeHealthData();
     }
   }, [profile, isInitialized, loading, initializeHealthData]);
@@ -653,7 +679,7 @@ const CustomPlan: React.FC = () => {
   // Show loading state while AuthContext is initializing
   if (!isInitialized || loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -885,8 +911,8 @@ const CustomPlan: React.FC = () => {
   // Show error state if health data loading failed
   if (state.error && !state.isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
+        <div className="text-center max-w-md mx-auto p-4 sm:p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
@@ -905,11 +931,13 @@ const CustomPlan: React.FC = () => {
   // Show loading state while analyzing health data
   if (state.isLoading || (profile && !state.isInitialized)) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Analyzing your health data...</p>
-          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+          <p className="text-sm text-gray-500 mt-2">
+            This may take a few moments
+          </p>
         </div>
       </div>
     );
@@ -921,7 +949,7 @@ const CustomPlan: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      <div className="max-w-md w-full mx-auto p-6">
+      <div className="max-w-md w-full mx-auto p-4 sm:p-6">
         {/* Overall Health Score */}
         {healthAnalysis && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
@@ -931,7 +959,7 @@ const CustomPlan: React.FC = () => {
               </div>
               <div className="text-sm text-gray-600">Overall Health Score</div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                <div 
+                <div
                   className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${healthAnalysis.overallScore}%` }}
                 ></div>
@@ -957,7 +985,9 @@ const CustomPlan: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">{metric.name}</div>
-                  <div className="text-xs text-gray-500 mb-1">{metric.description}</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {metric.description}
+                  </div>
                   <div
                     className={`text-sm font-semibold ${
                       metric.status === "good"
@@ -965,7 +995,8 @@ const CustomPlan: React.FC = () => {
                         : "text-red-600"
                     }`}
                   >
-                    {metric.value} <span className="text-gray-400">/ {metric.target}</span>
+                    {metric.value}{" "}
+                    <span className="text-gray-400">/ {metric.target}</span>
                   </div>
                 </div>
               </div>
@@ -1013,7 +1044,8 @@ const CustomPlan: React.FC = () => {
             Your Health Analysis
           </h1>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Based on your onboarding data, we've analyzed your health patterns and identified key areas for improvement.
+            Based on your onboarding data, we've analyzed your health patterns
+            and identified key areas for improvement.
           </p>
         </div>
 
