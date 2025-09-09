@@ -12,11 +12,15 @@ import {
   Apple,
   ArrowRight,
   CheckCircle,
+  Coffee,
+  Droplets,
+  Footprints,
   Heart,
   Moon,
   Sparkles,
   Target,
   TrendingUp,
+  X,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -81,122 +85,188 @@ const CustomPlan: React.FC = () => {
     }
   };
 
-  // Initial state - Show plan generation button
+  // Helper function to get personalized habits based on profile
+  const getPersonalizedHabits = () => {
+    const habits = [];
+
+    // Sleep habits based on profile
+    if (profile?.sleep_time && profile?.wake_up_time) {
+      habits.push({
+        id: "sleep_schedule",
+        name: "Consistent sleep schedule",
+        icon: Moon,
+        iconColor: "text-purple-500",
+        iconBg: "bg-purple-50",
+        status: "met",
+        value: "8h 30m",
+        description: "Based on your sleep preferences",
+      });
+    }
+
+    // Diet habits based on diet type
+    if (profile?.diet_type) {
+      habits.push({
+        id: "diet_compliance",
+        name: `${profile.diet_type} diet`,
+        icon: Apple,
+        iconColor: "text-red-500",
+        iconBg: "bg-red-50",
+        status: "met",
+        value: "85%",
+        description: "Following your dietary preferences",
+      });
+    }
+
+    // Exercise habits based on workout time
+    if (profile?.workout_time) {
+      habits.push({
+        id: "exercise",
+        name: "Daily exercise",
+        icon: Activity,
+        iconColor: "text-green-500",
+        iconBg: "bg-green-50",
+        status: "met",
+        value: "45 min",
+        description: `Scheduled for ${profile.workout_time}`,
+      });
+    }
+
+    // Hydration (always show)
+    habits.push({
+      id: "hydration",
+      name: "Hydration",
+      icon: Droplets,
+      iconColor: "text-blue-500",
+      iconBg: "bg-blue-50",
+      status: "met",
+      value: "64.0 fl oz",
+      description: "Daily water intake goal",
+    });
+
+    // Steps (always show)
+    habits.push({
+      id: "steps",
+      name: "10,000+ steps",
+      icon: Footprints,
+      iconColor: "text-green-500",
+      iconBg: "bg-green-50",
+      status: "met",
+      value: "12,450",
+      description: "Daily activity goal",
+    });
+
+    // Caffeine based on profile
+    habits.push({
+      id: "caffeine",
+      name: "Caffeine",
+      icon: Coffee,
+      iconColor: "text-amber-600",
+      iconBg: "bg-amber-50",
+      status: "met",
+      value: "95 mg",
+      description: "Within healthy limits",
+    });
+
+    // Stress management (always show)
+    habits.push({
+      id: "stress_management",
+      name: "Stress management",
+      icon: Heart,
+      iconColor: "text-pink-500",
+      iconBg: "bg-pink-50",
+      status: "not_met",
+      value: "High",
+      description: "Focus on relaxation techniques",
+    });
+
+    return habits;
+  };
+
+  // Initial state - Show habit tracking design
   if (step === "initial") {
+    const personalizedHabits = getPersonalizedHabits();
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto text-center">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Your AI-Powered Health Plan
+          <div className="max-w-md mx-auto">
+            {/* Habit Tracking Cards */}
+            <div className="space-y-3 mb-8">
+              {personalizedHabits.map((habit) => {
+                const IconComponent = habit.icon;
+                const isMet = habit.status === "met";
+                const isInactive = habit.status === "inactive";
+
+                return (
+                  <div
+                    key={habit.id}
+                    className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${
+                      isInactive ? "opacity-60" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 ${habit.iconBg} rounded-full flex items-center justify-center`}
+                        >
+                          <IconComponent
+                            className={`w-4 h-4 ${habit.iconColor}`}
+                          />
+                        </div>
+                        <div>
+                          <p
+                            className={`text-sm font-medium ${
+                              isInactive ? "text-gray-500" : "text-gray-900"
+                            }`}
+                          >
+                            {habit.name}
+                          </p>
+                          {habit.value && (
+                            <p
+                              className={`text-xs ${
+                                isMet ? "text-green-500" : "text-red-500"
+                              }`}
+                            >
+                              {habit.value}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {isMet ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <X
+                          className={`w-5 h-5 ${
+                            isInactive ? "text-gray-400" : "text-red-500"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Main Content */}
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Build a better health timeline
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Get a personalized health plan powered by AI, based on your
-                profile data, goals, and preferences.
+              <p className="text-gray-600 leading-relaxed">
+                Your health journey shapes your future. UrCare helps you track
+                the habits that move the needle, so you can build a healthier
+                timeline for your life.
               </p>
             </div>
 
-            {/* Profile Summary */}
-            <Card className="mb-8 text-left">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-red-500" />
-                  Your Profile Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Name</p>
-                    <p className="font-medium">{profile.full_name || "User"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Age</p>
-                    <p className="font-medium">
-                      {profile.age || "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Gender</p>
-                    <p className="font-medium capitalize">
-                      {profile.gender || "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">BMI</p>
-                    <p className="font-medium">
-                      {profile.height_cm && profile.weight_kg
-                        ? (
-                            Number(profile.weight_kg) /
-                            (Number(profile.height_cm) / 100) ** 2
-                          ).toFixed(1)
-                        : "Calculate after generation"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* What You'll Get */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                What You'll Get
-              </h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Apple className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Nutrition Plan</h3>
-                    <p className="text-sm text-gray-600">
-                      Personalized calorie targets and meal recommendations
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Activity className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Fitness Plan</h3>
-                    <p className="text-sm text-gray-600">
-                      Custom workout routines and exercise schedules
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Moon className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Lifestyle Tips</h3>
-                    <p className="text-sm text-gray-600">
-                      Sleep, stress management, and wellness advice
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Generate Button */}
+            {/* Continue Button */}
             <Button
               onClick={handleGeneratePlan}
               size="lg"
-              className="w-full md:w-auto px-8 py-3 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 text-lg font-medium rounded-xl"
             >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Generate AI Health Plan
+              Continue
             </Button>
-
-            <p className="text-sm text-gray-500 mt-4">
-              This will take just a few seconds to create your personalized plan
-            </p>
           </div>
         </div>
       </div>
