@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/ui/loading-animation";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
@@ -338,6 +338,7 @@ const CustomPlan: React.FC = () => {
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const hasNavigatedRef = useRef(false);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -383,6 +384,23 @@ const CustomPlan: React.FC = () => {
     }
   }, [profile]);
 
+  // Safe navigation function to prevent throttling
+  const safeNavigate = useCallback((path: string) => {
+    if (hasNavigatedRef.current) return;
+    
+    // Clear any existing timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+    }
+    
+    hasNavigatedRef.current = true;
+    
+    // Use timeout to ensure navigation happens after current render cycle
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigate(path, { replace: true });
+    }, 100);
+  }, [navigate]);
+
   // Check if user has completed onboarding
   useEffect(() => {
     // Prevent navigation throttling - only run once when profile changes
@@ -398,9 +416,8 @@ const CustomPlan: React.FC = () => {
     }
 
     if (!profile.onboarding_completed) {
-      hasNavigatedRef.current = true;
       toast.error("Please complete your onboarding first.");
-      navigate("/onboarding", { replace: true });
+      safeNavigate("/onboarding");
       return;
     }
 
@@ -421,12 +438,20 @@ const CustomPlan: React.FC = () => {
     ];
 
     if (required.some((v) => !v)) {
-      hasNavigatedRef.current = true;
       toast.error("Please complete your onboarding first.");
-      navigate("/onboarding", { replace: true });
+      safeNavigate("/onboarding");
       return;
     }
-  }, [profile]); // Only depend on profile, not all the other values
+  }, [profile, safeNavigate]); // Include safeNavigate in dependencies
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Show loading state while AuthContext is initializing
   if (!isInitialized || loading) {
