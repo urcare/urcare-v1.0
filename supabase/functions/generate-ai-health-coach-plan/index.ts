@@ -19,6 +19,8 @@ interface UserProfile {
   height_cm: string | null;
   weight_lb: string | null;
   weight_kg: string | null;
+  waist_cm: string | null;
+  waist_inches: string | null;
   wake_up_time: string | null;
   sleep_time: string | null;
   work_start: string | null;
@@ -54,44 +56,111 @@ interface UserProfile {
   updated_at: string;
 }
 
-interface HealthPlanActivity {
-  id: string;
-  type:
-    | "workout"
-    | "meal"
-    | "hydration"
-    | "sleep"
-    | "meditation"
-    | "break"
-    | "other";
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  duration: number; // in minutes
-  priority: "high" | "medium" | "low";
-  category: string;
-  instructions?: string[];
-  tips?: string[];
+interface Exercise {
+  name: string;
+  sets: number;
+  reps: string;
+  rpe: string;
+  rest_s: number;
+  tempo: string;
+  cues: string[];
+  alt: string[];
 }
 
-interface DayPlan {
-  date: string;
-  activities: HealthPlanActivity[];
-  summary: {
-    totalActivities: number;
-    workoutTime: number;
-    mealCount: number;
-    sleepHours: number;
-    focusAreas: string[];
+interface Movement {
+  type: "home" | "gym";
+  duration_min: number;
+  exercises: Exercise[];
+  warmup: string[];
+  cooldown: string[];
+}
+
+interface MealItem {
+  food: string;
+  qty_g: number;
+  hand_portion?: string;
+}
+
+interface Meal {
+  name: string;
+  time: string;
+  items: MealItem[];
+  macros: {
+    p: number;
+    c: number;
+    f: number;
+    fiber?: number;
+  };
+  order: string[];
+  tips: string[];
+  swaps?: string[];
+}
+
+interface Nutrition {
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number;
+  meals: Meal[];
+  snacks: string[];
+  hacks: string[];
+}
+
+interface HealthScore {
+  total: number;
+  delta: number;
+  subscores: {
+    metabolic: number;
+    fitness: number;
+    sleep: number;
+    nutrition: number;
+    recovery?: number;
+    stress?: number;
   };
 }
 
-interface TwoDayPlan {
-  day1: DayPlan;
-  day2: DayPlan;
-  overallGoals: string[];
-  progressTips: string[];
+interface DailyPlan {
+  date: string;
+  timezone: string;
+  focus: string;
+  movement: Movement;
+  steps: {
+    target: number;
+    post_meal_walk_min: number;
+  };
+  nutrition: Nutrition;
+  blood_sugar_support?: {
+    tactics: string[];
+  };
+  sleep: {
+    bedtime: string;
+    wake_time: string;
+    duration_hours: number;
+    wind_down_routine: string[];
+    environment_tips: string[];
+  };
+  stress: {
+    practice: string;
+    duration_min: number;
+    reflection_prompt: string;
+  };
+  recovery: {
+    nature_time_min: number;
+    mobility_routine: string[];
+    environment_optimization: string[];
+  };
+  education: string;
+  health_score: HealthScore;
+}
+
+interface AIHealthCoachPlan {
+  day1: DailyPlan;
+  day2: DailyPlan;
+  overall_goals: string[];
+  progress_tips: string[];
+  safety_notes?: string[];
+  cultural_adaptations?: string[];
 }
 
 serve(async (req) => {
@@ -128,7 +197,7 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile (basic) and onboarding details (separate table)
+    // Get user profile and onboarding details
     const { data: profile, error: profileError } = await supabaseClient
       .from("user_profiles")
       .select("*")
@@ -168,7 +237,7 @@ serve(async (req) => {
       );
     }
 
-    // Check if user already has an active plan
+    // Check for existing active plan
     const { data: existingPlan, error: existingPlanError } =
       await supabaseClient
         .from("two_day_health_plans")
@@ -191,8 +260,11 @@ serve(async (req) => {
       );
     }
 
-    // Generate health plan using OpenAI
-    const healthPlan = await generateHealthPlan(profile, onboarding?.details);
+    // Generate AI Health Coach plan
+    const healthPlan = await generateAIHealthCoachPlan(
+      profile,
+      onboarding?.details
+    );
 
     // Calculate plan dates (next 2 days)
     const today = new Date();
@@ -229,7 +301,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         plan: savedPlan,
-        message: "Health plan generated successfully",
+        message: "AI Health Coach plan generated successfully",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -237,7 +309,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error generating health plan:", error);
+    console.error("Error generating AI Health Coach plan:", error);
 
     return new Response(
       JSON.stringify({
@@ -252,44 +324,62 @@ serve(async (req) => {
   }
 });
 
-async function generateHealthPlan(
+async function generateAIHealthCoachPlan(
   profile: UserProfile,
   onboardingDetails?: any
-): Promise<TwoDayPlan> {
+): Promise<AIHealthCoachPlan> {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
   if (!OPENAI_API_KEY) {
     throw new Error("OpenAI API key not configured");
   }
 
-  // Prepare user data for AI
+  // Prepare comprehensive user data for AI
   const userData = {
-    name: profile.full_name || "User",
-    age: profile.age,
-    gender: profile.gender,
-    height: profile.height_cm || profile.height_feet,
-    weight: profile.weight_kg || profile.weight_lb,
-    unitSystem: profile.unit_system || "metric",
-    healthGoals: profile.health_goals || [],
-    dietType: profile.diet_type,
-    chronicConditions: profile.chronic_conditions || [],
-    medications: profile.medications || [],
+    demographics: {
+      name: profile.full_name || "User",
+      age: profile.age,
+      gender: profile.gender,
+      height: profile.height_cm || profile.height_feet,
+      weight: profile.weight_kg || profile.weight_lb,
+      waist: profile.waist_cm || profile.waist_inches,
+      unit_system: profile.unit_system || "metric",
+      timezone: "User's local timezone", // Could be enhanced with actual timezone
+      locale: "User's region", // Could be enhanced with actual location
+    },
+    goals: profile.health_goals || [],
+    medical: {
+      conditions: profile.chronic_conditions || [],
+      medications: profile.medications || [],
+      surgeries: profile.surgery_details || [],
+      critical_conditions: profile.critical_conditions,
+    },
+    diet: {
+      type: profile.diet_type,
+      preferences: onboardingDetails?.dietary_preferences || [],
+      allergies: onboardingDetails?.allergies || [],
+    },
     schedule: {
-      wakeUp: profile.wake_up_time,
+      wake_up: profile.wake_up_time,
       sleep: profile.sleep_time,
-      workStart: profile.work_start,
-      workEnd: profile.work_end,
+      work_start: profile.work_start,
+      work_end: profile.work_end,
       breakfast: profile.breakfast_time,
       lunch: profile.lunch_time,
       dinner: profile.dinner_time,
       workout: profile.workout_time,
     },
+    lifestyle: {
+      routine_flexibility: profile.routine_flexibility,
+      uses_wearable: profile.uses_wearable,
+      wearable_type: profile.wearable_type,
+    },
     onboarding: onboardingDetails || {},
   };
 
-  // Use the new AI Health Coach system
+  // Comprehensive AI Health Coach System Prompt
   const systemPrompt = `Role and mission
-- You are the AI Health Coach for [${userData.name}]. Your mission is to generate safe, science-based, hyper-personalized daily plans that help each user reach their goals (e.g., reverse type 2 diabetes, manage type 1 diabetes, PCOS/PCOD, weight loss or gain, muscle growth, longevity, sleep, stress) while protecting long-term health.
+- You are the AI Health Coach for [${userData.demographics.name}]. Your mission is to generate safe, science-based, hyper-personalized daily plans that help each user reach their goals (e.g., reverse type 2 diabetes, manage type 1 diabetes, PCOS/PCOD, weight loss or gain, muscle growth, longevity, sleep, stress) while protecting long-term health.
 - Optimize for: 1) Safety and non-maleficence, 2) Sustained adherence, 3) Goal progress, 4) Healthspan fundamentals (sleep, movement, nutrition quality, mental well-being, social support).
 - Think step-by-step internally to plan, but present only the final, concise plan to the user (do not reveal chain-of-thought; show rationale only when asked, succinctly).
 
@@ -382,7 +472,7 @@ Output style and UI rules
 
 You are an expert health coach. Create personalized, evidence-based daily plans that are safe, achievable, and culturally appropriate. Always prioritize safety and gradual progression.`;
 
-  const prompt = `## USER PROFILE ANALYSIS
+  const userPrompt = `## USER PROFILE ANALYSIS
 ${JSON.stringify(userData, null, 2)}
 
 ## YOUR TASK
@@ -394,92 +484,117 @@ Return ONLY a valid JSON object with this EXACT structure. Do not include any te
 {
   "day1": {
     "date": "YYYY-MM-DD",
-    "activities": [
-      {
-        "id": "morning-routine-1",
-        "type": "other",
-        "title": "Morning Energy Boost",
-        "description": "Start your day with intention and energy",
-        "startTime": "07:00",
-        "endTime": "07:30",
-        "duration": 30,
-        "priority": "high",
-        "category": "wellness",
-        "instructions": [
-          "Wake up at 7:00 AM",
-          "Drink a large glass of water",
-          "Do 5 minutes of light stretching",
-          "Take 3 deep breaths and set your intention for the day"
-        ],
-        "tips": [
-          "Keep your phone away from your bed",
-          "Open curtains to let in natural light",
-          "Have your water bottle ready the night before"
-        ]
+    "timezone": "User_TZ",
+    "focus": "1-2 line focus tied to goal and constraints",
+    "movement": {
+      "type": "home|gym",
+      "duration_min": 50,
+      "exercises": [
+        {
+          "name": "Goblet Squat",
+          "sets": 4,
+          "reps": "6-8",
+          "rpe": "7-8",
+          "rest_s": 150,
+          "tempo": "3-1-1",
+          "cues": ["chest up", "knees track over toes"],
+          "alt": ["Box Squat"]
+        }
+      ],
+      "warmup": ["5-8 min easy cardio + hip/ankle mobility"],
+      "cooldown": ["breathing 2 min + light walk 5-10 min"]
+    },
+    "steps": {
+      "target": 9000,
+      "post_meal_walk_min": 10
+    },
+    "nutrition": {
+      "calories": 2000,
+      "protein_g": 130,
+      "carbs_g": 190,
+      "fat_g": 70,
+      "fiber_g": 35,
+      "meals": [
+        {
+          "name": "Breakfast",
+          "time": "08:00",
+          "items": [
+            {"food": "Paneer bhurji", "qty_g": 150, "hand_portion": "1 palm"},
+            {"food": "Millet roti", "qty_g": 80, "hand_portion": "1 cupped hand"}
+          ],
+          "macros": {"p": 35, "c": 45, "f": 20, "fiber": 8},
+          "order": ["veg", "protein", "carb"],
+          "tips": ["eat slowly", "sip water 30 min before"],
+          "swaps": ["tofu for paneer", "whole wheat roti for millet"]
+        }
+      ],
+      "snacks": ["roasted chana 30g", "apple + 10 almonds", "green tea"],
+      "hacks": ["10-min walk after lunch", "vinegar before largest carb meal if tolerated"]
+    },
+    "blood_sugar_support": {
+      "tactics": ["fiber-first salad", "12-min walk after largest carb meal", "carb swaps"]
+    },
+    "sleep": {
+      "bedtime": "22:00",
+      "wake_time": "06:00",
+      "duration_hours": 8,
+      "wind_down_routine": ["dim lights 90 min before", "no screens 1 hour before", "cool room 18-20°C"],
+      "environment_tips": ["blackout curtains", "white noise if needed", "phone in another room"]
+    },
+    "stress": {
+      "practice": "5-min breathing exercise",
+      "duration_min": 5,
+      "reflection_prompt": "What went well today? One small win to celebrate."
+    },
+    "recovery": {
+      "nature_time_min": 20,
+      "mobility_routine": ["hip flexor stretch", "thoracic spine rotation", "calf raises"],
+      "environment_optimization": ["natural light exposure", "ergonomic workspace setup"]
+    },
+    "education": "Protein first eating helps stabilize blood sugar and keeps you fuller longer.",
+    "health_score": {
+      "total": 72,
+      "delta": 1,
+      "subscores": {
+        "metabolic": 75,
+        "fitness": 68,
+        "sleep": 70,
+        "nutrition": 74
       }
-    ],
-    "summary": {
-      "totalActivities": 8,
-      "workoutTime": 45,
-      "mealCount": 3,
-      "sleepHours": 8,
-      "focusAreas": ["cardio", "nutrition", "stress-management"]
     }
   },
   "day2": {
-    "date": "YYYY-MM-DD",
-    "activities": [
-      {
-        "id": "morning-routine-2",
-        "type": "other",
-        "title": "Morning Energy Boost",
-        "description": "Start your day with intention and energy",
-        "startTime": "07:00",
-        "endTime": "07:30",
-        "duration": 30,
-        "priority": "high",
-        "category": "wellness",
-        "instructions": [
-          "Wake up at 7:00 AM",
-          "Drink a large glass of water",
-          "Do 5 minutes of light stretching",
-          "Take 3 deep breaths and set your intention for the day"
-        ],
-        "tips": [
-          "Keep your phone away from your bed",
-          "Open curtains to let in natural light",
-          "Have your water bottle ready the night before"
-        ]
-      }
-    ],
-    "summary": {
-      "totalActivities": 8,
-      "workoutTime": 30,
-      "mealCount": 3,
-      "sleepHours": 8,
-      "focusAreas": ["strength", "nutrition", "recovery"]
-    }
+    /* same structure as day1 but with different activities */
   },
-  "overallGoals": [
+  "overall_goals": [
     "Establish consistent morning routine",
     "Improve daily hydration habits",
     "Build sustainable exercise routine"
   ],
-  "progressTips": [
+  "progress_tips": [
     "Track your activities in a journal or app",
     "Celebrate small wins daily",
     "Adjust the plan based on how you feel",
     "Stay consistent rather than perfect",
     "Listen to your body and rest when needed"
+  ],
+  "safety_notes": [
+    "If you experience chest pain, severe shortness of breath, or fainting, seek immediate medical care",
+    "Monitor blood glucose if diabetic and coordinate exercise changes with your care team"
+  ],
+  "cultural_adaptations": [
+    "Meals adapted for Indian vegetarian preferences",
+    "Exercise timing respects work schedule",
+    "Regional food substitutions provided"
   ]
 }
 
 ## CRITICAL REQUIREMENTS
 - Use the user's actual wake-up time, work schedule, and preferences
-- Create realistic, achievable activities with specific sets/reps/RPE where applicable
-- Include proper meal timing based on their schedule with regional food options
+- Create realistic, achievable activities with specific sets/reps/RPE
+- Include proper meal timing based on their schedule with exact quantities
 - Account for any health conditions or dietary restrictions
-- Provide specific, actionable instructions with cultural adaptations
+- Provide specific, actionable instructions with regional food options
 - Ensure activities are spaced appropriately throughout the day
 - Make Day 2 slightly different from Day 1 for variety
 - Focus on building sustainable habits, not perfection
@@ -502,9 +617,9 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
           role: "system",
           content: systemPrompt,
         },
-        { role: "user", content: prompt },
+        { role: "user", content: userPrompt },
       ],
-      max_tokens: 6000,
+      max_tokens: 8000,
       temperature: 0.3,
     }),
   });
@@ -544,7 +659,7 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
   }
 }
 
-function createFallbackPlan(profile: UserProfile): TwoDayPlan {
+function createFallbackPlan(profile: UserProfile): AIHealthCoachPlan {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -553,154 +668,177 @@ function createFallbackPlan(profile: UserProfile): TwoDayPlan {
   const sleepTime = profile.sleep_time || "22:00";
   const workoutTime = profile.workout_time || "18:00";
 
-  const createBasicDay = (date: Date, isWorkoutDay: boolean) => ({
+  const createBasicDay = (date: Date, isWorkoutDay: boolean): DailyPlan => ({
     date: date.toISOString().split("T")[0],
-    activities: [
-      {
-        id: `wake-up-${date.getDate()}`,
-        type: "other" as const,
-        title: "Wake Up & Morning Routine",
-        description: "Start your day with a healthy morning routine",
-        startTime: wakeUpTime,
-        endTime: addMinutes(wakeUpTime, 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "wellness",
-        instructions: [
-          "Wake up at scheduled time",
-          "Drink a glass of water",
-          "Do light stretching",
-        ],
-        tips: [
-          "Keep your phone away from bed",
-          "Open curtains for natural light",
-        ],
-      },
-      {
-        id: `breakfast-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Healthy Breakfast",
-        description: "Nutritious breakfast to fuel your day",
-        startTime: profile.breakfast_time || addMinutes(wakeUpTime, 30),
-        endTime: addMinutes(
-          profile.breakfast_time || addMinutes(wakeUpTime, 30),
-          30
-        ),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a balanced breakfast",
-          "Include protein and fiber",
-          "Stay hydrated",
-        ],
-        tips: ["Prepare breakfast the night before", "Avoid processed foods"],
-      },
-      ...(isWorkoutDay
+    timezone: "User's local timezone",
+    focus: isWorkoutDay
+      ? "Strength training and balanced nutrition"
+      : "Active recovery and mindful eating",
+    movement: {
+      type: "home",
+      duration_min: isWorkoutDay ? 45 : 20,
+      exercises: isWorkoutDay
         ? [
             {
-              id: `workout-${date.getDate()}`,
-              type: "workout" as const,
-              title: "Daily Workout",
-              description: "Exercise session based on your fitness goals",
-              startTime: workoutTime,
-              endTime: addMinutes(workoutTime, 45),
-              duration: 45,
-              priority: "high" as const,
-              category: "fitness",
-              instructions: [
-                "Warm up for 5 minutes",
-                "Main workout for 30 minutes",
-                "Cool down for 10 minutes",
-              ],
-              tips: [
-                "Listen to your body",
-                "Stay hydrated during workout",
-                "Track your progress",
-              ],
+              name: "Bodyweight Squats",
+              sets: 3,
+              reps: "12-15",
+              rpe: "6-7",
+              rest_s: 90,
+              tempo: "2-1-2",
+              cues: ["chest up", "knees track over toes"],
+              alt: ["Chair squats"],
+            },
+            {
+              name: "Push-ups",
+              sets: 3,
+              reps: "8-12",
+              rpe: "7-8",
+              rest_s: 90,
+              tempo: "2-1-2",
+              cues: ["straight line", "full range of motion"],
+              alt: ["Incline push-ups"],
             },
           ]
-        : []),
-      {
-        id: `lunch-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Balanced Lunch",
-        description: "Nutritious lunch to maintain energy",
-        startTime: profile.lunch_time || "13:00",
-        endTime: addMinutes(profile.lunch_time || "13:00", 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a balanced meal",
-          "Include vegetables and protein",
-          "Avoid overeating",
-        ],
-        tips: [
-          "Take time to enjoy your meal",
-          "Avoid distractions while eating",
-        ],
+        : [
+            {
+              name: "Walking",
+              sets: 1,
+              reps: "20-30 min",
+              rpe: "3-4",
+              rest_s: 0,
+              tempo: "steady",
+              cues: ["brisk pace", "upright posture"],
+              alt: ["Light stretching"],
+            },
+          ],
+      warmup: ["5 min light movement", "joint mobility"],
+      cooldown: ["5 min walking", "breathing exercises"],
+    },
+    steps: {
+      target: 8000,
+      post_meal_walk_min: 10,
+    },
+    nutrition: {
+      calories: 1800,
+      protein_g: 120,
+      carbs_g: 180,
+      fat_g: 60,
+      fiber_g: 30,
+      meals: [
+        {
+          name: "Breakfast",
+          time: profile.breakfast_time || addMinutes(wakeUpTime, 30),
+          items: [
+            { food: "Oatmeal", qty_g: 50, hand_portion: "1 cupped hand" },
+            { food: "Berries", qty_g: 100, hand_portion: "1 fist" },
+            { food: "Nuts", qty_g: 20, hand_portion: "1 thumb" },
+          ],
+          macros: { p: 25, c: 60, f: 15, fiber: 8 },
+          order: ["fiber", "protein", "carbs"],
+          tips: ["eat slowly", "stay hydrated"],
+          swaps: ["quinoa for oatmeal", "banana for berries"],
+        },
+        {
+          name: "Lunch",
+          time: profile.lunch_time || "13:00",
+          items: [
+            { food: "Grilled chicken", qty_g: 120, hand_portion: "1 palm" },
+            { food: "Brown rice", qty_g: 100, hand_portion: "1 cupped hand" },
+            { food: "Mixed vegetables", qty_g: 150, hand_portion: "2 fists" },
+          ],
+          macros: { p: 35, c: 50, f: 20, fiber: 6 },
+          order: ["vegetables", "protein", "carbs"],
+          tips: ["chew thoroughly", "take breaks"],
+          swaps: ["fish for chicken", "quinoa for rice"],
+        },
+        {
+          name: "Dinner",
+          time: profile.dinner_time || "19:00",
+          items: [
+            { food: "Salmon", qty_g: 100, hand_portion: "1 palm" },
+            { food: "Sweet potato", qty_g: 120, hand_portion: "1 fist" },
+            { food: "Green salad", qty_g: 100, hand_portion: "2 fists" },
+          ],
+          macros: { p: 30, c: 40, f: 25, fiber: 8 },
+          order: ["salad", "protein", "carbs"],
+          tips: ["finish 2-3 hours before sleep", "avoid screens"],
+          swaps: ["tofu for salmon", "regular potato for sweet potato"],
+        },
+      ],
+      snacks: ["Greek yogurt", "Apple with almond butter", "Herbal tea"],
+      hacks: ["10-min walk after meals", "drink water before eating"],
+    },
+    blood_sugar_support: {
+      tactics: [
+        "fiber-first eating",
+        "post-meal walking",
+        "balanced macronutrients",
+      ],
+    },
+    sleep: {
+      bedtime: sleepTime,
+      wake_time: wakeUpTime,
+      duration_hours: 8,
+      wind_down_routine: [
+        "dim lights 90 min before",
+        "no screens 1 hour before",
+        "relaxation exercises",
+      ],
+      environment_tips: [
+        "cool room",
+        "dark environment",
+        "comfortable bedding",
+      ],
+    },
+    stress: {
+      practice: "5-min breathing exercise",
+      duration_min: 5,
+      reflection_prompt: "What went well today? One thing you're grateful for.",
+    },
+    recovery: {
+      nature_time_min: 15,
+      mobility_routine: ["neck rolls", "shoulder shrugs", "ankle circles"],
+      environment_optimization: ["natural light exposure", "fresh air"],
+    },
+    education:
+      "Consistent sleep schedule helps regulate hormones and improves recovery.",
+    health_score: {
+      total: 70,
+      delta: 0,
+      subscores: {
+        metabolic: 70,
+        fitness: 65,
+        sleep: 75,
+        nutrition: 70,
       },
-      {
-        id: `dinner-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Light Dinner",
-        description: "Evening meal to end the day well",
-        startTime: profile.dinner_time || "19:00",
-        endTime: addMinutes(profile.dinner_time || "19:00", 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a lighter dinner",
-          "Include vegetables",
-          "Finish 2-3 hours before sleep",
-        ],
-        tips: ["Avoid heavy foods", "Limit screen time during dinner"],
-      },
-      {
-        id: `sleep-${date.getDate()}`,
-        type: "sleep" as const,
-        title: "Bedtime Routine",
-        description: "Prepare for a good night's sleep",
-        startTime: addMinutes(sleepTime, -30),
-        endTime: sleepTime,
-        duration: 30,
-        priority: "high" as const,
-        category: "wellness",
-        instructions: [
-          "Wind down activities",
-          "Avoid screens",
-          "Prepare for sleep",
-        ],
-        tips: ["Keep bedroom cool and dark", "Use relaxation techniques"],
-      },
-    ],
-    summary: {
-      totalActivities: isWorkoutDay ? 6 : 5,
-      workoutTime: isWorkoutDay ? 45 : 0,
-      mealCount: 3,
-      sleepHours: 8,
-      focusAreas: isWorkoutDay
-        ? ["fitness", "nutrition", "wellness"]
-        : ["nutrition", "wellness"],
     },
   });
 
   return {
     day1: createBasicDay(today, true),
     day2: createBasicDay(tomorrow, false),
-    overallGoals: profile.health_goals || [
+    overall_goals: profile.health_goals || [
       "Improve overall health",
       "Build healthy habits",
       "Maintain consistency",
     ],
-    progressTips: [
+    progress_tips: [
       "Track your daily activities",
       "Stay consistent with your schedule",
       "Listen to your body and adjust as needed",
       "Celebrate small wins",
       "Stay hydrated throughout the day",
+    ],
+    safety_notes: [
+      "If you experience any concerning symptoms, consult your healthcare provider",
+      "Start slowly and progress gradually",
+      "Listen to your body and rest when needed",
+    ],
+    cultural_adaptations: [
+      "Plan adapted to your schedule and preferences",
+      "Flexible meal options provided",
+      "Exercise modifications available",
     ],
   };
 }

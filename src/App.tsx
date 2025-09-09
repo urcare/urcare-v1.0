@@ -12,11 +12,11 @@ import { useDevAuth } from "./hooks/useDevAuth";
 import CustomPlan from "./pages/CustomPlan";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
+import EnhancedPlanner from "./pages/EnhancedPlanner";
 import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
-import Planner from "./pages/Planner";
 import Subscription from "./pages/Subscription";
 import Workout from "./pages/Workout";
 
@@ -164,7 +164,7 @@ function App() {
             path="/planner"
             element={
               <ProtectedRoute requireOnboardingComplete={true}>
-                <Planner />
+                <EnhancedPlanner />
               </ProtectedRoute>
             }
           />

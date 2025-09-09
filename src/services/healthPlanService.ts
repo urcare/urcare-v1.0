@@ -61,7 +61,7 @@ class HealthPlanService {
   async generateHealthPlan(): Promise<HealthPlanRecord> {
     try {
       const { data, error } = await supabase.functions.invoke(
-        "generate-health-plan",
+        "generate-ai-health-coach-plan",
         {
           method: "POST",
           body: {},
@@ -69,16 +69,20 @@ class HealthPlanService {
       );
 
       if (error) {
-        throw new Error(`Failed to generate health plan: ${error.message}`);
+        throw new Error(
+          `Failed to generate AI Health Coach plan: ${error.message}`
+        );
       }
 
       if (!data.success) {
-        throw new Error(data.error || "Failed to generate health plan");
+        throw new Error(
+          data.error || "Failed to generate AI Health Coach plan"
+        );
       }
 
       return data.plan;
     } catch (error) {
-      console.error("Error generating health plan:", error);
+      console.error("Error generating AI Health Coach plan:", error);
       throw error;
     }
   }
