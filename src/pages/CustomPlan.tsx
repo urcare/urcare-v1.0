@@ -449,11 +449,19 @@ const CustomPlan: React.FC = () => {
 
   // Fetch onboarding data and generate health metrics
   useEffect(() => {
+    console.log("CustomPlan useEffect triggered:", { 
+      profile: !!profile, 
+      metricsInitialized, 
+      onboardingCompleted: profile?.onboarding_completed 
+    });
+
     const fetchOnboardingData = async () => {
       if (!profile || metricsInitialized) {
+        console.log("Skipping fetchOnboardingData:", { profile: !!profile, metricsInitialized });
         return; // Prevent re-running if metrics already initialized
       }
 
+      console.log("Starting fetchOnboardingData");
       setIsGeneratingMetrics(true);
       setMetricsError(null);
 
@@ -526,12 +534,14 @@ const CustomPlan: React.FC = () => {
     };
 
     if (profile && profile.onboarding_completed && !metricsInitialized) {
+      console.log("Profile has completed onboarding, fetching data");
       fetchOnboardingData();
     } else if (
       profile &&
       !profile.onboarding_completed &&
       !metricsInitialized
     ) {
+      console.log("Profile has not completed onboarding, generating basic metrics");
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
       try {
@@ -539,11 +549,18 @@ const CustomPlan: React.FC = () => {
         setHealthMetrics(metrics);
         setMetricsInitialized(true);
         setMetricsError(null);
+        console.log("Basic metrics generated for incomplete onboarding");
       } catch (error) {
         console.error("Error generating basic metrics:", error);
         setMetricsError("Unable to generate health metrics");
       }
       setIsGeneratingMetrics(false);
+    } else {
+      console.log("No action taken:", { 
+        hasProfile: !!profile, 
+        onboardingCompleted: profile?.onboarding_completed,
+        metricsInitialized 
+      });
     }
   }, [profile, metricsInitialized]);
 
@@ -908,12 +925,27 @@ const CustomPlan: React.FC = () => {
 
   // Show loading state while generating metrics or if metrics not initialized yet
   // But allow fallback to show content if fallback is triggered
+  console.log("CustomPlan render state:", {
+    isGeneratingMetrics,
+    hasProfile: !!profile,
+    metricsInitialized,
+    fallbackTriggered,
+    shouldShowLoading: (isGeneratingMetrics || (profile && !metricsInitialized)) && !fallbackTriggered
+  });
+
   if ((isGeneratingMetrics || (profile && !metricsInitialized)) && !fallbackTriggered) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Analyzing your health data...</p>
+          {/* Debug info */}
+          <div className="mt-4 text-xs text-gray-400">
+            Debug: {isGeneratingMetrics ? 'Generating' : 'Waiting'} | 
+            Profile: {profile ? 'Yes' : 'No'} | 
+            Metrics: {metricsInitialized ? 'Yes' : 'No'} |
+            Fallback: {fallbackTriggered ? 'Yes' : 'No'}
+          </div>
         </div>
       </div>
     );
