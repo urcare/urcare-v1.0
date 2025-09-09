@@ -1,0 +1,5 @@
+[33m9f4f284[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix infinite loop in CustomPlan useEffect using useRef
+[33m69daeae[m Add debug logging to CustomPlan to diagnose loading issue
+[33m7916e96[m Fix circular dependency in AuthContext - reorder refreshProfile and updateProfile
+[33m40b1c92[m Fix infinite loop in CustomPlan page - stabilize AuthContext profile reference
+[33me8a5df3[m debug: add comprehensive logging and fallback mechanism to custom-plan page
