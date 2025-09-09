@@ -340,6 +340,7 @@ const CustomPlan: React.FC = () => {
   const [isGeneratingMetrics, setIsGeneratingMetrics] = useState(false);
   const hasNavigatedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const metricsGeneratedRef = useRef(false);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -353,7 +354,7 @@ const CustomPlan: React.FC = () => {
   // Fetch onboarding data and generate health metrics
   useEffect(() => {
     const fetchOnboardingData = async () => {
-      if (!profile) return;
+      if (!profile || metricsGeneratedRef.current) return; // Prevent re-running if metrics already generated
       
       setIsGeneratingMetrics(true);
       
@@ -374,23 +375,26 @@ const CustomPlan: React.FC = () => {
         // Generate health metrics based on profile and onboarding data
         const metrics = generateHealthMetrics(profile, onboarding?.details || {});
         setHealthMetrics(metrics);
+        metricsGeneratedRef.current = true;
       } catch (error) {
         console.error('Error fetching onboarding data:', error);
         // Fallback to basic metrics
         const metrics = generateHealthMetrics(profile, {});
         setHealthMetrics(metrics);
+        metricsGeneratedRef.current = true;
       } finally {
         setIsGeneratingMetrics(false);
       }
     };
 
-    if (profile && profile.onboarding_completed) {
+    if (profile && profile.onboarding_completed && !metricsGeneratedRef.current) {
       fetchOnboardingData();
-    } else if (profile && !profile.onboarding_completed) {
+    } else if (profile && !profile.onboarding_completed && !metricsGeneratedRef.current) {
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
       const metrics = generateHealthMetrics(profile, {});
       setHealthMetrics(metrics);
+      metricsGeneratedRef.current = true;
       setIsGeneratingMetrics(false);
     }
   }, [profile]);
@@ -708,11 +712,8 @@ const CustomPlan: React.FC = () => {
     );
   }
 
-  // Fallback: if no metrics and we have a profile, generate them immediately
-  if (profile && healthMetrics.length === 0) {
-    console.log("Fallback: Generating health metrics for profile:", profile);
-    const fallbackMetrics = generateHealthMetrics(profile, {});
-    setHealthMetrics(fallbackMetrics);
+  // If no metrics and we have a profile, show loading
+  if (profile && healthMetrics.length === 0 && !isGeneratingMetrics) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
