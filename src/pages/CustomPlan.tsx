@@ -49,79 +49,35 @@ interface HealthMetric {
   description: string;
 }
 
-interface AIHealthAnalysis {
+interface HealthAnalysis {
   overallScore: number;
   metrics: HealthMetric[];
   riskFactors: string[];
   recommendations: string[];
 }
 
-// Generate AI-powered health analysis using OpenAI
-const generateAIHealthAnalysis = async (
+// Generate health analysis
+const generateHealthAnalysis = async (
   profile: UserProfile,
   onboardingData: Record<string, unknown>
-): Promise<AIHealthAnalysis> => {
+): Promise<HealthAnalysis> => {
   try {
-    console.log("Generating AI health analysis...");
-
-    // Prepare data for AI analysis
-    const analysisData = {
-      demographics: {
-        age: profile.age,
-        gender: profile.gender,
-        height: profile.height_cm,
-        weight: profile.weight_kg,
-      },
-      lifestyle: {
-        sleepTime: profile.sleep_time,
-        wakeUpTime: profile.wake_up_time,
-        workSchedule: {
-          start: profile.work_start,
-          end: profile.work_end,
-        },
-        mealTimes: {
-          breakfast: profile.breakfast_time,
-          lunch: profile.lunch_time,
-          dinner: profile.dinner_time,
-        },
-        workoutTime: profile.workout_time,
-      },
-      health: {
-        chronicConditions: profile.chronic_conditions,
-        medications: profile.medications,
-        healthGoals: profile.health_goals,
-        dietType: profile.diet_type,
-        bloodGroup: profile.blood_group,
-      },
-      onboardingDetails: onboardingData,
-    };
-
-    const response = await fetch("/api/analyze-health", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(analysisData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to get AI health analysis");
-    }
-
-    const aiAnalysis = await response.json();
-    return aiAnalysis;
+    console.log("Generating health analysis...");
+    
+    // Use basic analysis directly (no AI)
+    return generateBasicHealthAnalysis(profile, onboardingData);
   } catch (error) {
-    console.error("Error generating AI health analysis:", error);
+    console.error("Error generating health analysis:", error);
     // Fallback to basic analysis
     return generateBasicHealthAnalysis(profile, onboardingData);
   }
 };
 
-// Fallback basic health analysis when AI is not available
+// Generate basic health analysis
 const generateBasicHealthAnalysis = (
   profile: UserProfile,
   onboardingData: Record<string, unknown>
-): AIHealthAnalysis => {
+): HealthAnalysis => {
   const metrics: HealthMetric[] = [];
   let overallScore = 75;
 
@@ -481,6 +437,9 @@ async function generateBasicHealthPlan(
         nutritionPlan: `Daily target: ${tdee} kcal with balanced macronutrients`,
         fitnessPlan: `3-4 days per week, 30-45 minutes per session`,
         lifestyleOptimization: `Focus on sleep, hydration, and stress management`,
+        healthMonitoring: `Track weight, BMI, and energy levels weekly`,
+        potentialRisks: `Monitor blood pressure and cholesterol levels`,
+        urCareBenefits: `Personalized tracking and community support`,
         nextSteps: `Start small and build healthy habits gradually`,
       },
     },
@@ -493,7 +452,7 @@ interface ComponentState {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
-  healthAnalysis: AIHealthAnalysis | null;
+  healthAnalysis: HealthAnalysis | null;
   onboardingData: Record<string, unknown>;
 }
 
@@ -581,7 +540,7 @@ const CustomPlan: React.FC = () => {
 
       // Generate health analysis
       console.log("Generating health analysis...");
-      const healthAnalysis = await generateAIHealthAnalysis(
+      const healthAnalysis = await generateHealthAnalysis(
         profile,
         onboardingData
       );
@@ -839,52 +798,11 @@ const CustomPlan: React.FC = () => {
     try {
       console.log("Starting health plan generation...");
 
-      // Try serverless AI endpoint first
-      const response = await fetch(`/api/generate-plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile }),
-      });
-
-      console.log("API response status:", response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("API response data:", data);
-
-        const structured = data?.structured;
-        const reportText = data?.report || "";
-
-        if (structured && structured.summary) {
-          const planReport: HealthPlanReport = {
-            summary: `Your health plan is ready! Health Score: ${structured.summary.healthScore}/100`,
-            recommendations: [
-              `Daily Calorie Target: ${structured.summary.calorieTarget} kcal`,
-              `BMI: ${structured.summary.bmi}`,
-              ...(structured.summary.keyRecommendations || []).slice(0, 3),
-            ],
-            detailedReport: reportText,
-            structured,
-          };
-          setReport(planReport);
-          setStep("ready");
-
-          if (structured.fallback) {
-            toast.success("Your health plan is ready! (Basic recommendations)");
-          } else {
-            toast.success("Your AI health plan is ready!");
-          }
-          return;
-        }
-      }
-
-      console.log("API failed, falling back to basic generator");
-
-      // Fallback to basic generator
+      // Generate basic health plan directly (no AI)
       const planReport = await generateBasicHealthPlan(profile);
       setReport(planReport);
       setStep("ready");
-      toast.success("Your basic health plan is ready!");
+      toast.success("Your health plan is ready!");
     } catch (error) {
       console.error("Error generating plan:", error);
       setStep("error");
@@ -919,7 +837,7 @@ const CustomPlan: React.FC = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2">Your Health Plan</h1>
+              <h1 className="text-3xl font-bold mb-2">Your Personalized Health Plan</h1>
               <p className="text-muted-foreground">{report.summary}</p>
             </div>
 
