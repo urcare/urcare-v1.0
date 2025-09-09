@@ -115,8 +115,26 @@ export const AuthCallback: React.FC = () => {
           console.log("AuthCallback: Table access successful, fetching profile...");
         } catch (testError) {
           console.error("AuthCallback: Table access failed:", testError);
-          // If we can't access the table, assume user needs to go through onboarding
-          console.log("AuthCallback: Cannot access database - redirecting to welcome screen");
+          // If we can't access the table, check user metadata for smart routing
+          console.log("AuthCallback: Cannot access database - checking user metadata for routing");
+          
+          const userEmail = session.user.email;
+          const userMetadata = session.user.user_metadata;
+          
+          console.log("AuthCallback: User metadata:", userMetadata);
+          
+          // For OAuth users, they usually have metadata, so assume they're returning
+          if (userMetadata?.full_name || userEmail) {
+            console.log("AuthCallback: User appears to be returning - redirecting to custom plan");
+            toast.success("Welcome back!", {
+              description: "Redirecting to your dashboard...",
+            });
+            navigate("/custom-plan", { replace: true });
+            return;
+          }
+          
+          // If no metadata, they might be a new user
+          console.log("AuthCallback: No user metadata - redirecting to welcome screen");
           navigate("/welcome-screen", { replace: true });
           return;
         }
