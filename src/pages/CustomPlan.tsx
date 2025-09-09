@@ -504,6 +504,7 @@ const CustomPlan: React.FC = () => {
   const hasNavigatedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initializationRef = useRef(false);
+  const lastInitializedProfileId = useRef<string | null>(null);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -514,13 +515,14 @@ const CustomPlan: React.FC = () => {
     "Finalizing your custom plan",
   ];
 
-  // Single initialization function to replace all useEffect logic
-  const initializeHealthData = useCallback(async () => {
+  // Single initialization function - defined without useCallback to avoid dependency issues
+  const initializeHealthData = async () => {
     // Use ref to check initialization status to avoid dependency issues
-    if (!profile || initializationRef.current) {
+    if (!profile || initializationRef.current || lastInitializedProfileId.current === profile?.id) {
       console.log("Skipping initializeHealthData due to guard:", {
         profile: profile?.id,
         initializationRef: initializationRef.current,
+        lastInitializedProfileId: lastInitializedProfileId.current,
         authIsInitialized: isInitialized,
         authLoading: loading,
       });
@@ -529,6 +531,7 @@ const CustomPlan: React.FC = () => {
 
     console.log("Initializing health data for profile:", profile.id);
     initializationRef.current = true;
+    lastInitializedProfileId.current = profile.id;
 
     setState((prev) => ({
       ...prev,
@@ -581,11 +584,12 @@ const CustomPlan: React.FC = () => {
         isInitialized: true, // Ensure state is initialized even on error
       }));
     }
-  }, [profile, isInitialized, loading]); // Only include stable dependencies
+  };
 
   // Retry function
   const retryInitialization = useCallback(() => {
     initializationRef.current = false;
+    lastInitializedProfileId.current = null;
     setState({
       isLoading: false,
       isInitialized: false,
@@ -600,7 +604,8 @@ const CustomPlan: React.FC = () => {
     if (profile && isInitialized && !loading && !initializationRef.current) {
       initializeHealthData();
     }
-  }, [profile, isInitialized, loading, initializeHealthData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, isInitialized, loading]);
 
   // Safe navigation function to prevent throttling
   const safeNavigate = useCallback(
@@ -673,6 +678,7 @@ const CustomPlan: React.FC = () => {
       }
       // Reset tracking on unmount to prevent stale state
       initializationRef.current = false;
+      lastInitializedProfileId.current = null;
     };
   }, []);
 
