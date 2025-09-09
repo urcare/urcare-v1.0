@@ -270,62 +270,87 @@ async function generateHealthPlan(profile: UserProfile, onboardingDetails?: any)
     onboarding: onboardingDetails || {},
   };
 
-  const prompt = `You are an expert health and wellness AI coach. Generate a personalized 2-day health plan based on the user's profile data.
+  const prompt = `You are Dr. Sarah Chen, a certified health coach, nutritionist, and fitness expert with 15+ years of experience. You specialize in creating personalized, evidence-based health plans that are sustainable and achievable.
 
-USER PROFILE:
+## USER PROFILE ANALYSIS
 ${JSON.stringify(userData, null, 2)}
 
-Create a detailed 2-day health plan with the following structure:
+## YOUR TASK
+Create a comprehensive, personalized 2-day health plan that addresses the user's specific needs, goals, and constraints. This plan should be their first step toward a healthier lifestyle.
 
-1. **Day 1 Plan**: Complete schedule with specific activities
-2. **Day 2 Plan**: Complete schedule with specific activities
+## PLANNING PRINCIPLES
+1. **Personalization**: Tailor every aspect to their profile, schedule, and preferences
+2. **Realism**: Create achievable goals that fit their lifestyle
+3. **Progression**: Start with manageable activities and build gradually
+4. **Balance**: Include fitness, nutrition, sleep, and wellness components
+5. **Flexibility**: Account for their work schedule and time constraints
+6. **Safety**: Consider any health conditions or limitations
 
-Each day should include:
-- Workout sessions (based on user's fitness level and goals)
-- Meal times and suggestions (based on diet type and preferences)
-- Hydration reminders
-- Sleep schedule
-- Breaks and relaxation time
-- Any medication reminders (if applicable)
+## ACTIVITY GUIDELINES
 
-For each activity, provide:
-- Type: workout/meal/hydration/sleep/meditation/break/other
-- Title: Clear, engaging name
-- Description: What the activity involves
-- Start time and end time (in HH:MM format)
-- Duration in minutes
-- Priority: high/medium/low
-- Category: fitness/nutrition/wellness/medical
-- Instructions: Step-by-step guidance
-- Tips: Helpful suggestions
+### WORKOUT ACTIVITIES
+- **Beginner**: 20-30 min light cardio, bodyweight exercises, walking
+- **Intermediate**: 30-45 min mixed cardio/strength, moderate intensity
+- **Advanced**: 45-60 min varied workouts, higher intensity
+- Include proper warm-up (5 min) and cool-down (5-10 min)
+- Consider their workout time preference and available equipment
 
-Consider:
-- User's work schedule and availability
-- Health goals and conditions
-- Diet preferences and restrictions
-- Fitness level and capabilities
-- Sleep and wake times
-- Medication schedules
+### NUTRITION ACTIVITIES
+- **Meal Planning**: Based on their diet type (vegetarian, vegan, etc.)
+- **Hydration**: 8-10 glasses of water, spaced throughout the day
+- **Meal Timing**: Align with their schedule and preferences
+- **Portion Control**: Appropriate serving sizes for their goals
+- **Nutrient Balance**: Include protein, carbs, healthy fats, fiber
 
-Make the plan realistic, achievable, and personalized. Focus on building healthy habits gradually.
+### WELLNESS ACTIVITIES
+- **Sleep Optimization**: Wind-down routine, optimal sleep environment
+- **Stress Management**: Meditation, deep breathing, relaxation
+- **Recovery**: Rest periods, stretching, self-care
+- **Medication Reminders**: If applicable, include proper timing
 
-Return ONLY a valid JSON object with this exact structure:
+## SCHEDULE OPTIMIZATION
+- **Work Schedule**: Respect their work hours and commute time
+- **Energy Levels**: Schedule demanding activities when they have most energy
+- **Meal Timing**: Space meals 3-4 hours apart
+- **Sleep Schedule**: Maintain consistent sleep/wake times
+- **Recovery**: Include adequate rest between intense activities
+
+## ACTIVITY REQUIREMENTS
+Each activity must include:
+- **Realistic Timing**: Based on their actual schedule
+- **Clear Instructions**: Step-by-step, actionable guidance
+- **Helpful Tips**: Practical advice for success
+- **Appropriate Duration**: Realistic time allocation
+- **Priority Level**: High for essential activities, medium/low for optional
+
+## RESPONSE FORMAT
+Return ONLY a valid JSON object with this EXACT structure. Do not include any text before or after the JSON:
+
 {
   "day1": {
-    "date": "YYYY-MM-DD",
+    "date": "2024-01-15",
     "activities": [
       {
-        "id": "unique_id",
-        "type": "workout|meal|hydration|sleep|meditation|break|other",
-        "title": "Activity Title",
-        "description": "What this activity involves",
-        "startTime": "HH:MM",
-        "endTime": "HH:MM",
+        "id": "morning-routine-1",
+        "type": "other",
+        "title": "Morning Energy Boost",
+        "description": "Start your day with intention and energy",
+        "startTime": "07:00",
+        "endTime": "07:30",
         "duration": 30,
-        "priority": "high|medium|low",
-        "category": "fitness|nutrition|wellness|medical",
-        "instructions": ["step 1", "step 2"],
-        "tips": ["tip 1", "tip 2"]
+        "priority": "high",
+        "category": "wellness",
+        "instructions": [
+          "Wake up at 7:00 AM",
+          "Drink a large glass of water",
+          "Do 5 minutes of light stretching",
+          "Take 3 deep breaths and set your intention for the day"
+        ],
+        "tips": [
+          "Keep your phone away from your bed",
+          "Open curtains to let in natural light",
+          "Have your water bottle ready the night before"
+        ]
       }
     ],
     "summary": {
@@ -333,15 +358,68 @@ Return ONLY a valid JSON object with this exact structure:
       "workoutTime": 45,
       "mealCount": 3,
       "sleepHours": 8,
-      "focusAreas": ["cardio", "strength", "nutrition"]
+      "focusAreas": ["cardio", "nutrition", "stress-management"]
     }
   },
   "day2": {
-    // Same structure as day1
+    "date": "2024-01-16",
+    "activities": [
+      {
+        "id": "morning-routine-2",
+        "type": "other",
+        "title": "Morning Energy Boost",
+        "description": "Start your day with intention and energy",
+        "startTime": "07:00",
+        "endTime": "07:30",
+        "duration": 30,
+        "priority": "high",
+        "category": "wellness",
+        "instructions": [
+          "Wake up at 7:00 AM",
+          "Drink a large glass of water",
+          "Do 5 minutes of light stretching",
+          "Take 3 deep breaths and set your intention for the day"
+        ],
+        "tips": [
+          "Keep your phone away from your bed",
+          "Open curtains to let in natural light",
+          "Have your water bottle ready the night before"
+        ]
+      }
+    ],
+    "summary": {
+      "totalActivities": 8,
+      "workoutTime": 30,
+      "mealCount": 3,
+      "sleepHours": 8,
+      "focusAreas": ["strength", "nutrition", "recovery"]
+    }
   },
-  "overallGoals": ["goal 1", "goal 2", "goal 3"],
-  "progressTips": ["tip 1", "tip 2", "tip 3"]
-}`;
+  "overallGoals": [
+    "Establish consistent morning routine",
+    "Improve daily hydration habits",
+    "Build sustainable exercise routine"
+  ],
+  "progressTips": [
+    "Track your activities in a journal or app",
+    "Celebrate small wins daily",
+    "Adjust the plan based on how you feel",
+    "Stay consistent rather than perfect",
+    "Listen to your body and rest when needed"
+  ]
+}
+
+## CRITICAL REQUIREMENTS
+- Use the user's actual wake-up time, work schedule, and preferences
+- Create realistic, achievable activities
+- Include proper meal timing based on their schedule
+- Account for any health conditions or dietary restrictions
+- Provide specific, actionable instructions
+- Ensure activities are spaced appropriately throughout the day
+- Make Day 2 slightly different from Day 1 for variety
+- Focus on building sustainable habits, not perfection
+
+Remember: This is their starting point. Make it encouraging, achievable, and personalized to their unique situation.`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -355,12 +433,12 @@ Return ONLY a valid JSON object with this exact structure:
         {
           role: "system",
           content:
-            "You are a certified health coach and nutritionist. Generate personalized, evidence-based health plans. Always return valid JSON format.",
+            "You are Dr. Sarah Chen, a certified health coach, nutritionist, and fitness expert. You create personalized, evidence-based health plans that are sustainable and achievable. You always respond with valid JSON format only, never including any text before or after the JSON. You are empathetic, encouraging, and focus on building healthy habits gradually. You consider the user's unique circumstances, schedule, and limitations when creating plans.",
         },
         { role: "user", content: prompt },
       ],
-      max_tokens: 4000,
-      temperature: 0.7,
+      max_tokens: 6000,
+      temperature: 0.3,
     }),
   });
 
