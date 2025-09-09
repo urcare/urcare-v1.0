@@ -16,7 +16,10 @@ export const config = {
           "https://urcare-v1-0.vercel.app/auth/callback",
   },
 
-  // OpenAI Configuration removed
+  // OpenAI Configuration
+  openai: {
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY || "",
+  },
 
   // Razorpay Configuration
   razorpay: {
