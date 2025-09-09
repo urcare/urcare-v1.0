@@ -389,6 +389,7 @@ const CustomPlan: React.FC = () => {
   const [isGeneratingMetrics, setIsGeneratingMetrics] = useState(false);
   const [metricsInitialized, setMetricsInitialized] = useState(false);
   const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [fallbackTriggered, setFallbackTriggered] = useState(false);
   const hasNavigatedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -448,9 +449,19 @@ const CustomPlan: React.FC = () => {
 
   // Fetch onboarding data and generate health metrics
   useEffect(() => {
-    const fetchOnboardingData = async () => {
-      if (!profile || metricsInitialized) return; // Prevent re-running if metrics already initialized
+    console.log("CustomPlan useEffect triggered:", { 
+      profile: !!profile, 
+      metricsInitialized, 
+      onboardingCompleted: profile?.onboarding_completed 
+    });
 
+    const fetchOnboardingData = async () => {
+      if (!profile || metricsInitialized) {
+        console.log("Skipping fetchOnboardingData:", { profile: !!profile, metricsInitialized });
+        return; // Prevent re-running if metrics already initialized
+      }
+
+      console.log("Starting fetchOnboardingData");
       setIsGeneratingMetrics(true);
       setMetricsError(null);
 
@@ -462,6 +473,7 @@ const CustomPlan: React.FC = () => {
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
           setMetricsError(null);
+          console.log("Timeout fallback completed successfully");
         } catch (error) {
           console.error("Fallback metrics generation failed:", error);
           setMetricsError("Unable to generate health metrics");
@@ -470,6 +482,7 @@ const CustomPlan: React.FC = () => {
       }, 10000); // 10 second timeout
 
       try {
+        console.log("Fetching onboarding data for user:", profile.id);
         // Fetch onboarding data using existing supabase client
         const { data: onboarding, error } = await supabase
           .from("onboarding_profiles")
@@ -480,11 +493,13 @@ const CustomPlan: React.FC = () => {
         if (error) {
           console.warn("Could not fetch onboarding data:", error);
         } else {
+          console.log("Onboarding data fetched successfully");
           setOnboardingData(onboarding?.details || {});
         }
 
         // Generate health metrics based on profile and onboarding data
         try {
+          console.log("Generating health metrics...");
           const metrics = generateHealthMetrics(
             profile,
             onboarding?.details || {}
@@ -492,6 +507,7 @@ const CustomPlan: React.FC = () => {
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
           setMetricsError(null);
+          console.log("Health metrics generated successfully:", metrics.length);
         } catch (error) {
           console.error("Error generating health metrics:", error);
           setMetricsError("Failed to generate health metrics");
@@ -500,6 +516,7 @@ const CustomPlan: React.FC = () => {
             const basicMetrics = generateHealthMetrics(profile, {});
             setHealthMetrics(basicMetrics);
             setMetricsInitialized(true);
+            console.log("Basic metrics generated as fallback");
           } catch (fallbackError) {
             console.error("Fallback metrics generation failed:", fallbackError);
             setMetricsError("Unable to generate health metrics");
@@ -513,6 +530,7 @@ const CustomPlan: React.FC = () => {
           const metrics = generateHealthMetrics(profile, {});
           setHealthMetrics(metrics);
           setMetricsInitialized(true);
+          console.log("Basic metrics generated after error");
         } catch (fallbackError) {
           console.error("Fallback metrics generation failed:", fallbackError);
           setMetricsError("Unable to generate health metrics");
@@ -520,16 +538,19 @@ const CustomPlan: React.FC = () => {
       } finally {
         clearTimeout(timeoutId);
         setIsGeneratingMetrics(false);
+        console.log("fetchOnboardingData completed");
       }
     };
 
     if (profile && profile.onboarding_completed && !metricsInitialized) {
+      console.log("Profile has completed onboarding, fetching data");
       fetchOnboardingData();
     } else if (
       profile &&
       !profile.onboarding_completed &&
       !metricsInitialized
     ) {
+      console.log("Profile has not completed onboarding, generating basic metrics");
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
       try {
@@ -537,13 +558,43 @@ const CustomPlan: React.FC = () => {
         setHealthMetrics(metrics);
         setMetricsInitialized(true);
         setMetricsError(null);
+        console.log("Basic metrics generated for incomplete onboarding");
       } catch (error) {
         console.error("Error generating basic metrics:", error);
         setMetricsError("Unable to generate health metrics");
       }
       setIsGeneratingMetrics(false);
+    } else {
+      console.log("No action taken:", { 
+        hasProfile: !!profile, 
+        onboardingCompleted: profile?.onboarding_completed,
+        metricsInitialized 
+      });
     }
   }, [profile, metricsInitialized]);
+
+  // Fallback mechanism to prevent infinite loading
+  useEffect(() => {
+    if (profile && !metricsInitialized && !isGeneratingMetrics && !fallbackTriggered) {
+      const fallbackTimeout = setTimeout(() => {
+        console.warn("Fallback triggered - showing content without metrics");
+        setFallbackTriggered(true);
+        // Generate basic metrics as fallback
+        try {
+          const basicMetrics = generateHealthMetrics(profile, {});
+          setHealthMetrics(basicMetrics);
+          setMetricsInitialized(true);
+          setIsGeneratingMetrics(false);
+        } catch (error) {
+          console.error("Fallback metrics generation failed:", error);
+          setMetricsInitialized(true); // Still set to true to show content
+          setIsGeneratingMetrics(false);
+        }
+      }, 15000); // 15 second fallback
+
+      return () => clearTimeout(fallbackTimeout);
+    }
+  }, [profile, metricsInitialized, isGeneratingMetrics, fallbackTriggered]);
 
   // Safe navigation function to prevent throttling
   const safeNavigate = useCallback(
@@ -882,12 +933,20 @@ const CustomPlan: React.FC = () => {
   }
 
   // Show loading state while generating metrics or if metrics not initialized yet
-  if (isGeneratingMetrics || (profile && !metricsInitialized)) {
+  // But allow fallback to show content if fallback is triggered
+  if ((isGeneratingMetrics || (profile && !metricsInitialized)) && !fallbackTriggered) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Analyzing your health data...</p>
+          {/* Debug info */}
+          <div className="mt-4 text-xs text-gray-400">
+            Debug: {isGeneratingMetrics ? 'Generating' : 'Waiting'} | 
+            Profile: {profile ? 'Yes' : 'No'} | 
+            Metrics: {metricsInitialized ? 'Yes' : 'No'} |
+            Fallback: {fallbackTriggered ? 'Yes' : 'No'}
+          </div>
         </div>
       </div>
     );
