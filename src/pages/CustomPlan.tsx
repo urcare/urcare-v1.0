@@ -153,23 +153,13 @@ const CustomPlan: React.FC = () => {
     "Finalizing your custom plan",
   ];
 
-  // Show loading state while AuthContext is initializing
-  if (!isInitialized || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Check if user has completed onboarding
   useEffect(() => {
     // If profile is null (database timeout), allow OAuth users to proceed
     if (!profile) {
-      console.log("CustomPlan: Profile is null, allowing OAuth user to proceed");
+      console.log(
+        "CustomPlan: Profile is null, allowing OAuth user to proceed"
+      );
       return;
     }
 
@@ -202,11 +192,25 @@ const CustomPlan: React.FC = () => {
     }
   }, [profile, navigate]);
 
+  // Show loading state while AuthContext is initializing
+  if (!isInitialized || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Handle continue button click
   const handleGeneratePlan = async () => {
     if (!profile) {
       // If profile is null due to database timeout, create a basic profile for OAuth users
-      console.log("CustomPlan: Profile is null, creating basic profile for OAuth user");
+      console.log(
+        "CustomPlan: Profile is null, creating basic profile for OAuth user"
+      );
       const basicProfile: UserProfile = {
         id: "temp-oauth-user",
         full_name: "OAuth User",
@@ -254,9 +258,9 @@ const CustomPlan: React.FC = () => {
         referral_code: null,
         save_progress: null,
       };
-      
+
       setStep("generating");
-      
+
       // Simulate progress steps
       const progressInterval = setInterval(() => {
         setCurrentProgressStep((prev) => {

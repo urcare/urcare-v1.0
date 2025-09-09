@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Daily nutrition tracking table
 CREATE TABLE IF NOT EXISTS daily_nutrition (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     date DATE NOT NULL,
     total_calories DECIMAL(8,2) DEFAULT 0.0,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS daily_nutrition (
 
 -- Food entries table for detailed tracking
 CREATE TABLE IF NOT EXISTS food_entries (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     date DATE NOT NULL,
     meal_type VARCHAR(20) NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')),
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS food_entries (
 
 -- Nutrition goals table
 CREATE TABLE IF NOT EXISTS nutrition_goals (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     daily_calories INTEGER NOT NULL,
     protein_grams INTEGER NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS nutrition_goals (
 
 -- Food database for common foods
 CREATE TABLE IF NOT EXISTS food_database (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     brand VARCHAR(255),
     category VARCHAR(100),
