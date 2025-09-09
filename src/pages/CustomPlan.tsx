@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { ProgressSteps } from "@/components/ui/loading-animation";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Apple,
+  Clock,
+  Coffee,
+  Droplets,
+  Footprints,
+  Heart,
+  Wine,
+} from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, useAuth } from "../contexts/AuthContext";
-import { Heart, Wine, Coffee, Droplets, Footprints, Apple, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface HealthPlanReport {
   summary: string;
@@ -41,38 +49,49 @@ interface HealthMetric {
 }
 
 // Generate health metrics based on user onboarding data
-const generateHealthMetrics = (profile: UserProfile, onboardingData: any): HealthMetric[] => {
+const generateHealthMetrics = (
+  profile: UserProfile,
+  onboardingData: any
+): HealthMetric[] => {
   const metrics: HealthMetric[] = [];
-  
+
   // Stress Score - based on chronic conditions and medications
-  const stressFactors = (profile.chronic_conditions?.length || 0) + (profile.medications?.length || 0);
-  const stressScore = Math.min(50 + (stressFactors * 8), 100);
+  const stressFactors =
+    (profile.chronic_conditions?.length || 0) +
+    (profile.medications?.length || 0);
+  const stressScore = Math.min(50 + stressFactors * 8, 100);
   metrics.push({
     id: "stress",
     name: "50+ stress score",
     value: stressScore.toString(),
     target: "50",
     status: stressScore > 50 ? "bad" : "good",
-    icon: <Heart className="h-5 w-5" />
+    icon: <Heart className="h-5 w-5" />,
   });
 
   // Alcohol - check if user has alcohol-related conditions or mentions
-  const hasAlcoholIssues = profile.chronic_conditions?.some(condition => 
-    condition.toLowerCase().includes('liver') || 
-    condition.toLowerCase().includes('alcohol')
-  ) || false;
+  const hasAlcoholIssues =
+    profile.chronic_conditions?.some(
+      (condition) =>
+        condition.toLowerCase().includes("liver") ||
+        condition.toLowerCase().includes("alcohol")
+    ) || false;
   metrics.push({
     id: "alcohol",
     name: "Alcohol",
     value: hasAlcoholIssues ? "2.5 drinks" : "0.0 drinks",
     target: "0",
     status: hasAlcoholIssues ? "bad" : "good",
-    icon: <Wine className="h-5 w-5" />
+    icon: <Wine className="h-5 w-5" />,
   });
 
   // Caffeine - based on sleep issues and work schedule
-  const hasSleepIssues = profile.sleep_time && profile.wake_up_time ? 
-    (new Date(`2000-01-01 ${profile.sleep_time}`).getTime() - new Date(`2000-01-01 ${profile.wake_up_time}`).getTime()) < 8 * 60 * 60 * 1000 : false;
+  const hasSleepIssues =
+    profile.sleep_time && profile.wake_up_time
+      ? new Date(`2000-01-01 ${profile.sleep_time}`).getTime() -
+          new Date(`2000-01-01 ${profile.wake_up_time}`).getTime() <
+        8 * 60 * 60 * 1000
+      : false;
   const caffeineIntake = hasSleepIssues ? 180 : 95;
   metrics.push({
     id: "caffeine",
@@ -80,16 +99,20 @@ const generateHealthMetrics = (profile: UserProfile, onboardingData: any): Healt
     value: `${caffeineIntake} mg`,
     target: "100",
     status: caffeineIntake > 150 ? "bad" : "good",
-    icon: <Coffee className="h-5 w-5" />
+    icon: <Coffee className="h-5 w-5" />,
   });
 
   // Hydration - based on health goals and conditions
-  const needsMoreHydration = profile.health_goals?.some(goal => 
-    goal.toLowerCase().includes('hydration') || 
-    goal.toLowerCase().includes('water')
-  ) || profile.chronic_conditions?.some(condition => 
-    condition.toLowerCase().includes('kidney')
-  ) || false;
+  const needsMoreHydration =
+    profile.health_goals?.some(
+      (goal) =>
+        goal.toLowerCase().includes("hydration") ||
+        goal.toLowerCase().includes("water")
+    ) ||
+    profile.chronic_conditions?.some((condition) =>
+      condition.toLowerCase().includes("kidney")
+    ) ||
+    false;
   const hydrationAmount = needsMoreHydration ? 48 : 64;
   metrics.push({
     id: "hydration",
@@ -97,15 +120,17 @@ const generateHealthMetrics = (profile: UserProfile, onboardingData: any): Healt
     value: `${hydrationAmount}.0 fl oz`,
     target: "64",
     status: hydrationAmount >= 64 ? "good" : "bad",
-    icon: <Droplets className="h-5 w-5" />
+    icon: <Droplets className="h-5 w-5" />,
   });
 
   // Steps - based on fitness goals and work schedule
-  const hasFitnessGoals = profile.health_goals?.some(goal => 
-    goal.toLowerCase().includes('fitness') || 
-    goal.toLowerCase().includes('exercise') ||
-    goal.toLowerCase().includes('weight')
-  ) || false;
+  const hasFitnessGoals =
+    profile.health_goals?.some(
+      (goal) =>
+        goal.toLowerCase().includes("fitness") ||
+        goal.toLowerCase().includes("exercise") ||
+        goal.toLowerCase().includes("weight")
+    ) || false;
   const stepCount = hasFitnessGoals ? 8500 : 12500;
   metrics.push({
     id: "steps",
@@ -113,23 +138,29 @@ const generateHealthMetrics = (profile: UserProfile, onboardingData: any): Healt
     value: stepCount.toLocaleString(),
     target: "10,000",
     status: stepCount >= 10000 ? "good" : "bad",
-    icon: <Footprints className="h-5 w-5" />
+    icon: <Footprints className="h-5 w-5" />,
   });
 
   // Nutrition Score - based on diet type and health goals
-  const hasNutritionGoals = profile.health_goals?.some(goal => 
-    goal.toLowerCase().includes('nutrition') || 
-    goal.toLowerCase().includes('diet')
-  ) || false;
-  const isHealthyDiet = profile.diet_type && ['vegetarian', 'vegan', 'mediterranean'].includes(profile.diet_type.toLowerCase());
-  const nutritionScore = (hasNutritionGoals && isHealthyDiet) ? 78 : 65;
+  const hasNutritionGoals =
+    profile.health_goals?.some(
+      (goal) =>
+        goal.toLowerCase().includes("nutrition") ||
+        goal.toLowerCase().includes("diet")
+    ) || false;
+  const isHealthyDiet =
+    profile.diet_type &&
+    ["vegetarian", "vegan", "mediterranean"].includes(
+      profile.diet_type.toLowerCase()
+    );
+  const nutritionScore = hasNutritionGoals && isHealthyDiet ? 78 : 65;
   metrics.push({
     id: "nutrition",
     name: "67+ nutrition score",
     value: nutritionScore.toString(),
     target: "67",
     status: nutritionScore >= 67 ? "good" : "bad",
-    icon: <Apple className="h-5 w-5" />
+    icon: <Apple className="h-5 w-5" />,
   });
 
   // Late Meal - based on dinner time and sleep schedule
@@ -137,23 +168,23 @@ const generateHealthMetrics = (profile: UserProfile, onboardingData: any): Healt
   const sleepTime = profile.sleep_time;
   let lateMealStatus = "good";
   let lateMealTime = "7:30 PM";
-  
+
   if (dinnerTime && sleepTime) {
-    const dinnerHour = parseInt(dinnerTime.split(':')[0]);
-    const sleepHour = parseInt(sleepTime.split(':')[0]);
-    if (dinnerHour > 20 || (sleepHour - dinnerHour) < 2) {
+    const dinnerHour = parseInt(dinnerTime.split(":")[0]);
+    const sleepHour = parseInt(sleepTime.split(":")[0]);
+    if (dinnerHour > 20 || sleepHour - dinnerHour < 2) {
       lateMealStatus = "bad";
       lateMealTime = dinnerTime;
     }
   }
-  
+
   metrics.push({
     id: "late-meal",
     name: "Late meal",
     value: lateMealTime,
     target: "8:00 PM",
     status: lateMealStatus as "good" | "bad",
-    icon: <Clock className="h-5 w-5" />
+    icon: <Clock className="h-5 w-5" />,
   });
 
   return metrics;
@@ -182,16 +213,16 @@ const RotatingWheel: React.FC<{ metrics: HealthMetric[] }> = ({ metrics }) => {
     <div className="flex justify-center mb-8">
       <div className="relative w-32 h-32">
         {/* Rotating wheel background */}
-        <div 
+        <div
           className={`absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 transition-transform duration-300 ${
-            isAnimating ? 'scale-110' : 'scale-100'
+            isAnimating ? "scale-110" : "scale-100"
           }`}
           style={{
             transform: `rotate(${currentIndex * (360 / metrics.length)}deg)`,
-            transition: 'transform 0.3s ease-in-out'
+            transition: "transform 0.3s ease-in-out",
           }}
         />
-        
+
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <div className="text-2xl font-bold text-gray-800 mb-1">
@@ -203,16 +234,34 @@ const RotatingWheel: React.FC<{ metrics: HealthMetric[] }> = ({ metrics }) => {
         </div>
 
         {/* Status indicator */}
-        <div className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${
-          currentMetric.status === 'good' ? 'bg-green-500' : 'bg-red-500'
-        }`}>
-          {currentMetric.status === 'good' ? (
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        <div
+          className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${
+            currentMetric.status === "good" ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
+          {currentMetric.status === "good" ? (
+            <svg
+              className="w-4 h-4 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
           ) : (
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            <svg
+              className="w-4 h-4 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           )}
         </div>
@@ -338,9 +387,10 @@ const CustomPlan: React.FC = () => {
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [isGeneratingMetrics, setIsGeneratingMetrics] = useState(false);
+  const [metricsInitialized, setMetricsInitialized] = useState(false);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
   const hasNavigatedRef = useRef(false);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const metricsGeneratedRef = useRef(false);
 
   // Progress steps for the generation process
   const progressSteps = [
@@ -351,70 +401,169 @@ const CustomPlan: React.FC = () => {
     "Finalizing your custom plan",
   ];
 
+  // Function to generate metrics with error handling
+  const generateMetricsWithFallback = useCallback(
+    (profile: UserProfile, onboardingData: any = {}) => {
+      try {
+        const metrics = generateHealthMetrics(profile, onboardingData);
+        setHealthMetrics(metrics);
+        setMetricsInitialized(true);
+        setMetricsError(null);
+      } catch (error) {
+        console.error("Error generating health metrics:", error);
+        setMetricsError("Failed to generate health metrics");
+        // Still try to generate basic metrics
+        try {
+          const basicMetrics = generateHealthMetrics(profile, {});
+          setHealthMetrics(basicMetrics);
+          setMetricsInitialized(true);
+        } catch (fallbackError) {
+          console.error("Fallback metrics generation failed:", fallbackError);
+          setMetricsError("Unable to generate health metrics");
+        }
+      }
+    },
+    []
+  );
+
+  // Retry function for metrics generation
+  const retryMetricsGeneration = useCallback(() => {
+    if (!profile) return;
+    setMetricsError(null);
+    setMetricsInitialized(false);
+    setIsGeneratingMetrics(true);
+
+    // Generate metrics immediately without fetching onboarding data
+    try {
+      const metrics = generateHealthMetrics(profile, {});
+      setHealthMetrics(metrics);
+      setMetricsInitialized(true);
+      setMetricsError(null);
+    } catch (error) {
+      console.error("Error generating health metrics on retry:", error);
+      setMetricsError("Unable to generate health metrics");
+    }
+    setIsGeneratingMetrics(false);
+  }, [profile]);
+
   // Fetch onboarding data and generate health metrics
   useEffect(() => {
     const fetchOnboardingData = async () => {
-      if (!profile || metricsGeneratedRef.current) return; // Prevent re-running if metrics already generated
-      
+      if (!profile || metricsInitialized) return; // Prevent re-running if metrics already initialized
+
       setIsGeneratingMetrics(true);
-      
+      setMetricsError(null);
+
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn("Metrics generation timeout, using fallback");
+        try {
+          const metrics = generateHealthMetrics(profile, {});
+          setHealthMetrics(metrics);
+          setMetricsInitialized(true);
+          setMetricsError(null);
+        } catch (error) {
+          console.error("Fallback metrics generation failed:", error);
+          setMetricsError("Unable to generate health metrics");
+        }
+        setIsGeneratingMetrics(false);
+      }, 10000); // 10 second timeout
+
       try {
         // Fetch onboarding data using existing supabase client
         const { data: onboarding, error } = await supabase
-          .from('onboarding_profiles')
-          .select('details')
-          .eq('user_id', profile.id)
+          .from("onboarding_profiles")
+          .select("details")
+          .eq("user_id", profile.id)
           .single();
 
         if (error) {
-          console.warn('Could not fetch onboarding data:', error);
+          console.warn("Could not fetch onboarding data:", error);
         } else {
           setOnboardingData(onboarding?.details || {});
         }
 
         // Generate health metrics based on profile and onboarding data
-        const metrics = generateHealthMetrics(profile, onboarding?.details || {});
-        setHealthMetrics(metrics);
-        metricsGeneratedRef.current = true;
+        try {
+          const metrics = generateHealthMetrics(
+            profile,
+            onboarding?.details || {}
+          );
+          setHealthMetrics(metrics);
+          setMetricsInitialized(true);
+          setMetricsError(null);
+        } catch (error) {
+          console.error("Error generating health metrics:", error);
+          setMetricsError("Failed to generate health metrics");
+          // Still try to generate basic metrics
+          try {
+            const basicMetrics = generateHealthMetrics(profile, {});
+            setHealthMetrics(basicMetrics);
+            setMetricsInitialized(true);
+          } catch (fallbackError) {
+            console.error("Fallback metrics generation failed:", fallbackError);
+            setMetricsError("Unable to generate health metrics");
+          }
+        }
       } catch (error) {
-        console.error('Error fetching onboarding data:', error);
+        console.error("Error fetching onboarding data:", error);
+        setMetricsError("Failed to load onboarding data");
         // Fallback to basic metrics
-        const metrics = generateHealthMetrics(profile, {});
-        setHealthMetrics(metrics);
-        metricsGeneratedRef.current = true;
+        try {
+          const metrics = generateHealthMetrics(profile, {});
+          setHealthMetrics(metrics);
+          setMetricsInitialized(true);
+        } catch (fallbackError) {
+          console.error("Fallback metrics generation failed:", fallbackError);
+          setMetricsError("Unable to generate health metrics");
+        }
       } finally {
+        clearTimeout(timeoutId);
         setIsGeneratingMetrics(false);
       }
     };
 
-    if (profile && profile.onboarding_completed && !metricsGeneratedRef.current) {
+    if (profile && profile.onboarding_completed && !metricsInitialized) {
       fetchOnboardingData();
-    } else if (profile && !profile.onboarding_completed && !metricsGeneratedRef.current) {
+    } else if (
+      profile &&
+      !profile.onboarding_completed &&
+      !metricsInitialized
+    ) {
       // If profile exists but onboarding not completed, generate basic metrics
       setIsGeneratingMetrics(true);
-      const metrics = generateHealthMetrics(profile, {});
-      setHealthMetrics(metrics);
-      metricsGeneratedRef.current = true;
+      try {
+        const metrics = generateHealthMetrics(profile, {});
+        setHealthMetrics(metrics);
+        setMetricsInitialized(true);
+        setMetricsError(null);
+      } catch (error) {
+        console.error("Error generating basic metrics:", error);
+        setMetricsError("Unable to generate health metrics");
+      }
       setIsGeneratingMetrics(false);
     }
-  }, [profile]);
+  }, [profile, metricsInitialized]);
 
   // Safe navigation function to prevent throttling
-  const safeNavigate = useCallback((path: string) => {
-    if (hasNavigatedRef.current) return;
-    
-    // Clear any existing timeout
-    if (navigationTimeoutRef.current) {
-      clearTimeout(navigationTimeoutRef.current);
-    }
-    
-    hasNavigatedRef.current = true;
-    
-    // Use timeout to ensure navigation happens after current render cycle
-    navigationTimeoutRef.current = setTimeout(() => {
-      navigate(path, { replace: true });
-    }, 100);
-  }, [navigate]);
+  const safeNavigate = useCallback(
+    (path: string) => {
+      if (hasNavigatedRef.current) return;
+
+      // Clear any existing timeout
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+
+      hasNavigatedRef.current = true;
+
+      // Use timeout to ensure navigation happens after current render cycle
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigate(path, { replace: true });
+      }, 100);
+    },
+    [navigate]
+  );
 
   // Check if user has completed onboarding
   useEffect(() => {
@@ -700,25 +849,45 @@ const CustomPlan: React.FC = () => {
     );
   }
 
-  // Show loading state while generating metrics
-  if (isGeneratingMetrics) {
+  // Show error state if metrics generation failed
+  if (metricsError && !isGeneratingMetrics) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Analyzing your health data...</p>
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-gray-600 mb-6">{metricsError}</p>
+          <Button onClick={retryMetricsGeneration} className="w-full">
+            Try Again
+          </Button>
         </div>
       </div>
     );
   }
 
-  // If no metrics and we have a profile, show loading
-  if (profile && healthMetrics.length === 0 && !isGeneratingMetrics) {
+  // Show loading state while generating metrics or if metrics not initialized yet
+  if (isGeneratingMetrics || (profile && !metricsInitialized)) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Generating your health metrics...</p>
+          <p className="text-gray-600">Analyzing your health data...</p>
         </div>
       </div>
     );
@@ -735,30 +904,54 @@ const CustomPlan: React.FC = () => {
               className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between"
             >
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${
-                  metric.status === 'good' ? 'bg-green-100' : 'bg-red-100'
-                }`}>
+                <div
+                  className={`p-2 rounded-full ${
+                    metric.status === "good" ? "bg-green-100" : "bg-red-100"
+                  }`}
+                >
                   {metric.icon}
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">{metric.name}</div>
-                  <div className={`text-sm ${
-                    metric.status === 'good' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <div
+                    className={`text-sm ${
+                      metric.status === "good"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {metric.value}
                   </div>
                 </div>
               </div>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                metric.status === 'good' ? 'bg-green-500' : 'bg-red-500'
-              }`}>
-                {metric.status === 'good' ? (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                  metric.status === "good" ? "bg-green-500" : "bg-red-500"
+                }`}
+              >
+                {metric.status === "good" ? (
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 )}
               </div>
@@ -775,13 +968,14 @@ const CustomPlan: React.FC = () => {
             Better health timeline
           </h1>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Your habits shape your health. UrCare helps you spot the ones that move the needle, so you can double down on what works.
+            Your habits shape your health. UrCare helps you spot the ones that
+            move the needle, so you can double down on what works.
           </p>
         </div>
 
         {/* Action Button */}
-        <Button 
-          onClick={() => navigate('/paywall')} 
+        <Button
+          onClick={() => navigate("/paywall")}
           className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-medium"
           size="lg"
         >
