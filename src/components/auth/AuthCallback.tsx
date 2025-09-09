@@ -13,8 +13,14 @@ export const AuthCallback: React.FC = () => {
   const { isDevAuthActive, forceDevAuth } = useDevAuthFallback();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    let authStateSubscription: any;
+
     const handleAuthCallback = async () => {
       console.log("AuthCallback: Starting OAuth callback handling...");
+      console.log("AuthCallback: Current URL:", window.location.href);
+      console.log("AuthCallback: URL search params:", window.location.search);
+      console.log("AuthCallback: URL hash:", window.location.hash);
 
       // Check if we're in development and need to redirect to local URL
       if (isDevelopment()) {
@@ -28,7 +34,7 @@ export const AuthCallback: React.FC = () => {
       }
 
       // Add a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         console.error(
           "AuthCallback: Timeout reached, redirecting to landing page"
         );
@@ -36,20 +42,27 @@ export const AuthCallback: React.FC = () => {
           description: "Please try logging in again",
         });
         navigate("/", { replace: true });
-      }, 10000); // 10 seconds timeout
+      }, 15000); // Increased to 15 seconds
 
       try {
-        // Let Supabase handle the OAuth callback automatically
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+        // Listen for auth state changes to handle OAuth callback
+        authStateSubscription = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log("AuthCallback: Auth state change:", { event, session: !!session });
+            
+            if (event === 'SIGNED_IN' && session) {
+              console.log("AuthCallback: User signed in:", session.user.id);
+              await handleUserSession(session);
+            } else if (event === 'SIGNED_OUT') {
+              console.log("AuthCallback: User signed out");
+              navigate("/", { replace: true });
+            }
+          }
+        );
 
-        console.log("AuthCallback: Session check result:", {
-          session: !!session,
-          error,
-        });
-
+        // Also check for existing session immediately
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error("AuthCallback: Session error:", error);
           toast.error("Authentication failed", { description: error.message });
@@ -57,14 +70,31 @@ export const AuthCallback: React.FC = () => {
           return;
         }
 
-        if (!session?.user) {
-          console.log("AuthCallback: No session found, redirecting to landing");
-          navigate("/", { replace: true });
-          return;
+        if (session?.user) {
+          console.log("AuthCallback: Existing session found:", session.user.id);
+          await handleUserSession(session);
+        } else {
+          console.log("AuthCallback: No existing session, waiting for auth state change...");
         }
+      } catch (error) {
+        console.error("AuthCallback: Unexpected error:", error);
+        if (error instanceof Error) {
+          console.error("AuthCallback: Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          });
+        }
+        toast.error("Authentication failed", {
+          description: "An unexpected error occurred. Please try again.",
+        });
+      }
+    };
 
-        console.log("AuthCallback: User authenticated:", session.user.id);
-
+    const handleUserSession = async (session: any) => {
+      try {
+        clearTimeout(timeoutId);
+        
         // Create or get user profile
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
@@ -128,26 +158,21 @@ export const AuthCallback: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error("AuthCallback: Unexpected error:", error);
-        // Log more details about the error
-        if (error instanceof Error) {
-          console.error("AuthCallback: Error details:", {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          });
-        }
+        console.error("AuthCallback: Error handling user session:", error);
         toast.error("Authentication failed", {
-          description: "An unexpected error occurred. Please try again.",
+          description: "Failed to process user session. Please try again.",
         });
-        // Don't redirect to landing page on error, let user retry
-        // navigate("/", { replace: true });
-      } finally {
-        clearTimeout(timeoutId);
+        navigate("/", { replace: true });
       }
     };
 
     handleAuthCallback();
+
+    // Cleanup function
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (authStateSubscription) authStateSubscription.data.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
