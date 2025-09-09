@@ -18,9 +18,6 @@ export const AuthCallback: React.FC = () => {
 
     const handleAuthCallback = async () => {
       console.log("AuthCallback: Starting OAuth callback handling...");
-      console.log("AuthCallback: Current URL:", window.location.href);
-      console.log("AuthCallback: URL search params:", window.location.search);
-      console.log("AuthCallback: URL hash:", window.location.hash);
 
       // Check if we're in development and need to redirect to local URL
       if (isDevelopment()) {
@@ -48,13 +45,9 @@ export const AuthCallback: React.FC = () => {
         // Listen for auth state changes to handle OAuth callback
         authStateSubscription = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log("AuthCallback: Auth state change:", { event, session: !!session });
-            
             if (event === 'SIGNED_IN' && session) {
-              console.log("AuthCallback: User signed in:", session.user.id);
               await handleUserSession(session);
             } else if (event === 'SIGNED_OUT') {
-              console.log("AuthCallback: User signed out");
               navigate("/", { replace: true });
             }
           }
@@ -71,10 +64,7 @@ export const AuthCallback: React.FC = () => {
         }
 
         if (session?.user) {
-          console.log("AuthCallback: Existing session found:", session.user.id);
           await handleUserSession(session);
-        } else {
-          console.log("AuthCallback: No existing session, waiting for auth state change...");
         }
       } catch (error) {
         console.error("AuthCallback: Unexpected error:", error);
@@ -94,13 +84,8 @@ export const AuthCallback: React.FC = () => {
     const handleUserSession = async (session: any) => {
       try {
         clearTimeout(timeoutId);
-        console.log("AuthCallback: Starting handleUserSession for user:", session.user.id);
-        
-        // Create or get user profile with timeout
-        console.log("AuthCallback: Fetching user profile...");
         
         // First, test if we can access the table at all
-        console.log("AuthCallback: Testing table access...");
         const testPromise = supabase
           .from("user_profiles")
           .select("id")
@@ -112,20 +97,13 @@ export const AuthCallback: React.FC = () => {
         
         try {
           await Promise.race([testPromise, testTimeoutPromise]);
-          console.log("AuthCallback: Table access successful, fetching profile...");
         } catch (testError) {
-          console.error("AuthCallback: Table access failed:", testError);
           // If we can't access the table, check user metadata for smart routing
-          console.log("AuthCallback: Cannot access database - checking user metadata for routing");
-          
           const userEmail = session.user.email;
           const userMetadata = session.user.user_metadata;
           
-          console.log("AuthCallback: User metadata:", userMetadata);
-          
           // For OAuth users, they usually have metadata, so assume they're returning
           if (userMetadata?.full_name || userEmail) {
-            console.log("AuthCallback: User appears to be returning - redirecting to custom plan");
             toast.success("Welcome back!", {
               description: "Redirecting to your dashboard...",
             });
@@ -134,7 +112,6 @@ export const AuthCallback: React.FC = () => {
           }
           
           // If no metadata, they might be a new user
-          console.log("AuthCallback: No user metadata - redirecting to welcome screen");
           navigate("/welcome-screen", { replace: true });
           return;
         }
@@ -155,14 +132,9 @@ export const AuthCallback: React.FC = () => {
           timeoutPromise
         ]) as any;
 
-        console.log("AuthCallback: Profile check:", {
-          profileData,
-          profileError,
-        });
 
         // If profile doesn't exist, create one
         if (profileError && profileError.code === "PGRST116") {
-          console.log("AuthCallback: Creating new user profile...");
           try {
             const { data: newProfile, error: createError } = await supabase
               .from("user_profiles")
@@ -178,46 +150,35 @@ export const AuthCallback: React.FC = () => {
               .single();
 
             if (createError) {
-              console.error("AuthCallback: Error creating profile:", createError);
               // Fallback: redirect to welcome screen anyway
-              console.log("AuthCallback: Falling back to welcome screen due to profile creation error");
               navigate("/welcome-screen", { replace: true });
               return;
             } else {
-              console.log("AuthCallback: Profile created successfully");
               // Redirect to welcome screen for new users
               navigate("/welcome-screen", { replace: true });
               return;
             }
           } catch (createErr) {
-            console.error("AuthCallback: Exception during profile creation:", createErr);
             // Fallback: redirect to welcome screen
             navigate("/welcome-screen", { replace: true });
             return;
           }
         } else if (profileError) {
-          console.error("AuthCallback: Error fetching profile:", profileError);
           // Fallback: redirect to welcome screen
-          console.log("AuthCallback: Falling back to welcome screen due to profile fetch error");
           navigate("/welcome-screen", { replace: true });
           return;
         }
 
         // User has a profile, check onboarding status
         if (!profileData?.onboarding_completed) {
-          console.log(
-            "AuthCallback: User needs onboarding, redirecting to welcome screen"
-          );
           navigate("/welcome-screen", { replace: true });
         } else {
           // Check subscription status
           const isSubscribed =
             profileData.preferences?.subscription === "active";
           if (isSubscribed) {
-            console.log("AuthCallback: Redirecting to dashboard");
             navigate("/dashboard", { replace: true });
           } else {
-            console.log("AuthCallback: Redirecting to custom plan");
             navigate("/custom-plan", { replace: true });
           }
         }
