@@ -383,6 +383,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const profile = await fetchUserProfile(user.id);
+      setProfile(profile);
+      console.log("AuthContext: Profile refreshed", { profile });
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   const updateProfile = useCallback(async (
     updates: Partial<UserProfile>
   ): Promise<void> => {
@@ -407,20 +421,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
     }
   }, [user, refreshProfile]);
-
-  const refreshProfile = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const profile = await fetchUserProfile(user.id);
-      setProfile(profile);
-      console.log("AuthContext: Profile refreshed", { profile });
-    } catch (error) {
-      console.error("Error refreshing profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
   const isOnboardingComplete = useCallback((): boolean => {
     if (!profile) {
