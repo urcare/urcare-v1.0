@@ -61,16 +61,16 @@ const HealthAssessment: React.FC = () => {
     return null;
   }
 
-  // Generate health metrics based on profile
+  // Generate health metrics based on ACTUAL profile data
   const generateHealthMetrics = (profile: any): HealthMetric[] => {
-    const height = profile.height || 170;
-    const weight = profile.weight || 70;
+    const height = parseFloat(profile.height_cm) || 170;
+    const weight = parseFloat(profile.weight_kg) || 70;
     const bmi = weight / ((height / 100) ** 2);
     const age = profile.age || 30;
     
     const metrics: HealthMetric[] = [];
 
-    // BMI Analysis
+    // BMI Analysis (we have height and weight)
     if (bmi < 18.5) {
       metrics.push({
         id: "bmi",
@@ -100,7 +100,7 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Sleep Analysis
+    // Sleep Analysis (we have sleep_time and wake_up_time)
     if (profile.sleep_time && profile.wake_up_time) {
       const sleepHours = calculateSleepHours(profile.sleep_time, profile.wake_up_time);
       if (sleepHours < 7) {
@@ -135,49 +135,40 @@ const HealthAssessment: React.FC = () => {
       metrics.push({
         id: "sleep",
         title: "Sleep",
-        value: "Irregular Schedule",
+        value: "No Schedule Set",
         status: "bad",
         icon: Moon,
         iconColor: "text-red-500",
       });
     }
 
-    // Exercise Analysis
-    if (!profile.workout_time || profile.workout_frequency === "none") {
+    // Exercise Analysis (we have workout_time)
+    if (!profile.workout_time) {
       metrics.push({
         id: "exercise",
         title: "Exercise",
-        value: "Sedentary Lifestyle",
+        value: "No Workout Time",
         status: "bad",
         icon: Activity,
         iconColor: "text-red-600",
-      });
-    } else if (profile.workout_frequency === "1-2") {
-      metrics.push({
-        id: "exercise",
-        title: "Exercise",
-        value: "1-2x/week (Low)",
-        status: "bad",
-        icon: Activity,
-        iconColor: "text-orange-500",
       });
     } else {
       metrics.push({
         id: "exercise",
         title: "Exercise",
-        value: `${profile.workout_frequency}/week (Good)`,
+        value: `Scheduled at ${profile.workout_time}`,
         status: "good",
         icon: Activity,
         iconColor: "text-green-500",
       });
     }
 
-    // Diet Analysis
-    if (!profile.diet_type || profile.diet_type === "none") {
+    // Diet Analysis (we have diet_type)
+    if (!profile.diet_type) {
       metrics.push({
         id: "diet",
         title: "Diet",
-        value: "No Plan",
+        value: "No Diet Plan",
         status: "bad",
         icon: Apple,
         iconColor: "text-red-500",
@@ -193,25 +184,57 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Hydration Analysis
-    const waterIntake = profile.water_intake || 0;
-    if (waterIntake < 6) {
+    // Chronic Conditions Analysis (we have chronic_conditions)
+    if (profile.chronic_conditions && profile.chronic_conditions.length > 0) {
+      const conditions = profile.chronic_conditions.filter((c: string) => c !== 'none');
+      if (conditions.length > 0) {
+        metrics.push({
+          id: "conditions",
+          title: "Health Conditions",
+          value: `${conditions.length} condition(s)`,
+          status: "bad",
+          icon: AlertTriangle,
+          iconColor: "text-red-600",
+        });
+      } else {
+        metrics.push({
+          id: "conditions",
+          title: "Health Conditions",
+          value: "No conditions",
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      }
+    } else {
       metrics.push({
-      id: "hydration",
-        title: "Hydration",
-        value: `${waterIntake} glasses (Low)`,
+        id: "conditions",
+        title: "Health Conditions",
+        value: "Not specified",
         status: "bad",
-      icon: Droplets,
-        iconColor: "text-red-500",
+        icon: AlertTriangle,
+        iconColor: "text-orange-500",
+      });
+    }
+
+    // Age Risk Analysis (we have age)
+    if (age > 40) {
+      metrics.push({
+        id: "age_risk",
+        title: "Age Risk",
+        value: `${age} years (High Risk)`,
+        status: "bad",
+        icon: Clock,
+        iconColor: "text-orange-500",
       });
     } else {
       metrics.push({
-        id: "hydration",
-        title: "Hydration",
-        value: `${waterIntake} glasses (Good)`,
+        id: "age_risk",
+        title: "Age Risk",
+        value: `${age} years (Low Risk)`,
         status: "good",
-        icon: Droplets,
-      iconColor: "text-green-500",
+        icon: Clock,
+        iconColor: "text-green-500",
       });
     }
 
