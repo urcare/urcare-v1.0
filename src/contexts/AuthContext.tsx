@@ -92,12 +92,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
       try {
+        console.log("fetchUserProfile: Starting fetch for userId:", userId);
         // Check cache first
         const cached = profileCache.get(userId);
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          console.log("fetchUserProfile: Using cached profile");
           return cached.profile;
         }
 
+        console.log("fetchUserProfile: Fetching from database...");
         // Fetch profile without timeout to allow natural completion
         const { data, error } = await supabase
           .from("user_profiles")
@@ -106,9 +109,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           .single();
 
         if (error) {
+          console.log("fetchUserProfile: Database error:", error);
           return null;
         }
         const result = data as UserProfile;
+        console.log("fetchUserProfile: Successfully fetched profile:", result);
 
         // Cache the result
         if (result) {
@@ -117,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         return result;
        } catch (error) {
-         console.warn("Profile fetch failed, continuing without profile:", error);
+         console.warn("fetchUserProfile: Profile fetch failed, continuing without profile:", error);
          // Return null to allow app to continue
          return null;
        }
@@ -130,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
 
     try {
+      console.log("ensureUserProfile: Starting for userId:", user.id);
       // Check if profile exists without timeout
       const result = await supabase
         .from("user_profiles")
@@ -137,11 +143,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         .eq("id", user.id)
         .single();
 
+      console.log("ensureUserProfile: Profile check result:", result);
+
       if (result.error && result.error.code !== "PGRST116") {
+        console.log("ensureUserProfile: Profile exists, returning");
         return;
       }
 
       if (!result.data) {
+        console.log("ensureUserProfile: Creating new profile...");
         // Create minimal profile record
         const { error: insertError } = await supabase
           .from("user_profiles")
@@ -155,8 +165,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           ]);
 
         if (!insertError) {
+          console.log("ensureUserProfile: Profile created successfully");
           // Clear cache to force refresh
           profileCache.delete(user.id);
+        } else {
+          console.warn("ensureUserProfile: Profile creation failed:", insertError);
         }
       }
        } catch (error) {
@@ -227,22 +240,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUser(session.user);
           // Run profile operations in parallel
           try {
-            await Promise.all([
+            console.log("AuthContext: Starting profile operations...");
+            const [profileResult] = await Promise.all([
               ensureUserProfile(session.user),
-              fetchUserProfile(session.user.id).then(setProfile),
+              fetchUserProfile(session.user.id),
             ]);
-            console.log("AuthContext: Profile operations completed successfully");
+            console.log("AuthContext: Profile operations completed, setting profile:", profileResult);
+            setProfile(profileResult);
           } catch (error) {
             console.warn("Profile operations failed in auth state change, setting minimal profile:", error);
             // Set a minimal profile to allow app to continue
-            setProfile({
+            const minimalProfile = {
               id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
               onboarding_completed: false,
               status: 'active',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
-            } as UserProfile);
+            } as UserProfile;
+            console.log("AuthContext: Setting minimal profile:", minimalProfile);
+            setProfile(minimalProfile);
           }
           // Ensure loading is false and initialized is true after successful auth
           console.log("AuthContext: Setting loading=false, isInitialized=true");
