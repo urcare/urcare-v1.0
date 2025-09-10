@@ -87,9 +87,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const handleLogout = async () => {
     try {
       await signOut();
-      closeMenu();
+      // The signOut function will handle the redirect automatically
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
+      // Fallback redirect in case of error
+      window.location.href = "/";
     }
   };
 

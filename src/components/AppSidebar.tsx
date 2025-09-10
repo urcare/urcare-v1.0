@@ -1,52 +1,18 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Heart, 
-  Stethoscope, 
-  Users, 
-  Shield, 
-  Activity, 
-  UserCheck, 
-  Settings, 
-  LogOut,
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import {
   ChevronLeft,
   ChevronRight,
-  Home,
-  Calendar,
-  FileText,
-  Bell,
-  BarChart3,
-  User,
-  Pill,
-  Microscope,
-  Phone,
-  MessageSquare,
-  BookOpen,
-  Award,
-  Zap,
-  Brain,
-  Eye,
-  Bed,
-  Syringe,
-  Thermometer,
-  ActivitySquare,
-  ClipboardList,
-  CreditCard,
-  Building2,
-  GraduationCap,
-  ShieldCheck,
-  Database,
-  Network,
-  Cog,
   HelpCircle,
-  Info
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { getMenuSectionsByRole } from './sidebar/roleBasedMenus';
+  Info,
+  LogOut,
+  User,
+} from "lucide-react";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { getMenuSectionsByRole } from "./sidebar/roleBasedMenus";
 
 interface SidebarItem {
   title: string;
@@ -68,16 +34,22 @@ export const AppSidebar = () => {
   const sections = getMenuSectionsByRole();
 
   return (
-    <div className={cn(
-      "medical-sidebar h-screen flex flex-col transition-all duration-300 ease-in-out",
-      collapsed ? "w-16" : "w-64"
-    )}>
+    <div
+      className={cn(
+        "medical-sidebar h-screen flex flex-col transition-all duration-300 ease-in-out",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/brand.png" alt="UrCare Logo" className="w-6 h-6 rounded" />
+              <img
+                src="/brand.png"
+                alt="UrCare Logo"
+                className="w-6 h-6 rounded"
+              />
             </div>
             <span className="font-semibold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               UrCare
@@ -90,7 +62,11 @@ export const AppSidebar = () => {
           onClick={() => setCollapsed(!collapsed)}
           className="h-8 w-8 p-0 hover:bg-muted"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
@@ -124,14 +100,16 @@ export const AppSidebar = () => {
                 {section.items.map((item) => {
                   const isActive = location.pathname === item.url;
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.url}
                       to={item.url}
                       className={cn(
                         "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group relative",
-                        isActive ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        isActive
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       )}
                     >
                       <Icon className="w-5 h-5" />
@@ -169,7 +147,15 @@ export const AppSidebar = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={signOut}
+            onClick={async () => {
+              try {
+                await signOut();
+              } catch (error) {
+                console.error("Logout error:", error);
+                // Fallback redirect in case of error
+                window.location.href = "/";
+              }
+            }}
             className={cn(
               "w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted",
               collapsed && "justify-center"

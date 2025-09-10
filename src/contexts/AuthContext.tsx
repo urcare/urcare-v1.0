@@ -1,7 +1,14 @@
 import { devUtils, isDevelopment } from "@/config/development";
 import { supabase } from "@/integrations/supabase/client";
 import { devAuthService } from "@/services/devAuthService";
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 // Cache for user profiles to avoid repeated database calls
@@ -82,55 +89,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Optimized profile fetching with caching and faster timeouts
-  const fetchUserProfile = useCallback(async (
-    userId: string
-  ): Promise<UserProfile | null> => {
-    try {
-      // Check cache first
-      const cached = profileCache.get(userId);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.profile;
-      }
-
-      // Reduced timeout for faster failure
-      const timeoutPromise = new Promise<null>((_, reject) => 
-        setTimeout(() => reject(new Error("Profile fetch timeout")), 2000)
-      );
-
-      const fetchPromise = async () => {
-        // Only fetch essential fields for faster response
-        const { data, error } = await supabase
-          .from("user_profiles")
-          .select("id, full_name, onboarding_completed, status, preferences")
-          .eq("id", userId)
-          .single();
-
-        if (error) {
-          return null;
+  const fetchUserProfile = useCallback(
+    async (userId: string): Promise<UserProfile | null> => {
+      try {
+        // Check cache first
+        const cached = profileCache.get(userId);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          return cached.profile;
         }
-        return data as UserProfile;
-      };
 
-      const result = await Promise.race([fetchPromise(), timeoutPromise]);
-      
-      // Cache the result
-      if (result) {
-        profileCache.set(userId, { profile: result, timestamp: Date.now() });
+        // Reduced timeout for faster failure
+        const timeoutPromise = new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("Profile fetch timeout")), 2000)
+        );
+
+        const fetchPromise = async () => {
+          // Only fetch essential fields for faster response
+          const { data, error } = await supabase
+            .from("user_profiles")
+            .select("id, full_name, onboarding_completed, status, preferences")
+            .eq("id", userId)
+            .single();
+
+          if (error) {
+            return null;
+          }
+          return data as UserProfile;
+        };
+
+        const result = await Promise.race([fetchPromise(), timeoutPromise]);
+
+        // Cache the result
+        if (result) {
+          profileCache.set(userId, { profile: result, timestamp: Date.now() });
+        }
+
+        return result;
+      } catch (error) {
+        // Return null to allow app to continue
+        return null;
       }
-      
-      return result;
-    } catch (error) {
-      // Return null to allow app to continue
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   // Optimized profile creation with faster timeout
   const ensureUserProfile = useCallback(async (user: any) => {
     if (!user) return;
 
     try {
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Profile ensure timeout")), 2000)
       );
 
@@ -144,18 +152,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (result.error && result.error.code !== "PGRST116") {
           return;
         }
-        
+
         if (!result.data) {
           // Create minimal profile record
           const { error: insertError } = await supabase
             .from("user_profiles")
-            .insert([{
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email,
-              onboarding_completed: false,
-              status: "active",
-            }]);
-          
+            .insert([
+              {
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email,
+                onboarding_completed: false,
+                status: "active",
+              },
+            ]);
+
           if (!insertError) {
             // Clear cache to force refresh
             profileCache.delete(user.id);
@@ -177,19 +187,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         // Get user with faster timeout
         const userPromise = supabase.auth.getUser();
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Auth timeout")), 3000)
         );
 
-        const { data: { user } } = await Promise.race([userPromise, timeoutPromise]) as any;
-        
+        const {
+          data: { user },
+        } = (await Promise.race([userPromise, timeoutPromise])) as any;
+
         if (mounted) {
           setUser(user);
           if (user) {
             // Run profile operations in parallel for faster loading
             await Promise.all([
               ensureUserProfile(user),
-              fetchUserProfile(user.id).then(setProfile)
+              fetchUserProfile(user.id).then(setProfile),
             ]);
           } else {
             setProfile(null);
@@ -209,20 +221,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     };
-    
+
     initializeAuth();
 
     // Optimized auth state listener
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        
+
         if (session?.user) {
           setUser(session.user);
           // Run profile operations in parallel
           await Promise.all([
             ensureUserProfile(session.user),
-            fetchUserProfile(session.user.id).then(setProfile)
+            fetchUserProfile(session.user.id).then(setProfile),
           ]);
         } else {
           setUser(null);
@@ -232,35 +244,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     );
-    
+
     return () => {
       mounted = false;
       listener?.subscription?.unsubscribe();
     };
   }, [fetchUserProfile, ensureUserProfile]);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-        },
-      });
-      if (error) throw error;
-      toast.success(
-        "Signup successful! Please check your email to confirm your account."
-      );
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error("Signup failed", { description: error.message });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const signUp = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+          },
+        });
+        if (error) throw error;
+        toast.success(
+          "Signup successful! Please check your email to confirm your account."
+        );
+      } catch (error: any) {
+        console.error("Signup error:", error);
+        toast.error("Signup failed", { description: error.message });
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
@@ -399,6 +414,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear cache on logout
       profileCache.clear();
       toast.success("Signed out successfully");
+
+      // Immediately redirect to landing page
+      window.location.href = "/";
     } catch (error: any) {
       console.error("Signout error:", error);
       toast.error("Signout failed", { description: error.message });
@@ -424,33 +442,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [user, fetchUserProfile]);
 
-  const updateProfile = useCallback(async (
-    updates: Partial<UserProfile>
-  ): Promise<void> => {
-    if (!user) throw new Error("No user logged in");
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("user_profiles")
-        .update(updates)
-        .eq("id", user.id);
-      if (error) throw error;
-      
-      // Clear cache and refresh
-      profileCache.delete(user.id);
-      await refreshProfile();
-      toast.success("Profile updated successfully!");
-    } catch (error: any) {
-      console.error("Profile update error:", error);
-      toast.error("Profile update failed", {
-        description:
-          error.message || "An error occurred while updating your profile.",
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [user, refreshProfile]);
+  const updateProfile = useCallback(
+    async (updates: Partial<UserProfile>): Promise<void> => {
+      if (!user) throw new Error("No user logged in");
+      setLoading(true);
+      try {
+        const { error } = await supabase
+          .from("user_profiles")
+          .update(updates)
+          .eq("id", user.id);
+        if (error) throw error;
+
+        // Clear cache and refresh
+        profileCache.delete(user.id);
+        await refreshProfile();
+        toast.success("Profile updated successfully!");
+      } catch (error: any) {
+        console.error("Profile update error:", error);
+        toast.error("Profile update failed", {
+          description:
+            error.message || "An error occurred while updating your profile.",
+        });
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, refreshProfile]
+  );
 
   const isOnboardingComplete = useCallback((): boolean => {
     if (!profile) {
@@ -460,35 +479,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return !!profile.onboarding_completed;
   }, [profile]);
 
-  const value: AuthContextType = useMemo(() => ({
-    user,
-    profile,
-    loading,
-    isInitialized,
-    signUp,
-    signIn,
-    signOut,
-    updateProfile,
-    refreshProfile,
-    signInWithGoogle,
-    signInWithApple,
-    signInWithEmail,
-    isOnboardingComplete,
-  }), [
-    user,
-    profile,
-    loading,
-    isInitialized,
-    signUp,
-    signIn,
-    signOut,
-    updateProfile,
-    refreshProfile,
-    signInWithGoogle,
-    signInWithApple,
-    signInWithEmail,
-    isOnboardingComplete,
-  ]);
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      profile,
+      loading,
+      isInitialized,
+      signUp,
+      signIn,
+      signOut,
+      updateProfile,
+      refreshProfile,
+      signInWithGoogle,
+      signInWithApple,
+      signInWithEmail,
+      isOnboardingComplete,
+    }),
+    [
+      user,
+      profile,
+      loading,
+      isInitialized,
+      signUp,
+      signIn,
+      signOut,
+      updateProfile,
+      refreshProfile,
+      signInWithGoogle,
+      signInWithApple,
+      signInWithEmail,
+      isOnboardingComplete,
+    ]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
