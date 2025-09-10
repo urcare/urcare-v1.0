@@ -54,6 +54,20 @@ const ProtectedRoute = ({
     }
   }, [requireSubscription, profile]);
 
+  // Debug logging for ProtectedRoute
+  console.log("ProtectedRoute: Auth state", { 
+    isInitialized, 
+    loading, 
+    user: !!user, 
+    profile: !!profile,
+    profileOnboardingCompleted: profile?.onboarding_completed,
+    requireOnboardingComplete,
+    requireSubscription,
+    subscriptionLoading,
+    hasValidSubscription,
+    pathname: location.pathname
+  });
+
   if (
     !isInitialized ||
     loading ||
@@ -64,6 +78,9 @@ const ProtectedRoute = ({
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {!isInitialized ? "Initializing..." : loading ? "Loading..." : "Checking subscription..."}
+          </p>
         </div>
       </div>
     );
@@ -159,18 +176,32 @@ const InitialRouteHandler = () => {
   const location = useLocation();
 
   React.useEffect(() => {
+    console.log("InitialRouteHandler: Effect triggered", { 
+      isInitialized, 
+      loading, 
+      user: !!user, 
+      profile: !!profile,
+      pathname: location.pathname 
+    });
+    
     if (isInitialized && !loading && user && profile) {
       // If user is on landing page but authenticated, redirect to appropriate page
       if (location.pathname === "/") {
+        console.log("InitialRouteHandler: User on landing page, checking onboarding status");
         if (!profile.onboarding_completed) {
           // First time user - redirect to onboarding
+          console.log("InitialRouteHandler: Redirecting to onboarding");
           window.location.replace("/onboarding");
         } else {
           // Returning user - check subscription and redirect accordingly
+          console.log("InitialRouteHandler: User onboarding completed, checking subscription");
           checkSubscriptionStatus(profile).then((hasValidSubscription) => {
+            console.log("InitialRouteHandler: Subscription check result:", hasValidSubscription);
             if (hasValidSubscription) {
+              console.log("InitialRouteHandler: Redirecting to dashboard");
               window.location.replace("/dashboard");
             } else {
+              console.log("InitialRouteHandler: Redirecting to paywall");
               window.location.replace("/paywall");
             }
           });

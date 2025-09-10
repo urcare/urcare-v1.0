@@ -219,9 +219,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Optimized auth state listener
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("AuthContext: Auth state change", { event, userId: session?.user?.id });
         if (!mounted) return;
 
         if (session?.user) {
+          console.log("AuthContext: User signed in, setting user and fetching profile");
           setUser(session.user);
           // Run profile operations in parallel
           try {
@@ -229,6 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               ensureUserProfile(session.user),
               fetchUserProfile(session.user.id).then(setProfile),
             ]);
+            console.log("AuthContext: Profile operations completed successfully");
           } catch (error) {
             console.warn("Profile operations failed in auth state change, setting minimal profile:", error);
             // Set a minimal profile to allow app to continue
@@ -242,9 +245,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             } as UserProfile);
           }
           // Ensure loading is false and initialized is true after successful auth
+          console.log("AuthContext: Setting loading=false, isInitialized=true");
           setLoading(false);
           setIsInitialized(true);
         } else {
+          console.log("AuthContext: User signed out, clearing state");
           setUser(null);
           setProfile(null);
           // Clear cache on logout

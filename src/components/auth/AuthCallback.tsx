@@ -74,6 +74,7 @@ export const AuthCallback: React.FC = () => {
 
     const handleUserSession = async (session: any) => {
       try {
+        console.log("AuthCallback: handleUserSession called with session:", session?.user?.id);
         
         // First, test if we can access the table at all
         const testPromise = supabase
@@ -160,15 +161,20 @@ export const AuthCallback: React.FC = () => {
         }
 
         // User has a profile, check onboarding status
+        console.log("AuthCallback: Profile data:", profileData);
         if (!profileData?.onboarding_completed) {
-          navigate("/welcome-screen", { replace: true });
+          console.log("AuthCallback: User onboarding not completed, redirecting to onboarding");
+          navigate("/onboarding", { replace: true });
         } else {
+          console.log("AuthCallback: User onboarding completed, checking subscription");
           // Check subscription status
           const isSubscribed =
             profileData.preferences?.subscription === "active";
           if (isSubscribed) {
+            console.log("AuthCallback: User has subscription, redirecting to dashboard");
             navigate("/dashboard", { replace: true });
           } else {
+            console.log("AuthCallback: User no subscription, redirecting to custom-plan");
             navigate("/custom-plan", { replace: true });
           }
         }
