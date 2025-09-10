@@ -241,11 +241,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               updated_at: new Date().toISOString(),
             } as UserProfile);
           }
+          // Ensure loading is false and initialized is true after successful auth
+          setLoading(false);
+          setIsInitialized(true);
         } else {
           setUser(null);
           setProfile(null);
           // Clear cache on logout
           profileCache.clear();
+          // Ensure loading is false and initialized is true after logout
+          setLoading(false);
+          setIsInitialized(true);
         }
       }
     );

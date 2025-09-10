@@ -35,10 +35,28 @@ type PlanStep = "initial" | "generating" | "ready" | "error";
 
 const CustomPlan: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, loading, isInitialized } = useAuth();
+  const { user, profile, loading, isInitialized } = useAuth();
   const [step, setStep] = useState<PlanStep>("initial");
   const [report, setReport] = useState<HealthPlanReport | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Add a fallback timeout to prevent infinite loading
+  React.useEffect(() => {
+    if (loading || !isInitialized) {
+      const timeout = setTimeout(() => {
+        console.warn("CustomPlan: Loading timeout reached, forcing navigation");
+        setLoadingTimeout(true);
+        // Force navigation to onboarding if loading takes too long
+        navigate("/onboarding", { replace: true });
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loading, isInitialized, navigate]);
+
+  // Debug logging
+  console.log("CustomPlan: Auth state", { isInitialized, loading, profile: !!profile, user: !!user });
 
   // Redirect if not authenticated or profile not loaded
   if (!isInitialized || loading) {
@@ -47,6 +65,9 @@ const CustomPlan: React.FC = () => {
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your profile...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {!isInitialized ? "Initializing..." : "Loading profile..."}
+          </p>
         </div>
       </div>
     );
