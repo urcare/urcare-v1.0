@@ -147,10 +147,6 @@ const checkSubscriptionStatus = async (profile: any): Promise<boolean> => {
     );
     const { isTrialBypassEnabled } = await import("./config/subscription");
 
-    // Check if user has an active subscription
-    const hasActiveSubscription =
-      await subscriptionService.hasActiveSubscription(profile.id);
-
     // For trial period, we'll allow access even without subscription
     // This is the bypass mechanism you requested for the trial period
     if (isTrialBypassEnabled()) {
@@ -160,7 +156,15 @@ const checkSubscriptionStatus = async (profile: any): Promise<boolean> => {
       return true;
     }
 
-    return hasActiveSubscription;
+    // Check if user has an active subscription (including trial)
+    const subscriptionStatus = await subscriptionService.getSubscriptionStatus(profile.id);
+    console.log("Subscription status check:", subscriptionStatus);
+    
+    // Allow access if user has active subscription OR is in trial period
+    const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
+    console.log("User has access:", hasAccess);
+    
+    return hasAccess;
   } catch (error) {
     console.error("Error checking subscription status:", error);
     // In case of error, allow access for now (fail open)
