@@ -94,28 +94,33 @@ const ProtectedRoute = ({
     return null; // or a loading spinner
   }
 
-  // Handle onboarding flow
-  if (requireOnboardingComplete && !profile.onboarding_completed) {
+  // Handle onboarding flow - only redirect if not already on onboarding page
+  if (requireOnboardingComplete && !profile.onboarding_completed && location.pathname !== "/onboarding") {
+    console.log("ProtectedRoute: User onboarding not completed, redirecting to onboarding");
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Only redirect from onboarding if user is actually on onboarding page and has completed it
   if (
     !requireOnboardingComplete &&
     profile.onboarding_completed &&
     location.pathname === "/onboarding"
   ) {
+    console.log("ProtectedRoute: User completed onboarding, redirecting from onboarding to health-assessment");
     return <Navigate to="/health-assessment" replace />;
   }
 
   // Handle subscription flow for dashboard and other protected features
   if (requireSubscription) {
     // Check if user has completed onboarding first
-    if (!profile.onboarding_completed) {
+    if (!profile.onboarding_completed && location.pathname !== "/onboarding") {
+      console.log("ProtectedRoute: User onboarding not completed, redirecting to onboarding");
       return <Navigate to="/onboarding" replace />;
     }
 
     // If subscription check is complete and user doesn't have valid subscription
-    if (hasValidSubscription === false) {
+    if (hasValidSubscription === false && location.pathname !== "/paywall") {
+      console.log("ProtectedRoute: User has no valid subscription, redirecting to paywall");
       return <Navigate to="/paywall" replace />;
     }
 
@@ -185,22 +190,21 @@ const InitialRouteHandler = () => {
       loading, 
       user: !!user, 
       profile: !!profile,
+      profileOnboardingCompleted: profile?.onboarding_completed,
       pathname: location.pathname 
     });
     
-    if (isInitialized && !loading && user && profile) {
-      // If user is on landing page but authenticated, redirect to appropriate page
-      if (location.pathname === "/") {
-        console.log("InitialRouteHandler: User on landing page, checking onboarding status");
-        if (!profile.onboarding_completed) {
-          // First time user - redirect to onboarding
-          console.log("InitialRouteHandler: Redirecting to onboarding");
-          window.location.replace("/onboarding");
-        } else {
-          // Returning user - redirect to health assessment first
-          console.log("InitialRouteHandler: User onboarding completed, redirecting to health assessment");
-          window.location.replace("/health-assessment");
-        }
+    // Only handle redirects from the landing page, not from other pages
+    if (isInitialized && !loading && user && profile && location.pathname === "/") {
+      console.log("InitialRouteHandler: User on landing page, checking onboarding status");
+      if (!profile.onboarding_completed) {
+        // First time user - redirect to onboarding
+        console.log("InitialRouteHandler: Redirecting to onboarding");
+        window.location.replace("/onboarding");
+      } else {
+        // Returning user - redirect to health assessment first
+        console.log("InitialRouteHandler: User onboarding completed, redirecting to health assessment");
+        window.location.replace("/health-assessment");
       }
     }
   }, [isInitialized, loading, user, profile, location.pathname]);
