@@ -32,14 +32,14 @@ export const AuthCallback: React.FC = () => {
 
       // Add a timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
-        console.error(
-          "AuthCallback: Timeout reached, redirecting to welcome screen"
+        console.warn(
+          "AuthCallback: Timeout reached, redirecting to landing page"
         );
-        toast.error("Authentication timeout", {
-          description: "Redirecting to welcome screen...",
+        toast.warning("Authentication taking longer than expected", {
+          description: "Redirecting to landing page...",
         });
-        navigate("/welcome-screen", { replace: true });
-      }, 15000); // Increased to 15 seconds
+        navigate("/", { replace: true });
+      }, 20000); // Increased to 20 seconds
 
       try {
         // Listen for auth state changes to handle OAuth callback

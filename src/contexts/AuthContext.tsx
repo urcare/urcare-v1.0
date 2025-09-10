@@ -98,10 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return cached.profile;
         }
 
-        // Reduced timeout for faster failure
-        const timeoutPromise = new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("Profile fetch timeout")), 2000)
-        );
+         // Increased timeout for better reliability
+         const timeoutPromise = new Promise<null>((_, reject) =>
+           setTimeout(() => reject(new Error("Profile fetch timeout")), 10000)
+         );
 
         const fetchPromise = async () => {
           // Only fetch essential fields for faster response
@@ -125,10 +125,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         return result;
-      } catch (error) {
-        // Return null to allow app to continue
-        return null;
-      }
+       } catch (error) {
+         console.warn("Profile fetch failed, continuing without profile:", error);
+         // Return null to allow app to continue
+         return null;
+       }
     },
     []
   );
@@ -138,9 +139,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
 
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile ensure timeout")), 2000)
-      );
+       const timeoutPromise = new Promise((_, reject) =>
+         setTimeout(() => reject(new Error("Profile ensure timeout")), 10000)
+       );
 
       const ensurePromise = async () => {
         const result = await supabase
@@ -174,9 +175,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
 
       await Promise.race([ensurePromise(), timeoutPromise]);
-    } catch (error) {
-      // Ignore errors and allow app to continue
-    }
+       } catch (error) {
+         console.warn("Profile ensure failed, continuing:", error);
+         // Ignore errors and allow app to continue
+       }
   }, []);
 
   // Initialize auth state with optimized loading
@@ -185,11 +187,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const initializeAuth = async () => {
       setLoading(true);
       try {
-        // Get user with faster timeout
-        const userPromise = supabase.auth.getUser();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Auth timeout")), 3000)
-        );
+         // Get user with increased timeout for better reliability
+         const userPromise = supabase.auth.getUser();
+         const timeoutPromise = new Promise((_, reject) =>
+           setTimeout(() => reject(new Error("Auth timeout")), 15000)
+         );
 
         const {
           data: { user },
@@ -199,22 +201,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUser(user);
           if (user) {
             // Run profile operations in parallel for faster loading
-            await Promise.all([
-              ensureUserProfile(user),
-              fetchUserProfile(user.id).then(setProfile),
-            ]);
+            try {
+              await Promise.all([
+                ensureUserProfile(user),
+                fetchUserProfile(user.id).then(setProfile),
+              ]);
+            } catch (error) {
+              console.warn("Profile operations failed, setting minimal profile:", error);
+              // Set a minimal profile to allow app to continue
+              setProfile({
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                onboarding_completed: false,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as UserProfile);
+            }
           } else {
             setProfile(null);
           }
         }
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-        // Set minimal state to allow app to continue
-        if (mounted) {
-          setUser(null);
-          setProfile(null);
-        }
-      } finally {
+       } catch (error) {
+         console.warn("Auth initialization failed, continuing with minimal state:", error);
+         // Set minimal state to allow app to continue
+         if (mounted) {
+           setUser(null);
+           setProfile(null);
+         }
+       } finally {
         if (mounted) {
           setLoading(false);
           setIsInitialized(true);
@@ -232,10 +247,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (session?.user) {
           setUser(session.user);
           // Run profile operations in parallel
-          await Promise.all([
-            ensureUserProfile(session.user),
-            fetchUserProfile(session.user.id).then(setProfile),
-          ]);
+          try {
+            await Promise.all([
+              ensureUserProfile(session.user),
+              fetchUserProfile(session.user.id).then(setProfile),
+            ]);
+          } catch (error) {
+            console.warn("Profile operations failed in auth state change, setting minimal profile:", error);
+            // Set a minimal profile to allow app to continue
+            setProfile({
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              onboarding_completed: false,
+              status: 'active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as UserProfile);
+          }
         } else {
           setUser(null);
           setProfile(null);
