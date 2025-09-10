@@ -1,10 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Cache for health plans to avoid repeated API calls
-const planCache = new Map<string, { plan: any; timestamp: number }>();
-const progressCache = new Map<string, { progress: any; timestamp: number }>();
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes for plans, shorter for faster updates
-
 export interface HealthPlanActivity {
   id: string;
   type:
@@ -62,19 +57,27 @@ export interface HealthPlanRecord {
   updated_at: string;
 }
 
+// Cache for health plans to avoid repeated API calls
+const planCache = new Map<
+  string,
+  { plan: HealthPlanRecord; timestamp: number }
+>();
+const progressCache = new Map<string, { progress: any; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes for plans, shorter for faster updates
+
 class HealthPlanService {
   // Optimized plan generation with caching and faster fallback
   async generateHealthPlan(): Promise<HealthPlanRecord> {
     try {
       // Check if we have a recent plan in cache
-      const cacheKey = 'current_plan';
+      const cacheKey = "current_plan";
       const cached = planCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.plan;
       }
 
       // Add timeout for faster failure
-      const timeoutPromise = new Promise<never>((_, reject) => 
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Plan generation timeout")), 15000)
       );
 
@@ -103,23 +106,171 @@ class HealthPlanService {
       };
 
       const plan = await Promise.race([generatePromise(), timeoutPromise]);
-      
+
       // Cache the result
       planCache.set(cacheKey, { plan, timestamp: Date.now() });
-      
+
       return plan;
     } catch (error) {
       console.error("Error generating AI Health Coach plan:", error);
-      
+
       // Return a fallback plan immediately instead of throwing
       return this.createFallbackPlan();
     }
   }
 
+  // Create a fast fallback plan when AI generation fails
+  private createFallbackPlan(): HealthPlanRecord {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const fallbackPlan: HealthPlanRecord = {
+      id: `fallback-${Date.now()}`,
+      user_id: "fallback-user",
+      plan_start_date: today.toISOString().split("T")[0],
+      plan_end_date: tomorrow.toISOString().split("T")[0],
+      day_1_plan: {
+        date: today.toISOString().split("T")[0],
+        activities: [
+          {
+            id: "morning-routine-1",
+            type: "other",
+            title: "Morning Routine",
+            description: "Start your day with a healthy morning routine",
+            startTime: "07:00",
+            endTime: "07:30",
+            duration: 30,
+            priority: "high",
+            category: "wellness",
+            instructions: [
+              "Wake up at 7:00 AM",
+              "Drink a glass of water",
+              "Do light stretching",
+            ],
+            tips: [
+              "Keep your phone away from bed",
+              "Open curtains for natural light",
+            ],
+          },
+          {
+            id: "breakfast-1",
+            type: "meal",
+            title: "Healthy Breakfast",
+            description: "Nutritious breakfast to fuel your day",
+            startTime: "08:00",
+            endTime: "08:30",
+            duration: 30,
+            priority: "high",
+            category: "nutrition",
+            instructions: [
+              "Eat a balanced breakfast",
+              "Include protein and fiber",
+              "Stay hydrated",
+            ],
+            tips: [
+              "Prepare breakfast the night before",
+              "Avoid processed foods",
+            ],
+          },
+          {
+            id: "workout-1",
+            type: "workout",
+            title: "Daily Workout",
+            description: "Exercise session based on your fitness goals",
+            startTime: "18:00",
+            endTime: "18:45",
+            duration: 45,
+            priority: "high",
+            category: "fitness",
+            instructions: [
+              "Warm up for 5 minutes",
+              "Main workout for 30 minutes",
+              "Cool down for 10 minutes",
+            ],
+            tips: [
+              "Listen to your body",
+              "Stay hydrated during workout",
+              "Track your progress",
+            ],
+          },
+        ],
+        summary: {
+          totalActivities: 3,
+          workoutTime: 45,
+          mealCount: 1,
+          sleepHours: 8,
+          focusAreas: ["fitness", "nutrition", "wellness"],
+        },
+      },
+      day_2_plan: {
+        date: tomorrow.toISOString().split("T")[0],
+        activities: [
+          {
+            id: "morning-routine-2",
+            type: "other",
+            title: "Morning Routine",
+            description: "Start your day with a healthy morning routine",
+            startTime: "07:00",
+            endTime: "07:30",
+            duration: 30,
+            priority: "high",
+            category: "wellness",
+            instructions: [
+              "Wake up at 7:00 AM",
+              "Drink a glass of water",
+              "Do light stretching",
+            ],
+            tips: [
+              "Keep your phone away from bed",
+              "Open curtains for natural light",
+            ],
+          },
+          {
+            id: "breakfast-2",
+            type: "meal",
+            title: "Healthy Breakfast",
+            description: "Nutritious breakfast to fuel your day",
+            startTime: "08:00",
+            endTime: "08:30",
+            duration: 30,
+            priority: "high",
+            category: "nutrition",
+            instructions: [
+              "Eat a balanced breakfast",
+              "Include protein and fiber",
+              "Stay hydrated",
+            ],
+            tips: [
+              "Prepare breakfast the night before",
+              "Avoid processed foods",
+            ],
+          },
+        ],
+        summary: {
+          totalActivities: 2,
+          workoutTime: 0,
+          mealCount: 1,
+          sleepHours: 8,
+          focusAreas: ["nutrition", "wellness"],
+        },
+      },
+      day_1_completed: false,
+      day_2_completed: false,
+      progress_data: {},
+      generated_at: new Date().toISOString(),
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    return fallbackPlan;
+  }
+
   // Optimized current plan fetching with caching
   async getCurrentPlan(): Promise<HealthPlanRecord | null> {
     try {
-      const cacheKey = 'current_plan';
+      const cacheKey = "current_plan";
       const cached = planCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.plan;
@@ -211,7 +362,10 @@ class HealthPlanService {
       });
 
       // Cache the result
-      progressCache.set(cacheKey, { progress: completionMap, timestamp: Date.now() });
+      progressCache.set(cacheKey, {
+        progress: completionMap,
+        timestamp: Date.now(),
+      });
 
       return completionMap;
     } catch (error) {
@@ -320,148 +474,6 @@ class HealthPlanService {
       console.error("Error calculating completion percentage:", error);
       return 0;
     }
-  }
-
-  // Create a fast fallback plan when AI generation fails
-  private createFallbackPlan(): HealthPlanRecord {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const fallbackPlan: HealthPlanRecord = {
-      id: `fallback-${Date.now()}`,
-      user_id: 'fallback-user',
-      plan_start_date: today.toISOString().split("T")[0],
-      plan_end_date: tomorrow.toISOString().split("T")[0],
-      day_1_plan: {
-        date: today.toISOString().split("T")[0],
-        activities: [
-          {
-            id: "morning-routine-1",
-            type: "other",
-            title: "Morning Routine",
-            description: "Start your day with a healthy morning routine",
-            startTime: "07:00",
-            endTime: "07:30",
-            duration: 30,
-            priority: "high",
-            category: "wellness",
-            instructions: [
-              "Wake up at 7:00 AM",
-              "Drink a glass of water",
-              "Do light stretching",
-            ],
-            tips: [
-              "Keep your phone away from bed",
-              "Open curtains for natural light",
-            ],
-          },
-          {
-            id: "breakfast-1",
-            type: "meal",
-            title: "Healthy Breakfast",
-            description: "Nutritious breakfast to fuel your day",
-            startTime: "08:00",
-            endTime: "08:30",
-            duration: 30,
-            priority: "high",
-            category: "nutrition",
-            instructions: [
-              "Eat a balanced breakfast",
-              "Include protein and fiber",
-              "Stay hydrated",
-            ],
-            tips: ["Prepare breakfast the night before", "Avoid processed foods"],
-          },
-          {
-            id: "workout-1",
-            type: "workout",
-            title: "Daily Workout",
-            description: "Exercise session based on your fitness goals",
-            startTime: "18:00",
-            endTime: "18:45",
-            duration: 45,
-            priority: "high",
-            category: "fitness",
-            instructions: [
-              "Warm up for 5 minutes",
-              "Main workout for 30 minutes",
-              "Cool down for 10 minutes",
-            ],
-            tips: [
-              "Listen to your body",
-              "Stay hydrated during workout",
-              "Track your progress",
-            ],
-          },
-        ],
-        summary: {
-          totalActivities: 3,
-          workoutTime: 45,
-          mealCount: 1,
-          sleepHours: 8,
-          focusAreas: ["fitness", "nutrition", "wellness"],
-        },
-      },
-      day_2_plan: {
-        date: tomorrow.toISOString().split("T")[0],
-        activities: [
-          {
-            id: "morning-routine-2",
-            type: "other",
-            title: "Morning Routine",
-            description: "Start your day with a healthy morning routine",
-            startTime: "07:00",
-            endTime: "07:30",
-            duration: 30,
-            priority: "high",
-            category: "wellness",
-            instructions: [
-              "Wake up at 7:00 AM",
-              "Drink a glass of water",
-              "Do light stretching",
-            ],
-            tips: [
-              "Keep your phone away from bed",
-              "Open curtains for natural light",
-            ],
-          },
-          {
-            id: "breakfast-2",
-            type: "meal",
-            title: "Healthy Breakfast",
-            description: "Nutritious breakfast to fuel your day",
-            startTime: "08:00",
-            endTime: "08:30",
-            duration: 30,
-            priority: "high",
-            category: "nutrition",
-            instructions: [
-              "Eat a balanced breakfast",
-              "Include protein and fiber",
-              "Stay hydrated",
-            ],
-            tips: ["Prepare breakfast the night before", "Avoid processed foods"],
-          },
-        ],
-        summary: {
-          totalActivities: 2,
-          workoutTime: 0,
-          mealCount: 1,
-          sleepHours: 8,
-          focusAreas: ["nutrition", "wellness"],
-        },
-      },
-      day_1_completed: false,
-      day_2_completed: false,
-      progress_data: {},
-      generated_at: new Date().toISOString(),
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    return fallbackPlan;
   }
 
   // Clear all caches (useful for logout or data refresh)
