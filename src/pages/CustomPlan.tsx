@@ -424,11 +424,11 @@ const CustomPlan: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/paywall")}
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                Go to Dashboard
+                Continue to Subscription
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <Button

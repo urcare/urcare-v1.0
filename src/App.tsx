@@ -25,19 +25,40 @@ import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 
-// Robust ProtectedRoute
+// Enhanced ProtectedRoute with subscription checks
 const ProtectedRoute = ({
   children,
   requireOnboardingComplete = false,
+  requireSubscription = false,
 }: {
   children: React.ReactNode;
   requireOnboardingComplete?: boolean;
+  requireSubscription?: boolean;
 }) => {
   const devAuth = useDevAuth();
   const { user, profile, loading, isInitialized } = devAuth;
   const location = useLocation();
+  const [subscriptionLoading, setSubscriptionLoading] = React.useState(false);
+  const [hasValidSubscription, setHasValidSubscription] = React.useState<
+    boolean | null
+  >(null);
 
-  if (!isInitialized || loading) {
+  // Check subscription status when required
+  React.useEffect(() => {
+    if (requireSubscription && profile && profile.onboarding_completed) {
+      setSubscriptionLoading(true);
+      checkSubscriptionStatus(profile)
+        .then(setHasValidSubscription)
+        .catch(() => setHasValidSubscription(false))
+        .finally(() => setSubscriptionLoading(false));
+    }
+  }, [requireSubscription, profile]);
+
+  if (
+    !isInitialized ||
+    loading ||
+    (requireSubscription && subscriptionLoading)
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -47,15 +68,20 @@ const ProtectedRoute = ({
       </div>
     );
   }
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
   if (!profile) {
     return null; // or a loading spinner
   }
+
+  // Handle onboarding flow
   if (requireOnboardingComplete && !profile.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
+
   if (
     !requireOnboardingComplete &&
     profile.onboarding_completed &&
@@ -63,7 +89,97 @@ const ProtectedRoute = ({
   ) {
     return <Navigate to="/custom-plan" replace />;
   }
+
+  // Handle subscription flow for dashboard and other protected features
+  if (requireSubscription) {
+    // Check if user has completed onboarding first
+    if (!profile.onboarding_completed) {
+      return <Navigate to="/onboarding" replace />;
+    }
+
+    // If subscription check is complete and user doesn't have valid subscription
+    if (hasValidSubscription === false) {
+      return <Navigate to="/paywall" replace />;
+    }
+
+    // If subscription check is still loading, show loading state
+    if (hasValidSubscription === null) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Checking subscription...
+            </p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return <>{children}</>;
+};
+
+// Helper function to check subscription status
+// This integrates with the actual subscription service
+const checkSubscriptionStatus = async (profile: any): Promise<boolean> => {
+  try {
+    // Import subscription service and config dynamically to avoid circular dependencies
+    const { subscriptionService } = await import(
+      "./services/subscriptionService"
+    );
+    const { isTrialBypassEnabled } = await import("./config/subscription");
+
+    // Check if user has an active subscription
+    const hasActiveSubscription =
+      await subscriptionService.hasActiveSubscription(profile.id);
+
+    // For trial period, we'll allow access even without subscription
+    // This is the bypass mechanism you requested for the trial period
+    if (isTrialBypassEnabled()) {
+      console.log(
+        "Trial bypass enabled - allowing access without subscription"
+      );
+      return true;
+    }
+
+    return hasActiveSubscription;
+  } catch (error) {
+    console.error("Error checking subscription status:", error);
+    // In case of error, allow access for now (fail open)
+    // In production, you might want to fail closed
+    return true;
+  }
+};
+
+// Component to handle initial routing for authenticated users
+const InitialRouteHandler = () => {
+  const devAuth = useDevAuth();
+  const { user, profile, loading, isInitialized } = devAuth;
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (isInitialized && !loading && user && profile) {
+      // If user is on landing page but authenticated, redirect to appropriate page
+      if (location.pathname === "/") {
+        if (!profile.onboarding_completed) {
+          // First time user - redirect to onboarding
+          window.location.replace("/onboarding");
+        } else {
+          // Returning user - check subscription and redirect accordingly
+          checkSubscriptionStatus(profile).then((hasValidSubscription) => {
+            if (hasValidSubscription) {
+              window.location.replace("/dashboard");
+            } else {
+              window.location.replace("/paywall");
+            }
+          });
+        }
+      }
+    }
+  }, [isInitialized, loading, user, profile, location.pathname]);
+
+  return null;
 };
 
 function App() {
@@ -72,6 +188,7 @@ function App() {
       <BrowserRouter>
         <DevRedirectHandler />
         <DevPanel />
+        <InitialRouteHandler />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
@@ -127,7 +244,10 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -136,7 +256,10 @@ function App() {
           <Route
             path="/health-plan"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
                 <HealthPlan />
               </ProtectedRoute>
             }
@@ -145,7 +268,10 @@ function App() {
           <Route
             path="/diet"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
                 <Diet />
               </ProtectedRoute>
             }
@@ -154,7 +280,10 @@ function App() {
           <Route
             path="/workout"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
                 <Workout />
               </ProtectedRoute>
             }
@@ -163,7 +292,10 @@ function App() {
           <Route
             path="/planner"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
                 <EnhancedPlanner />
               </ProtectedRoute>
             }

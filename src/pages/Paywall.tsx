@@ -38,7 +38,8 @@ const Paywall: React.FC = () => {
 
       if (subscription) {
         alert("🎉 Welcome to your 3-day free trial!");
-        navigate("/dashboard");
+        // Force a page reload to ensure subscription status is updated
+        window.location.href = "/dashboard";
       } else {
         alert("Failed to create trial subscription. Please try again.");
       }
