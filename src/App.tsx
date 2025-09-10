@@ -9,7 +9,7 @@ import {
 import { AuthProvider } from "./contexts/AuthContext";
 import { useDevAuth } from "./hooks/useDevAuth";
 // AI Health Assistant Demo removed
-import CustomPlan from "./pages/CustomPlan";
+import HealthAssessment from "./pages/HealthAssessment";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
 import EnhancedPlanner from "./pages/EnhancedPlanner";
@@ -104,7 +104,7 @@ const ProtectedRoute = ({
     profile.onboarding_completed &&
     location.pathname === "/onboarding"
   ) {
-    return <Navigate to="/custom-plan" replace />;
+    return <Navigate to="/health-assessment" replace />;
   }
 
   // Handle subscription flow for dashboard and other protected features
@@ -193,18 +193,9 @@ const InitialRouteHandler = () => {
           console.log("InitialRouteHandler: Redirecting to onboarding");
           window.location.replace("/onboarding");
         } else {
-          // Returning user - check subscription and redirect accordingly
-          console.log("InitialRouteHandler: User onboarding completed, checking subscription");
-          checkSubscriptionStatus(profile).then((hasValidSubscription) => {
-            console.log("InitialRouteHandler: Subscription check result:", hasValidSubscription);
-            if (hasValidSubscription) {
-              console.log("InitialRouteHandler: Redirecting to dashboard");
-              window.location.replace("/dashboard");
-            } else {
-              console.log("InitialRouteHandler: Redirecting to paywall");
-              window.location.replace("/paywall");
-            }
-          });
+          // Returning user - redirect to health assessment first
+          console.log("InitialRouteHandler: User onboarding completed, redirecting to health assessment");
+          window.location.replace("/health-assessment");
         }
       }
     }
@@ -246,10 +237,10 @@ function App() {
           />
 
           <Route
-            path="/custom-plan"
+            path="/health-assessment"
             element={
               <ProtectedRoute requireOnboardingComplete={true}>
-                <CustomPlan />
+                <HealthAssessment />
               </ProtectedRoute>
             }
           />

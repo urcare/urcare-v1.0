@@ -174,8 +174,8 @@ export const AuthCallback: React.FC = () => {
             console.log("AuthCallback: User has subscription, redirecting to dashboard");
             navigate("/dashboard", { replace: true });
           } else {
-            console.log("AuthCallback: User no subscription, redirecting to custom-plan");
-            navigate("/custom-plan", { replace: true });
+            console.log("AuthCallback: User no subscription, redirecting to health-assessment");
+            navigate("/health-assessment", { replace: true });
           }
         }
       } catch (error) {
