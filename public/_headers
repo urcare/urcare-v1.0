@@ -1,0 +1,46 @@
+# Headers for all files
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# JavaScript files
+/assets/*.js
+  Content-Type: application/javascript
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS files
+/assets/*.css
+  Content-Type: text/css
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML files
+/*.html
+  Content-Type: text/html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# JSON files
+/*.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=31536000
+
+# Image files
+/*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=31536000
+
+/*.jpg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=31536000
+
+/*.jpeg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=31536000
+
+/*.svg
+  Content-Type: image/svg+xml
+  Cache-Control: public, max-age=31536000
+
+/*.ico
+  Content-Type: image/x-icon
+  Cache-Control: public, max-age=31536000
