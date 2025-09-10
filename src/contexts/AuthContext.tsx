@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Add timeout to prevent hanging
         const fetchPromise = supabase
           .from("user_profiles")
-          .select("id, full_name, onboarding_completed, status, preferences")
+          .select("*")
           .eq("id", userId)
           .single();
         

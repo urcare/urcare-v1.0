@@ -63,6 +63,19 @@ const HealthAssessment: React.FC = () => {
 
   // Generate health metrics based on ACTUAL profile data
   const generateHealthMetrics = (profile: any): HealthMetric[] => {
+    // Debug logging to see what data we're getting
+    console.log("HealthAssessment: Profile data received:", {
+      height_cm: profile.height_cm,
+      weight_kg: profile.weight_kg,
+      age: profile.age,
+      sleep_time: profile.sleep_time,
+      wake_up_time: profile.wake_up_time,
+      workout_time: profile.workout_time,
+      diet_type: profile.diet_type,
+      chronic_conditions: profile.chronic_conditions,
+      preferences: profile.preferences
+    });
+
     const height = parseFloat(profile.height_cm) || 170;
     const weight = parseFloat(profile.weight_kg) || 70;
     const bmi = weight / ((height / 100) ** 2);
