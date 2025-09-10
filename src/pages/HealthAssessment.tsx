@@ -16,9 +16,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Zap,
-  Shield,
-  Star,
 } from "lucide-react";
 
 interface HealthMetric {
@@ -28,7 +25,6 @@ interface HealthMetric {
   status: "good" | "bad";
   icon: React.ComponentType<any>;
   iconColor: string;
-  severity: "critical" | "high" | "medium" | "low";
 }
 
 const HealthAssessment: React.FC = () => {
@@ -45,7 +41,7 @@ const HealthAssessment: React.FC = () => {
   // Redirect if not authenticated or profile not loaded
   if (!isInitialized || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Analyzing your health profile...</p>
@@ -83,7 +79,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: TrendingDown,
         iconColor: "text-red-500",
-        severity: "high"
       });
     } else if (bmi > 25) {
       metrics.push({
@@ -93,7 +88,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: AlertTriangle,
         iconColor: "text-red-600",
-        severity: bmi > 30 ? "critical" : "high"
       });
     } else {
       metrics.push({
@@ -103,7 +97,6 @@ const HealthAssessment: React.FC = () => {
         status: "good",
         icon: CheckCircle,
         iconColor: "text-green-500",
-        severity: "low"
       });
     }
 
@@ -118,7 +111,6 @@ const HealthAssessment: React.FC = () => {
           status: "bad",
           icon: Moon,
           iconColor: "text-red-500",
-          severity: "high"
         });
       } else if (sleepHours > 9) {
         metrics.push({
@@ -128,7 +120,6 @@ const HealthAssessment: React.FC = () => {
           status: "bad",
           icon: Moon,
           iconColor: "text-orange-500",
-          severity: "medium"
         });
       } else {
         metrics.push({
@@ -138,7 +129,6 @@ const HealthAssessment: React.FC = () => {
           status: "good",
           icon: Moon,
           iconColor: "text-green-500",
-          severity: "low"
         });
       }
     } else {
@@ -149,7 +139,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: Moon,
         iconColor: "text-red-500",
-        severity: "high"
       });
     }
 
@@ -162,7 +151,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: Activity,
         iconColor: "text-red-600",
-        severity: "critical"
       });
     } else if (profile.workout_frequency === "1-2") {
       metrics.push({
@@ -172,7 +160,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: Activity,
         iconColor: "text-orange-500",
-        severity: "medium"
       });
     } else {
       metrics.push({
@@ -182,7 +169,6 @@ const HealthAssessment: React.FC = () => {
         status: "good",
         icon: Activity,
         iconColor: "text-green-500",
-        severity: "low"
       });
     }
 
@@ -195,7 +181,6 @@ const HealthAssessment: React.FC = () => {
         status: "bad",
         icon: Apple,
         iconColor: "text-red-500",
-        severity: "high"
       });
     } else {
       metrics.push({
@@ -205,7 +190,6 @@ const HealthAssessment: React.FC = () => {
         status: "good",
         icon: Apple,
         iconColor: "text-green-500",
-        severity: "low"
       });
     }
 
@@ -213,13 +197,12 @@ const HealthAssessment: React.FC = () => {
     const waterIntake = profile.water_intake || 0;
     if (waterIntake < 6) {
       metrics.push({
-        id: "hydration",
+      id: "hydration",
         title: "Hydration",
         value: `${waterIntake} glasses (Low)`,
         status: "bad",
-        icon: Droplets,
+      icon: Droplets,
         iconColor: "text-red-500",
-        severity: "medium"
       });
     } else {
       metrics.push({
@@ -228,31 +211,7 @@ const HealthAssessment: React.FC = () => {
         value: `${waterIntake} glasses (Good)`,
         status: "good",
         icon: Droplets,
-        iconColor: "text-green-500",
-        severity: "low"
-      });
-    }
-
-    // Age Risk Analysis
-    if (age > 40) {
-      metrics.push({
-        id: "age_risk",
-        title: "Age Risk",
-        value: `${age} years (High Risk)`,
-        status: "bad",
-        icon: Clock,
-        iconColor: "text-orange-500",
-        severity: "medium"
-      });
-    } else {
-      metrics.push({
-        id: "age_risk",
-        title: "Age Risk",
-        value: `${age} years (Low Risk)`,
-        status: "good",
-        icon: Clock,
-        iconColor: "text-green-500",
-        severity: "low"
+      iconColor: "text-green-500",
       });
     }
 
@@ -305,43 +264,43 @@ const HealthAssessment: React.FC = () => {
     );
     
     if (distance === 0) {
-      // Main card (center)
+      // Main card (center) - fully visible
       return {
-        transform: "scale(1)",
+        transform: "translateY(0px) scale(1)",
         opacity: 1,
         zIndex: 10,
-        filter: "none",
+        height: "80px",
       };
     } else if (distance === 1) {
-      // Adjacent cards
+      // Adjacent cards - partially visible
       return {
-        transform: "scale(0.85)",
+        transform: `translateY(${distance === 1 && index < currentIndex ? '-60px' : '60px'}) scale(0.9)`,
         opacity: 0.7,
         zIndex: 5,
-        filter: "blur(1px)",
+        height: "70px",
       };
     } else if (distance === 2) {
-      // Second level cards
+      // Second level cards - more faded
       return {
-        transform: "scale(0.7)",
+        transform: `translateY(${distance === 2 && index < currentIndex ? '-120px' : '120px'}) scale(0.8)`,
         opacity: 0.4,
         zIndex: 3,
-        filter: "blur(2px)",
+        height: "60px",
       };
     } else {
-      // Farthest cards
+      // Farthest cards - heavily cropped and faded
       return {
-        transform: "scale(0.5)",
+        transform: `translateY(${distance > 2 && index < currentIndex ? '-180px' : '180px'}) scale(0.7)`,
         opacity: 0.2,
         zIndex: 1,
-        filter: "blur(3px)",
+        height: "50px",
       };
     }
   };
 
   if (!analysisComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
             <Heart className="w-8 h-8 text-white" />
@@ -366,7 +325,7 @@ const HealthAssessment: React.FC = () => {
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
               <p className="text-gray-600">Analyzing your health profile...</p>
-            </div>
+          </div>
           )}
         </div>
       </div>
@@ -374,55 +333,55 @@ const HealthAssessment: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
-      {/* Header */}
-      <div className="text-center pt-8 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Your Health Analysis
-        </h1>
-        <p className="text-red-600 font-semibold">
-          Multiple critical issues detected
-        </p>
-      </div>
-
-      {/* Carousel Container */}
-      <div className="flex-1 flex items-center justify-center px-4">
+    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex flex-col overflow-hidden">
+      {/* Carousel Container - Takes most of the screen */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="relative w-full max-w-sm mx-auto">
-          {/* Health Metrics Carousel */}
+          {/* Health Metrics Vertical Carousel */}
           <div className="relative h-96 overflow-hidden">
             {healthMetrics.map((metric, index) => {
               const IconComponent = metric.icon;
               const style = getCardStyle(index);
               
-              return (
+    return (
                 <div
                   key={metric.id}
-                  className="absolute inset-0 transition-all duration-500 ease-in-out"
+                  className="absolute inset-x-0 transition-all duration-700 ease-in-out"
                   style={style}
                 >
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6 h-full flex flex-col justify-center">
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4"
-                           style={{ backgroundColor: metric.status === 'good' ? '#f0fdf4' : '#fef2f2' }}>
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-4 h-full flex items-center">
+                    <div className="flex items-center w-full">
+                      {/* Icon */}
+                      <div className="flex-shrink-0 mr-4">
                         <IconComponent className={`w-6 h-6 ${metric.iconColor}`} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {metric.title}
-                      </h3>
-                      <p className={`text-2xl font-bold mb-2 ${
-                        metric.status === 'good' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {metric.value}
-                      </p>
-                      <div className="flex items-center justify-center">
+            </div>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {metric.title}
+                        </h3>
+                        <p className={`text-lg font-bold ${
+                          metric.status === 'good' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {metric.value}
+                        </p>
+                </div>
+                      
+                      {/* Status Icon */}
+                      <div className="flex-shrink-0">
                         {metric.status === 'good' ? (
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-500" />
-                        )}
-                      </div>
-                    </div>
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-white" />
                   </div>
+                        ) : (
+                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <XCircle className="w-4 h-4 text-white" />
+                  </div>
+                        )}
+            </div>
+                    </div>
+                </div>
                 </div>
               );
             })}
@@ -430,42 +389,17 @@ const HealthAssessment: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section */}
-      <div className="px-6 pb-8">
+      {/* Bottom Section - Fixed height */}
+      <div className="px-6 pb-8 flex-shrink-0">
         {/* Main Message */}
-        <div className="text-center mb-6">
+        <div className="text-left mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
             Your health is at serious risk
           </h2>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-600 leading-relaxed text-sm">
             The issues identified above can lead to life-threatening conditions if left untreated. 
             UrCare's proven system has helped thousands reverse these exact problems and achieve optimal health.
           </p>
-        </div>
-
-        {/* Trust Indicators */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
-              <Shield className="w-6 h-6 text-green-600" />
-            </div>
-            <p className="text-sm font-semibold text-gray-900">Medical Grade</p>
-            <p className="text-xs text-gray-600">FDA Approved</p>
-          </div>
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-2">
-              <Star className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-sm font-semibold text-gray-900">50,000+</p>
-            <p className="text-xs text-gray-600">Success Stories</p>
-          </div>
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-2">
-              <Zap className="w-6 h-6 text-purple-600" />
-            </div>
-            <p className="text-sm font-semibold text-gray-900">90%</p>
-            <p className="text-xs text-gray-600">Success Rate</p>
-          </div>
         </div>
 
         {/* Call to Action */}
@@ -481,9 +415,9 @@ const HealthAssessment: React.FC = () => {
         <p className="text-center text-sm text-gray-500 mt-3">
           Join 50,000+ users who transformed their health with UrCare
         </p>
+        </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default HealthAssessment;
