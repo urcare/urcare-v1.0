@@ -273,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setProfile(minimalProfile);
             
             // Try to fetch/ensure profile in background
-            const [profileResult] = await Promise.all([
+            const [, profileResult] = await Promise.all([
               ensureUserProfile(session.user),
               fetchUserProfile(session.user.id),
             ]);
