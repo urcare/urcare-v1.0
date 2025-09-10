@@ -405,18 +405,18 @@ const HealthAssessment: React.FC = () => {
         {/* Main Message */}
         <div className="text-left mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Your health is at serious risk
+            Build a better health timeline
           </h2>
           <p className="text-gray-600 leading-relaxed text-sm">
-            The issues identified above can lead to life-threatening conditions if left untreated. 
-            UrCare's proven system has helped thousands reverse these exact problems and achieve optimal health.
+            The health issues identified above can lead to serious complications if left unaddressed. 
+            UrCare's proven system has helped thousands of users reverse these exact problems and achieve optimal health outcomes.
           </p>
         </div>
 
         {/* Call to Action */}
         <button
           onClick={handleGetSolution}
-          className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+          className="w-full bg-black text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all duration-200 flex items-center justify-center"
         >
           <CheckCircle className="w-5 h-5 mr-2" />
           Get My Personalized Health Plan
