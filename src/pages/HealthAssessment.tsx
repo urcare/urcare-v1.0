@@ -263,6 +263,10 @@ const HealthAssessment: React.FC = () => {
       Math.abs(index - currentIndex - totalItems)
     );
     
+    // Calculate position relative to center
+    const relativeIndex = index - currentIndex;
+    const adjustedIndex = relativeIndex < 0 ? relativeIndex + totalItems : relativeIndex;
+    
     if (distance === 0) {
       // Main card (center) - fully visible
       return {
@@ -270,30 +274,37 @@ const HealthAssessment: React.FC = () => {
         opacity: 1,
         zIndex: 10,
         height: "80px",
+        marginBottom: "12px",
       };
     } else if (distance === 1) {
       // Adjacent cards - partially visible
+      const offset = adjustedIndex === 1 ? 100 : -100;
       return {
-        transform: `translateY(${distance === 1 && index < currentIndex ? '-60px' : '60px'}) scale(0.9)`,
-        opacity: 0.7,
+        transform: `translateY(${offset}px) scale(0.85)`,
+        opacity: 0.6,
         zIndex: 5,
         height: "70px",
+        marginBottom: "10px",
       };
     } else if (distance === 2) {
       // Second level cards - more faded
+      const offset = adjustedIndex === 2 ? 200 : -200;
       return {
-        transform: `translateY(${distance === 2 && index < currentIndex ? '-120px' : '120px'}) scale(0.8)`,
-        opacity: 0.4,
+        transform: `translateY(${offset}px) scale(0.7)`,
+        opacity: 0.3,
         zIndex: 3,
         height: "60px",
+        marginBottom: "8px",
       };
     } else {
       // Farthest cards - heavily cropped and faded
+      const offset = adjustedIndex > 2 ? 300 : -300;
       return {
-        transform: `translateY(${distance > 2 && index < currentIndex ? '-180px' : '180px'}) scale(0.7)`,
-        opacity: 0.2,
+        transform: `translateY(${offset}px) scale(0.5)`,
+        opacity: 0.1,
         zIndex: 1,
         height: "50px",
+        marginBottom: "6px",
       };
     }
   };
@@ -334,11 +345,11 @@ const HealthAssessment: React.FC = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex flex-col overflow-hidden">
-      {/* Carousel Container - Takes most of the screen */}
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      {/* Carousel Container - Perfectly centered */}
+      <div className="flex-1 flex items-center justify-center px-4">
         <div className="relative w-full max-w-sm mx-auto">
-          {/* Health Metrics Vertical Carousel */}
-          <div className="relative h-96 overflow-hidden">
+          {/* Health Metrics Vertical Roller */}
+          <div className="relative h-80 overflow-hidden flex items-center justify-center">
             {healthMetrics.map((metric, index) => {
               const IconComponent = metric.icon;
               const style = getCardStyle(index);
@@ -346,10 +357,10 @@ const HealthAssessment: React.FC = () => {
     return (
                 <div
                   key={metric.id}
-                  className="absolute inset-x-0 transition-all duration-700 ease-in-out"
+                  className="absolute w-full transition-all duration-1000 ease-in-out"
                   style={style}
                 >
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-4 h-full flex items-center">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-4 flex items-center">
                     <div className="flex items-center w-full">
                       {/* Icon */}
                       <div className="flex-shrink-0 mr-4">
