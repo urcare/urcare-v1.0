@@ -11,14 +11,19 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Settings, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function ProfileMenu() {
   const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
 
-  const handleLogout = () => {
-    // Handle logout logic
-    console.log('Logging out...');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      // The signOut function will handle the redirect automatically
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -38,9 +43,11 @@ export function ProfileMenu() {
       >
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
-            <p className="font-medium text-sm dark:text-white">Dr. Sarah Wilson</p>
+            <p className="font-medium text-sm dark:text-white">
+              {profile?.full_name || user?.user_metadata?.full_name || 'User'}
+            </p>
             <p className="w-[200px] truncate text-xs text-muted-foreground dark:text-slate-400">
-              sarah.wilson@urcare.com
+              {user?.email || 'user@example.com'}
             </p>
           </div>
         </div>

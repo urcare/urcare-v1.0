@@ -47,7 +47,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [animateItems, setAnimateItems] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   // Initialize greeting on component mount
@@ -84,6 +84,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     navigate("/health-plan");
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      closeMenu();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const handleMenuItemClick = (action: string) => {
     closeMenu();
     switch (action) {
@@ -112,7 +121,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         // Handle profile navigation
         break;
       case "logout":
-        // Handle logout
+        handleLogout();
         break;
       default:
         break;
