@@ -42,9 +42,45 @@ const HealthAssessment: React.FC = () => {
   if (!isInitialized || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Analyzing your health profile...</p>
+        <div className="text-center max-w-md mx-auto px-6">
+          {/* Animated Health Icon */}
+          <div className="relative mb-8">
+            <div className="w-24 h-24 mx-auto relative">
+              {/* Outer pulsing ring */}
+              <div className="absolute inset-0 rounded-full border-4 border-purple-200 animate-pulse"></div>
+              {/* Middle rotating ring */}
+              <div className="absolute inset-2 rounded-full border-4 border-purple-400 border-t-transparent animate-spin"></div>
+              {/* Inner heart icon */}
+              <div className="absolute inset-4 flex items-center justify-center">
+                <Heart className="w-8 h-8 text-purple-600 animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Health Risk Assessment
+          </h1>
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            Our advanced algorithm will analyze your health data to identify critical issues that need immediate attention.
+          </p>
+
+          {/* Animated Button */}
+          <button className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative flex items-center justify-center">
+              <Activity className="w-5 h-5 mr-2 animate-pulse" />
+              Analyze My Health Now
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+            </div>
+          </button>
+
+          {/* Loading dots */}
+          <div className="flex justify-center mt-6 space-x-2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
         </div>
       </div>
     );
