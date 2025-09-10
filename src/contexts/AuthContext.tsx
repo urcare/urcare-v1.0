@@ -101,12 +101,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         console.log("fetchUserProfile: Fetching from database...");
-        // Fetch profile without timeout to allow natural completion
-        const { data, error } = await supabase
+        // Add timeout to prevent hanging
+        const fetchPromise = supabase
           .from("user_profiles")
           .select("id, full_name, onboarding_completed, status, preferences")
           .eq("id", userId)
           .single();
+        
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Database fetch timeout")), 5000)
+        );
+        
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
         if (error) {
           console.log("fetchUserProfile: Database error:", error);
@@ -136,12 +142,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       console.log("ensureUserProfile: Starting for userId:", user.id);
-      // Check if profile exists without timeout
-      const result = await supabase
+      // Add timeout to prevent hanging
+      const checkPromise = supabase
         .from("user_profiles")
         .select("id")
         .eq("id", user.id)
         .single();
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Database check timeout")), 5000)
+      );
+      
+      const result = await Promise.race([checkPromise, timeoutPromise]) as any;
 
       console.log("ensureUserProfile: Profile check result:", result);
 
@@ -152,8 +164,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (!result.data) {
         console.log("ensureUserProfile: Creating new profile...");
-        // Create minimal profile record
-        const { error: insertError } = await supabase
+        // Create minimal profile record with timeout
+        const insertPromise = supabase
           .from("user_profiles")
           .insert([
             {
@@ -163,6 +175,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               status: "active",
             },
           ]);
+        
+        const insertTimeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Profile creation timeout")), 5000)
+        );
+        
+        const { error: insertError } = await Promise.race([insertPromise, insertTimeoutPromise]) as any;
 
         if (!insertError) {
           console.log("ensureUserProfile: Profile created successfully");
@@ -241,15 +259,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Run profile operations in parallel
           try {
             console.log("AuthContext: Starting profile operations...");
-            const [profileResult] = await Promise.all([
-              ensureUserProfile(session.user),
-              fetchUserProfile(session.user.id),
-            ]);
-            console.log("AuthContext: Profile operations completed, setting profile:", profileResult);
-            setProfile(profileResult);
-          } catch (error) {
-            console.warn("Profile operations failed in auth state change, setting minimal profile:", error);
-            // Set a minimal profile to allow app to continue
+            
+            // Set a minimal profile immediately to prevent hanging
             const minimalProfile = {
               id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
@@ -258,8 +269,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             } as UserProfile;
-            console.log("AuthContext: Setting minimal profile:", minimalProfile);
+            console.log("AuthContext: Setting minimal profile immediately:", minimalProfile);
             setProfile(minimalProfile);
+            
+            // Try to fetch/ensure profile in background
+            const [profileResult] = await Promise.all([
+              ensureUserProfile(session.user),
+              fetchUserProfile(session.user.id),
+            ]);
+            
+            if (profileResult) {
+              console.log("AuthContext: Profile operations completed, updating with real profile:", profileResult);
+              setProfile(profileResult);
+            } else {
+              console.log("AuthContext: Profile operations completed, keeping minimal profile");
+            }
+          } catch (error) {
+            console.warn("Profile operations failed in auth state change, keeping minimal profile:", error);
+            // Minimal profile is already set above, so we just continue
           }
           // Ensure loading is false and initialized is true after successful auth
           console.log("AuthContext: Setting loading=false, isInitialized=true");
