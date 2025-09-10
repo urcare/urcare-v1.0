@@ -13,7 +13,6 @@ export const AuthCallback: React.FC = () => {
   const { isDevAuthActive, forceDevAuth } = useDevAuthFallback();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
     let authStateSubscription: any;
 
     const handleAuthCallback = async () => {
@@ -30,16 +29,8 @@ export const AuthCallback: React.FC = () => {
         // Continue with the normal flow below - don't return here
       }
 
-      // Add a timeout to prevent infinite loading
-      timeoutId = setTimeout(() => {
-        console.warn(
-          "AuthCallback: Timeout reached, redirecting to landing page"
-        );
-        toast.warning("Authentication taking longer than expected", {
-          description: "Redirecting to landing page...",
-        });
-        navigate("/", { replace: true });
-      }, 20000); // Increased to 20 seconds
+      // Remove timeout to allow natural completion of auth process
+      // The auth state change listener will handle the redirect
 
       try {
         // Listen for auth state changes to handle OAuth callback
@@ -83,7 +74,6 @@ export const AuthCallback: React.FC = () => {
 
     const handleUserSession = async (session: any) => {
       try {
-        clearTimeout(timeoutId);
         
         // First, test if we can access the table at all
         const testPromise = supabase
@@ -224,7 +214,6 @@ export const AuthCallback: React.FC = () => {
 
     // Cleanup function
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
       if (authStateSubscription) authStateSubscription.data.subscription.unsubscribe();
     };
   }, [navigate]);

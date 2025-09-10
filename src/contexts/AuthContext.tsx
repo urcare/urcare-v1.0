@@ -98,26 +98,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return cached.profile;
         }
 
-         // Increased timeout for better reliability
-         const timeoutPromise = new Promise<null>((_, reject) =>
-           setTimeout(() => reject(new Error("Profile fetch timeout")), 10000)
-         );
+        // Fetch profile without timeout to allow natural completion
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("id, full_name, onboarding_completed, status, preferences")
+          .eq("id", userId)
+          .single();
 
-        const fetchPromise = async () => {
-          // Only fetch essential fields for faster response
-          const { data, error } = await supabase
-            .from("user_profiles")
-            .select("id, full_name, onboarding_completed, status, preferences")
-            .eq("id", userId)
-            .single();
-
-          if (error) {
-            return null;
-          }
-          return data as UserProfile;
-        };
-
-        const result = await Promise.race([fetchPromise(), timeoutPromise]);
+        if (error) {
+          return null;
+        }
+        const result = data as UserProfile;
 
         // Cache the result
         if (result) {
@@ -139,42 +130,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
 
     try {
-       const timeoutPromise = new Promise((_, reject) =>
-         setTimeout(() => reject(new Error("Profile ensure timeout")), 10000)
-       );
+      // Check if profile exists without timeout
+      const result = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
 
-      const ensurePromise = async () => {
-        const result = await supabase
+      if (result.error && result.error.code !== "PGRST116") {
+        return;
+      }
+
+      if (!result.data) {
+        // Create minimal profile record
+        const { error: insertError } = await supabase
           .from("user_profiles")
-          .select("id")
-          .eq("id", user.id)
-          .single();
+          .insert([
+            {
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email,
+              onboarding_completed: false,
+              status: "active",
+            },
+          ]);
 
-        if (result.error && result.error.code !== "PGRST116") {
-          return;
+        if (!insertError) {
+          // Clear cache to force refresh
+          profileCache.delete(user.id);
         }
-
-        if (!result.data) {
-          // Create minimal profile record
-          const { error: insertError } = await supabase
-            .from("user_profiles")
-            .insert([
-              {
-                id: user.id,
-                full_name: user.user_metadata?.full_name || user.email,
-                onboarding_completed: false,
-                status: "active",
-              },
-            ]);
-
-          if (!insertError) {
-            // Clear cache to force refresh
-            profileCache.delete(user.id);
-          }
-        }
-      };
-
-      await Promise.race([ensurePromise(), timeoutPromise]);
+      }
        } catch (error) {
          console.warn("Profile ensure failed, continuing:", error);
          // Ignore errors and allow app to continue
@@ -187,15 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const initializeAuth = async () => {
       setLoading(true);
       try {
-         // Get user with increased timeout for better reliability
-         const userPromise = supabase.auth.getUser();
-         const timeoutPromise = new Promise((_, reject) =>
-           setTimeout(() => reject(new Error("Auth timeout")), 15000)
-         );
-
-        const {
-          data: { user },
-        } = (await Promise.race([userPromise, timeoutPromise])) as any;
+         // Get user without timeout to allow natural completion
+         const { data: { user } } = await supabase.auth.getUser();
 
         if (mounted) {
           setUser(user);
