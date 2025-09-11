@@ -60,9 +60,15 @@ class AuthFlowService {
 
       // Get trial status
       console.log("AuthFlowService: Getting trial status...");
-      const trialStatus = await trialService.getTrialStatus(user.id);
-      const hasActiveTrial = trialStatus.isActive;
-      console.log("AuthFlowService: Trial status:", trialStatus);
+      let hasActiveTrial = false;
+      try {
+        const trialStatus = await trialService.getTrialStatus(user.id);
+        hasActiveTrial = trialStatus.isActive;
+        console.log("AuthFlowService: Trial status:", trialStatus);
+      } catch (trialError) {
+        console.warn("AuthFlowService: Trial service failed, continuing without trial check:", trialError);
+        hasActiveTrial = false;
+      }
 
       // Determine if user can access dashboard
       const canAccessDashboard = hasActiveSubscription || hasActiveTrial;
