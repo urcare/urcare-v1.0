@@ -4,14 +4,15 @@ import { useDevAuthFallback } from "@/hooks/useDevAuthFallback";
 import { supabase } from "@/integrations/supabase/client";
 import { authFlowService } from "@/services/authFlowService";
 import { devAuthService } from "@/services/devAuthService";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
-  const { user, profile, isInitialized } = useAuth();
+  const { user, profile, isInitialized, loading } = useAuth();
   const { isDevAuthActive, forceDevAuth } = useDevAuthFallback();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -26,83 +27,68 @@ export const AuthCallback: React.FC = () => {
         // Let the development auth service handle the session check
         await devAuthService.handleAuthCallback();
       }
-
-      try {
-        // Listen for auth state changes to handle OAuth callback
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log(
-            "AuthCallback: Auth state change",
-            event,
-            session?.user?.id
-          );
-
-          if (event === "SIGNED_IN" && session?.user) {
-            await handleUserSession(session.user);
-          } else if (event === "SIGNED_OUT") {
-            navigate("/", { replace: true });
-          }
-        });
-
-        // Also check for existing session immediately
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("AuthCallback: Session error:", error);
-          navigate("/", { replace: true });
-          return;
-        }
-
-        if (session?.user) {
-          await handleUserSession(session.user);
-        } else {
-          // No session, redirect to landing
-          navigate("/", { replace: true });
-        }
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error("AuthCallback: Error in auth callback:", error);
-        navigate("/", { replace: true });
-      }
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, []);
 
-  const handleUserSession = async (user: any) => {
-    try {
-      console.log("AuthCallback: handleUserSession called with user:", user.id);
-
-      // Wait for auth context to be initialized
-      if (!isInitialized) {
-        // Wait a bit for auth context to initialize
-        setTimeout(() => handleUserSession(user), 100);
-        return;
+  // Handle redirect when user is authenticated and context is ready
+  useEffect(() => {
+    const handleRedirect = async () => {
+      // Only redirect once and when everything is ready
+      if (
+        !hasRedirected.current &&
+        isInitialized &&
+        !loading &&
+        user &&
+        profile
+      ) {
+        hasRedirected.current = true;
+        
+        try {
+          console.log("AuthCallback: User authenticated, determining redirect");
+          
+          // Add a small delay to ensure auth context is fully settled
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Get the appropriate redirect route using the auth flow service
+          const redirectRoute = await authFlowService.getRedirectRoute(user);
+          
+          console.log("AuthCallback: Redirecting to:", redirectRoute);
+          
+          toast.success("Welcome back!", {
+            description: "Redirecting to your dashboard...",
+          });
+          
+          navigate(redirectRoute, { replace: true });
+        } catch (error) {
+          console.error("AuthCallback: Error determining redirect:", error);
+          // Fallback to onboarding if there's an error
+          navigate("/onboarding", { replace: true });
+        }
       }
+    };
 
-      // Get the appropriate redirect route using the auth flow service
-      const redirectRoute = await authFlowService.getRedirectRoute(user);
+    // Add timeout to prevent infinite waiting
+    const timeoutId = setTimeout(() => {
+      if (!hasRedirected.current && isInitialized && !loading) {
+        console.log("AuthCallback: Timeout reached, redirecting to onboarding");
+        hasRedirected.current = true;
+        navigate("/onboarding", { replace: true });
+      }
+    }, 5000); // 5 second timeout
 
-      console.log("AuthCallback: Redirecting to:", redirectRoute);
+    handleRedirect();
 
-      toast.success("Welcome back!", {
-        description: "Redirecting to your dashboard...",
-      });
+    return () => clearTimeout(timeoutId);
+  }, [isInitialized, loading, user, profile, navigate]);
 
-      navigate(redirectRoute, { replace: true });
-    } catch (error) {
-      console.error("AuthCallback: Error handling user session:", error);
-      // Fallback to onboarding if there's an error
-      navigate("/onboarding", { replace: true });
+  // Reset redirect flag when user changes
+  useEffect(() => {
+    if (!user) {
+      hasRedirected.current = false;
     }
-  };
+  }, [user]);
 
   // Show loading while processing
   return (

@@ -312,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       mounted = false;
     };
-  }, [handleUserAuth]);
+  }, []); // Remove handleUserAuth dependency to prevent listener recreation
 
   const signUp = useCallback(
     async (email: string, password: string, fullName: string) => {
