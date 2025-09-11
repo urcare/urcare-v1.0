@@ -58,11 +58,17 @@ class AuthFlowService {
       const hasActiveSubscription = subscriptionStatus.isActive;
       console.log("AuthFlowService: Subscription status:", subscriptionStatus);
 
-      // Get trial status
+      // Get trial status with timeout
       console.log("AuthFlowService: Getting trial status...");
       let hasActiveTrial = false;
       try {
-        const trialStatus = await trialService.getTrialStatus(user.id);
+        // Add timeout to prevent hanging
+        const trialStatusPromise = trialService.getTrialStatus(user.id);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Trial service timeout')), 5000)
+        );
+        
+        const trialStatus = await Promise.race([trialStatusPromise, timeoutPromise]) as any;
         hasActiveTrial = trialStatus.isActive;
         console.log("AuthFlowService: Trial status:", trialStatus);
       } catch (trialError) {

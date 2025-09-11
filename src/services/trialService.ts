@@ -32,7 +32,12 @@ class TrialService {
         .select("id, trial_end")
         .eq("user_id", userId)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
+
+      // Handle "no record found" case
+      if (error && error.code === 'PGRST116') {
+        return false;
+      }
 
       if (error || !data) {
         return false;
@@ -60,17 +65,33 @@ class TrialService {
   async getTrialStatus(userId: string): Promise<TrialStatus> {
     try {
       console.log("TrialService: Getting trial status for user:", userId);
+      
+      // Use .maybeSingle() instead of .single() to handle "no record found" gracefully
       const { data, error } = await supabase
         .from("user_trials")
         .select("*")
         .eq("user_id", userId)
         .order("claimed_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       console.log("TrialService: Trial query result:", { data, error });
 
+      // Handle "no record found" case (PGRST116 error code)
+      if (error && error.code === 'PGRST116') {
+        console.log("TrialService: No trial found for user, returning default status");
+        return {
+          hasTrial: false,
+          isActive: false,
+          daysRemaining: 0,
+          trialInfo: null,
+          canClaimTrial: true,
+        };
+      }
+
+      // Handle other errors
       if (error || !data) {
+        console.warn("TrialService: Error or no data:", error);
         return {
           hasTrial: false,
           isActive: false,
@@ -87,6 +108,12 @@ class TrialService {
       );
       const isActive = data.is_active && trialEnd > now;
 
+      console.log("TrialService: Trial found:", {
+        isActive,
+        daysRemaining,
+        trialEnd: data.trial_end
+      });
+
       return {
         hasTrial: true,
         isActive,
@@ -95,7 +122,7 @@ class TrialService {
         canClaimTrial: false, // User already has a trial
       };
     } catch (error) {
-      console.error("Error getting trial status:", error);
+      console.error("TrialService: Unexpected error getting trial status:", error);
       return {
         hasTrial: false,
         isActive: false,
