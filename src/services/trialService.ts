@@ -59,6 +59,7 @@ class TrialService {
    */
   async getTrialStatus(userId: string): Promise<TrialStatus> {
     try {
+      console.log("TrialService: Getting trial status for user:", userId);
       const { data, error } = await supabase
         .from("user_trials")
         .select("*")
@@ -66,6 +67,8 @@ class TrialService {
         .order("claimed_at", { ascending: false })
         .limit(1)
         .single();
+      
+      console.log("TrialService: Trial query result:", { data, error });
 
       if (error || !data) {
         return {

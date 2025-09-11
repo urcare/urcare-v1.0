@@ -38,23 +38,31 @@ class AuthFlowService {
     }
 
     try {
+      console.log("AuthFlowService: Getting auth flow state for user:", user.id);
+      
       // Get user profile to check onboarding status
+      console.log("AuthFlowService: Fetching user profile...");
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
         .select("onboarding_completed")
         .eq("id", user.id)
         .single();
 
+      console.log("AuthFlowService: Profile result:", { profile, profileError });
       const isOnboardingComplete = profile?.onboarding_completed ?? false;
 
       // Get subscription status
+      console.log("AuthFlowService: Getting subscription status...");
       const subscriptionStatus =
         await subscriptionService.getSubscriptionStatus(user.id);
       const hasActiveSubscription = subscriptionStatus.isActive;
+      console.log("AuthFlowService: Subscription status:", subscriptionStatus);
 
       // Get trial status
+      console.log("AuthFlowService: Getting trial status...");
       const trialStatus = await trialService.getTrialStatus(user.id);
       const hasActiveTrial = trialStatus.isActive;
+      console.log("AuthFlowService: Trial status:", trialStatus);
 
       // Determine if user can access dashboard
       const canAccessDashboard = hasActiveSubscription || hasActiveTrial;

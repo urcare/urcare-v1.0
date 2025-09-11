@@ -47,14 +47,16 @@ export const AuthCallback: React.FC = () => {
         
         try {
           console.log("AuthCallback: User authenticated, determining redirect");
+          console.log("AuthCallback: User ID:", user.id);
+          console.log("AuthCallback: Profile:", profile);
           
           // Add a small delay to ensure auth context is fully settled
           await new Promise(resolve => setTimeout(resolve, 100));
           
           // Get the appropriate redirect route using the auth flow service
+          console.log("AuthCallback: Calling authFlowService.getRedirectRoute...");
           const redirectRoute = await authFlowService.getRedirectRoute(user);
-          
-          console.log("AuthCallback: Redirecting to:", redirectRoute);
+          console.log("AuthCallback: Got redirect route:", redirectRoute);
           
           toast.success("Welcome back!", {
             description: "Redirecting to your dashboard...",
@@ -63,6 +65,7 @@ export const AuthCallback: React.FC = () => {
           navigate(redirectRoute, { replace: true });
         } catch (error) {
           console.error("AuthCallback: Error determining redirect:", error);
+          console.error("AuthCallback: Error details:", error);
           // Fallback to onboarding if there's an error
           navigate("/onboarding", { replace: true });
         }
