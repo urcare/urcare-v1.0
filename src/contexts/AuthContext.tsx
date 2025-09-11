@@ -264,6 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
+    let isInitializing = true;
 
     const initializeAuth = async () => {
       console.log("AuthContext: Starting initialization...");
@@ -287,6 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log("AuthContext: Setting loading=false, initialized=true");
           setLoading(false);
           setIsInitialized(true);
+          isInitializing = false;
         }
       }
     };
@@ -304,7 +306,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         console.log("Auth state change:", event, session?.user?.id);
 
-        // Only handle state changes, not initialization
+        // Skip auth state changes during initialization to prevent duplicate calls
+        if (isInitializing) {
+          console.log("AuthContext: Skipping auth state change during initialization");
+          return;
+        }
+
         if (event === "SIGNED_IN") {
           await handleUserAuth(session?.user || null);
         } else if (event === "SIGNED_OUT") {
@@ -312,7 +319,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setProfile(null);
           profileCache.clear();
         }
-        // Don't set loading/initialized here - let initialization handle that
       });
 
       return () => {
@@ -325,7 +331,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       mounted = false;
     };
-  }, []); // Remove handleUserAuth dependency to prevent listener recreation
+  }, [handleUserAuth]);
 
   const signUp = useCallback(
     async (email: string, password: string, fullName: string) => {
