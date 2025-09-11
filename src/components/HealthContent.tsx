@@ -1,13 +1,11 @@
-import { FitnessDashboard } from "./FitnessDashboard";
+import { SimpleDashboard } from "./SimpleDashboard";
 
 export const HealthContent = () => {
   return (
-    <div className="h-screen bg-transparent px-3 py-2 relative overflow-hidden">
-      <div className="h-full overflow-y-auto space-y-4">
-        {/* Fitness Dashboard Only */}
-        <div className="flex-1">
-          <FitnessDashboard />
-        </div>
+    <div className="h-screen bg-transparent relative overflow-hidden">
+      <div className="h-full overflow-y-auto">
+        {/* Simple Dashboard with Photo, Name, and Health Score */}
+        <SimpleDashboard />
       </div>
     </div>
   );
