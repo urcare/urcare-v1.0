@@ -93,10 +93,42 @@ const Onboarding = () => {
     else setShowAuth(false);
   }, [user]);
 
-  // Redirect to /custom-plan if onboarding is already complete
+  // Redirect based on subscription status if onboarding is already complete
   useEffect(() => {
     if (profile && profile.onboarding_completed) {
-      navigate("/custom-plan", { replace: true });
+      // Check subscription status and redirect accordingly
+      const checkSubscriptionAndRedirect = async () => {
+        try {
+          const { subscriptionService } = await import("../services/subscriptionService");
+          const { isTrialBypassEnabled } = await import("../config/subscription");
+
+          // Check if trial bypass is enabled (for development/testing)
+          if (isTrialBypassEnabled()) {
+            console.log("Onboarding: Trial bypass enabled, redirecting to dashboard");
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+
+          // Check actual subscription status
+          const subscriptionStatus = await subscriptionService.getSubscriptionStatus(profile.id);
+          const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
+
+          if (hasAccess) {
+            console.log("Onboarding: User has active subscription or trial, redirecting to dashboard");
+            navigate("/dashboard", { replace: true });
+          } else {
+            console.log("Onboarding: User no subscription, redirecting to paywall");
+            navigate("/paywall", { replace: true });
+          }
+        } catch (subscriptionError) {
+          console.error("Onboarding: Error checking subscription status:", subscriptionError);
+          // Fallback: redirect to paywall
+          console.log("Onboarding: Subscription check failed, redirecting to paywall");
+          navigate("/paywall", { replace: true });
+        }
+      };
+
+      checkSubscriptionAndRedirect();
     } else if (
       profile &&
       !profile.onboarding_completed &&
@@ -335,10 +367,37 @@ const Onboarding = () => {
             UrCare.
           </p>
           <button
-            onClick={() => navigate("/custom-plan")}
+            onClick={() => {
+              // Check subscription status and redirect accordingly
+              const checkSubscriptionAndRedirect = async () => {
+                try {
+                  const { subscriptionService } = await import("../services/subscriptionService");
+                  const { isTrialBypassEnabled } = await import("../config/subscription");
+
+                  if (isTrialBypassEnabled()) {
+                    navigate("/dashboard", { replace: true });
+                    return;
+                  }
+
+                  const subscriptionStatus = await subscriptionService.getSubscriptionStatus(user.id);
+                  const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
+
+                  if (hasAccess) {
+                    navigate("/dashboard", { replace: true });
+                  } else {
+                    navigate("/paywall", { replace: true });
+                  }
+                } catch (error) {
+                  console.error("Error checking subscription status:", error);
+                  navigate("/paywall", { replace: true });
+                }
+              };
+
+              checkSubscriptionAndRedirect();
+            }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Continue to Custom Plan
+            Continue to Dashboard
           </button>
         </div>
       </div>

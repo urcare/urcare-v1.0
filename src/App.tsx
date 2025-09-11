@@ -131,89 +131,17 @@ const ProtectedRoute = ({
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Track if we've already processed a redirect for this user to prevent loops
-  const redirectProcessed = React.useRef<string | null>(null);
-  const currentUserKey = `${user?.id}_${profile?.onboarding_completed}_${location.pathname}`;
-
   // Only redirect from onboarding if user is actually on onboarding page and has completed it
   if (
     !requireOnboardingComplete &&
     profile.onboarding_completed &&
-    location.pathname === "/onboarding" &&
-    redirectProcessed.current !== currentUserKey
+    location.pathname === "/onboarding"
   ) {
     console.log(
-      "ProtectedRoute: User completed onboarding, checking subscription status for redirect"
+      "ProtectedRoute: User completed onboarding, redirecting to dashboard"
     );
-
-    redirectProcessed.current = currentUserKey;
-
-    // Check subscription status to determine where to redirect
-    const checkSubscriptionAndRedirect = async () => {
-      try {
-        const { subscriptionService } = await import(
-          "./services/subscriptionService"
-        );
-        const { isTrialBypassEnabled } = await import("./config/subscription");
-
-        // Check if trial bypass is enabled (for development/testing)
-        if (isTrialBypassEnabled()) {
-          console.log(
-            "ProtectedRoute: Trial bypass enabled, redirecting to dashboard"
-          );
-          window.location.replace("/dashboard");
-          return;
-        }
-
-        // Check actual subscription status
-        const subscriptionStatus =
-          await subscriptionService.getSubscriptionStatus(profile.id);
-        const hasAccess =
-          subscriptionStatus.isActive || subscriptionStatus.isTrial;
-
-        if (hasAccess) {
-          console.log(
-            "ProtectedRoute: User has active subscription or trial, redirecting to dashboard"
-          );
-          window.location.replace("/dashboard");
-        } else {
-          console.log(
-            "ProtectedRoute: User no subscription, redirecting to paywall"
-          );
-          window.location.replace("/paywall");
-        }
-      } catch (subscriptionError) {
-        console.error(
-          "ProtectedRoute: Error checking subscription status:",
-          subscriptionError
-        );
-        // Fallback: redirect to paywall
-        console.log(
-          "ProtectedRoute: Subscription check failed, redirecting to paywall"
-        );
-        window.location.replace("/paywall");
-      }
-    };
-
-    checkSubscriptionAndRedirect();
-
-    // Show loading state while checking subscription
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Redirecting...</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/dashboard" replace />;
   }
-
-  // Reset redirect tracking when user changes or path changes significantly
-  React.useEffect(() => {
-    if (location.pathname !== "/onboarding") {
-      redirectProcessed.current = null;
-    }
-  }, [location.pathname]);
 
   // Handle subscription flow for dashboard and other protected features
   if (requireSubscription) {
@@ -359,10 +287,10 @@ const InitialRouteHandler = () => {
               setTimeout(() => window.location.replace("/dashboard"), 100);
             } else {
               console.log(
-                "InitialRouteHandler: User no subscription, redirecting to health assessment"
+                "InitialRouteHandler: User no subscription, redirecting to paywall"
               );
               setTimeout(
-                () => window.location.replace("/health-assessment"),
+                () => window.location.replace("/paywall"),
                 100
               );
             }
@@ -371,12 +299,12 @@ const InitialRouteHandler = () => {
               "InitialRouteHandler: Error checking subscription status:",
               subscriptionError
             );
-            // Fallback: redirect to health assessment
+            // Fallback: redirect to paywall
             console.log(
-              "InitialRouteHandler: Subscription check failed, redirecting to health assessment"
+              "InitialRouteHandler: Subscription check failed, redirecting to paywall"
             );
             setTimeout(
-              () => window.location.replace("/health-assessment"),
+              () => window.location.replace("/paywall"),
               100
             );
           }
