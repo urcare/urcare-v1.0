@@ -223,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleUserAuth = useCallback(
     async (user: User | null) => {
       console.log("AuthContext: handleUserAuth called with user:", user?.id);
-      
+
       if (!user) {
         setUser(null);
         setProfile(null);
@@ -252,7 +252,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn("Profile operations failed:", error);
         const minimalProfile = createMinimalProfile(user);
         setProfile(minimalProfile);
-        console.log("AuthContext: Error fallback - minimal profile set:", minimalProfile);
+        console.log(
+          "AuthContext: Error fallback - minimal profile set:",
+          minimalProfile
+        );
       }
     },
     [fetchUserProfile, ensureUserProfile]
@@ -263,10 +266,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     let mounted = true;
 
     const initializeAuth = async () => {
+      console.log("AuthContext: Starting initialization...");
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        console.log("AuthContext: Got user from getUser:", user?.id);
 
         if (mounted) {
           await handleUserAuth(user);
@@ -279,6 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } finally {
         if (mounted) {
+          console.log("AuthContext: Setting loading=false, initialized=true");
           setLoading(false);
           setIsInitialized(true);
         }
@@ -298,18 +304,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         console.log("Auth state change:", event, session?.user?.id);
 
-        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+        // Only handle state changes, not initialization
+        if (event === "SIGNED_IN") {
           await handleUserAuth(session?.user || null);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
           setProfile(null);
           profileCache.clear();
         }
-
-        if (mounted) {
-          setLoading(false);
-          setIsInitialized(true);
-        }
+        // Don't set loading/initialized here - let initialization handle that
       });
 
       return () => {
