@@ -117,15 +117,22 @@ const ProtectedRoute = ({
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Track if we've already processed a redirect for this user to prevent loops
+  const redirectProcessed = React.useRef<string | null>(null);
+  const currentUserKey = `${user?.id}_${profile?.onboarding_completed}_${location.pathname}`;
+  
   // Only redirect from onboarding if user is actually on onboarding page and has completed it
   if (
     !requireOnboardingComplete &&
     profile.onboarding_completed &&
-    location.pathname === "/onboarding"
+    location.pathname === "/onboarding" &&
+    redirectProcessed.current !== currentUserKey
   ) {
     console.log(
       "ProtectedRoute: User completed onboarding, checking subscription status for redirect"
     );
+    
+    redirectProcessed.current = currentUserKey;
 
     // Check subscription status to determine where to redirect
     const checkSubscriptionAndRedirect = async () => {
@@ -186,6 +193,13 @@ const ProtectedRoute = ({
       </div>
     );
   }
+  
+  // Reset redirect tracking when user changes or path changes significantly
+  React.useEffect(() => {
+    if (location.pathname !== "/onboarding") {
+      redirectProcessed.current = null;
+    }
+  }, [location.pathname]);
 
   // Handle subscription flow for dashboard and other protected features
   if (requireSubscription) {
@@ -314,7 +328,7 @@ const InitialRouteHandler = () => {
               console.log(
                 "InitialRouteHandler: Trial bypass enabled, redirecting to dashboard"
               );
-              window.location.replace("/dashboard");
+              setTimeout(() => window.location.replace("/dashboard"), 100);
               return;
             }
 
@@ -328,12 +342,12 @@ const InitialRouteHandler = () => {
               console.log(
                 "InitialRouteHandler: User has active subscription or trial, redirecting to dashboard"
               );
-              window.location.replace("/dashboard");
+              setTimeout(() => window.location.replace("/dashboard"), 100);
             } else {
               console.log(
                 "InitialRouteHandler: User no subscription, redirecting to health assessment"
               );
-              window.location.replace("/health-assessment");
+              setTimeout(() => window.location.replace("/health-assessment"), 100);
             }
           } catch (subscriptionError) {
             console.error(
@@ -344,7 +358,7 @@ const InitialRouteHandler = () => {
             console.log(
               "InitialRouteHandler: Subscription check failed, redirecting to health assessment"
             );
-            window.location.replace("/health-assessment");
+            setTimeout(() => window.location.replace("/health-assessment"), 100);
           }
         };
 
