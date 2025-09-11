@@ -117,9 +117,67 @@ const ProtectedRoute = ({
     location.pathname === "/onboarding"
   ) {
     console.log(
-      "ProtectedRoute: User completed onboarding, redirecting from onboarding to health-assessment"
+      "ProtectedRoute: User completed onboarding, checking subscription status for redirect"
     );
-    return <Navigate to="/health-assessment" replace />;
+
+    // Check subscription status to determine where to redirect
+    const checkSubscriptionAndRedirect = async () => {
+      try {
+        const { subscriptionService } = await import(
+          "./services/subscriptionService"
+        );
+        const { isTrialBypassEnabled } = await import("./config/subscription");
+
+        // Check if trial bypass is enabled (for development/testing)
+        if (isTrialBypassEnabled()) {
+          console.log(
+            "ProtectedRoute: Trial bypass enabled, redirecting to dashboard"
+          );
+          window.location.replace("/dashboard");
+          return;
+        }
+
+        // Check actual subscription status
+        const subscriptionStatus =
+          await subscriptionService.getSubscriptionStatus(profile.id);
+        const hasAccess =
+          subscriptionStatus.isActive || subscriptionStatus.isTrial;
+
+        if (hasAccess) {
+          console.log(
+            "ProtectedRoute: User has active subscription or trial, redirecting to dashboard"
+          );
+          window.location.replace("/dashboard");
+        } else {
+          console.log(
+            "ProtectedRoute: User no subscription, redirecting to paywall"
+          );
+          window.location.replace("/paywall");
+        }
+      } catch (subscriptionError) {
+        console.error(
+          "ProtectedRoute: Error checking subscription status:",
+          subscriptionError
+        );
+        // Fallback: redirect to paywall
+        console.log(
+          "ProtectedRoute: Subscription check failed, redirecting to paywall"
+        );
+        window.location.replace("/paywall");
+      }
+    };
+
+    checkSubscriptionAndRedirect();
+
+    // Show loading state while checking subscription
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   // Handle subscription flow for dashboard and other protected features
