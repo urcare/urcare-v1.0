@@ -90,6 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Track last processed event to prevent duplicates (moved to component level)
+  const lastProcessedEvent = React.useRef<{ event: string; userId?: string; timestamp: number } | null>(null);
 
   // Optimized profile fetching with caching and deduplication
   const fetchUserProfile = useCallback(
@@ -297,9 +300,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     initializeAuth();
 
-    // Track last processed event to prevent duplicates
-    const lastProcessedEvent = React.useRef<{ event: string; userId?: string; timestamp: number } | null>(null);
-    
     // Optimized auth state listener with duplicate prevention
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
