@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { subscriptionService } from "@/services/subscriptionService";
+import { trialService } from "@/services/trialService";
 import { ArrowLeft, Bell, Check, Crown, Lock } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Paywall: React.FC = () => {
   const navigate = useNavigate();
@@ -12,46 +13,63 @@ const Paywall: React.FC = () => {
     "annual"
   );
   const [isCreatingTrial, setIsCreatingTrial] = useState(false);
+  const [trialStatus, setTrialStatus] = useState<any>(null);
+  const [canClaimTrial, setCanClaimTrial] = useState(true);
 
-  const handleSubscribe = async () => {
-    if (!user) {
-      alert("Please log in to subscribe");
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      if (!user?.id) return;
+
+      try {
+        const status = await trialService.getTrialStatus(user.id);
+        setTrialStatus(status);
+        setCanClaimTrial(status.canClaimTrial);
+      } catch (error) {
+        console.error("Error checking trial status:", error);
+      }
+    };
+
+    checkTrialStatus();
+  }, [user]);
+
+  const handleStartTrial = async () => {
+    if (!user?.id) {
+      toast.error("Please log in to start your trial");
       return;
     }
 
-    await createTrialSubscription();
-  };
-
-  const createTrialSubscription = async () => {
-    if (!user?.id) return;
+    if (!canClaimTrial) {
+      toast.error("You have already claimed your trial");
+      return;
+    }
 
     setIsCreatingTrial(true);
     try {
-      const subscription = await subscriptionService.createSubscription(
-        user.id,
-        {
-          planId: "basic",
-          billingCycle: billingCycle,
-          trialDays: 3,
-        }
-      );
+      const success = await trialService.startTrial(user.id);
 
-      if (subscription) {
-        console.log("Trial subscription created successfully:", subscription);
-        alert("🎉 Welcome to your 3-day free trial!");
-        // Force a page reload to ensure subscription status is updated
-        console.log("Redirecting to dashboard...");
+      if (success) {
+        toast.success("🎉 Welcome to your 3-day free trial!");
+        // Redirect to dashboard
         window.location.href = "/dashboard";
       } else {
-        console.error("Failed to create trial subscription");
-        alert("Failed to create trial subscription. Please try again.");
+        toast.error("Failed to start trial. Please try again.");
       }
     } catch (error) {
-      console.error("Error creating trial subscription:", error);
-      alert("Error creating trial subscription. Please try again.");
+      console.error("Error starting trial:", error);
+      toast.error("Error starting trial. Please try again.");
     } finally {
       setIsCreatingTrial(false);
     }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      toast.error("Please log in to subscribe");
+      return;
+    }
+
+    // For now, start trial instead of full subscription
+    await handleStartTrial();
   };
 
   // Calculate trial end date (3 days from now)
@@ -209,14 +227,16 @@ const Paywall: React.FC = () => {
         {/* CTA Button */}
         <Button
           onClick={handleSubscribe}
-          disabled={isCreatingTrial}
-          className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-lg text-base transition-colors"
+          disabled={isCreatingTrial || !canClaimTrial}
+          className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-lg text-base transition-colors disabled:bg-gray-400"
         >
           {isCreatingTrial ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Creating Trial...
+              Starting Trial...
             </>
+          ) : !canClaimTrial ? (
+            "Trial Already Claimed"
           ) : (
             "Start My 3-Day Free Trial"
           )}
