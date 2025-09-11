@@ -208,14 +208,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (!result.data) {
             console.log("ensureUserProfile: Creating new profile...");
             // Create minimal profile record
-            const { error: insertError } = await supabase.from("user_profiles").insert([
-              {
-                id: user.id,
-                full_name: user.user_metadata?.full_name || user.email,
-                onboarding_completed: false,
-                status: "active",
-              },
-            ]);
+            const { error: insertError } = await supabase
+              .from("user_profiles")
+              .insert([
+                {
+                  id: user.id,
+                  full_name: user.user_metadata?.full_name || user.email,
+                  onboarding_completed: false,
+                  status: "active",
+                },
+              ]);
 
             if (!insertError) {
               console.log("ensureUserProfile: Profile created successfully");
@@ -260,33 +262,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (mounted) {
           setUser(user);
           if (user) {
-            // Set minimal profile first, then try to fetch real profile
-            const minimalProfile = {
-              id: user.id,
-              full_name:
-                user.user_metadata?.full_name ||
-                user.email?.split("@")[0] ||
-                "User",
-              onboarding_completed: false,
-              status: "active",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            } as UserProfile;
-            setProfile(minimalProfile);
-
-            // Try to fetch real profile in background
+            // Try to fetch real profile first
             try {
               await ensureUserProfile(user);
               const realProfile = await fetchUserProfile(user.id);
               if (realProfile) {
+                console.log("AuthContext: Initialization - setting real profile:", realProfile);
                 setProfile(realProfile);
+              } else {
+                // Only set minimal profile if we can't get real profile
+                const minimalProfile = {
+                  id: user.id,
+                  full_name:
+                    user.user_metadata?.full_name ||
+                    user.email?.split("@")[0] ||
+                    "User",
+                  onboarding_completed: false,
+                  status: "active",
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                } as UserProfile;
+                console.log("AuthContext: Initialization - no real profile, setting minimal:", minimalProfile);
+                setProfile(minimalProfile);
               }
             } catch (error) {
               console.warn(
-                "Profile operations failed during initialization, keeping minimal profile:",
+                "Profile operations failed during initialization, setting minimal profile:",
                 error
               );
-              // Keep the minimal profile that was already set
+              // Set minimal profile only if profile operations fail
+              const minimalProfile = {
+                id: user.id,
+                full_name:
+                  user.user_metadata?.full_name ||
+                  user.email?.split("@")[0] ||
+                  "User",
+                onboarding_completed: false,
+                status: "active",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as UserProfile;
+              setProfile(minimalProfile);
             }
           } else {
             setProfile(null);
@@ -360,7 +376,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               try {
                 console.log("AuthContext: Starting profile operations...");
 
-                // Set a minimal profile immediately to prevent hanging
+                // Try to ensure profile exists first, then fetch it
+                try {
+                  await ensureUserProfile(session.user);
+                  const profileResult = await fetchUserProfile(session.user.id);
+
+                  if (profileResult) {
+                    console.log(
+                      "AuthContext: Profile operations completed, setting real profile:",
+                      profileResult
+                    );
+                    setProfile(profileResult);
+                  } else {
+                    // Only set minimal profile if we can't get real profile
+                    const minimalProfile = {
+                      id: session.user.id,
+                      full_name:
+                        session.user.user_metadata?.full_name ||
+                        session.user.email?.split("@")[0] ||
+                        "User",
+                      onboarding_completed: false,
+                      status: "active",
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                    } as UserProfile;
+                    console.log(
+                      "AuthContext: No real profile found, setting minimal profile:",
+                      minimalProfile
+                    );
+                    setProfile(minimalProfile);
+                  }
+                } catch (profileError) {
+                  console.warn(
+                    "AuthContext: Profile operations failed, setting minimal profile:",
+                    profileError
+                  );
+                  // Set minimal profile only if profile operations fail
+                  const minimalProfile = {
+                    id: session.user.id,
+                    full_name:
+                      session.user.user_metadata?.full_name ||
+                      session.user.email?.split("@")[0] ||
+                      "User",
+                    onboarding_completed: false,
+                    status: "active",
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  } as UserProfile;
+                  setProfile(minimalProfile);
+                }
+              } catch (error) {
+                console.warn(
+                  "Profile operations failed in auth state change:",
+                  error
+                );
+                // Set minimal profile only if everything fails
                 const minimalProfile = {
                   id: session.user.id,
                   full_name:
@@ -372,41 +442,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString(),
                 } as UserProfile;
-                console.log(
-                  "AuthContext: Setting minimal profile immediately:",
-                  minimalProfile
-                );
                 setProfile(minimalProfile);
-
-                // Try to ensure profile exists first, then fetch it
-                try {
-                  await ensureUserProfile(session.user);
-                  const profileResult = await fetchUserProfile(session.user.id);
-
-                  if (profileResult) {
-                    console.log(
-                      "AuthContext: Profile operations completed, updating with real profile:",
-                      profileResult
-                    );
-                    setProfile(profileResult);
-                  } else {
-                    console.log(
-                      "AuthContext: Profile operations completed, keeping minimal profile"
-                    );
-                  }
-                } catch (profileError) {
-                  console.warn(
-                    "AuthContext: Profile operations failed, keeping minimal profile:",
-                    profileError
-                  );
-                  // Keep the minimal profile that was already set
-                }
-              } catch (error) {
-                console.warn(
-                  "Profile operations failed in auth state change, keeping minimal profile:",
-                  error
-                );
-                // Minimal profile is already set above, so we just continue
               }
             } else {
               console.log(
@@ -629,6 +665,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Clear cache to force refresh
       profileCache.delete(user.id);
+      // Also clear ongoing operations to prevent stale data
+      ongoingOperations.delete(`fetch_${user.id}`);
+      ongoingOperations.delete(`ensure_${user.id}`);
+      
       const profile = await fetchUserProfile(user.id);
       setProfile(profile);
       console.log("AuthContext: Profile refreshed", { profile });
@@ -650,8 +690,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           .eq("id", user.id);
         if (error) throw error;
 
-        // Clear cache and refresh
+        // Clear cache and ongoing operations, then refresh
         profileCache.delete(user.id);
+        ongoingOperations.delete(`fetch_${user.id}`);
+        ongoingOperations.delete(`ensure_${user.id}`);
         await refreshProfile();
         toast.success("Profile updated successfully!");
       } catch (error: any) {
