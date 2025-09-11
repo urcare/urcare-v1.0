@@ -321,6 +321,13 @@ class TrialService {
       return 0;
     }
   }
+
+  /**
+   * Start a trial for the user (alias for claimTrial)
+   */
+  async startTrial(userId: string): Promise<TrialInfo | null> {
+    return this.claimTrial(userId);
+  }
 }
 
 export const trialService = new TrialService();

@@ -293,7 +293,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    initializeAuth();
+    // Only initialize once
+    if (!authListenerRef.current) {
+      initializeAuth();
+    }
 
     // Set up auth state listener
     if (!authListenerRef.current) {
@@ -308,7 +311,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Skip auth state changes during initialization to prevent duplicate calls
         if (isInitializing) {
-          console.log("AuthContext: Skipping auth state change during initialization");
+          console.log(
+            "AuthContext: Skipping auth state change during initialization"
+          );
           return;
         }
 
