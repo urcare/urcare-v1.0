@@ -203,20 +203,20 @@ CREATE TRIGGER update_subscription_usage_updated_at
   BEFORE UPDATE ON subscription_usage 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Create function to check if user has active subscription
+-- Create function to check if user has active subscription (including trials)
 CREATE OR REPLACE FUNCTION has_active_subscription(user_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM subscriptions 
     WHERE user_id = user_uuid 
-    AND status = 'active' 
+    AND status IN ('active', 'trialing')
     AND current_period_end > NOW()
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create function to get user's current subscription
+-- Create function to get user's current subscription (including trials)
 CREATE OR REPLACE FUNCTION get_user_subscription(user_uuid UUID)
 RETURNS TABLE (
   subscription_id UUID,
@@ -240,7 +240,7 @@ BEGIN
   FROM subscriptions s
   JOIN subscription_plans sp ON s.plan_id = sp.id
   WHERE s.user_id = user_uuid 
-  AND s.status = 'active'
+  AND s.status IN ('active', 'trialing')
   AND s.current_period_end > NOW()
   ORDER BY s.created_at DESC
   LIMIT 1;

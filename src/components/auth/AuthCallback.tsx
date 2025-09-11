@@ -36,17 +36,20 @@ export const AuthCallback: React.FC = () => {
         // Listen for auth state changes to handle OAuth callback
         authStateSubscription = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
+            if (event === "SIGNED_IN" && session) {
               await handleUserSession(session);
-            } else if (event === 'SIGNED_OUT') {
+            } else if (event === "SIGNED_OUT") {
               navigate("/", { replace: true });
             }
           }
         );
 
         // Also check for existing session immediately
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (error) {
           console.error("AuthCallback: Session error:", error);
           toast.error("Authentication failed", { description: error.message });
@@ -74,25 +77,28 @@ export const AuthCallback: React.FC = () => {
 
     const handleUserSession = async (session: any) => {
       try {
-        console.log("AuthCallback: handleUserSession called with session:", session?.user?.id);
-        
+        console.log(
+          "AuthCallback: handleUserSession called with session:",
+          session?.user?.id
+        );
+
         // First, test if we can access the table at all
         const testPromise = supabase
           .from("user_profiles")
           .select("id")
           .limit(1);
-        
-        const testTimeoutPromise = new Promise((_, reject) => 
+
+        const testTimeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Table access timeout")), 3000)
         );
-        
+
         try {
           await Promise.race([testPromise, testTimeoutPromise]);
         } catch (testError) {
           // If we can't access the table, check user metadata for smart routing
           const userEmail = session.user.email;
           const userMetadata = session.user.user_metadata;
-          
+
           // For OAuth users, they usually have metadata, so assume they're returning
           if (userMetadata?.full_name || userEmail) {
             toast.success("Welcome back!", {
@@ -101,12 +107,12 @@ export const AuthCallback: React.FC = () => {
             navigate("/custom-plan", { replace: true });
             return;
           }
-          
+
           // If no metadata, they might be a new user
           navigate("/welcome-screen", { replace: true });
           return;
         }
-        
+
         const profilePromise = supabase
           .from("user_profiles")
           .select("onboarding_completed, preferences")
@@ -114,15 +120,14 @@ export const AuthCallback: React.FC = () => {
           .single();
 
         // Add a timeout to the profile fetch
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Profile fetch timeout")), 5000)
         );
 
-        const { data: profileData, error: profileError } = await Promise.race([
+        const { data: profileData, error: profileError } = (await Promise.race([
           profilePromise,
-          timeoutPromise
-        ]) as any;
-
+          timeoutPromise,
+        ])) as any;
 
         // If profile doesn't exist, create one
         if (profileError && profileError.code === "PGRST116") {
@@ -163,55 +168,107 @@ export const AuthCallback: React.FC = () => {
         // User has a profile, check onboarding status
         console.log("AuthCallback: Profile data:", profileData);
         if (!profileData?.onboarding_completed) {
-          console.log("AuthCallback: User onboarding not completed, redirecting to onboarding");
+          console.log(
+            "AuthCallback: User onboarding not completed, redirecting to onboarding"
+          );
           navigate("/onboarding", { replace: true });
         } else {
-          console.log("AuthCallback: User onboarding completed, checking subscription");
-          // Check subscription status
-          const isSubscribed =
-            profileData.preferences?.subscription === "active";
-          if (isSubscribed) {
-            console.log("AuthCallback: User has subscription, redirecting to dashboard");
-            navigate("/dashboard", { replace: true });
-          } else {
-            console.log("AuthCallback: User no subscription, redirecting to health-assessment");
+          console.log(
+            "AuthCallback: User onboarding completed, checking subscription"
+          );
+          // Check subscription status using the proper subscription service
+          try {
+            const { subscriptionService } = await import(
+              "@/services/subscriptionService"
+            );
+            const { isTrialBypassEnabled } = await import(
+              "@/config/subscription"
+            );
+
+            // Check if trial bypass is enabled (for development/testing)
+            if (isTrialBypassEnabled()) {
+              console.log(
+                "AuthCallback: Trial bypass enabled, redirecting to dashboard"
+              );
+              navigate("/dashboard", { replace: true });
+              return;
+            }
+
+            // Check actual subscription status
+            const subscriptionStatus =
+              await subscriptionService.getSubscriptionStatus(session.user.id);
+            const hasAccess =
+              subscriptionStatus.isActive || subscriptionStatus.isTrial;
+
+            if (hasAccess) {
+              console.log(
+                "AuthCallback: User has active subscription or trial, redirecting to dashboard"
+              );
+              navigate("/dashboard", { replace: true });
+            } else {
+              console.log(
+                "AuthCallback: User no subscription, redirecting to health-assessment"
+              );
+              navigate("/health-assessment", { replace: true });
+            }
+          } catch (subscriptionError) {
+            console.error(
+              "AuthCallback: Error checking subscription status:",
+              subscriptionError
+            );
+            // Fallback: redirect to health assessment
+            console.log(
+              "AuthCallback: Subscription check failed, redirecting to health-assessment"
+            );
             navigate("/health-assessment", { replace: true });
           }
         }
       } catch (error) {
         console.error("AuthCallback: Error handling user session:", error);
-        
+
         // If it's a timeout error, try to redirect based on user metadata
-        if (error instanceof Error && (error.message === "Profile fetch timeout" || error.message === "Table access timeout")) {
-          console.log("AuthCallback: Database timeout - checking user metadata for routing");
-          
+        if (
+          error instanceof Error &&
+          (error.message === "Profile fetch timeout" ||
+            error.message === "Table access timeout")
+        ) {
+          console.log(
+            "AuthCallback: Database timeout - checking user metadata for routing"
+          );
+
           // Check if user has any metadata that might indicate they're returning
           const userEmail = session.user.email;
           const userMetadata = session.user.user_metadata;
-          
+
           console.log("AuthCallback: User metadata:", userMetadata);
-          
+
           // For OAuth users, they usually have metadata, so assume they're returning
           if (userMetadata?.full_name || userEmail) {
-            console.log("AuthCallback: User appears to be returning - redirecting to custom plan");
+            console.log(
+              "AuthCallback: User appears to be returning - redirecting to custom plan"
+            );
             toast.success("Welcome back!", {
               description: "Redirecting to your dashboard...",
             });
             navigate("/custom-plan", { replace: true });
             return;
           }
-          
+
           // If no metadata, they might be a new user
-          console.log("AuthCallback: No user metadata - redirecting to welcome screen");
+          console.log(
+            "AuthCallback: No user metadata - redirecting to welcome screen"
+          );
           navigate("/welcome-screen", { replace: true });
           return;
         }
-        
+
         toast.error("Authentication failed", {
           description: "Failed to process user session. Please try again.",
         });
         // Fallback: redirect to welcome screen instead of landing page
-        console.log("AuthCallback: Final fallback - redirecting to welcome screen");
+        console.log(
+          "AuthCallback: Final fallback - redirecting to welcome screen"
+        );
         navigate("/welcome-screen", { replace: true });
       }
     };
@@ -220,7 +277,8 @@ export const AuthCallback: React.FC = () => {
 
     // Cleanup function
     return () => {
-      if (authStateSubscription) authStateSubscription.data.subscription.unsubscribe();
+      if (authStateSubscription)
+        authStateSubscription.data.subscription.unsubscribe();
     };
   }, [navigate]);
 

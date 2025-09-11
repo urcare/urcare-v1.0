@@ -9,10 +9,10 @@ import {
 import { AuthProvider } from "./contexts/AuthContext";
 import { useDevAuth } from "./hooks/useDevAuth";
 // AI Health Assistant Demo removed
-import HealthAssessment from "./pages/HealthAssessment";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
 import EnhancedPlanner from "./pages/EnhancedPlanner";
+import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
@@ -55,17 +55,17 @@ const ProtectedRoute = ({
   }, [requireSubscription, profile]);
 
   // Debug logging for ProtectedRoute
-  console.log("ProtectedRoute: Auth state", { 
-    isInitialized, 
-    loading, 
-    user: !!user, 
+  console.log("ProtectedRoute: Auth state", {
+    isInitialized,
+    loading,
+    user: !!user,
     profile: !!profile,
     profileOnboardingCompleted: profile?.onboarding_completed,
     requireOnboardingComplete,
     requireSubscription,
     subscriptionLoading,
     hasValidSubscription,
-    pathname: location.pathname
+    pathname: location.pathname,
   });
 
   if (
@@ -79,7 +79,11 @@ const ProtectedRoute = ({
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
           <p className="text-sm text-gray-500 mt-2">
-            {!isInitialized ? "Initializing..." : loading ? "Loading..." : "Checking subscription..."}
+            {!isInitialized
+              ? "Initializing..."
+              : loading
+              ? "Loading..."
+              : "Checking subscription..."}
           </p>
         </div>
       </div>
@@ -95,8 +99,14 @@ const ProtectedRoute = ({
   }
 
   // Handle onboarding flow - only redirect if not already on onboarding page
-  if (requireOnboardingComplete && !profile.onboarding_completed && location.pathname !== "/onboarding") {
-    console.log("ProtectedRoute: User onboarding not completed, redirecting to onboarding");
+  if (
+    requireOnboardingComplete &&
+    !profile.onboarding_completed &&
+    location.pathname !== "/onboarding"
+  ) {
+    console.log(
+      "ProtectedRoute: User onboarding not completed, redirecting to onboarding"
+    );
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -106,7 +116,9 @@ const ProtectedRoute = ({
     profile.onboarding_completed &&
     location.pathname === "/onboarding"
   ) {
-    console.log("ProtectedRoute: User completed onboarding, redirecting from onboarding to health-assessment");
+    console.log(
+      "ProtectedRoute: User completed onboarding, redirecting from onboarding to health-assessment"
+    );
     return <Navigate to="/health-assessment" replace />;
   }
 
@@ -114,13 +126,17 @@ const ProtectedRoute = ({
   if (requireSubscription) {
     // Check if user has completed onboarding first
     if (!profile.onboarding_completed && location.pathname !== "/onboarding") {
-      console.log("ProtectedRoute: User onboarding not completed, redirecting to onboarding");
+      console.log(
+        "ProtectedRoute: User onboarding not completed, redirecting to onboarding"
+      );
       return <Navigate to="/onboarding" replace />;
     }
 
     // If subscription check is complete and user doesn't have valid subscription
     if (hasValidSubscription === false && location.pathname !== "/paywall") {
-      console.log("ProtectedRoute: User has no valid subscription, redirecting to paywall");
+      console.log(
+        "ProtectedRoute: User has no valid subscription, redirecting to paywall"
+      );
       return <Navigate to="/paywall" replace />;
     }
 
@@ -162,13 +178,15 @@ const checkSubscriptionStatus = async (profile: any): Promise<boolean> => {
     }
 
     // Check if user has an active subscription (including trial)
-    const subscriptionStatus = await subscriptionService.getSubscriptionStatus(profile.id);
+    const subscriptionStatus = await subscriptionService.getSubscriptionStatus(
+      profile.id
+    );
     console.log("Subscription status check:", subscriptionStatus);
-    
+
     // Allow access if user has active subscription OR is in trial period
     const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
     console.log("User has access:", hasAccess);
-    
+
     return hasAccess;
   } catch (error) {
     console.error("Error checking subscription status:", error);
@@ -185,26 +203,81 @@ const InitialRouteHandler = () => {
   const location = useLocation();
 
   React.useEffect(() => {
-    console.log("InitialRouteHandler: Effect triggered", { 
-      isInitialized, 
-      loading, 
-      user: !!user, 
+    console.log("InitialRouteHandler: Effect triggered", {
+      isInitialized,
+      loading,
+      user: !!user,
       profile: !!profile,
       profileOnboardingCompleted: profile?.onboarding_completed,
-      pathname: location.pathname 
+      pathname: location.pathname,
     });
-    
+
     // Only handle redirects from the landing page, not from other pages
-    if (isInitialized && !loading && user && profile && location.pathname === "/") {
-      console.log("InitialRouteHandler: User on landing page, checking onboarding status");
+    if (
+      isInitialized &&
+      !loading &&
+      user &&
+      profile &&
+      location.pathname === "/"
+    ) {
+      console.log(
+        "InitialRouteHandler: User on landing page, checking onboarding status"
+      );
       if (!profile.onboarding_completed) {
         // First time user - redirect to onboarding
         console.log("InitialRouteHandler: Redirecting to onboarding");
         window.location.replace("/onboarding");
       } else {
-        // Returning user - redirect to health assessment first
-        console.log("InitialRouteHandler: User onboarding completed, redirecting to health assessment");
-        window.location.replace("/health-assessment");
+        // Returning user - check subscription status and redirect appropriately
+        const checkSubscriptionAndRedirect = async () => {
+          try {
+            const { subscriptionService } = await import(
+              "./services/subscriptionService"
+            );
+            const { isTrialBypassEnabled } = await import(
+              "./config/subscription"
+            );
+
+            // Check if trial bypass is enabled (for development/testing)
+            if (isTrialBypassEnabled()) {
+              console.log(
+                "InitialRouteHandler: Trial bypass enabled, redirecting to dashboard"
+              );
+              window.location.replace("/dashboard");
+              return;
+            }
+
+            // Check actual subscription status
+            const subscriptionStatus =
+              await subscriptionService.getSubscriptionStatus(user.id);
+            const hasAccess =
+              subscriptionStatus.isActive || subscriptionStatus.isTrial;
+
+            if (hasAccess) {
+              console.log(
+                "InitialRouteHandler: User has active subscription or trial, redirecting to dashboard"
+              );
+              window.location.replace("/dashboard");
+            } else {
+              console.log(
+                "InitialRouteHandler: User no subscription, redirecting to health assessment"
+              );
+              window.location.replace("/health-assessment");
+            }
+          } catch (subscriptionError) {
+            console.error(
+              "InitialRouteHandler: Error checking subscription status:",
+              subscriptionError
+            );
+            // Fallback: redirect to health assessment
+            console.log(
+              "InitialRouteHandler: Subscription check failed, redirecting to health assessment"
+            );
+            window.location.replace("/health-assessment");
+          }
+        };
+
+        checkSubscriptionAndRedirect();
       }
     }
   }, [isInitialized, loading, user, profile, location.pathname]);
