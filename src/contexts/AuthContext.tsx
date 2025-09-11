@@ -1,25 +1,24 @@
 import { devUtils, isDevelopment } from "@/config/development";
 import { supabase } from "@/integrations/supabase/client";
 import { devAuthService } from "@/services/devAuthService";
+import type { User } from "@supabase/supabase-js";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
 
-// Cache for user profiles to avoid repeated database calls
-const profileCache = new Map<string, { profile: any; timestamp: number }>();
+// Simple cache for user profiles
+const profileCache = new Map<
+  string,
+  { profile: UserProfile; timestamp: number }
+>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-// Track ongoing operations to prevent duplicates
-const ongoingOperations = new Map<string, Promise<any>>();
-
-// Global flag to prevent multiple auth listeners
-let authListenerInitialized = false;
 
 export interface UserProfile {
   id: string;
@@ -62,14 +61,14 @@ export interface UserProfile {
   referral_code: string | null;
   save_progress: string | null;
   status: string;
-  preferences: any;
+  preferences: Record<string, unknown> | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
@@ -86,234 +85,184 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to create minimal profile
+const createMinimalProfile = (user: User): UserProfile => ({
+  id: user.id,
+  full_name:
+    user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+  onboarding_completed: false,
+  status: "active",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  age: null,
+  date_of_birth: null,
+  gender: null,
+  unit_system: null,
+  height_feet: null,
+  height_inches: null,
+  height_cm: null,
+  weight_lb: null,
+  weight_kg: null,
+  wake_up_time: null,
+  sleep_time: null,
+  work_start: null,
+  work_end: null,
+  chronic_conditions: null,
+  takes_medications: null,
+  medications: null,
+  has_surgery: null,
+  surgery_details: null,
+  health_goals: null,
+  diet_type: null,
+  blood_group: null,
+  breakfast_time: null,
+  lunch_time: null,
+  dinner_time: null,
+  workout_time: null,
+  routine_flexibility: null,
+  uses_wearable: null,
+  wearable_type: null,
+  track_family: null,
+  share_progress: null,
+  emergency_contact_name: null,
+  emergency_contact_phone: null,
+  critical_conditions: null,
+  has_health_reports: null,
+  health_reports: null,
+  referral_code: null,
+  save_progress: null,
+  preferences: null,
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Track last processed event to prevent duplicates (moved to component level)
-  const lastProcessedEvent = React.useRef<{
-    event: string;
-    userId?: string;
-    timestamp: number;
-  } | null>(null);
+  // Track if auth listener is initialized
+  const authListenerRef = useRef<boolean>(false);
 
-  // Optimized profile fetching with caching and deduplication
+  // Fetch user profile with caching
   const fetchUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
-      const ongoingKey = `fetch_${userId}`;
       try {
-        console.log("fetchUserProfile: Starting fetch for userId:", userId);
-
-        // Check if there's an ongoing operation for this user
-        if (ongoingOperations.has(ongoingKey)) {
-          console.log("fetchUserProfile: Using ongoing operation");
-          return await ongoingOperations.get(ongoingKey);
-        }
-
         // Check cache first
         const cached = profileCache.get(userId);
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          console.log("fetchUserProfile: Using cached profile");
           return cached.profile;
         }
 
-        console.log("fetchUserProfile: Fetching from database...");
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-        // Create the operation promise
-        const operation = (async () => {
-          try {
-            const { data, error } = await supabase
-              .from("user_profiles")
-              .select("*")
-              .eq("id", userId)
-              .single();
+        if (error) {
+          console.warn("Profile fetch error:", error);
+          return null;
+        }
 
-            if (error) {
-              console.log("fetchUserProfile: Database error:", error);
-              return null;
-            }
-            const result = data as UserProfile;
-            console.log(
-              "fetchUserProfile: Successfully fetched profile:",
-              result
-            );
+        const result = data as UserProfile;
 
-            // Cache the result
-            if (result) {
-              profileCache.set(userId, {
-                profile: result,
-                timestamp: Date.now(),
-              });
-            }
+        // Cache the result
+        if (result) {
+          profileCache.set(userId, {
+            profile: result,
+            timestamp: Date.now(),
+          });
+        }
 
-            return result;
-          } finally {
-            // Clean up the ongoing operation
-            ongoingOperations.delete(ongoingKey);
-          }
-        })();
-
-        // Store the ongoing operation
-        ongoingOperations.set(ongoingKey, operation);
-
-        return await operation;
+        return result;
       } catch (error) {
-        console.warn(
-          "fetchUserProfile: Profile fetch failed, continuing without profile:",
-          error
-        );
-        // Clean up the ongoing operation
-        ongoingOperations.delete(ongoingKey);
-        // Return null to allow app to continue
+        console.warn("Profile fetch failed:", error);
         return null;
       }
     },
     []
   );
 
-  // Optimized profile creation with deduplication
-  const ensureUserProfile = useCallback(async (user: any) => {
-    if (!user) return;
-
-    const ongoingKey = `ensure_${user.id}`;
+  // Ensure user profile exists
+  const ensureUserProfile = useCallback(async (user: User): Promise<void> => {
     try {
-      console.log("ensureUserProfile: Starting for userId:", user.id);
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
 
-      // Check if there's an ongoing operation for this user
-      if (ongoingOperations.has(ongoingKey)) {
-        console.log("ensureUserProfile: Using ongoing operation");
-        return await ongoingOperations.get(ongoingKey);
-      }
+      // If profile doesn't exist, create it
+      if (error && error.code === "PGRST116") {
+        const { error: insertError } = await supabase
+          .from("user_profiles")
+          .insert([
+            {
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email,
+              onboarding_completed: false,
+              status: "active",
+            },
+          ]);
 
-      // Create the operation promise
-      const operation = (async () => {
-        try {
-          const result = await supabase
-            .from("user_profiles")
-            .select("id")
-            .eq("id", user.id)
-            .single();
-
-          console.log("ensureUserProfile: Profile check result:", result);
-
-          if (result.error && result.error.code !== "PGRST116") {
-            console.log("ensureUserProfile: Profile exists, returning");
-            return;
-          }
-
-          if (!result.data) {
-            console.log("ensureUserProfile: Creating new profile...");
-            // Create minimal profile record
-            const { error: insertError } = await supabase
-              .from("user_profiles")
-              .insert([
-                {
-                  id: user.id,
-                  full_name: user.user_metadata?.full_name || user.email,
-                  onboarding_completed: false,
-                  status: "active",
-                },
-              ]);
-
-            if (!insertError) {
-              console.log("ensureUserProfile: Profile created successfully");
-              // Clear cache to force refresh
-              profileCache.delete(user.id);
-            } else {
-              console.warn(
-                "ensureUserProfile: Profile creation failed:",
-                insertError
-              );
-            }
-          }
-        } finally {
-          // Clean up the ongoing operation
-          ongoingOperations.delete(ongoingKey);
+        if (insertError) {
+          console.warn("Profile creation failed:", insertError);
+        } else {
+          // Clear cache to force refresh
+          profileCache.delete(user.id);
         }
-      })();
-
-      // Store the ongoing operation
-      ongoingOperations.set(ongoingKey, operation);
-
-      return await operation;
+      }
     } catch (error) {
-      console.warn("Profile ensure failed, continuing:", error);
-      // Clean up the ongoing operation
-      ongoingOperations.delete(ongoingKey);
-      // Ignore errors and allow app to continue
+      console.warn("Profile ensure failed:", error);
     }
   }, []);
 
-  // Initialize auth state with optimized loading
+  // Handle user authentication
+  const handleUserAuth = useCallback(
+    async (user: User | null) => {
+      if (!user) {
+        setUser(null);
+        setProfile(null);
+        profileCache.clear();
+        return;
+      }
+
+      setUser(user);
+
+      try {
+        await ensureUserProfile(user);
+        const userProfile = await fetchUserProfile(user.id);
+
+        if (userProfile) {
+          setProfile(userProfile);
+        } else {
+          setProfile(createMinimalProfile(user));
+        }
+      } catch (error) {
+        console.warn("Profile operations failed:", error);
+        setProfile(createMinimalProfile(user));
+      }
+    },
+    [fetchUserProfile, ensureUserProfile]
+  );
+
+  // Initialize auth state
   useEffect(() => {
     let mounted = true;
+
     const initializeAuth = async () => {
-      setLoading(true);
       try {
-        // Get user without timeout to allow natural completion
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         if (mounted) {
-          setUser(user);
-          if (user) {
-            // Try to fetch real profile first
-            try {
-              await ensureUserProfile(user);
-              const realProfile = await fetchUserProfile(user.id);
-              if (realProfile) {
-                console.log("AuthContext: Initialization - setting real profile:", realProfile);
-                setProfile(realProfile);
-              } else {
-                // Only set minimal profile if we can't get real profile
-                const minimalProfile = {
-                  id: user.id,
-                  full_name:
-                    user.user_metadata?.full_name ||
-                    user.email?.split("@")[0] ||
-                    "User",
-                  onboarding_completed: false,
-                  status: "active",
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                } as UserProfile;
-                console.log("AuthContext: Initialization - no real profile, setting minimal:", minimalProfile);
-                setProfile(minimalProfile);
-              }
-            } catch (error) {
-              console.warn(
-                "Profile operations failed during initialization, setting minimal profile:",
-                error
-              );
-              // Set minimal profile only if profile operations fail
-              const minimalProfile = {
-                id: user.id,
-                full_name:
-                  user.user_metadata?.full_name ||
-                  user.email?.split("@")[0] ||
-                  "User",
-                onboarding_completed: false,
-                status: "active",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              } as UserProfile;
-              setProfile(minimalProfile);
-            }
-          } else {
-            setProfile(null);
-          }
+          await handleUserAuth(user);
         }
       } catch (error) {
-        console.warn(
-          "Auth initialization failed, continuing with minimal state:",
-          error
-        );
-        // Set minimal state to allow app to continue
+        console.warn("Auth initialization failed:", error);
         if (mounted) {
           setUser(null);
           setProfile(null);
@@ -328,180 +277,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     initializeAuth();
 
-    // Optimized auth state listener with duplicate prevention
-    if (!authListenerInitialized) {
-      authListenerInitialized = true;
-      const { data: listener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          console.log("AuthContext: Auth state change", {
-            event,
-            userId: session?.user?.id,
-          });
-          if (!mounted) return;
+    // Set up auth state listener
+    if (!authListenerRef.current) {
+      authListenerRef.current = true;
 
-          // Prevent duplicate processing of the same event for the same user
-          const currentEvent = {
-            event,
-            userId: session?.user?.id,
-            timestamp: Date.now(),
-          };
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
 
-          if (
-            lastProcessedEvent.current &&
-            lastProcessedEvent.current.event === event &&
-            lastProcessedEvent.current.userId === currentEvent.userId &&
-            currentEvent.timestamp - lastProcessedEvent.current.timestamp < 5000
-          ) {
-            // 5 second debounce
-            console.log("AuthContext: Skipping duplicate event", currentEvent);
-            return;
-          }
+        console.log("Auth state change:", event, session?.user?.id);
 
-          lastProcessedEvent.current = currentEvent;
-
-          if (session?.user) {
-            console.log(
-              "AuthContext: User signed in, setting user and fetching profile"
-            );
-            setUser(session.user);
-
-            // Only process profile operations for SIGNED_IN events or first INITIAL_SESSION
-            const shouldProcessProfile =
-              event === "SIGNED_IN" ||
-              (event === "INITIAL_SESSION" &&
-                (!user || user.id !== session.user.id));
-
-            if (shouldProcessProfile) {
-              // Run profile operations with better error handling
-              try {
-                console.log("AuthContext: Starting profile operations...");
-
-                // Try to ensure profile exists first, then fetch it
-                try {
-                  await ensureUserProfile(session.user);
-                  const profileResult = await fetchUserProfile(session.user.id);
-
-                  if (profileResult) {
-                    console.log(
-                      "AuthContext: Profile operations completed, setting real profile:",
-                      profileResult
-                    );
-                    setProfile(profileResult);
-                  } else {
-                    // Only set minimal profile if we can't get real profile
-                    const minimalProfile = {
-                      id: session.user.id,
-                      full_name:
-                        session.user.user_metadata?.full_name ||
-                        session.user.email?.split("@")[0] ||
-                        "User",
-                      onboarding_completed: false,
-                      status: "active",
-                      created_at: new Date().toISOString(),
-                      updated_at: new Date().toISOString(),
-                    } as UserProfile;
-                    console.log(
-                      "AuthContext: No real profile found, setting minimal profile:",
-                      minimalProfile
-                    );
-                    setProfile(minimalProfile);
-                  }
-                } catch (profileError) {
-                  console.warn(
-                    "AuthContext: Profile operations failed, setting minimal profile:",
-                    profileError
-                  );
-                  // Set minimal profile only if profile operations fail
-                  const minimalProfile = {
-                    id: session.user.id,
-                    full_name:
-                      session.user.user_metadata?.full_name ||
-                      session.user.email?.split("@")[0] ||
-                      "User",
-                    onboarding_completed: false,
-                    status: "active",
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                  } as UserProfile;
-                  setProfile(minimalProfile);
-                }
-              } catch (error) {
-                console.warn(
-                  "Profile operations failed in auth state change:",
-                  error
-                );
-                // Set minimal profile only if everything fails
-                const minimalProfile = {
-                  id: session.user.id,
-                  full_name:
-                    session.user.user_metadata?.full_name ||
-                    session.user.email?.split("@")[0] ||
-                    "User",
-                  onboarding_completed: false,
-                  status: "active",
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                } as UserProfile;
-                setProfile(minimalProfile);
-              }
-            } else {
-              console.log(
-                "AuthContext: Skipping profile operations for event:",
-                event
-              );
-            }
-
-            // Ensure loading is false and initialized is true after successful auth
-            console.log(
-              "AuthContext: Setting loading=false, isInitialized=true"
-            );
-            setLoading(false);
-            setIsInitialized(true);
-          } else {
-            console.log("AuthContext: User signed out, clearing state");
-            setUser(null);
-            setProfile(null);
-            // Clear cache on logout
-            profileCache.clear();
-            // Clear ongoing operations
-            ongoingOperations.clear();
-            // Ensure loading is false and initialized is true after logout
-            setLoading(false);
-            setIsInitialized(true);
-          }
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          await handleUserAuth(session?.user || null);
+        } else if (event === "SIGNED_OUT") {
+          setUser(null);
+          setProfile(null);
+          profileCache.clear();
         }
-      );
+
+        if (mounted) {
+          setLoading(false);
+          setIsInitialized(true);
+        }
+      });
 
       return () => {
         mounted = false;
-        authListenerInitialized = false;
-        listener?.subscription?.unsubscribe();
-      };
-    } else {
-      return () => {
-        mounted = false;
+        authListenerRef.current = false;
+        subscription.unsubscribe();
       };
     }
-  }, [fetchUserProfile, ensureUserProfile, user]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [handleUserAuth]);
 
   const signUp = useCallback(
     async (email: string, password: string, fullName: string) => {
       setLoading(true);
       try {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: fullName },
           },
         });
+
         if (error) throw error;
+
         toast.success(
           "Signup successful! Please check your email to confirm your account."
         );
-      } catch (error: any) {
+      } catch (error) {
         console.error("Signup error:", error);
-        toast.error("Signup failed", { description: error.message });
+        const errorMessage =
+          error instanceof Error ? error.message : "Signup failed";
+        toast.error("Signup failed", { description: errorMessage });
         throw error;
       } finally {
         setLoading(false);
@@ -513,15 +347,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
       if (error) throw error;
+
       toast.success("Login successful!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed", { description: error.message });
+      const errorMessage =
+        error instanceof Error ? error.message : "Login failed";
+      toast.error("Login failed", { description: errorMessage });
       throw error;
     } finally {
       setLoading(false);
@@ -529,7 +367,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    console.log("signInWithGoogle called");
     setLoading(true);
     try {
       if (isDevelopment()) {
@@ -538,9 +375,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      console.log("Calling supabase.auth.signInWithOAuth for Google");
-
-      // Use a simpler approach that works better
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -552,26 +386,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      if (error) {
-        console.error("OAuth error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("OAuth initiated successfully:", data);
-
-      // The redirect should happen automatically
-      // If we get a URL, it means we need to redirect manually
       if (data?.url) {
-        console.log("Redirecting to OAuth URL:", data.url);
         window.location.href = data.url;
       }
-    } catch (error: any) {
-      setLoading(false);
+    } catch (error) {
       console.error("Google sign-in failed:", error);
-      toast.error("Google sign-in failed", {
-        description: error.message || "Failed to initialize Google sign-in",
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to initialize Google sign-in";
+      toast.error("Google sign-in failed", { description: errorMessage });
       throw error;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -584,8 +413,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      console.log("Calling supabase.auth.signInWithOAuth for Apple");
-
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "apple",
         options: {
@@ -597,41 +424,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      if (error) {
-        console.error("Apple OAuth error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Apple OAuth initiated successfully:", data);
-
-      // The redirect should happen automatically
-      // If we get a URL, it means we need to redirect manually
       if (data?.url) {
-        console.log("Redirecting to Apple OAuth URL:", data.url);
         window.location.href = data.url;
       }
-    } catch (error: any) {
-      setLoading(false);
+    } catch (error) {
       console.error("Apple sign-in failed:", error);
-      toast.error("Apple sign-in failed", {
-        description: error.message || "Failed to initialize Apple sign-in",
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to initialize Apple sign-in";
+      toast.error("Apple sign-in failed", { description: errorMessage });
       throw error;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
-      // For now, we'll use a simple email/password form approach
-      // This could be enhanced with a modal or separate page
       toast.info("Email sign-in feature coming soon!");
-      // You can implement a modal or redirect to email sign-in page here
-    } catch (error: any) {
+    } catch (error) {
       console.error("Email sign-in error:", error);
-      toast.error("Email sign-in failed", {
-        description: error.message || "Failed to initialize email sign-in",
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to initialize email sign-in";
+      toast.error("Email sign-in failed", { description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -642,17 +463,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+
       setUser(null);
       setProfile(null);
-      // Clear cache on logout
       profileCache.clear();
       toast.success("Signed out successfully");
 
-      // Immediately redirect to landing page
+      // Redirect to landing page
       window.location.href = "/";
-    } catch (error: any) {
+    } catch (error) {
       console.error("Signout error:", error);
-      toast.error("Signout failed", { description: error.message });
+      const errorMessage =
+        error instanceof Error ? error.message : "Signout failed";
+      toast.error("Signout failed", { description: errorMessage });
       throw error;
     } finally {
       setLoading(false);
@@ -661,17 +484,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
+
     setLoading(true);
     try {
       // Clear cache to force refresh
       profileCache.delete(user.id);
-      // Also clear ongoing operations to prevent stale data
-      ongoingOperations.delete(`fetch_${user.id}`);
-      ongoingOperations.delete(`ensure_${user.id}`);
-      
-      const profile = await fetchUserProfile(user.id);
-      setProfile(profile);
-      console.log("AuthContext: Profile refreshed", { profile });
+      const userProfile = await fetchUserProfile(user.id);
+      setProfile(userProfile);
     } catch (error) {
       console.error("Error refreshing profile:", error);
     } finally {
@@ -682,26 +501,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>): Promise<void> => {
       if (!user) throw new Error("No user logged in");
+
       setLoading(true);
       try {
         const { error } = await supabase
           .from("user_profiles")
           .update(updates)
           .eq("id", user.id);
+
         if (error) throw error;
 
-        // Clear cache and ongoing operations, then refresh
+        // Clear cache and refresh
         profileCache.delete(user.id);
-        ongoingOperations.delete(`fetch_${user.id}`);
-        ongoingOperations.delete(`ensure_${user.id}`);
         await refreshProfile();
         toast.success("Profile updated successfully!");
-      } catch (error: any) {
+      } catch (error) {
         console.error("Profile update error:", error);
-        toast.error("Profile update failed", {
-          description:
-            error.message || "An error occurred while updating your profile.",
-        });
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "An error occurred while updating your profile.";
+        toast.error("Profile update failed", { description: errorMessage });
         throw error;
       } finally {
         setLoading(false);
@@ -711,11 +531,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const isOnboardingComplete = useCallback((): boolean => {
-    if (!profile) {
-      console.log("isOnboardingComplete: No profile found");
-      return false;
-    }
-    return !!profile.onboarding_completed;
+    return profile?.onboarding_completed ?? false;
   }, [profile]);
 
   const value: AuthContextType = useMemo(
