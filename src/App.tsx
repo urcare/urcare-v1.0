@@ -59,21 +59,35 @@ const ProtectedRoute = ({
   const currentDebug = `${isInitialized}-${loading}-${!!user}-${!!profile}-${
     profile?.onboarding_completed
   }`;
-  if (debugRef.current !== currentDebug) {
-    console.log("ProtectedRoute: Auth state", {
-      isInitialized,
-      loading,
-      user: !!user,
-      profile: !!profile,
-      profileOnboardingCompleted: profile?.onboarding_completed,
-      requireOnboardingComplete,
-      requireSubscription,
-      subscriptionLoading,
-      hasValidSubscription,
-      pathname: location.pathname,
-    });
-    debugRef.current = currentDebug;
-  }
+
+  React.useEffect(() => {
+    if (debugRef.current !== currentDebug) {
+      console.log("ProtectedRoute: Auth state", {
+        isInitialized,
+        loading,
+        user: !!user,
+        profile: !!profile,
+        profileOnboardingCompleted: profile?.onboarding_completed,
+        requireOnboardingComplete,
+        requireSubscription,
+        subscriptionLoading,
+        hasValidSubscription,
+        pathname: location.pathname,
+      });
+      debugRef.current = currentDebug;
+    }
+  }, [
+    currentDebug,
+    isInitialized,
+    loading,
+    user,
+    profile,
+    requireOnboardingComplete,
+    requireSubscription,
+    subscriptionLoading,
+    hasValidSubscription,
+    location.pathname,
+  ]);
 
   if (
     !isInitialized ||
@@ -120,7 +134,7 @@ const ProtectedRoute = ({
   // Track if we've already processed a redirect for this user to prevent loops
   const redirectProcessed = React.useRef<string | null>(null);
   const currentUserKey = `${user?.id}_${profile?.onboarding_completed}_${location.pathname}`;
-  
+
   // Only redirect from onboarding if user is actually on onboarding page and has completed it
   if (
     !requireOnboardingComplete &&
@@ -131,7 +145,7 @@ const ProtectedRoute = ({
     console.log(
       "ProtectedRoute: User completed onboarding, checking subscription status for redirect"
     );
-    
+
     redirectProcessed.current = currentUserKey;
 
     // Check subscription status to determine where to redirect
@@ -193,7 +207,7 @@ const ProtectedRoute = ({
       </div>
     );
   }
-  
+
   // Reset redirect tracking when user changes or path changes significantly
   React.useEffect(() => {
     if (location.pathname !== "/onboarding") {
@@ -347,7 +361,10 @@ const InitialRouteHandler = () => {
               console.log(
                 "InitialRouteHandler: User no subscription, redirecting to health assessment"
               );
-              setTimeout(() => window.location.replace("/health-assessment"), 100);
+              setTimeout(
+                () => window.location.replace("/health-assessment"),
+                100
+              );
             }
           } catch (subscriptionError) {
             console.error(
@@ -358,7 +375,10 @@ const InitialRouteHandler = () => {
             console.log(
               "InitialRouteHandler: Subscription check failed, redirecting to health assessment"
             );
-            setTimeout(() => window.location.replace("/health-assessment"), 100);
+            setTimeout(
+              () => window.location.replace("/health-assessment"),
+              100
+            );
           }
         };
 
