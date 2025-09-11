@@ -15,6 +15,9 @@ import { toast } from "sonner";
 const profileCache = new Map<string, { profile: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Track ongoing operations to prevent duplicates
+const ongoingOperations = new Map<string, Promise<any>>();
+
 export interface UserProfile {
   id: string;
   full_name: string | null;
@@ -88,11 +91,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Optimized profile fetching with caching and faster timeouts
+  // Optimized profile fetching with caching and deduplication
   const fetchUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
       try {
         console.log("fetchUserProfile: Starting fetch for userId:", userId);
+        
+        // Check if there's an ongoing operation for this user
+        const ongoingKey = `fetch_${userId}`;
+        if (ongoingOperations.has(ongoingKey)) {
+          console.log("fetchUserProfile: Using ongoing operation");
+          return await ongoingOperations.get(ongoingKey);
+        }
+        
         // Check cache first
         const cached = profileCache.get(userId);
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -101,34 +112,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         console.log("fetchUserProfile: Fetching from database...");
-        // Add timeout to prevent hanging
-        const fetchPromise = supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
         
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Database fetch timeout")), 5000)
-        );
+        // Create the operation promise
+        const operation = (async () => {
+          try {
+            // Add timeout to prevent hanging
+            const fetchPromise = supabase
+              .from("user_profiles")
+              .select("*")
+              .eq("id", userId)
+              .single();
+            
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Database fetch timeout")), 5000)
+            );
+            
+            const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+            if (error) {
+              console.log("fetchUserProfile: Database error:", error);
+              return null;
+            }
+            const result = data as UserProfile;
+            console.log("fetchUserProfile: Successfully fetched profile:", result);
+
+            // Cache the result
+            if (result) {
+              profileCache.set(userId, { profile: result, timestamp: Date.now() });
+            }
+
+            return result;
+          } finally {
+            // Clean up the ongoing operation
+            ongoingOperations.delete(ongoingKey);
+          }
+        })();
         
-        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
-        if (error) {
-          console.log("fetchUserProfile: Database error:", error);
-          return null;
-        }
-        const result = data as UserProfile;
-        console.log("fetchUserProfile: Successfully fetched profile:", result);
-
-        // Cache the result
-        if (result) {
-          profileCache.set(userId, { profile: result, timestamp: Date.now() });
-        }
-
-        return result;
+        // Store the ongoing operation
+        ongoingOperations.set(ongoingKey, operation);
+        
+        return await operation;
        } catch (error) {
          console.warn("fetchUserProfile: Profile fetch failed, continuing without profile:", error);
+         // Clean up the ongoing operation
+         ongoingOperations.delete(ongoingKey);
          // Return null to allow app to continue
          return null;
        }
@@ -136,62 +163,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  // Optimized profile creation with faster timeout
+  // Optimized profile creation with deduplication
   const ensureUserProfile = useCallback(async (user: any) => {
     if (!user) return;
 
     try {
       console.log("ensureUserProfile: Starting for userId:", user.id);
-      // Add timeout to prevent hanging
-      const checkPromise = supabase
-        .from("user_profiles")
-        .select("id")
-        .eq("id", user.id)
-        .single();
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Database check timeout")), 5000)
-      );
-      
-      const result = await Promise.race([checkPromise, timeoutPromise]) as any;
-
-      console.log("ensureUserProfile: Profile check result:", result);
-
-      if (result.error && result.error.code !== "PGRST116") {
-        console.log("ensureUserProfile: Profile exists, returning");
-        return;
+      // Check if there's an ongoing operation for this user
+      const ongoingKey = `ensure_${user.id}`;
+      if (ongoingOperations.has(ongoingKey)) {
+        console.log("ensureUserProfile: Using ongoing operation");
+        return await ongoingOperations.get(ongoingKey);
       }
+      
+      // Create the operation promise
+      const operation = (async () => {
+        try {
+          // Add timeout to prevent hanging
+          const checkPromise = supabase
+            .from("user_profiles")
+            .select("id")
+            .eq("id", user.id)
+            .single();
+          
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Database check timeout")), 5000)
+          );
+          
+          const result = await Promise.race([checkPromise, timeoutPromise]) as any;
 
-      if (!result.data) {
-        console.log("ensureUserProfile: Creating new profile...");
-        // Create minimal profile record with timeout
-        const insertPromise = supabase
-          .from("user_profiles")
-          .insert([
-            {
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email,
-              onboarding_completed: false,
-              status: "active",
-            },
-          ]);
-        
-        const insertTimeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Profile creation timeout")), 5000)
-        );
-        
-        const { error: insertError } = await Promise.race([insertPromise, insertTimeoutPromise]) as any;
+          console.log("ensureUserProfile: Profile check result:", result);
 
-        if (!insertError) {
-          console.log("ensureUserProfile: Profile created successfully");
-          // Clear cache to force refresh
-          profileCache.delete(user.id);
-        } else {
-          console.warn("ensureUserProfile: Profile creation failed:", insertError);
+          if (result.error && result.error.code !== "PGRST116") {
+            console.log("ensureUserProfile: Profile exists, returning");
+            return;
+          }
+
+          if (!result.data) {
+            console.log("ensureUserProfile: Creating new profile...");
+            // Create minimal profile record with timeout
+            const insertPromise = supabase
+              .from("user_profiles")
+              .insert([
+                {
+                  id: user.id,
+                  full_name: user.user_metadata?.full_name || user.email,
+                  onboarding_completed: false,
+                  status: "active",
+                },
+              ]);
+            
+            const insertTimeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Profile creation timeout")), 5000)
+            );
+            
+            const { error: insertError } = await Promise.race([insertPromise, insertTimeoutPromise]) as any;
+
+            if (!insertError) {
+              console.log("ensureUserProfile: Profile created successfully");
+              // Clear cache to force refresh
+              profileCache.delete(user.id);
+            } else {
+              console.warn("ensureUserProfile: Profile creation failed:", insertError);
+            }
+          }
+        } finally {
+          // Clean up the ongoing operation
+          ongoingOperations.delete(ongoingKey);
         }
-      }
+      })();
+      
+      // Store the ongoing operation
+      ongoingOperations.set(ongoingKey, operation);
+      
+      return await operation;
        } catch (error) {
          console.warn("Profile ensure failed, continuing:", error);
+         // Clean up the ongoing operation
+         ongoingOperations.delete(ongoingKey);
          // Ignore errors and allow app to continue
        }
   }, []);
@@ -247,47 +297,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     initializeAuth();
 
-    // Optimized auth state listener
+    // Track last processed event to prevent duplicates
+    let lastProcessedEvent: { event: string; userId?: string; timestamp: number } | null = null;
+    
+    // Optimized auth state listener with duplicate prevention
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("AuthContext: Auth state change", { event, userId: session?.user?.id });
         if (!mounted) return;
+        
+        // Prevent duplicate processing of the same event for the same user
+        const currentEvent = {
+          event,
+          userId: session?.user?.id,
+          timestamp: Date.now()
+        };
+        
+        if (lastProcessedEvent && 
+            lastProcessedEvent.event === event && 
+            lastProcessedEvent.userId === currentEvent.userId &&
+            currentEvent.timestamp - lastProcessedEvent.timestamp < 1000) { // 1 second debounce
+          console.log("AuthContext: Skipping duplicate event", currentEvent);
+          return;
+        }
+        
+        lastProcessedEvent = currentEvent;
 
         if (session?.user) {
           console.log("AuthContext: User signed in, setting user and fetching profile");
           setUser(session.user);
-          // Run profile operations in parallel
-          try {
-            console.log("AuthContext: Starting profile operations...");
-            
-            // Set a minimal profile immediately to prevent hanging
-            const minimalProfile = {
-              id: session.user.id,
-              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              onboarding_completed: false,
-              status: 'active',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            } as UserProfile;
-            console.log("AuthContext: Setting minimal profile immediately:", minimalProfile);
-            setProfile(minimalProfile);
-            
-            // Try to fetch/ensure profile in background
-            const [, profileResult] = await Promise.all([
-              ensureUserProfile(session.user),
-              fetchUserProfile(session.user.id),
-            ]);
-            
-            if (profileResult) {
-              console.log("AuthContext: Profile operations completed, updating with real profile:", profileResult);
-              setProfile(profileResult);
-            } else {
-              console.log("AuthContext: Profile operations completed, keeping minimal profile");
+          
+          // Only process profile operations if this is a new user or significant event
+          const shouldProcessProfile = event === 'SIGNED_IN' || 
+                                     (event === 'INITIAL_SESSION' && !user);
+          
+          if (shouldProcessProfile) {
+            // Run profile operations in parallel
+            try {
+              console.log("AuthContext: Starting profile operations...");
+              
+              // Set a minimal profile immediately to prevent hanging
+              const minimalProfile = {
+                id: session.user.id,
+                full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                onboarding_completed: false,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as UserProfile;
+              console.log("AuthContext: Setting minimal profile immediately:", minimalProfile);
+              setProfile(minimalProfile);
+              
+              // Try to fetch/ensure profile in background
+              const [, profileResult] = await Promise.all([
+                ensureUserProfile(session.user),
+                fetchUserProfile(session.user.id),
+              ]);
+              
+              if (profileResult) {
+                console.log("AuthContext: Profile operations completed, updating with real profile:", profileResult);
+                setProfile(profileResult);
+              } else {
+                console.log("AuthContext: Profile operations completed, keeping minimal profile");
+              }
+            } catch (error) {
+              console.warn("Profile operations failed in auth state change, keeping minimal profile:", error);
+              // Minimal profile is already set above, so we just continue
             }
-          } catch (error) {
-            console.warn("Profile operations failed in auth state change, keeping minimal profile:", error);
-            // Minimal profile is already set above, so we just continue
           }
+          
           // Ensure loading is false and initialized is true after successful auth
           console.log("AuthContext: Setting loading=false, isInitialized=true");
           setLoading(false);
@@ -298,6 +376,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setProfile(null);
           // Clear cache on logout
           profileCache.clear();
+          // Clear ongoing operations
+          ongoingOperations.clear();
           // Ensure loading is false and initialized is true after logout
           setLoading(false);
           setIsInitialized(true);

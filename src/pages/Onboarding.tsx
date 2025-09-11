@@ -58,6 +58,7 @@ const Onboarding = () => {
     "welcome" | "serial" | "complete"
   >("welcome");
   const [loading, setLoading] = useState(false);
+  const [profileCreated, setProfileCreated] = useState(false);
   const [pendingOnboardingData, setPendingOnboardingData] =
     useState<OnboardingData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -96,11 +97,15 @@ const Onboarding = () => {
   useEffect(() => {
     if (profile && profile.onboarding_completed) {
       navigate("/custom-plan", { replace: true });
-    } else if (profile && !profile.onboarding_completed) {
+    } else if (
+      profile &&
+      !profile.onboarding_completed &&
+      onboardingStep === "welcome"
+    ) {
       // If profile exists but onboarding is not completed, show onboarding
       setOnboardingStep("serial");
     }
-  }, [profile, navigate]);
+  }, [profile, navigate, onboardingStep]);
 
   // Define handleSerialComplete before using it in useEffect
   const handleSerialComplete = useCallback(
@@ -225,13 +230,17 @@ const Onboarding = () => {
     [user, navigate, refreshProfile]
   );
 
-  // Restore onboarding data from localStorage after OAuth
+  // Restore onboarding data from localStorage after OAuth (only once)
   useEffect(() => {
-    if (user && onboardingStep !== "complete") {
+    if (user && onboardingStep !== "complete" && !pendingOnboardingData) {
       const pending = localStorage.getItem("pendingOnboardingData");
       if (pending) {
         try {
           const onboardingData = JSON.parse(pending);
+          console.log(
+            "Restoring onboarding data from localStorage:",
+            onboardingData
+          );
           setPendingOnboardingData(onboardingData);
           handleSerialComplete(onboardingData);
           localStorage.removeItem("pendingOnboardingData");
@@ -240,58 +249,41 @@ const Onboarding = () => {
         }
       }
     }
-  }, [user, onboardingStep, handleSerialComplete]);
+  }, [user, onboardingStep, handleSerialComplete, pendingOnboardingData]);
 
-  // Fallback: create profile row if missing
+  // Fallback: create profile row if missing (with debounce)
   useEffect(() => {
-    if (user && !profile) {
-      supabase
-        .from("user_profiles")
-        .insert([
-          { id: user.id, full_name: user.email, onboarding_completed: false },
-        ])
-        .then(async ({ error }) => {
-          if (error) {
-            console.error(
-              "Failed to create user profile in onboarding fallback:",
-              error
-            );
-          } else {
-            console.log(
-              "Created user profile in onboarding fallback for user:",
-              user.id
-            );
-            // Refresh the profile in AuthContext after creation
-            await refreshProfile();
-          }
-        });
-    }
-  }, [user, profile, refreshProfile]);
+    if (user && !profile && !loading) {
+      const timer = setTimeout(() => {
+        console.log("Onboarding: Creating fallback profile for user:", user.id);
+        supabase
+          .from("user_profiles")
+          .insert([
+            { id: user.id, full_name: user.email, onboarding_completed: false },
+          ])
+          .then(async ({ error }) => {
+            if (error) {
+              console.error(
+                "Failed to create user profile in onboarding fallback:",
+                error
+              );
+            } else {
+              console.log(
+                "Created user profile in onboarding fallback for user:",
+                user.id
+              );
+              // Refresh the profile in AuthContext after creation
+              await refreshProfile();
+            }
+          });
+      }, 2000); // 2 second delay to avoid race conditions
 
-  // Manual trigger for development
-  useEffect(() => {
-    if (user && pendingOnboardingData) {
-      const pending = localStorage.getItem("pendingOnboardingData");
-      if (pending) {
-        try {
-          const onboardingData = JSON.parse(pending);
-          console.log(
-            "Manual trigger: Restoring onboardingData from localStorage:",
-            onboardingData
-          );
-          handleSerialComplete(onboardingData);
-          localStorage.removeItem("pendingOnboardingData");
-        } catch (e) {
-          console.warn(
-            "Manual trigger: Failed to parse onboardingData from localStorage:",
-            e
-          );
-        }
-      }
-    } else {
-      console.log("Manual trigger: No pending data or user not found");
+      return () => clearTimeout(timer);
     }
-  }, [user, pendingOnboardingData, handleSerialComplete]);
+  }, [user, profile, refreshProfile, loading]);
+
+  // Manual trigger for development (removed to prevent duplicate processing)
+  // The onboarding data restoration is now handled in the previous useEffect
 
   // Show auth popup if not authenticated
   if (showAuth) {

@@ -54,19 +54,26 @@ const ProtectedRoute = ({
     }
   }, [requireSubscription, profile]);
 
-  // Debug logging for ProtectedRoute
-  console.log("ProtectedRoute: Auth state", {
-    isInitialized,
-    loading,
-    user: !!user,
-    profile: !!profile,
-    profileOnboardingCompleted: profile?.onboarding_completed,
-    requireOnboardingComplete,
-    requireSubscription,
-    subscriptionLoading,
-    hasValidSubscription,
-    pathname: location.pathname,
-  });
+  // Debug logging for ProtectedRoute (reduced frequency)
+  const debugRef = React.useRef<string>("");
+  const currentDebug = `${isInitialized}-${loading}-${!!user}-${!!profile}-${
+    profile?.onboarding_completed
+  }`;
+  if (debugRef.current !== currentDebug) {
+    console.log("ProtectedRoute: Auth state", {
+      isInitialized,
+      loading,
+      user: !!user,
+      profile: !!profile,
+      profileOnboardingCompleted: profile?.onboarding_completed,
+      requireOnboardingComplete,
+      requireSubscription,
+      subscriptionLoading,
+      hasValidSubscription,
+      pathname: location.pathname,
+    });
+    debugRef.current = currentDebug;
+  }
 
   if (
     !isInitialized ||
@@ -260,6 +267,9 @@ const InitialRouteHandler = () => {
   const { user, profile, loading, isInitialized } = devAuth;
   const location = useLocation();
 
+  // Track processed redirects to prevent loops
+  const processedRedirect = React.useRef(false);
+
   React.useEffect(() => {
     console.log("InitialRouteHandler: Effect triggered", {
       isInitialized,
@@ -268,16 +278,19 @@ const InitialRouteHandler = () => {
       profile: !!profile,
       profileOnboardingCompleted: profile?.onboarding_completed,
       pathname: location.pathname,
+      processedRedirect: processedRedirect.current,
     });
 
-    // Only handle redirects from the landing page, not from other pages
+    // Only handle redirects from the landing page, not from other pages, and only once
     if (
       isInitialized &&
       !loading &&
       user &&
       profile &&
-      location.pathname === "/"
+      location.pathname === "/" &&
+      !processedRedirect.current
     ) {
+      processedRedirect.current = true;
       console.log(
         "InitialRouteHandler: User on landing page, checking onboarding status"
       );
@@ -337,6 +350,11 @@ const InitialRouteHandler = () => {
 
         checkSubscriptionAndRedirect();
       }
+    }
+
+    // Reset the flag when user changes or navigates away from landing
+    if (location.pathname !== "/" || !user) {
+      processedRedirect.current = false;
     }
   }, [isInitialized, loading, user, profile, location.pathname]);
 
