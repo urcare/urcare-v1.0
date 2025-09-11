@@ -126,24 +126,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Create the operation promise
         const operation = (async () => {
           try {
-            // Add timeout to prevent hanging
-            const fetchPromise = supabase
+            const { data, error } = await supabase
               .from("user_profiles")
               .select("*")
               .eq("id", userId)
               .single();
-
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(
-                () => reject(new Error("Database fetch timeout")),
-                10000
-              )
-            );
-
-            const { data, error } = (await Promise.race([
-              fetchPromise,
-              timeoutPromise,
-            ])) as any;
 
             if (error) {
               console.log("fetchUserProfile: Database error:", error);
@@ -205,21 +192,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Create the operation promise
       const operation = (async () => {
         try {
-          // Add timeout to prevent hanging
-          const checkPromise = supabase
+          const result = await supabase
             .from("user_profiles")
             .select("id")
             .eq("id", user.id)
             .single();
-
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Database check timeout")), 10000)
-          );
-
-          const result = (await Promise.race([
-            checkPromise,
-            timeoutPromise,
-          ])) as any;
 
           console.log("ensureUserProfile: Profile check result:", result);
 
@@ -230,8 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           if (!result.data) {
             console.log("ensureUserProfile: Creating new profile...");
-            // Create minimal profile record with timeout
-            const insertPromise = supabase.from("user_profiles").insert([
+            // Create minimal profile record
+            const { error: insertError } = await supabase.from("user_profiles").insert([
               {
                 id: user.id,
                 full_name: user.user_metadata?.full_name || user.email,
@@ -239,18 +216,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 status: "active",
               },
             ]);
-
-            const insertTimeoutPromise = new Promise((_, reject) =>
-              setTimeout(
-                () => reject(new Error("Profile creation timeout")),
-                10000
-              )
-            );
-
-            const { error: insertError } = (await Promise.race([
-              insertPromise,
-              insertTimeoutPromise,
-            ])) as any;
 
             if (!insertError) {
               console.log("ensureUserProfile: Profile created successfully");

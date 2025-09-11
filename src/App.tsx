@@ -270,7 +270,7 @@ const InitialRouteHandler = () => {
               console.log(
                 "InitialRouteHandler: Trial bypass enabled, redirecting to dashboard"
               );
-              setTimeout(() => window.location.replace("/dashboard"), 100);
+              window.location.replace("/dashboard");
               return;
             }
 
@@ -284,15 +284,12 @@ const InitialRouteHandler = () => {
               console.log(
                 "InitialRouteHandler: User has active subscription or trial, redirecting to dashboard"
               );
-              setTimeout(() => window.location.replace("/dashboard"), 100);
+              window.location.replace("/dashboard");
             } else {
               console.log(
                 "InitialRouteHandler: User no subscription, redirecting to paywall"
               );
-              setTimeout(
-                () => window.location.replace("/paywall"),
-                100
-              );
+              window.location.replace("/paywall");
             }
           } catch (subscriptionError) {
             console.error(
@@ -303,10 +300,7 @@ const InitialRouteHandler = () => {
             console.log(
               "InitialRouteHandler: Subscription check failed, redirecting to paywall"
             );
-            setTimeout(
-              () => window.location.replace("/paywall"),
-              100
-            );
+            window.location.replace("/paywall");
           }
         };
 
