@@ -222,6 +222,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Handle user authentication
   const handleUserAuth = useCallback(
     async (user: User | null) => {
+      console.log("AuthContext: handleUserAuth called with user:", user?.id);
+      
       if (!user) {
         setUser(null);
         setProfile(null);
@@ -230,19 +232,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setUser(user);
+      console.log("AuthContext: User set, now fetching profile...");
 
       try {
         await ensureUserProfile(user);
+        console.log("AuthContext: Profile ensured, fetching user profile...");
         const userProfile = await fetchUserProfile(user.id);
+        console.log("AuthContext: Fetched profile:", userProfile);
 
         if (userProfile) {
           setProfile(userProfile);
+          console.log("AuthContext: Real profile set");
         } else {
-          setProfile(createMinimalProfile(user));
+          const minimalProfile = createMinimalProfile(user);
+          setProfile(minimalProfile);
+          console.log("AuthContext: Minimal profile set:", minimalProfile);
         }
       } catch (error) {
         console.warn("Profile operations failed:", error);
-        setProfile(createMinimalProfile(user));
+        const minimalProfile = createMinimalProfile(user);
+        setProfile(minimalProfile);
+        console.log("AuthContext: Error fallback - minimal profile set:", minimalProfile);
       }
     },
     [fetchUserProfile, ensureUserProfile]

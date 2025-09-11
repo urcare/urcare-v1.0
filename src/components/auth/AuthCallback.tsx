@@ -35,13 +35,23 @@ export const AuthCallback: React.FC = () => {
   // Handle redirect when user is authenticated and context is ready
   useEffect(() => {
     const handleRedirect = async () => {
+      console.log("AuthCallback: Checking redirect conditions:", {
+        hasRedirected: hasRedirected.current,
+        isInitialized,
+        loading,
+        hasUser: !!user,
+        hasProfile: !!profile,
+        user: user?.id,
+        profile: profile?.id
+      });
+      
       // Only redirect once and when everything is ready
       if (
         !hasRedirected.current &&
         isInitialized &&
         !loading &&
-        user &&
-        profile
+        user
+        // Removed profile requirement - it might not be set yet
       ) {
         hasRedirected.current = true;
         
@@ -84,7 +94,7 @@ export const AuthCallback: React.FC = () => {
     handleRedirect();
 
     return () => clearTimeout(timeoutId);
-  }, [isInitialized, loading, user, profile, navigate]);
+  }, [isInitialized, loading, user, navigate]);
 
   // Reset redirect flag when user changes
   useEffect(() => {
