@@ -49,9 +49,10 @@ export const HealthContentNew = () => {
   const [activePlan, setActivePlan] = useState<ComprehensiveHealthPlan | null>(
     null
   );
-  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(
-    null
-  );
+  const [userProfile, setUserProfile] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [realTimeProgress, setRealTimeProgress] = useState<{
     overallProgress: number;
     weeklyCompliance: number;
@@ -81,22 +82,19 @@ export const HealthContentNew = () => {
 
       // Subscribe to real-time progress updates
       progressTrackingService
-        .subscribeToProgressUpdates(
-          activePlan.id,
-          (progress) => {
-            setRealTimeProgress(progress);
-            // Update the active plan with new progress data
-            setActivePlan((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    overall_progress_percentage: progress.overallProgress,
-                    weekly_compliance_rate: progress.weeklyCompliance,
-                  }
-                : null
-            );
-          }
-        )
+        .subscribeToProgressUpdates(activePlan.id, (progress) => {
+          setRealTimeProgress(progress);
+          // Update the active plan with new progress data
+          setActivePlan((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  overall_progress_percentage: progress.overallProgress,
+                  weekly_compliance_rate: progress.weeklyCompliance,
+                }
+              : null
+          );
+        })
         .then((unsubFn) => {
           unsubscribe = unsubFn;
           setProgressSubscription(() => unsubFn);
@@ -126,7 +124,7 @@ export const HealthContentNew = () => {
         });
 
       return () => {
-        if (unsubscribe && typeof unsubscribe === 'function') {
+        if (unsubscribe && typeof unsubscribe === "function") {
           try {
             unsubscribe();
           } catch (error) {
@@ -136,7 +134,7 @@ export const HealthContentNew = () => {
       };
     } else {
       // Clean up subscription when no active plan
-      if (progressSubscription && typeof progressSubscription === 'function') {
+      if (progressSubscription && typeof progressSubscription === "function") {
         try {
           progressSubscription();
         } catch (error) {
