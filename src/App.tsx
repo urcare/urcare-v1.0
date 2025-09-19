@@ -16,6 +16,7 @@ import { DevPanel } from "./components/DevPanel";
 import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { TestComprehensiveHealthPlan } from "./components/TestComprehensiveHealthPlan";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 
@@ -148,6 +149,12 @@ function App() {
                 <Camera />
               </ProtectedRoute>
             }
+          />
+
+          {/* Test Route - Remove in production */}
+          <Route
+            path="/test-comprehensive-health-plan"
+            element={<TestComprehensiveHealthPlan />}
           />
 
           {/* Catch all route */}

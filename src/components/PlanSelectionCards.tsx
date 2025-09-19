@@ -20,11 +20,13 @@ interface PlanData {
 interface PlanSelectionCardsProps {
   plans: PlanData[];
   onPlanSelect: (plan: PlanData) => void;
+  onViewPlanDetails?: (plan: PlanData) => void;
 }
 
 export const PlanSelectionCards: React.FC<PlanSelectionCardsProps> = ({
   plans,
   onPlanSelect,
+  onViewPlanDetails,
 }) => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -135,10 +137,27 @@ export const PlanSelectionCards: React.FC<PlanSelectionCardsProps> = ({
             </div>
 
             <div className="mt-3 pt-3 border-t border-white/50">
-              <div className="text-center">
-                <span className="text-sm font-medium text-gray-700">
-                  Tap to view full schedule
-                </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPlanSelect(plan);
+                  }}
+                  className="flex-1 bg-white/80 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-white transition-colors"
+                >
+                  Start Plan
+                </button>
+                {onViewPlanDetails && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewPlanDetails(plan);
+                    }}
+                    className="flex-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    View Details
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -124,6 +124,7 @@ interface DailyPlan {
   date: string;
   timezone: string;
   focus: string;
+  activities?: any[]; // Detailed time-stamped activities
   movement: Movement;
   steps: {
     target: number;
@@ -699,185 +700,137 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
 
 function createFallbackPlan(profile: UserProfile): AIHealthCoachPlan {
   const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const planDuration = getPlanDuration(profile.health_goals || []);
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() + planDuration);
 
-  const wakeUpTime = profile.wake_up_time || "07:00";
+  const wakeUpTime = profile.wake_up_time || "06:00";
   const sleepTime = profile.sleep_time || "22:00";
   const workoutTime = profile.workout_time || "18:00";
 
-  const createBasicDay = (date: Date, isWorkoutDay: boolean): DailyPlan => ({
-    date: date.toISOString().split("T")[0],
-    timezone: "User's local timezone",
-    focus: isWorkoutDay
-      ? "Strength training and balanced nutrition"
-      : "Active recovery and mindful eating",
-    movement: {
-      type: "home",
-      duration_min: isWorkoutDay ? 45 : 20,
-      exercises: isWorkoutDay
-        ? [
-            {
-              name: "Bodyweight Squats",
-              sets: 3,
-              reps: "12-15",
-              rpe: "6-7",
-              rest_s: 90,
-              tempo: "2-1-2",
-              cues: ["chest up", "knees track over toes"],
-              alt: ["Chair squats"],
-            },
-            {
-              name: "Push-ups",
-              sets: 3,
-              reps: "8-12",
-              rpe: "7-8",
-              rest_s: 90,
-              tempo: "2-1-2",
-              cues: ["straight line", "full range of motion"],
-              alt: ["Incline push-ups"],
-            },
-          ]
-        : [
-            {
-              name: "Walking",
-              sets: 1,
-              reps: "20-30 min",
-              rpe: "3-4",
-              rest_s: 0,
-              tempo: "steady",
-              cues: ["brisk pace", "upright posture"],
-              alt: ["Light stretching"],
-            },
-          ],
-      warmup: ["5 min light movement", "joint mobility"],
-      cooldown: ["5 min walking", "breathing exercises"],
-    },
-    steps: {
-      target: 8000,
-      post_meal_walk_min: 10,
-    },
-    nutrition: {
-      calories: 1800,
-      protein_g: 120,
-      carbs_g: 180,
-      fat_g: 60,
-      fiber_g: 30,
-      meals: [
-        {
-          name: "Breakfast",
-          time: profile.breakfast_time || addMinutes(wakeUpTime, 30),
-          items: [
-            { food: "Oatmeal", qty_g: 50, hand_portion: "1 cupped hand" },
-            { food: "Berries", qty_g: 100, hand_portion: "1 fist" },
-            { food: "Nuts", qty_g: 20, hand_portion: "1 thumb" },
-          ],
-          macros: { p: 25, c: 60, f: 15, fiber: 8 },
-          order: ["fiber", "protein", "carbs"],
-          tips: ["eat slowly", "stay hydrated"],
-          swaps: ["quinoa for oatmeal", "banana for berries"],
-        },
-        {
-          name: "Lunch",
-          time: profile.lunch_time || "13:00",
-          items: [
-            { food: "Grilled chicken", qty_g: 120, hand_portion: "1 palm" },
-            { food: "Brown rice", qty_g: 100, hand_portion: "1 cupped hand" },
-            { food: "Mixed vegetables", qty_g: 150, hand_portion: "2 fists" },
-          ],
-          macros: { p: 35, c: 50, f: 20, fiber: 6 },
-          order: ["vegetables", "protein", "carbs"],
-          tips: ["chew thoroughly", "take breaks"],
-          swaps: ["fish for chicken", "quinoa for rice"],
-        },
-        {
-          name: "Dinner",
-          time: profile.dinner_time || "19:00",
-          items: [
-            { food: "Salmon", qty_g: 100, hand_portion: "1 palm" },
-            { food: "Sweet potato", qty_g: 120, hand_portion: "1 fist" },
-            { food: "Green salad", qty_g: 100, hand_portion: "2 fists" },
-          ],
-          macros: { p: 30, c: 40, f: 25, fiber: 8 },
-          order: ["salad", "protein", "carbs"],
-          tips: ["finish 2-3 hours before sleep", "avoid screens"],
-          swaps: ["tofu for salmon", "regular potato for sweet potato"],
-        },
-      ],
-      snacks: ["Greek yogurt", "Apple with almond butter", "Herbal tea"],
-      hacks: ["10-min walk after meals", "drink water before eating"],
-    },
-    blood_sugar_support: {
-      tactics: [
-        "fiber-first eating",
-        "post-meal walking",
-        "balanced macronutrients",
-      ],
-    },
-    sleep: {
-      bedtime: sleepTime,
-      wake_time: wakeUpTime,
-      duration_hours: 8,
-      wind_down_routine: [
-        "dim lights 90 min before",
-        "no screens 1 hour before",
-        "relaxation exercises",
-      ],
-      environment_tips: [
-        "cool room",
-        "dark environment",
-        "comfortable bedding",
-      ],
-    },
-    stress: {
-      practice: "5-min breathing exercise",
-      duration_min: 5,
-      reflection_prompt: "What went well today? One thing you're grateful for.",
-    },
-    recovery: {
-      nature_time_min: 15,
-      mobility_routine: ["neck rolls", "shoulder shrugs", "ankle circles"],
-      environment_optimization: ["natural light exposure", "fresh air"],
-    },
-    education:
-      "Consistent sleep schedule helps regulate hormones and improves recovery.",
-    health_score: {
-      total: 70,
-      delta: 0,
-      subscores: {
-        metabolic: 70,
-        fitness: 65,
-        sleep: 75,
-        nutrition: 70,
+  // Detect primary health condition for targeted protocols
+  const primaryCondition = detectPrimaryCondition(profile);
+  const planType = getPlanType(primaryCondition, profile.health_goals || []);
+
+  const createComprehensiveDay = (date: Date, dayNumber: number): DailyPlan => {
+    const isWorkoutDay = dayNumber % 2 === 1; // Workout every other day
+    const isHighIntensityDay = dayNumber % 4 === 1; // High intensity every 4th day
+
+    return {
+      date: date.toISOString().split("T")[0],
+      timezone: "User's local timezone",
+      focus: getDailyFocus(planType, isWorkoutDay, isHighIntensityDay),
+
+      // Add detailed time-stamped activities
+      activities: getDetailedActivities(
+        wakeUpTime,
+        sleepTime,
+        workoutTime,
+        planType,
+        isWorkoutDay,
+        isHighIntensityDay,
+        profile
+      ),
+
+      movement: getMovementProtocol(
+        planType,
+        isWorkoutDay,
+        isHighIntensityDay,
+        profile
+      ),
+      steps: {
+        target: 8000,
+        post_meal_walk_min: 10,
       },
-    },
-  });
+      nutrition: getNutritionProtocol(planType, profile),
+      blood_sugar_support: {
+        tactics: [
+          "fiber-first eating",
+          "post-meal walking",
+          "balanced macronutrients",
+        ],
+      },
+      sleep: {
+        bedtime: sleepTime,
+        wake_time: wakeUpTime,
+        duration_hours: 8,
+        wind_down_routine: [
+          "dim lights 90 min before",
+          "no screens 1 hour before",
+          "relaxation exercises",
+        ],
+        environment_tips: [
+          "cool room",
+          "dark environment",
+          "comfortable bedding",
+        ],
+      },
+      stress: {
+        practice: "5-min breathing exercise",
+        duration_min: 5,
+        reflection_prompt:
+          "What went well today? One thing you're grateful for.",
+      },
+      recovery: {
+        nature_time_min: 15,
+        mobility_routine: ["neck rolls", "shoulder shrugs", "ankle circles"],
+        environment_optimization: ["natural light exposure", "fresh air"],
+      },
+      education:
+        "Consistent sleep schedule helps regulate hormones and improves recovery.",
+      health_score: {
+        total: 70,
+        delta: 0,
+        subscores: {
+          metabolic: 70,
+          fitness: 65,
+          sleep: 75,
+          nutrition: 70,
+        },
+      },
+    };
+  };
+
+  // Generate comprehensive multi-day plan
+  const planDays: DailyPlan[] = [];
+  for (let i = 1; i <= Math.min(planDuration, 7); i++) {
+    const dayDate = new Date(today);
+    dayDate.setDate(dayDate.getDate() + i - 1);
+    planDays.push(createComprehensiveDay(dayDate, i));
+  }
 
   return {
-    day1: createBasicDay(today, true),
-    day2: createBasicDay(tomorrow, false),
-    overall_goals: profile.health_goals || [
-      "Improve overall health",
-      "Build healthy habits",
-      "Maintain consistency",
-    ],
-    progress_tips: [
-      "Track your daily activities",
-      "Stay consistent with your schedule",
-      "Listen to your body and adjust as needed",
-      "Celebrate small wins",
-      "Stay hydrated throughout the day",
-    ],
-    safety_notes: [
-      "If you experience any concerning symptoms, consult your healthcare provider",
-      "Start slowly and progress gradually",
-      "Listen to your body and rest when needed",
-    ],
+    day1: planDays[0] || createComprehensiveDay(today, 1),
+    day2:
+      planDays[1] ||
+      createComprehensiveDay(
+        new Date(today.getTime() + 24 * 60 * 60 * 1000),
+        2
+      ),
+    day3: planDays[2],
+    day4: planDays[3],
+    day5: planDays[4],
+    day6: planDays[5],
+    day7: planDays[6],
+    overall_goals: getOverallGoals(planType, profile.health_goals || []),
+    progress_tracking: getProgressTrackingSystem(planType, planDuration),
+    progress_tips: getProgressTips(planType),
+    safety_notes: getSafetyNotes(planType),
     cultural_adaptations: [
       "Plan adapted to your schedule and preferences",
       "Flexible meal options provided",
       "Exercise modifications available",
+      "Cultural food preferences accommodated",
+      "Flexible timing based on your routine",
     ],
+    plan_metadata: {
+      plan_type: planType,
+      duration_days: planDuration,
+      difficulty_level: getDifficultyLevel(planType),
+      estimated_completion_time: `${planDuration} days`,
+      primary_focus: getPrimaryFocus(planType),
+      target_outcomes: getTargetOutcomes(planType),
+    },
   };
 }
 
@@ -889,4 +842,2240 @@ function addMinutes(time: string, minutes: number): string {
   return `${newHours.toString().padStart(2, "0")}:${newMins
     .toString()
     .padStart(2, "0")}`;
+}
+
+// Generate detailed time-stamped activities for the day
+function getDetailedActivities(
+  wakeUpTime: string,
+  sleepTime: string,
+  workoutTime: string,
+  planType: string,
+  isWorkoutDay: boolean,
+  isHighIntensityDay: boolean,
+  profile: UserProfile
+): any[] {
+  const activities = [];
+  let currentTime = wakeUpTime;
+
+  // Morning Routine (30 minutes)
+  activities.push({
+    id: `morning-routine-${Date.now()}`,
+    type: "morning",
+    title: "Morning Wake-up Routine",
+    description: "Start your day with intention and energy",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 30),
+    duration: 30,
+    priority: "high",
+    category: "wellness",
+    instructions: [
+      "Wake up immediately when alarm goes off",
+      "Drink 16oz water with lemon",
+      "5 minutes of deep breathing",
+      "5 minutes of light stretching",
+      "Set 3 intentions for the day",
+      "Open curtains for natural light",
+    ],
+    tips: [
+      "Keep phone away from bed",
+      "Don't hit snooze",
+      "Start with gratitude",
+    ],
+    benefits: "Improves energy, mood, and sets positive tone for the day",
+    scientificEvidence:
+      "Research shows morning routines improve productivity and mental health",
+  });
+  currentTime = addMinutes(currentTime, 30);
+
+  // Breakfast (45 minutes)
+  const breakfastMeal = getPersonalizedMeal("breakfast", profile, planType);
+  activities.push({
+    id: `breakfast-${Date.now()}`,
+    type: "meal",
+    title: "Healthy Breakfast",
+    description: "Nutritious breakfast to fuel your day",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 45),
+    duration: 45,
+    priority: "high",
+    category: "nutrition",
+    mealDetails: breakfastMeal,
+    instructions: breakfastMeal.instructions,
+    tips: breakfastMeal.tips,
+    benefits: breakfastMeal.benefits,
+    scientificEvidence: breakfastMeal.scientificEvidence,
+  });
+  currentTime = addMinutes(currentTime, 45);
+
+  // Work Session 1 (3 hours)
+  activities.push({
+    id: `work-session-1-${Date.now()}`,
+    type: "work",
+    title: "Focused Work Session",
+    description: "Productive work time with breaks",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 180),
+    duration: 180,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Work in 25-minute focused sessions (Pomodoro technique)",
+      "Take 5-minute breaks between sessions",
+      "Take a 15-minute break after every 4 sessions",
+      "Stay hydrated and maintain good posture",
+    ],
+    tips: [
+      "Use a timer to maintain focus",
+      "Stand up and move during breaks",
+      "Avoid multitasking",
+    ],
+    benefits:
+      "Improves focus, reduces mental fatigue, and increases productivity",
+    scientificEvidence:
+      "The Pomodoro technique has been proven to enhance concentration",
+  });
+  currentTime = addMinutes(currentTime, 180);
+
+  // Lunch (45 minutes)
+  const lunchMeal = getPersonalizedMeal("lunch", profile, planType);
+  activities.push({
+    id: `lunch-${Date.now()}`,
+    type: "meal",
+    title: "Balanced Lunch",
+    description: "Nutritious lunch to refuel",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 45),
+    duration: 45,
+    priority: "high",
+    category: "nutrition",
+    mealDetails: lunchMeal,
+    instructions: lunchMeal.instructions,
+    tips: lunchMeal.tips,
+    benefits: lunchMeal.benefits,
+    scientificEvidence: lunchMeal.scientificEvidence,
+  });
+  currentTime = addMinutes(currentTime, 45);
+
+  // Post-meal walk (15 minutes)
+  activities.push({
+    id: `post-lunch-walk-${Date.now()}`,
+    type: "exercise",
+    title: "Post-Meal Walk",
+    description: "Gentle walk to aid digestion and boost energy",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 15),
+    duration: 15,
+    priority: "medium",
+    category: "fitness",
+    instructions: [
+      "Take a brisk 15-minute walk",
+      "Get fresh air and natural light",
+      "Practice deep breathing",
+      "Stretch your legs and back",
+    ],
+    tips: [
+      "Walk outdoors when possible",
+      "Maintain good posture",
+      "Use this time to clear your mind",
+    ],
+    benefits:
+      "Reduces afternoon fatigue, improves circulation, and boosts mood",
+    scientificEvidence:
+      "Short walks after meals improve digestion and blood sugar control",
+  });
+  currentTime = addMinutes(currentTime, 15);
+
+  // Work Session 2 (3 hours)
+  activities.push({
+    id: `work-session-2-${Date.now()}`,
+    type: "work",
+    title: "Continued Work Session",
+    description: "Continued productive work with movement breaks",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 180),
+    duration: 180,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Continue focused work with Pomodoro technique",
+      "Take movement breaks every hour",
+      "Stay hydrated and maintain good posture",
+      "Use standing desk if available",
+    ],
+    tips: [
+      "Set reminders for breaks",
+      "Do light stretching during breaks",
+      "Keep workspace organized",
+    ],
+    benefits: "Maintains productivity while preventing fatigue and strain",
+    scientificEvidence:
+      "Regular breaks improve focus and reduce repetitive strain injuries",
+  });
+  currentTime = addMinutes(currentTime, 180);
+
+  // Workout (if workout day) or Light Activity
+  if (isWorkoutDay) {
+    activities.push({
+      id: `workout-${Date.now()}`,
+      type: "exercise",
+      title: isHighIntensityDay
+        ? "High-Intensity Workout"
+        : "Strength Training",
+      description: "Targeted exercise session for fitness and health",
+      startTime: workoutTime,
+      endTime: addMinutes(workoutTime, 60),
+      duration: 60,
+      priority: "high",
+      category: "fitness",
+      instructions: [
+        "5-minute warm-up (light cardio)",
+        isHighIntensityDay
+          ? "20-minute high-intensity circuit training"
+          : "20-minute strength training circuit",
+        "15-minute moderate cardio",
+        "10-minute cool-down and stretching",
+      ],
+      tips: [
+        "Listen to your body and adjust intensity",
+        "Stay hydrated throughout the workout",
+        "Focus on proper form over speed",
+      ],
+      benefits: "Boosts metabolism, improves mood, and enhances energy levels",
+      scientificEvidence:
+        "Regular exercise improves sleep quality and increases daily energy expenditure",
+    });
+    currentTime = addMinutes(workoutTime, 60);
+  } else {
+    // Light activity on non-workout days
+    activities.push({
+      id: `light-activity-${Date.now()}`,
+      type: "exercise",
+      title: "Light Movement",
+      description: "Gentle movement for active recovery",
+      startTime: workoutTime,
+      endTime: addMinutes(workoutTime, 30),
+      duration: 30,
+      priority: "medium",
+      category: "fitness",
+      instructions: [
+        "Take a leisurely walk or bike ride",
+        "Do gentle stretching or yoga",
+        "Spend time outdoors if possible",
+        "Focus on relaxation and recovery",
+      ],
+      tips: [
+        "Listen to your body",
+        "Enjoy the movement",
+        "Don't push yourself",
+      ],
+      benefits:
+        "Promotes recovery, reduces stress, and maintains activity habit",
+      scientificEvidence:
+        "Active recovery improves blood flow and reduces muscle stiffness",
+    });
+    currentTime = addMinutes(workoutTime, 30);
+  }
+
+  // Dinner (45 minutes)
+  const dinnerMeal = getPersonalizedMeal("dinner", profile, planType);
+  activities.push({
+    id: `dinner-${Date.now()}`,
+    type: "meal",
+    title: "Light Dinner",
+    description: "Nutritious dinner to end the day",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 45),
+    duration: 45,
+    priority: "high",
+    category: "nutrition",
+    mealDetails: dinnerMeal,
+    instructions: dinnerMeal.instructions,
+    tips: dinnerMeal.tips,
+    benefits: dinnerMeal.benefits,
+    scientificEvidence: dinnerMeal.scientificEvidence,
+  });
+  currentTime = addMinutes(currentTime, 45);
+
+  // Evening Wind-down (60 minutes)
+  activities.push({
+    id: `evening-wind-down-${Date.now()}`,
+    type: "evening",
+    title: "Evening Wind-Down",
+    description: "Relaxing routine to prepare for sleep",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 60),
+    duration: 60,
+    priority: "high",
+    category: "wellness",
+    instructions: [
+      "Dim the lights in your environment",
+      "Practice gentle stretching or yoga",
+      "Read a book or listen to calming music",
+      "Avoid screens and stimulating activities",
+      "Practice gratitude reflection",
+    ],
+    tips: [
+      "Create a consistent bedtime routine",
+      "Keep your bedroom cool and dark",
+      "Use relaxation techniques",
+    ],
+    benefits: "Improves sleep quality, reduces stress, and promotes relaxation",
+    scientificEvidence:
+      "Consistent evening routines improve sleep onset and quality",
+  });
+  currentTime = addMinutes(currentTime, 60);
+
+  // Sleep (8 hours)
+  activities.push({
+    id: `sleep-${Date.now()}`,
+    type: "sleep",
+    title: "Quality Sleep",
+    description: "Restorative sleep for optimal health",
+    startTime: sleepTime,
+    endTime: wakeUpTime,
+    duration: 480, // 8 hours
+    priority: "high",
+    category: "recovery",
+    instructions: [
+      "Aim for 7-9 hours of sleep",
+      "Keep bedroom cool (65-68°F)",
+      "Use blackout curtains or eye mask",
+      "Remove electronic devices from bedroom",
+      "Maintain consistent sleep schedule",
+    ],
+    tips: [
+      "Avoid caffeine after 2 PM",
+      "Create a comfortable sleep environment",
+      "Use white noise if needed",
+    ],
+    benefits:
+      "Supports immune function, memory consolidation, and physical recovery",
+    scientificEvidence:
+      "Quality sleep is essential for hormone regulation and cognitive performance",
+  });
+
+  return activities;
+}
+
+// Generate personalized meal recommendations based on dietary preferences
+function getPersonalizedMeal(
+  mealType: string,
+  profile: UserProfile,
+  planType: string
+): any {
+  const dietType = profile.diet_type?.toLowerCase() || "omnivore";
+  const healthConditions = profile.chronic_conditions || [];
+  const healthGoals = profile.health_goals || [];
+
+  // Check for specific health conditions that affect nutrition
+  const hasDiabetes = healthConditions.some(
+    (c) =>
+      c.toLowerCase().includes("diabetes") ||
+      c.toLowerCase().includes("prediabetes")
+  );
+  const hasPCOS = healthConditions.some(
+    (c) =>
+      c.toLowerCase().includes("pcos") || c.toLowerCase().includes("polycystic")
+  );
+  const hasHeartDisease = healthConditions.some(
+    (c) =>
+      c.toLowerCase().includes("heart") || c.toLowerCase().includes("cardio")
+  );
+  const isWeightLoss = healthGoals.some(
+    (g) =>
+      g.toLowerCase().includes("weight") || g.toLowerCase().includes("lose")
+  );
+
+  const mealPlans = {
+    vegan: {
+      breakfast: {
+        instructions: [
+          "Prepare overnight chia pudding with almond milk and berries",
+          "Add plant-based protein (hemp seeds or vegan protein powder)",
+          "Include healthy fats (avocado or nut butter)",
+          "Add fiber-rich fruits and nuts",
+          "Stay hydrated with herbal tea or water",
+        ],
+        tips: [
+          "Soak chia seeds overnight for better digestibility",
+          "Use unsweetened plant milk to avoid added sugars",
+          "Include a variety of colorful fruits for antioxidants",
+        ],
+        benefits:
+          "Provides plant-based protein, fiber, and essential nutrients while being environmentally friendly",
+        scientificEvidence:
+          "Plant-based diets are associated with lower risk of chronic diseases and improved longevity",
+      },
+      lunch: {
+        instructions: [
+          "Prepare quinoa or brown rice bowl with mixed vegetables",
+          "Add plant-based protein (tofu, tempeh, or legumes)",
+          "Include leafy greens and colorful vegetables",
+          "Add healthy fats (olive oil, avocado, or nuts)",
+          "Season with herbs and spices for flavor",
+        ],
+        tips: [
+          "Combine grains and legumes for complete protein",
+          "Use a variety of vegetables for micronutrient diversity",
+          "Include fermented foods like sauerkraut for gut health",
+        ],
+        benefits:
+          "Provides complete plant-based nutrition with anti-inflammatory properties",
+        scientificEvidence:
+          "Plant-based meals reduce inflammation and support cardiovascular health",
+      },
+      dinner: {
+        instructions: [
+          "Prepare light vegetable stir-fry with tofu or tempeh",
+          "Include leafy greens and non-starchy vegetables",
+          "Add healthy fats (avocado or olive oil)",
+          "Keep portions moderate for better sleep",
+          "Include anti-inflammatory spices (turmeric, ginger)",
+        ],
+        tips: [
+          "Focus on non-starchy vegetables for lower calories",
+          "Use minimal oil for cooking",
+          "Include protein for satiety and muscle maintenance",
+        ],
+        benefits:
+          "Supports overnight recovery with anti-inflammatory nutrients",
+        scientificEvidence:
+          "Light, plant-based dinners improve sleep quality and reduce inflammation",
+      },
+    },
+    vegetarian: {
+      breakfast: {
+        instructions: [
+          "Prepare overnight oats with Greek yogurt and berries",
+          "Add plant-based protein (nuts, seeds, or protein powder)",
+          "Include healthy fats (avocado or nut butter)",
+          "Add fiber-rich fruits and whole grains",
+          "Stay hydrated with herbal tea or water",
+        ],
+        tips: [
+          "Use Greek yogurt for additional protein",
+          "Include a variety of nuts and seeds for micronutrients",
+          "Add cinnamon for blood sugar stability",
+        ],
+        benefits:
+          "Provides balanced protein from dairy and plants with essential nutrients",
+        scientificEvidence:
+          "Vegetarian diets rich in dairy provide complete protein and essential nutrients",
+      },
+      lunch: {
+        instructions: [
+          "Prepare dal (lentil curry) with brown rice or roti",
+          "Include paneer or cottage cheese for protein",
+          "Add plenty of vegetables (spinach, tomatoes, onions)",
+          "Include healthy fats (ghee or olive oil)",
+          "Season with turmeric, cumin, and other spices",
+        ],
+        tips: [
+          "Combine dal with rice for complete protein",
+          "Include fermented dairy for probiotics",
+          "Use traditional Indian spices for flavor and health benefits",
+        ],
+        benefits: "Provides complete protein and traditional Indian nutrition",
+        scientificEvidence:
+          "Traditional Indian vegetarian diets support gut health and provide complete nutrition",
+      },
+      dinner: {
+        instructions: [
+          "Prepare light vegetable curry with paneer or tofu",
+          "Include leafy greens and seasonal vegetables",
+          "Add healthy fats (ghee or olive oil)",
+          "Keep portions moderate for better sleep",
+          "Include digestive spices (cumin, fennel, ginger)",
+        ],
+        tips: [
+          "Focus on easily digestible vegetables",
+          "Include fermented foods for gut health",
+          "Use minimal oil for better digestion",
+        ],
+        benefits:
+          "Supports overnight recovery with traditional Indian nutrition",
+        scientificEvidence:
+          "Light vegetarian dinners with spices improve digestion and sleep quality",
+      },
+    },
+    omnivore: {
+      breakfast: {
+        instructions: [
+          "Prepare scrambled eggs with vegetables and whole grain toast",
+          "Include lean protein (eggs, Greek yogurt, or lean meat)",
+          "Add healthy fats (avocado or olive oil)",
+          "Include fiber-rich fruits and vegetables",
+          "Stay hydrated with water or herbal tea",
+        ],
+        tips: [
+          "Use whole eggs for complete nutrition",
+          "Include vegetables in your eggs for extra fiber",
+          "Choose whole grain bread for sustained energy",
+        ],
+        benefits:
+          "Provides complete protein and essential nutrients for sustained energy",
+        scientificEvidence:
+          "Protein-rich breakfasts improve satiety and cognitive function throughout the day",
+      },
+      lunch: {
+        instructions: [
+          "Prepare grilled chicken or fish with quinoa and vegetables",
+          "Include lean protein (chicken, fish, or legumes)",
+          "Add plenty of colorful vegetables",
+          "Include healthy fats (olive oil, avocado, or nuts)",
+          "Season with herbs and spices for flavor",
+        ],
+        tips: [
+          "Choose lean cuts of meat for lower saturated fat",
+          "Include a variety of vegetables for micronutrients",
+          "Use healthy cooking methods (grilling, baking, steaming)",
+        ],
+        benefits:
+          "Provides complete protein and essential nutrients for muscle recovery",
+        scientificEvidence:
+          "Balanced meals with lean protein support muscle maintenance and recovery",
+      },
+      dinner: {
+        instructions: [
+          "Prepare baked salmon or chicken with roasted vegetables",
+          "Include lean protein and non-starchy vegetables",
+          "Add healthy fats (olive oil or avocado)",
+          "Keep portions moderate for better sleep",
+          "Include anti-inflammatory foods (salmon, turmeric, ginger)",
+        ],
+        tips: [
+          "Choose fatty fish for omega-3 fatty acids",
+          "Focus on non-starchy vegetables for lower calories",
+          "Include protein for satiety and muscle maintenance",
+        ],
+        benefits:
+          "Supports overnight recovery with anti-inflammatory nutrients",
+        scientificEvidence:
+          "Light dinners with lean protein and omega-3s improve sleep quality and reduce inflammation",
+      },
+    },
+    keto: {
+      breakfast: {
+        instructions: [
+          "Prepare scrambled eggs with avocado and spinach",
+          "Include high-fat protein (eggs, bacon, or sausage)",
+          "Add healthy fats (avocado, olive oil, or butter)",
+          "Include low-carb vegetables (spinach, mushrooms, bell peppers)",
+          "Stay hydrated with water or bulletproof coffee",
+        ],
+        tips: [
+          "Focus on high-fat, low-carb foods",
+          "Include plenty of healthy fats for satiety",
+          "Monitor your carb intake carefully",
+        ],
+        benefits:
+          "Provides sustained energy through ketosis while maintaining muscle mass",
+        scientificEvidence:
+          "Ketogenic diets can improve metabolic flexibility and support weight loss",
+      },
+      lunch: {
+        instructions: [
+          "Prepare grilled chicken or fish with leafy green salad",
+          "Include lean protein (chicken, fish, or eggs)",
+          "Add plenty of leafy greens and low-carb vegetables",
+          "Include healthy fats (olive oil, avocado, or nuts)",
+          "Avoid high-carb foods (rice, bread, pasta)",
+        ],
+        tips: [
+          "Focus on protein and healthy fats",
+          "Include plenty of non-starchy vegetables",
+          "Use high-fat dressings and oils",
+        ],
+        benefits: "Maintains ketosis while providing essential nutrients",
+        scientificEvidence:
+          "Low-carb meals help maintain stable blood sugar and ketosis",
+      },
+      dinner: {
+        instructions: [
+          "Prepare baked salmon or steak with roasted vegetables",
+          "Include high-quality protein and low-carb vegetables",
+          "Add healthy fats (butter, olive oil, or avocado)",
+          "Keep portions moderate for better sleep",
+          "Include anti-inflammatory foods (salmon, turmeric, ginger)",
+        ],
+        tips: [
+          "Choose fatty cuts of meat for higher fat content",
+          "Focus on non-starchy vegetables",
+          "Include protein for satiety and muscle maintenance",
+        ],
+        benefits: "Supports overnight recovery while maintaining ketosis",
+        scientificEvidence:
+          "Ketogenic dinners can improve sleep quality and support fat burning",
+      },
+    },
+  };
+
+  // Get base meal plan
+  let mealPlan =
+    mealPlans[dietType as keyof typeof mealPlans] || mealPlans.omnivore;
+
+  // Adjust for health conditions
+  if (hasDiabetes) {
+    mealPlan = {
+      ...mealPlan,
+      [mealType]: {
+        ...mealPlan[mealType as keyof typeof mealPlan],
+        instructions: [
+          ...mealPlan[mealType as keyof typeof mealPlan].instructions,
+          "Monitor blood sugar levels before and after meals",
+          "Include fiber-rich foods to slow glucose absorption",
+          "Avoid high-sugar foods and refined carbohydrates",
+        ],
+        tips: [
+          ...mealPlan[mealType as keyof typeof mealPlan].tips,
+          "Eat protein and fiber before carbohydrates",
+          "Consider post-meal walking to improve glucose control",
+        ],
+      },
+    };
+  }
+
+  if (hasPCOS) {
+    mealPlan = {
+      ...mealPlan,
+      [mealType]: {
+        ...mealPlan[mealType as keyof typeof mealPlan],
+        instructions: [
+          ...mealPlan[mealType as keyof typeof mealPlan].instructions,
+          "Include anti-inflammatory foods (berries, leafy greens, fatty fish)",
+          "Focus on low-glycemic index foods",
+          "Include foods rich in chromium and magnesium",
+        ],
+        tips: [
+          ...mealPlan[mealType as keyof typeof mealPlan].tips,
+          "Avoid processed foods and added sugars",
+          "Include regular meals to maintain stable blood sugar",
+        ],
+      },
+    };
+  }
+
+  if (hasHeartDisease) {
+    mealPlan = {
+      ...mealPlan,
+      [mealType]: {
+        ...mealPlan[mealType as keyof typeof mealPlan],
+        instructions: [
+          ...mealPlan[mealType as keyof typeof mealPlan].instructions,
+          "Include heart-healthy fats (omega-3s, olive oil, nuts)",
+          "Limit saturated and trans fats",
+          "Include plenty of fiber-rich foods",
+        ],
+        tips: [
+          ...mealPlan[mealType as keyof typeof mealPlan].tips,
+          "Choose lean protein sources",
+          "Include foods rich in potassium and magnesium",
+        ],
+      },
+    };
+  }
+
+  if (isWeightLoss) {
+    mealPlan = {
+      ...mealPlan,
+      [mealType]: {
+        ...mealPlan[mealType as keyof typeof mealPlan],
+        instructions: [
+          ...mealPlan[mealType as keyof typeof mealPlan].instructions,
+          "Focus on protein and fiber for satiety",
+          "Include plenty of non-starchy vegetables",
+          "Control portion sizes and eat mindfully",
+        ],
+        tips: [
+          ...mealPlan[mealType as keyof typeof mealPlan].tips,
+          "Eat slowly and stop when 80% full",
+          "Include protein with every meal for satiety",
+        ],
+      },
+    };
+  }
+
+  return mealPlan[mealType as keyof typeof mealPlan];
+}
+
+// Enhanced fallback plan helper functions
+function getPlanDuration(healthGoals: string[]): number {
+  // Determine plan duration based on goals
+  if (
+    healthGoals.some(
+      (goal) =>
+        goal.toLowerCase().includes("diabetes") ||
+        goal.toLowerCase().includes("revers")
+    )
+  ) {
+    return 180; // 6 months for diabetes reversal
+  }
+  if (
+    healthGoals.some(
+      (goal) =>
+        goal.toLowerCase().includes("weight") ||
+        goal.toLowerCase().includes("lose")
+    )
+  ) {
+    return 90; // 3 months for weight loss
+  }
+  if (
+    healthGoals.some(
+      (goal) =>
+        goal.toLowerCase().includes("build") ||
+        goal.toLowerCase().includes("muscle")
+    )
+  ) {
+    return 120; // 4 months for muscle building
+  }
+  return 30; // Default 1 month
+}
+
+function detectPrimaryCondition(profile: UserProfile): string {
+  const conditions = profile.health_conditions || [];
+  const goals = profile.health_goals || [];
+
+  // Check for diabetes indicators
+  if (
+    conditions.some(
+      (c) =>
+        c.toLowerCase().includes("diabetes") ||
+        c.toLowerCase().includes("prediabetes")
+    ) ||
+    goals.some(
+      (g) =>
+        g.toLowerCase().includes("diabetes") ||
+        g.toLowerCase().includes("sugar")
+    )
+  ) {
+    return "diabetes";
+  }
+
+  // Check for PCOS
+  if (
+    conditions.some(
+      (c) =>
+        c.toLowerCase().includes("pcos") ||
+        c.toLowerCase().includes("polycystic")
+    )
+  ) {
+    return "pcos";
+  }
+
+  // Check for cardiovascular conditions
+  if (
+    conditions.some(
+      (c) =>
+        c.toLowerCase().includes("heart") ||
+        c.toLowerCase().includes("cardio") ||
+        c.toLowerCase().includes("hypertension") ||
+        c.toLowerCase().includes("blood pressure")
+    )
+  ) {
+    return "cardiovascular";
+  }
+
+  // Check for weight management
+  if (
+    goals.some(
+      (g) =>
+        g.toLowerCase().includes("weight") ||
+        g.toLowerCase().includes("lose") ||
+        g.toLowerCase().includes("fat")
+    )
+  ) {
+    return "weight_management";
+  }
+
+  // Check for muscle building
+  if (
+    goals.some(
+      (g) =>
+        g.toLowerCase().includes("muscle") ||
+        g.toLowerCase().includes("strength") ||
+        g.toLowerCase().includes("build")
+    )
+  ) {
+    return "muscle_building";
+  }
+
+  return "general_health";
+}
+
+function getPlanType(condition: string, goals: string[]): string {
+  const conditionMap: { [key: string]: string } = {
+    diabetes: "diabetes_reversal",
+    pcos: "pcos_management",
+    cardiovascular: "heart_health",
+    weight_management: "weight_optimization",
+    muscle_building: "strength_building",
+    general_health: "wellness_optimization",
+  };
+
+  return conditionMap[condition] || "wellness_optimization";
+}
+
+function getOverallGoals(planType: string, userGoals: string[]): string[] {
+  const baseGoals = [
+    "Improve overall health and wellbeing",
+    "Build sustainable healthy habits",
+    "Maintain consistency in daily routines",
+    "Track progress and celebrate achievements",
+  ];
+
+  const planSpecificGoals: { [key: string]: string[] } = {
+    diabetes_reversal: [
+      "Lower blood sugar levels naturally",
+      "Improve insulin sensitivity",
+      "Reduce HbA1c by 1-2% over 6 months",
+      "Maintain stable blood glucose throughout the day",
+      "Reduce dependency on medications (under medical supervision)",
+      "Achieve healthy weight if overweight",
+    ],
+    pcos_management: [
+      "Improve insulin sensitivity",
+      "Balance hormone levels naturally",
+      "Support regular menstrual cycles",
+      "Reduce inflammation markers",
+      "Achieve healthy weight",
+      "Improve fertility markers",
+    ],
+    cardiovascular: [
+      "Lower blood pressure naturally",
+      "Reduce cholesterol levels",
+      "Improve heart health markers",
+      "Increase cardiovascular fitness",
+      "Reduce inflammation",
+      "Support overall heart function",
+    ],
+    weight_optimization: [
+      "Achieve healthy weight loss",
+      "Build lean muscle mass",
+      "Improve body composition",
+      "Increase metabolic rate",
+      "Maintain weight loss long-term",
+      "Improve energy levels",
+    ],
+    strength_building: [
+      "Increase muscle mass",
+      "Improve strength and power",
+      "Enhance physical performance",
+      "Improve body composition",
+      "Increase bone density",
+      "Boost metabolism",
+    ],
+    wellness_optimization: [
+      "Optimize energy levels",
+      "Improve sleep quality",
+      "Reduce stress levels",
+      "Enhance mental clarity",
+      "Support immune function",
+      "Promote longevity",
+    ],
+  };
+
+  return [...baseGoals, ...(planSpecificGoals[planType] || []), ...userGoals];
+}
+
+function getProgressTrackingSystem(planType: string, duration: number): any {
+  return {
+    daily_tracking: [
+      "Complete all planned activities",
+      "Rate energy levels (1-10)",
+      "Track mood and motivation",
+      "Record sleep quality",
+      "Monitor hunger and satiety",
+      "Note any challenges or barriers",
+    ],
+    weekly_assessments: [
+      "Weight and body measurements",
+      "Progress photos",
+      "Energy and mood trends",
+      "Sleep quality patterns",
+      "Adherence percentage",
+      "Goal progress evaluation",
+    ],
+    monthly_evaluations: [
+      "Comprehensive health markers",
+      "Body composition analysis",
+      "Lifestyle habit assessment",
+      "Goal achievement review",
+      "Plan adjustments needed",
+      "Long-term sustainability check",
+    ],
+    condition_specific_tracking: getConditionSpecificTracking(planType),
+    progress_milestones: getProgressMilestones(planType, duration),
+  };
+}
+
+function getConditionSpecificTracking(planType: string): any {
+  const tracking: { [key: string]: any } = {
+    diabetes_reversal: {
+      daily: [
+        "Blood glucose levels (fasting, post-meal)",
+        "Medication compliance",
+        "Energy crashes",
+      ],
+      weekly: ["Weight changes", "HbA1c trends", "Blood pressure"],
+      monthly: [
+        "Complete metabolic panel",
+        "Medication adjustments",
+        "Lifestyle adherence",
+      ],
+    },
+    pcos_management: {
+      daily: ["Menstrual cycle tracking", "Energy levels", "Mood fluctuations"],
+      weekly: ["Weight changes", "Hair growth patterns", "Skin condition"],
+      monthly: ["Hormone panel", "Insulin levels", "Ovulation tracking"],
+    },
+    cardiovascular: {
+      daily: [
+        "Blood pressure readings",
+        "Heart rate variability",
+        "Energy levels",
+      ],
+      weekly: ["Weight changes", "Exercise capacity", "Stress levels"],
+      monthly: [
+        "Lipid panel",
+        "Inflammatory markers",
+        "Cardiac function tests",
+      ],
+    },
+    weight_optimization: {
+      daily: ["Weight", "Energy levels", "Hunger patterns"],
+      weekly: ["Body measurements", "Progress photos", "Adherence rate"],
+      monthly: [
+        "Body composition analysis",
+        "Metabolic rate",
+        "Lifestyle changes",
+      ],
+    },
+    strength_building: {
+      daily: ["Workout performance", "Recovery quality", "Energy levels"],
+      weekly: ["Strength progress", "Body measurements", "Training volume"],
+      monthly: [
+        "Body composition",
+        "Strength assessments",
+        "Performance metrics",
+      ],
+    },
+  };
+
+  return tracking[planType] || { daily: [], weekly: [], monthly: [] };
+}
+
+function getProgressMilestones(planType: string, duration: number): any[] {
+  const milestones = [];
+  const quarterPoint = Math.floor(duration * 0.25);
+  const halfPoint = Math.floor(duration * 0.5);
+  const threeQuarterPoint = Math.floor(duration * 0.75);
+
+  milestones.push({
+    day: quarterPoint,
+    milestone: "Initial Adaptation Phase Complete",
+    achievements: [
+      "Established daily routine",
+      "Improved energy levels",
+      "Reduced initial challenges",
+    ],
+  });
+
+  milestones.push({
+    day: halfPoint,
+    milestone: "Mid-Plan Progress Review",
+    achievements: [
+      "Significant habit formation",
+      "Measurable health improvements",
+      "Increased confidence",
+    ],
+  });
+
+  milestones.push({
+    day: threeQuarterPoint,
+    milestone: "Advanced Implementation Phase",
+    achievements: [
+      "Optimized routine",
+      "Enhanced performance",
+      "Sustained motivation",
+    ],
+  });
+
+  milestones.push({
+    day: duration,
+    milestone: "Plan Completion & Long-term Maintenance",
+    achievements: [
+      "Achieved primary goals",
+      "Established sustainable habits",
+      "Ready for advanced protocols",
+    ],
+  });
+
+  return milestones;
+}
+
+function getProgressTips(planType: string): string[] {
+  const baseTips = [
+    "Track your daily activities and progress",
+    "Stay consistent with your schedule",
+    "Listen to your body and adjust as needed",
+    "Celebrate small wins and milestones",
+    "Stay hydrated throughout the day",
+    "Get adequate sleep for recovery",
+    "Practice stress management techniques",
+  ];
+
+  const planSpecificTips: { [key: string]: string[] } = {
+    diabetes_reversal: [
+      "Monitor blood glucose regularly",
+      "Take 15-minute walks after meals",
+      "Eat vegetables before other foods",
+      "Stay consistent with meal timing",
+      "Work closely with your healthcare provider",
+      "Track medication effectiveness",
+    ],
+    pcos_management: [
+      "Focus on insulin sensitivity improvement",
+      "Include strength training regularly",
+      "Manage stress through relaxation techniques",
+      "Track menstrual cycle patterns",
+      "Prioritize sleep quality",
+      "Consider supplement support",
+    ],
+    cardiovascular: [
+      "Monitor blood pressure regularly",
+      "Include both cardio and strength training",
+      "Focus on heart-healthy foods",
+      "Manage stress and inflammation",
+      "Stay consistent with exercise",
+      "Track cardiovascular fitness improvements",
+    ],
+    weight_optimization: [
+      "Focus on body composition, not just weight",
+      "Include strength training to build muscle",
+      "Eat adequate protein for satiety",
+      "Track progress photos and measurements",
+      "Stay consistent with caloric deficit",
+      "Plan for plateaus and adjustments",
+    ],
+    strength_building: [
+      "Focus on progressive overload",
+      "Prioritize recovery and sleep",
+      "Eat adequate protein for muscle building",
+      "Track strength improvements",
+      "Allow for rest days between sessions",
+      "Monitor recovery metrics",
+    ],
+  };
+
+  return [...baseTips, ...(planSpecificTips[planType] || [])];
+}
+
+function getSafetyNotes(planType: string): string[] {
+  const baseSafety = [
+    "If you experience any concerning symptoms, consult your healthcare provider immediately",
+    "Start slowly and progress gradually",
+    "Listen to your body and rest when needed",
+    "Stop any activity that causes pain or discomfort",
+    "Stay hydrated and well-nourished",
+    "Get medical clearance before starting if you have health concerns",
+  ];
+
+  const planSpecificSafety: { [key: string]: string[] } = {
+    diabetes_reversal: [
+      "Monitor blood glucose closely, especially during exercise",
+      "Never stop medications without medical supervision",
+      "Watch for signs of hypoglycemia",
+      "Adjust meal timing based on medication schedule",
+      "Have emergency glucose sources available",
+      "Coordinate with healthcare provider for medication adjustments",
+    ],
+    pcos_management: [
+      "Monitor menstrual cycle changes",
+      "Watch for signs of insulin resistance",
+      "Consider hormonal fluctuations in planning",
+      "Coordinate with healthcare provider for monitoring",
+      "Track any medication interactions",
+      "Monitor for PCOS-related complications",
+    ],
+    cardiovascular: [
+      "Monitor blood pressure during exercise",
+      "Watch for chest pain or shortness of breath",
+      "Start with low-intensity exercise",
+      "Coordinate with cardiologist for monitoring",
+      "Track heart rate during activities",
+      "Avoid high-intensity exercise without clearance",
+    ],
+    weight_optimization: [
+      "Avoid extreme caloric restriction",
+      "Monitor for signs of disordered eating",
+      "Focus on sustainable changes",
+      "Track energy levels and mood",
+      "Ensure adequate nutrient intake",
+      "Seek professional help if needed",
+    ],
+    strength_building: [
+      "Focus on proper form over heavy weights",
+      "Allow adequate recovery between sessions",
+      "Monitor for overtraining symptoms",
+      "Start with lighter weights to learn technique",
+      "Listen to your body for signs of injury",
+      "Include mobility and flexibility work",
+    ],
+  };
+
+  return [...baseSafety, ...(planSpecificSafety[planType] || [])];
+}
+
+function getDifficultyLevel(planType: string): string {
+  const difficultyMap: { [key: string]: string } = {
+    diabetes_reversal: "Intermediate",
+    pcos_management: "Intermediate",
+    cardiovascular: "Beginner to Intermediate",
+    weight_optimization: "Beginner to Intermediate",
+    strength_building: "Intermediate to Advanced",
+    wellness_optimization: "Beginner",
+  };
+
+  return difficultyMap[planType] || "Beginner";
+}
+
+function getPrimaryFocus(planType: string): string {
+  const focusMap: { [key: string]: string } = {
+    diabetes_reversal:
+      "Blood sugar control and insulin sensitivity improvement",
+    pcos_management: "Hormone balance and insulin sensitivity",
+    cardiovascular: "Heart health and cardiovascular fitness",
+    weight_optimization: "Sustainable weight loss and body composition",
+    strength_building: "Muscle building and strength development",
+    wellness_optimization: "Overall health and lifestyle optimization",
+  };
+
+  return focusMap[planType] || "Overall health and wellness";
+}
+
+function getTargetOutcomes(planType: string): string[] {
+  const outcomesMap: { [key: string]: string[] } = {
+    diabetes_reversal: [
+      "Improved blood sugar control",
+      "Reduced HbA1c levels",
+      "Better insulin sensitivity",
+      "Reduced medication dependency",
+      "Improved energy levels",
+      "Better weight management",
+    ],
+    pcos_management: [
+      "Improved insulin sensitivity",
+      "Better hormone balance",
+      "Regular menstrual cycles",
+      "Reduced inflammation",
+      "Improved fertility markers",
+      "Better weight management",
+    ],
+    cardiovascular: [
+      "Lower blood pressure",
+      "Improved cholesterol levels",
+      "Better cardiovascular fitness",
+      "Reduced inflammation",
+      "Improved heart health markers",
+      "Better overall cardiovascular function",
+    ],
+    weight_optimization: [
+      "Sustainable weight loss",
+      "Improved body composition",
+      "Increased muscle mass",
+      "Better metabolic rate",
+      "Improved energy levels",
+      "Long-term weight maintenance",
+    ],
+    strength_building: [
+      "Increased muscle mass",
+      "Improved strength and power",
+      "Better body composition",
+      "Increased bone density",
+      "Enhanced physical performance",
+      "Improved metabolism",
+    ],
+    wellness_optimization: [
+      "Improved energy levels",
+      "Better sleep quality",
+      "Reduced stress levels",
+      "Enhanced mental clarity",
+      "Better immune function",
+      "Overall health optimization",
+    ],
+  };
+
+  return outcomesMap[planType] || ["Improved overall health and wellbeing"];
+}
+
+function getDailyFocus(
+  planType: string,
+  isWorkoutDay: boolean,
+  isHighIntensityDay: boolean
+): string {
+  const focusMap: { [key: string]: string } = {
+    diabetes_reversal: isWorkoutDay
+      ? isHighIntensityDay
+        ? "High-intensity resistance training for glucose uptake"
+        : "Moderate strength training and post-meal walks"
+      : "Active recovery with walking and blood sugar management",
+    pcos_management: isWorkoutDay
+      ? "Strength training for insulin sensitivity and hormone balance"
+      : "Stress management and gentle movement for cortisol regulation",
+    cardiovascular: isWorkoutDay
+      ? isHighIntensityDay
+        ? "Interval training for heart health"
+        : "Zone 2 cardio and strength training"
+      : "Active recovery with walking and stress reduction",
+    weight_optimization: isWorkoutDay
+      ? isHighIntensityDay
+        ? "High-intensity interval training for fat oxidation"
+        : "Resistance training for metabolic boost"
+      : "Active recovery with NEAT activities and mindful eating",
+    strength_building: isWorkoutDay
+      ? isHighIntensityDay
+        ? "Progressive overload training"
+        : "Volume-based strength training"
+      : "Recovery and mobility work",
+    wellness_optimization: isWorkoutDay
+      ? "Balanced movement and stress management"
+      : "Active recovery and lifestyle optimization",
+  };
+
+  return focusMap[planType] || "General wellness and health optimization";
+}
+
+function getMovementProtocol(
+  planType: string,
+  isWorkoutDay: boolean,
+  isHighIntensityDay: boolean,
+  profile: UserProfile
+): any {
+  const baseMovement = {
+    type: "home",
+    duration_min: isWorkoutDay ? 45 : 20,
+    warmup: ["5 min light movement", "joint mobility", "dynamic stretching"],
+    cooldown: ["5 min walking", "breathing exercises", "static stretching"],
+  };
+
+  if (!isWorkoutDay) {
+    return {
+      ...baseMovement,
+      exercises: [
+        {
+          name: "Walking",
+          sets: 1,
+          reps: "20-30 min",
+          rpe: "3-4",
+          rest_s: 0,
+          tempo: "steady",
+          cues: ["brisk pace", "upright posture", "engage core"],
+          alt: ["Light stretching", "Gentle yoga"],
+          benefits: "Improves circulation, reduces stress, supports recovery",
+        },
+      ],
+      movement_snacks: [
+        "5 min walk every hour",
+        "Stair climbing (2-3 flights)",
+        "Desk stretches every 30 min",
+      ],
+    };
+  }
+
+  // Disease-specific workout protocols
+  switch (planType) {
+    case "diabetes_reversal":
+      return {
+        ...baseMovement,
+        exercises: isHighIntensityDay
+          ? [
+              {
+                name: "Circuit Training - High Intensity",
+                sets: 3,
+                reps: "45 sec work, 15 sec rest",
+                rpe: "8-9",
+                rest_s: 120,
+                tempo: "explosive",
+                cues: ["maintain form", "controlled breathing"],
+                alt: ["Lower intensity version"],
+                benefits:
+                  "Improves insulin sensitivity, burns glucose efficiently",
+              },
+              {
+                name: "Burpees",
+                sets: 3,
+                reps: "10-15",
+                rpe: "8-9",
+                rest_s: 90,
+                tempo: "2-1-2",
+                cues: ["full extension", "land softly"],
+                alt: ["Step-ups", "Mountain climbers"],
+                benefits: "High calorie burn, improves glucose uptake",
+              },
+              {
+                name: "Jump Squats",
+                sets: 3,
+                reps: "12-15",
+                rpe: "7-8",
+                rest_s: 90,
+                tempo: "explosive",
+                cues: ["soft landing", "knees out"],
+                alt: ["Regular squats", "Chair squats"],
+                benefits: "Builds leg strength, improves insulin sensitivity",
+              },
+            ]
+          : [
+              {
+                name: "Resistance Band Squats",
+                sets: 3,
+                reps: "15-20",
+                rpe: "6-7",
+                rest_s: 60,
+                tempo: "2-1-2",
+                cues: ["chest up", "knees track over toes"],
+                alt: ["Bodyweight squats", "Chair squats"],
+                benefits: "Builds muscle mass, improves glucose storage",
+              },
+              {
+                name: "Modified Push-ups",
+                sets: 3,
+                reps: "10-15",
+                rpe: "6-7",
+                rest_s: 60,
+                tempo: "2-1-2",
+                cues: ["straight line", "full range"],
+                alt: ["Wall push-ups", "Knee push-ups"],
+                benefits: "Builds upper body strength, improves metabolism",
+              },
+              {
+                name: "Walking Lunges",
+                sets: 3,
+                reps: "12 each leg",
+                rpe: "6-7",
+                rest_s: 60,
+                tempo: "2-1-2",
+                cues: ["90-degree angles", "upright torso"],
+                alt: ["Static lunges", "Step-ups"],
+                benefits: "Improves leg strength, enhances glucose utilization",
+              },
+            ],
+        post_meal_walks: [
+          "10 min walk after breakfast",
+          "15 min walk after lunch",
+          "10 min walk after dinner",
+        ],
+        movement_snacks: [
+          "5 min walk every hour",
+          "Stair climbing (2-3 flights)",
+          "Standing desk work",
+        ],
+      };
+
+    case "pcos_management":
+      return {
+        ...baseMovement,
+        exercises: [
+          {
+            name: "Strength Training Circuit",
+            sets: 3,
+            reps: "12-15",
+            rpe: "6-7",
+            rest_s: 60,
+            tempo: "2-1-2",
+            cues: ["controlled movement", "full range"],
+            alt: ["Lighter weights", "Bodyweight"],
+            benefits: "Improves insulin sensitivity, balances hormones",
+          },
+          {
+            name: "Yoga Flow",
+            sets: 1,
+            reps: "15-20 min",
+            rpe: "4-5",
+            rest_s: 0,
+            tempo: "slow and controlled",
+            cues: ["breathe deeply", "mindful movement"],
+            alt: ["Gentle stretching", "Meditation"],
+            benefits: "Reduces cortisol, improves insulin sensitivity",
+          },
+          {
+            name: "Core Strengthening",
+            sets: 3,
+            reps: "12-15",
+            rpe: "6-7",
+            rest_s: 45,
+            tempo: "2-1-2",
+            cues: ["engage core", "controlled movement"],
+            alt: ["Modified planks", "Seated exercises"],
+            benefits: "Builds core strength, improves posture",
+          },
+        ],
+        stress_reduction: [
+          "5 min meditation after workout",
+          "Deep breathing exercises",
+          "Gentle stretching",
+        ],
+        movement_snacks: [
+          "Walking breaks every 45 min",
+          "Gentle stretching",
+          "Deep breathing exercises",
+        ],
+      };
+
+    case "cardiovascular":
+      return {
+        ...baseMovement,
+        exercises: isHighIntensityDay
+          ? [
+              {
+                name: "HIIT Cardio Circuit",
+                sets: 4,
+                reps: "30 sec work, 30 sec rest",
+                rpe: "8-9",
+                rest_s: 120,
+                tempo: "high intensity",
+                cues: ["maintain form", "controlled breathing"],
+                alt: ["Lower intensity version"],
+                benefits: "Improves cardiovascular fitness, heart health",
+              },
+              {
+                name: "Jump Rope",
+                sets: 4,
+                reps: "1 min",
+                rpe: "7-8",
+                rest_s: 60,
+                tempo: "steady rhythm",
+                cues: ["land softly", "relaxed shoulders"],
+                alt: ["Step-ups", "High knees"],
+                benefits: "Improves heart health, coordination",
+              },
+            ]
+          : [
+              {
+                name: "Zone 2 Cardio",
+                sets: 1,
+                reps: "30-40 min",
+                rpe: "5-6",
+                rest_s: 0,
+                tempo: "steady",
+                cues: ["conversational pace", "relaxed breathing"],
+                alt: ["Walking", "Cycling"],
+                benefits: "Improves aerobic capacity, heart health",
+              },
+              {
+                name: "Strength Training",
+                sets: 3,
+                reps: "12-15",
+                rpe: "6-7",
+                rest_s: 60,
+                tempo: "2-1-2",
+                cues: ["controlled movement", "full range"],
+                alt: ["Bodyweight exercises"],
+                benefits: "Builds muscle, supports heart health",
+              },
+            ],
+        heart_health_tips: [
+          "Monitor heart rate during exercise",
+          "Stay hydrated",
+          "Listen to your body",
+        ],
+      };
+
+    case "weight_optimization":
+      return {
+        ...baseMovement,
+        exercises: isHighIntensityDay
+          ? [
+              {
+                name: "Fat Burning HIIT",
+                sets: 4,
+                reps: "45 sec work, 15 sec rest",
+                rpe: "8-9",
+                rest_s: 120,
+                tempo: "high intensity",
+                cues: ["maintain form", "controlled breathing"],
+                alt: ["Lower intensity version"],
+                benefits: "Maximizes calorie burn, improves metabolism",
+              },
+              {
+                name: "Metabolic Circuit",
+                sets: 3,
+                reps: "12-15 each",
+                rpe: "7-8",
+                rest_s: 90,
+                tempo: "moderate to fast",
+                cues: ["controlled movement", "full range"],
+                alt: ["Lighter weights"],
+                benefits: "Builds muscle, burns calories",
+              },
+            ]
+          : [
+              {
+                name: "Strength Training",
+                sets: 3,
+                reps: "12-15",
+                rpe: "6-7",
+                rest_s: 60,
+                tempo: "2-1-2",
+                cues: ["controlled movement", "full range"],
+                alt: ["Bodyweight exercises"],
+                benefits: "Builds lean muscle, increases metabolism",
+              },
+              {
+                name: "Cardio Blast",
+                sets: 1,
+                reps: "25-30 min",
+                rpe: "6-7",
+                rest_s: 0,
+                tempo: "moderate",
+                cues: ["steady pace", "controlled breathing"],
+                alt: ["Walking", "Cycling"],
+                benefits: "Burns calories, improves cardiovascular health",
+              },
+            ],
+        metabolism_boosters: [
+          "Morning workout for metabolic boost",
+          "Post-meal walks",
+          "Strength training for muscle building",
+        ],
+      };
+
+    default: // wellness_optimization
+      return {
+        ...baseMovement,
+        exercises: [
+          {
+            name: "Full Body Strength",
+            sets: 3,
+            reps: "12-15",
+            rpe: "6-7",
+            rest_s: 60,
+            tempo: "2-1-2",
+            cues: ["controlled movement", "full range"],
+            alt: ["Bodyweight exercises"],
+            benefits: "Builds strength, improves overall health",
+          },
+          {
+            name: "Cardio Session",
+            sets: 1,
+            reps: "20-30 min",
+            rpe: "5-6",
+            rest_s: 0,
+            tempo: "steady",
+            cues: ["conversational pace", "relaxed breathing"],
+            alt: ["Walking", "Cycling"],
+            benefits: "Improves cardiovascular health, endurance",
+          },
+        ],
+      };
+  }
+}
+
+function getNutritionProtocol(planType: string, profile: UserProfile): any {
+  const wakeUpTime = profile.wake_up_time || "06:00";
+  const baseNutrition = {
+    calories: 1800,
+    protein_g: 120,
+    carbs_g: 180,
+    fat_g: 60,
+    fiber_g: 30,
+  };
+
+  switch (planType) {
+    case "diabetes_reversal":
+      return {
+        ...baseNutrition,
+        calories: 1600,
+        protein_g: 140,
+        carbs_g: 120,
+        fat_g: 70,
+        fiber_g: 40,
+        meals: [
+          {
+            name: "Breakfast",
+            time: addMinutes(wakeUpTime, 30),
+            items: [
+              {
+                food: "Steel-cut oats",
+                qty_g: 40,
+                hand_portion: "1 cupped hand",
+                benefits: "Low GI, high fiber, stabilizes blood sugar",
+              },
+              {
+                food: "Blueberries",
+                qty_g: 80,
+                hand_portion: "1 fist",
+                benefits:
+                  "Antioxidants, low sugar, improves insulin sensitivity",
+              },
+              {
+                food: "Chia seeds",
+                qty_g: 15,
+                hand_portion: "1 thumb",
+                benefits: "Omega-3, fiber, slows glucose absorption",
+              },
+              {
+                food: "Greek yogurt",
+                qty_g: 150,
+                hand_portion: "1 palm",
+                benefits: "Protein, probiotics, improves glucose control",
+              },
+              {
+                food: "Cinnamon",
+                qty_g: 2,
+                hand_portion: "pinch",
+                benefits: "Lowers blood sugar, improves insulin sensitivity",
+              },
+            ],
+            macros: { p: 35, c: 45, f: 20, fiber: 12 },
+            order: ["fiber", "protein", "carbs"],
+            timing: "Eat within 1 hour of waking to stabilize blood sugar",
+            tips: [
+              "Add cinnamon for blood sugar control",
+              "eat slowly",
+              "stay hydrated",
+            ],
+            swaps: [
+              "Quinoa for oats",
+              "raspberries for blueberries",
+              "almond butter for chia seeds",
+            ],
+            scientific_evidence:
+              "Research shows steel-cut oats reduce post-meal glucose by 36% and improve insulin sensitivity",
+          },
+          {
+            name: "Mid-Morning Snack",
+            time: addMinutes(addMinutes(wakeUpTime, 30), 180),
+            items: [
+              {
+                food: "Apple",
+                qty_g: 150,
+                hand_portion: "1 fist",
+                benefits: "Fiber, pectin, slows glucose absorption",
+              },
+              {
+                food: "Almonds",
+                qty_g: 15,
+                hand_portion: "1 thumb",
+                benefits:
+                  "Healthy fats, magnesium, improves insulin sensitivity",
+              },
+            ],
+            macros: { p: 5, c: 20, f: 10, fiber: 6 },
+            timing: "2-3 hours after breakfast",
+            benefits: "Prevents blood sugar spikes, maintains energy",
+          },
+          {
+            name: "Lunch",
+            time: profile.lunch_time || "12:30",
+            items: [
+              {
+                food: "Grilled salmon",
+                qty_g: 120,
+                hand_portion: "1 palm",
+                benefits: "Omega-3, protein, reduces inflammation",
+              },
+              {
+                food: "Quinoa",
+                qty_g: 80,
+                hand_portion: "1 cupped hand",
+                benefits: "Complete protein, low GI, fiber",
+              },
+              {
+                food: "Broccoli",
+                qty_g: 150,
+                hand_portion: "2 fists",
+                benefits: "Fiber, chromium, improves glucose tolerance",
+              },
+              {
+                food: "Olive oil",
+                qty_g: 10,
+                hand_portion: "1 thumb",
+                benefits: "Monounsaturated fats, reduces insulin resistance",
+              },
+              {
+                food: "Turmeric",
+                qty_g: 2,
+                hand_portion: "pinch",
+                benefits:
+                  "Curcumin, anti-inflammatory, improves insulin sensitivity",
+              },
+            ],
+            macros: { p: 40, c: 35, f: 25, fiber: 10 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Eat vegetables first, then protein, then carbs",
+            tips: [
+              "Add turmeric to vegetables",
+              "chew thoroughly",
+              "take 10-min walk after",
+            ],
+            swaps: [
+              "Mackerel for salmon",
+              "brown rice for quinoa",
+              "cauliflower for broccoli",
+            ],
+            scientific_evidence:
+              "Studies show quinoa has a GI of 53 vs 73 for white rice, significantly improving blood sugar control",
+          },
+          {
+            name: "Afternoon Snack",
+            time: addMinutes(profile.lunch_time || "12:30", 240),
+            items: [
+              {
+                food: "Greek yogurt",
+                qty_g: 150,
+                hand_portion: "1 palm",
+                benefits: "Protein, probiotics, stabilizes blood sugar",
+              },
+              {
+                food: "Walnuts",
+                qty_g: 10,
+                hand_portion: "1 thumb",
+                benefits: "Omega-3, magnesium, improves insulin function",
+              },
+            ],
+            macros: { p: 15, c: 8, f: 12, fiber: 2 },
+            timing: "4 hours after lunch",
+            benefits: "Prevents blood sugar crashes, maintains energy",
+          },
+          {
+            name: "Dinner",
+            time: profile.dinner_time || "18:30",
+            items: [
+              {
+                food: "Grilled chicken breast",
+                qty_g: 100,
+                hand_portion: "1 palm",
+                benefits: "Lean protein, chromium, improves glucose metabolism",
+              },
+              {
+                food: "Sweet potato",
+                qty_g: 100,
+                hand_portion: "1 fist",
+                benefits: "Beta-carotene, fiber, lower GI than regular potato",
+              },
+              {
+                food: "Spinach",
+                qty_g: 100,
+                hand_portion: "2 fists",
+                benefits: "Magnesium, folate, improves insulin sensitivity",
+              },
+              {
+                food: "Avocado",
+                qty_g: 50,
+                hand_portion: "1/4 avocado",
+                benefits:
+                  "Monounsaturated fats, potassium, reduces inflammation",
+              },
+              {
+                food: "Apple cider vinegar",
+                qty_g: 15,
+                hand_portion: "1 tbsp",
+                benefits: "Acetic acid, reduces post-meal glucose by 34%",
+              },
+            ],
+            macros: { p: 35, c: 25, f: 20, fiber: 8 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Finish 3 hours before sleep",
+            tips: [
+              "Add apple cider vinegar to vegetables",
+              "avoid screens while eating",
+              "take 15-min walk after",
+            ],
+            swaps: [
+              "Turkey for chicken",
+              "butternut squash for sweet potato",
+              "kale for spinach",
+            ],
+            scientific_evidence:
+              "Apple cider vinegar reduces post-meal glucose spikes by 34% and improves insulin sensitivity",
+          },
+        ],
+        snacks: [
+          "Green tea with lemon (antioxidants, improves insulin sensitivity)",
+          "Dark chocolate 85%+ (flavonoids, improves blood flow)",
+          "Herbal tea (chamomile, peppermint for relaxation)",
+        ],
+        hacks: [
+          "15-min walk after every meal (reduces glucose by 30%)",
+          "Drink water before eating (improves satiety)",
+          "Eat vegetables first (slows glucose absorption)",
+          "Add cinnamon to meals (lowers blood sugar)",
+          "Apple cider vinegar before meals (reduces glucose spikes)",
+        ],
+        supplements: [
+          "Berberine 500mg 2x daily (lowers blood sugar like metformin)",
+          "Chromium picolinate 200mcg daily (improves insulin sensitivity)",
+          "Alpha-lipoic acid 300mg daily (reduces oxidative stress)",
+          "Magnesium 400mg daily (improves glucose tolerance)",
+        ],
+        timing_guidelines: [
+          "Eat within 1 hour of waking",
+          "Space meals 3-4 hours apart",
+          "Finish dinner 3 hours before sleep",
+          "Include protein with every meal",
+          "Walk after every meal",
+        ],
+      };
+
+    case "pcos_management":
+      return {
+        ...baseNutrition,
+        calories: 1700,
+        protein_g: 130,
+        carbs_g: 140,
+        fat_g: 75,
+        fiber_g: 35,
+        meals: [
+          {
+            name: "Breakfast",
+            time: addMinutes(wakeUpTime, 30),
+            items: [
+              {
+                food: "Eggs",
+                qty_g: 100,
+                hand_portion: "2 eggs",
+                benefits:
+                  "Complete protein, choline, supports hormone production",
+              },
+              {
+                food: "Avocado",
+                qty_g: 75,
+                hand_portion: "1/2 avocado",
+                benefits: "Healthy fats, folate, reduces inflammation",
+              },
+              {
+                food: "Spinach",
+                qty_g: 50,
+                hand_portion: "1 fist",
+                benefits: "Iron, magnesium, supports menstrual health",
+              },
+              {
+                food: "Turmeric",
+                qty_g: 2,
+                hand_portion: "pinch",
+                benefits: "Anti-inflammatory, improves insulin sensitivity",
+              },
+            ],
+            macros: { p: 30, c: 8, f: 25, fiber: 6 },
+            order: ["vegetables", "protein", "healthy fats"],
+            timing: "Eat within 1 hour of waking",
+            tips: [
+              "Cook eggs with turmeric",
+              "add black pepper for absorption",
+              "stay hydrated",
+            ],
+            swaps: [
+              "Turkey bacon for eggs",
+              "olive oil for avocado",
+              "kale for spinach",
+            ],
+            scientific_evidence:
+              "Studies show that protein-rich breakfasts improve insulin sensitivity in PCOS by 40%",
+          },
+          {
+            name: "Lunch",
+            time: profile.lunch_time || "12:30",
+            items: [
+              {
+                food: "Grilled chicken",
+                qty_g: 120,
+                hand_portion: "1 palm",
+                benefits: "Lean protein, supports muscle mass",
+              },
+              {
+                food: "Quinoa",
+                qty_g: 80,
+                hand_portion: "1 cupped hand",
+                benefits: "Complete protein, fiber, supports hormone balance",
+              },
+              {
+                food: "Broccoli",
+                qty_g: 150,
+                hand_portion: "2 fists",
+                benefits:
+                  "Cruciferous vegetables, supports estrogen metabolism",
+              },
+              {
+                food: "Olive oil",
+                qty_g: 10,
+                hand_portion: "1 thumb",
+                benefits: "Monounsaturated fats, reduces inflammation",
+              },
+              {
+                food: "Pumpkin seeds",
+                qty_g: 15,
+                hand_portion: "1 thumb",
+                benefits: "Zinc, magnesium, supports hormone production",
+              },
+            ],
+            macros: { p: 40, c: 30, f: 25, fiber: 10 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Eat vegetables first for better absorption",
+            tips: [
+              "Add pumpkin seeds for zinc",
+              "use olive oil for cooking",
+              "take 10-min walk after",
+            ],
+            swaps: [
+              "Salmon for chicken",
+              "brown rice for quinoa",
+              "cauliflower for broccoli",
+            ],
+            scientific_evidence:
+              "Research shows that cruciferous vegetables like broccoli help metabolize excess estrogen in PCOS",
+          },
+          {
+            name: "Dinner",
+            time: profile.dinner_time || "18:30",
+            items: [
+              {
+                food: "Wild salmon",
+                qty_g: 100,
+                hand_portion: "1 palm",
+                benefits:
+                  "Omega-3, reduces inflammation, supports hormone balance",
+              },
+              {
+                food: "Sweet potato",
+                qty_g: 100,
+                hand_portion: "1 fist",
+                benefits: "Beta-carotene, fiber, supports fertility",
+              },
+              {
+                food: "Asparagus",
+                qty_g: 100,
+                hand_portion: "1 fist",
+                benefits: "Folate, supports reproductive health",
+              },
+              {
+                food: "Walnuts",
+                qty_g: 15,
+                hand_portion: "1 thumb",
+                benefits: "Omega-3, improves insulin sensitivity",
+              },
+            ],
+            macros: { p: 35, c: 25, f: 20, fiber: 8 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Finish 3 hours before sleep",
+            tips: [
+              "Add walnuts for omega-3",
+              "steam vegetables to preserve nutrients",
+              "avoid screens",
+            ],
+            swaps: [
+              "Mackerel for salmon",
+              "butternut squash for sweet potato",
+              "broccoli for asparagus",
+            ],
+            scientific_evidence:
+              "Omega-3 fatty acids from salmon reduce inflammation markers in PCOS by 25%",
+          },
+        ],
+        snacks: [
+          "Greek yogurt with berries (protein, probiotics, antioxidants)",
+          "Almonds with dark chocolate (healthy fats, magnesium)",
+          "Green tea (antioxidants, supports metabolism)",
+        ],
+        hacks: [
+          "Include protein with every meal",
+          "Eat cruciferous vegetables daily",
+          "Take 10-min walks after meals",
+          "Stay hydrated with herbal teas",
+          "Get 7-8 hours of quality sleep",
+        ],
+        supplements: [
+          "Inositol 2000mg daily (improves insulin sensitivity)",
+          "Chromium 200mcg daily (supports glucose metabolism)",
+          "Omega-3 1000mg daily (reduces inflammation)",
+          "Magnesium 400mg daily (supports hormone balance)",
+          "Vitamin D3 2000 IU daily (improves insulin sensitivity)",
+        ],
+      };
+
+    case "cardiovascular":
+      return {
+        ...baseNutrition,
+        calories: 1800,
+        protein_g: 120,
+        carbs_g: 160,
+        fat_g: 80,
+        fiber_g: 40,
+        meals: [
+          {
+            name: "Breakfast",
+            time: addMinutes(wakeUpTime, 30),
+            items: [
+              {
+                food: "Oatmeal",
+                qty_g: 50,
+                hand_portion: "1 cupped hand",
+                benefits: "Beta-glucan, lowers cholesterol by 10%",
+              },
+              {
+                food: "Blueberries",
+                qty_g: 100,
+                hand_portion: "1 fist",
+                benefits: "Anthocyanins, improves heart health",
+              },
+              {
+                food: "Flaxseeds",
+                qty_g: 15,
+                hand_portion: "1 thumb",
+                benefits: "Omega-3, lignans, supports heart health",
+              },
+              {
+                food: "Greek yogurt",
+                qty_g: 150,
+                hand_portion: "1 palm",
+                benefits: "Protein, probiotics, supports heart health",
+              },
+            ],
+            macros: { p: 25, c: 55, f: 20, fiber: 12 },
+            order: ["fiber", "protein", "carbs"],
+            timing: "Eat within 1 hour of waking",
+            tips: ["Add flaxseeds for omega-3", "eat slowly", "stay hydrated"],
+            swaps: [
+              "Quinoa for oatmeal",
+              "raspberries for blueberries",
+              "chia seeds for flaxseeds",
+            ],
+            scientific_evidence:
+              "Oatmeal's beta-glucan reduces LDL cholesterol by 10% and improves heart health",
+          },
+          {
+            name: "Lunch",
+            time: profile.lunch_time || "12:30",
+            items: [
+              {
+                food: "Grilled salmon",
+                qty_g: 120,
+                hand_portion: "1 palm",
+                benefits: "Omega-3, reduces inflammation, supports heart",
+              },
+              {
+                food: "Brown rice",
+                qty_g: 80,
+                hand_portion: "1 cupped hand",
+                benefits: "Fiber, B vitamins, supports heart health",
+              },
+              {
+                food: "Kale",
+                qty_g: 100,
+                hand_portion: "2 fists",
+                benefits: "Lutein, vitamin K, supports cardiovascular health",
+              },
+              {
+                food: "Olive oil",
+                qty_g: 10,
+                hand_portion: "1 thumb",
+                benefits: "Monounsaturated fats, reduces heart disease risk",
+              },
+              {
+                food: "Garlic",
+                qty_g: 5,
+                hand_portion: "1 clove",
+                benefits: "Allicin, reduces blood pressure and cholesterol",
+              },
+            ],
+            macros: { p: 35, c: 35, f: 30, fiber: 8 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Eat vegetables first",
+            tips: [
+              "Add garlic for heart health",
+              "use olive oil for cooking",
+              "take walk after",
+            ],
+            swaps: [
+              "Mackerel for salmon",
+              "quinoa for rice",
+              "spinach for kale",
+            ],
+            scientific_evidence:
+              "Garlic reduces systolic blood pressure by 8-10 mmHg and lowers cholesterol",
+          },
+          {
+            name: "Dinner",
+            time: profile.dinner_time || "18:30",
+            items: [
+              {
+                food: "Grilled chicken",
+                qty_g: 100,
+                hand_portion: "1 palm",
+                benefits: "Lean protein, supports heart health",
+              },
+              {
+                food: "Sweet potato",
+                qty_g: 120,
+                hand_portion: "1 fist",
+                benefits: "Beta-carotene, potassium, supports heart",
+              },
+              {
+                food: "Broccoli",
+                qty_g: 150,
+                hand_portion: "2 fists",
+                benefits: "Sulforaphane, supports cardiovascular health",
+              },
+              {
+                food: "Avocado",
+                qty_g: 50,
+                hand_portion: "1/4 avocado",
+                benefits: "Monounsaturated fats, potassium, supports heart",
+              },
+            ],
+            macros: { p: 30, c: 30, f: 25, fiber: 10 },
+            order: ["vegetables", "protein", "carbs"],
+            timing: "Finish 3 hours before sleep",
+            tips: [
+              "Add avocado for healthy fats",
+              "steam vegetables",
+              "avoid screens",
+            ],
+            swaps: [
+              "Turkey for chicken",
+              "butternut squash for sweet potato",
+              "cauliflower for broccoli",
+            ],
+            scientific_evidence:
+              "Avocado consumption reduces LDL cholesterol by 13.5 mg/dL and improves heart health",
+          },
+        ],
+        snacks: [
+          "Dark chocolate 70%+ (flavonoids, improves blood flow)",
+          "Nuts (almonds, walnuts - healthy fats, supports heart)",
+          "Green tea (antioxidants, supports cardiovascular health)",
+        ],
+        hacks: [
+          "Include omega-3 rich foods daily",
+          "Eat 5-7 servings of vegetables daily",
+          "Use olive oil for cooking",
+          "Include garlic in meals",
+          "Take 30-min walks daily",
+        ],
+        supplements: [
+          "Omega-3 1000mg daily (reduces inflammation, supports heart)",
+          "CoQ10 100mg daily (supports heart function)",
+          "Magnesium 400mg daily (supports heart rhythm)",
+          "Vitamin D3 2000 IU daily (reduces heart disease risk)",
+        ],
+      };
+
+    default: // wellness_optimization
+      return {
+        ...baseNutrition,
+        meals: [
+          {
+            name: "Breakfast",
+            time: addMinutes(wakeUpTime, 30),
+            items: [
+              {
+                food: "Oatmeal",
+                qty_g: 50,
+                hand_portion: "1 cupped hand",
+                benefits: "Fiber, sustained energy, supports heart health",
+              },
+              {
+                food: "Berries",
+                qty_g: 100,
+                hand_portion: "1 fist",
+                benefits: "Antioxidants, vitamins, supports immune system",
+              },
+              {
+                food: "Nuts",
+                qty_g: 20,
+                hand_portion: "1 thumb",
+                benefits: "Healthy fats, protein, supports brain health",
+              },
+              {
+                food: "Greek yogurt",
+                qty_g: 150,
+                hand_portion: "1 palm",
+                benefits: "Protein, probiotics, supports gut health",
+              },
+            ],
+            macros: { p: 25, c: 60, f: 15, fiber: 8 },
+            order: ["fiber", "protein", "carbs"],
+            tips: ["eat slowly", "stay hydrated", "enjoy your meal"],
+            swaps: [
+              "Quinoa for oatmeal",
+              "banana for berries",
+              "seeds for nuts",
+            ],
+          },
+          {
+            name: "Lunch",
+            time: profile.lunch_time || "13:00",
+            items: [
+              {
+                food: "Grilled chicken",
+                qty_g: 120,
+                hand_portion: "1 palm",
+                benefits: "Lean protein, supports muscle health",
+              },
+              {
+                food: "Brown rice",
+                qty_g: 100,
+                hand_portion: "1 cupped hand",
+                benefits: "Complex carbs, fiber, sustained energy",
+              },
+              {
+                food: "Mixed vegetables",
+                qty_g: 150,
+                hand_portion: "2 fists",
+                benefits: "Vitamins, minerals, supports overall health",
+              },
+            ],
+            macros: { p: 35, c: 50, f: 20, fiber: 6 },
+            order: ["vegetables", "protein", "carbs"],
+            tips: ["chew thoroughly", "take breaks", "enjoy your meal"],
+            swaps: [
+              "Fish for chicken",
+              "quinoa for rice",
+              "different vegetables",
+            ],
+          },
+          {
+            name: "Dinner",
+            time: profile.dinner_time || "19:00",
+            items: [
+              {
+                food: "Salmon",
+                qty_g: 100,
+                hand_portion: "1 palm",
+                benefits: "Omega-3, protein, supports brain health",
+              },
+              {
+                food: "Sweet potato",
+                qty_g: 120,
+                hand_portion: "1 fist",
+                benefits: "Beta-carotene, fiber, supports immune system",
+              },
+              {
+                food: "Green salad",
+                qty_g: 100,
+                hand_portion: "2 fists",
+                benefits: "Vitamins, minerals, supports overall health",
+              },
+            ],
+            macros: { p: 30, c: 40, f: 25, fiber: 8 },
+            order: ["salad", "protein", "carbs"],
+            tips: [
+              "finish 2-3 hours before sleep",
+              "avoid screens",
+              "enjoy your meal",
+            ],
+            swaps: [
+              "Tofu for salmon",
+              "regular potato for sweet potato",
+              "different vegetables",
+            ],
+          },
+        ],
+        snacks: ["Greek yogurt", "Apple with almond butter", "Herbal tea"],
+        hacks: [
+          "10-min walk after meals",
+          "drink water before eating",
+          "eat mindfully",
+        ],
+      };
+  }
 }

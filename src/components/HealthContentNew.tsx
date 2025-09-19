@@ -1,6 +1,19 @@
-import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  PlanDurationCalculator,
+  comprehensiveHealthPlanService,
+} from "@/services/comprehensiveHealthPlanService";
+import { progressTrackingService } from "@/services/progressTrackingService";
+import {
+  ComprehensiveHealthPlan,
+  PLAN_TYPE_DEFINITIONS,
+} from "@/types/comprehensiveHealthPlan";
+import { useEffect, useState } from "react";
+import { useHealthPlanGeneration } from "../hooks/useHealthPlanGeneration";
+import { ComprehensivePlanSelectionCards } from "./ComprehensivePlanSelectionCards";
 import { HealthInputBar } from "./HealthInputBar";
-import { PlanSelectionCards } from "./PlanSelectionCards";
+import { HealthPlanCalendarView } from "./HealthPlanCalendarView";
+import { HealthPlanProgress } from "./HealthPlanProgress";
 import { PlannerPage } from "./PlannerPage";
 import { DashboardHeaderNew } from "./dashboard/DashboardHeaderNew";
 import { ProgressCard } from "./dashboard/ProgressCard";
@@ -20,15 +33,110 @@ interface PlanData {
     type: "morning" | "meal" | "exercise" | "work" | "evening" | "sleep";
     description?: string;
   }>;
+  // Enhanced properties for comprehensive plans
+  plan_type?: ComprehensiveHealthPlan["plan_type"];
+  duration_weeks?: number;
+  expected_outcomes?: string[];
+  key_milestones?: string[];
+  comprehensive_plan?: ComprehensiveHealthPlan;
 }
 
 export const HealthContentNew = () => {
   const [suggestedInput, setSuggestedInput] = useState<string>("");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlans, setGeneratedPlans] = useState<PlanData[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<PlanData | null>(null);
   const [showInputBar, setShowInputBar] = useState(true);
+  const [activePlan, setActivePlan] = useState<ComprehensiveHealthPlan | null>(
+    null
+  );
+  const [userProfile, setUserProfile] = useState<Record<string, any> | null>(
+    null
+  );
+  const [realTimeProgress, setRealTimeProgress] = useState<any>(null);
+  const [progressSubscription, setProgressSubscription] = useState<
+    (() => void) | null
+  >(null);
+
+  // Use the new progress system
+  const { progress, generatePlan, reset } = useHealthPlanGeneration();
   const [showPlannerPage, setShowPlannerPage] = useState(false);
+  const [showCalendarView, setShowCalendarView] = useState(false);
+
+  // Load user's active plan on component mount
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  // Set up real-time progress tracking for active plan
+  useEffect(() => {
+    if (activePlan) {
+      // Subscribe to real-time progress updates
+      const unsubscribe = progressTrackingService.subscribeToProgressUpdates(
+        activePlan.id,
+        (progress) => {
+          setRealTimeProgress(progress);
+          // Update the active plan with new progress data
+          setActivePlan((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  overall_progress_percentage: progress.overallProgress,
+                  weekly_compliance_rate: progress.weeklyCompliance,
+                }
+              : null
+          );
+        }
+      );
+
+      setProgressSubscription(() => unsubscribe);
+
+      // Get initial progress summary
+      progressTrackingService
+        .getPlanProgressSummary(activePlan.id)
+        .then(setRealTimeProgress)
+        .catch(console.error);
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    } else {
+      // Clean up subscription when no active plan
+      if (progressSubscription) {
+        progressSubscription();
+        setProgressSubscription(null);
+      }
+      setRealTimeProgress(null);
+    }
+  }, [activePlan]);
+
+  const loadUserData = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Load user profile
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      setUserProfile(profile);
+
+      // Check for existing active plan
+      const existingPlan = await comprehensiveHealthPlanService.getActivePlan(
+        user.id
+      );
+      if (existingPlan) {
+        setActivePlan(existingPlan);
+        setShowInputBar(false);
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    }
+  };
 
   const handleSuggestedInput = (input: string) => {
     setSuggestedInput(input);
@@ -37,89 +145,109 @@ export const HealthContentNew = () => {
   };
 
   const handlePlanGeneration = async (input: string) => {
-    setIsGenerating(true);
     setShowInputBar(false);
 
     try {
-      // Use the actual health plan service
-      const { healthPlanService } = await import(
-        "@/services/healthPlanService"
+      // Reset progress and start generation
+      reset();
+      await generatePlan();
+
+      // Calculate plan duration and type
+      const planCalculation = PlanDurationCalculator.calculateDuration(
+        input,
+        userProfile
       );
-      const plan = await healthPlanService.generateHealthPlan();
 
-      // Check if we got a fallback plan
-      const isFallbackPlan = plan.id.startsWith("fallback-");
+      // Generate comprehensive health plan
+      const comprehensivePlan =
+        await comprehensiveHealthPlanService.generateComprehensivePlan(
+          input,
+          userProfile
+        );
 
-      // Convert the plan to the expected format
+      setActivePlan(comprehensivePlan);
+
+      // Convert to display format with realistic duration and features
+      const planTypeInfo = PLAN_TYPE_DEFINITIONS[comprehensivePlan.plan_type];
+
       const convertedPlan: PlanData = {
-        id: plan.id,
-        name: "Personalized Health Plan",
+        id: comprehensivePlan.id,
+        name: comprehensivePlan.plan_name,
         difficulty: "moderate",
-        description: "Customized health plan based on your profile and goals",
-        duration: "2 days",
+        description: comprehensivePlan.plan_data.overview.description,
+        duration: `${comprehensivePlan.duration_weeks} weeks (${Math.ceil(
+          comprehensivePlan.duration_weeks / 4
+        )} months)`,
         features: [
-          "Personalized nutrition",
-          "Custom workouts",
-          "Sleep optimization",
+          ...comprehensivePlan.plan_data.overview.key_principles,
+          `${planCalculation.timeline_preference} progression`,
+          "Weekly milestone tracking",
+          "Monthly assessments",
+          "Adaptive adjustments",
         ],
-        timetable:
-          plan.day_1_plan?.activities?.map((activity) => ({
-            time: activity.startTime,
-            activity: activity.title,
-            duration: `${activity.duration} min`,
-            type:
-              activity.type === "meal"
-                ? "meal"
-                : activity.type === "workout"
-                ? "exercise"
-                : activity.type === "sleep"
-                ? "sleep"
-                : activity.type === "hydration"
-                ? "morning"
-                : activity.type === "meditation"
-                ? "morning"
-                : "morning",
-            description: activity.description,
-          })) || [],
+        timetable: [], // Will be populated from daily templates
+        plan_type: comprehensivePlan.plan_type,
+        duration_weeks: comprehensivePlan.duration_weeks,
+        expected_outcomes: planCalculation.expected_outcomes,
+        key_milestones: planCalculation.key_milestones,
+        comprehensive_plan: comprehensivePlan,
       };
 
-      // Create multiple plans with different difficulties
+      // Create plan options with different approaches
       const multiplePlans: PlanData[] = [
         convertedPlan,
         {
           ...convertedPlan,
-          id: `${convertedPlan.id}-easy`,
-          name: "Easy Wellness Plan",
+          id: `${convertedPlan.id}-gradual`,
+          name: `Gradual ${planTypeInfo.name}`,
           difficulty: "easy",
-          description: "Gentle introduction to healthy habits",
-          duration: "1 week",
-          features: ["Light exercises", "Simple meals", "Basic routine"],
+          description: `A gentle approach to ${input} with extended timeline for sustainable results`,
+          duration: `${Math.ceil(
+            comprehensivePlan.duration_weeks * 1.5
+          )} weeks`,
+          features: [
+            "Gentle progression",
+            "Extended timeline",
+            "Lower intensity",
+            "Focus on habit formation",
+            "Stress-free approach",
+          ],
+          duration_weeks: Math.ceil(comprehensivePlan.duration_weeks * 1.5),
         },
         {
           ...convertedPlan,
-          id: `${convertedPlan.id}-hard`,
-          name: "Intensive Health Plan",
+          id: `${convertedPlan.id}-intensive`,
+          name: `Intensive ${planTypeInfo.name}`,
           difficulty: "hard",
-          description: "Comprehensive health transformation",
-          duration: "4 weeks",
+          description: `An accelerated approach to ${input} with higher intensity for faster results`,
+          duration: `${Math.ceil(
+            comprehensivePlan.duration_weeks * 0.75
+          )} weeks`,
           features: [
-            "Intensive workouts",
-            "Strict nutrition",
-            "Advanced tracking",
+            "Accelerated timeline",
+            "Higher intensity",
+            "Advanced techniques",
+            "Frequent assessments",
+            "Maximum commitment",
           ],
+          duration_weeks: Math.ceil(comprehensivePlan.duration_weeks * 0.75),
         },
       ];
 
       setGeneratedPlans(multiplePlans);
-      setIsGenerating(false);
-      console.log("🎉 Plan generation completed successfully!");
+      console.log(
+        `🎉 Comprehensive ${comprehensivePlan.duration_weeks}-week plan generated successfully!`
+      );
+      console.log(`📊 Plan type: ${comprehensivePlan.plan_type}`);
+      console.log(`🎯 Expected outcomes:`, planCalculation.expected_outcomes);
     } catch (error) {
-      console.error("❌ Error generating health plan:", error);
-      setIsGenerating(false);
+      console.error("❌ Error generating comprehensive health plan:", error);
       setShowInputBar(true); // Show input bar again on error
       // Show error to user with more helpful message
       alert(
-        `Unable to generate health plan at this time. Please try again in a few moments. Error: ${error.message}`
+        `Unable to generate health plan at this time. Please try again in a few moments. Error: ${
+          error.message || "Unknown error"
+        }`
       );
     }
   };
@@ -129,8 +257,14 @@ export const HealthContentNew = () => {
     setShowPlannerPage(true);
   };
 
+  const handleViewPlanDetails = (plan: PlanData) => {
+    setSelectedPlan(plan);
+    setShowCalendarView(true);
+  };
+
   const handleBackToPlans = () => {
     setShowPlannerPage(false);
+    setShowCalendarView(false);
     setSelectedPlan(null);
   };
 
@@ -142,6 +276,12 @@ export const HealthContentNew = () => {
   };
 
   // Show PlannerPage when a plan is selected
+  if (showCalendarView && selectedPlan) {
+    return (
+      <HealthPlanCalendarView plan={selectedPlan} onBack={handleBackToPlans} />
+    );
+  }
+
   if (showPlannerPage && selectedPlan) {
     return <PlannerPage plan={selectedPlan} onBack={handleBackToPlans} />;
   }
@@ -167,43 +307,169 @@ export const HealthContentNew = () => {
           calorieChangePercent={-5.6}
         />
 
-        {/* Loading State */}
-        {isGenerating && (
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mr-3"></div>
-              <p className="text-lg font-medium text-gray-700">
-                Creating your health plan...
-              </p>
+        {/* Loading State with Progress */}
+        {progress.isGenerating && (
+          <HealthPlanProgress
+            isGenerating={progress.isGenerating}
+            currentStep={progress.currentStep}
+            error={progress.error}
+            onComplete={() => {
+              // Handle completion if needed
+            }}
+          />
+        )}
+
+        {/* Active Plan Display */}
+        {activePlan && (
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-green-800">
+                  {activePlan.plan_name}
+                </h3>
+                <p className="text-green-600">
+                  {PLAN_TYPE_DEFINITIONS[activePlan.plan_type].name} •{" "}
+                  {activePlan.duration_weeks} weeks
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-700">
+                  {Math.round(activePlan.overall_progress_percentage)}%
+                </div>
+                <div className="text-sm text-green-600">Complete</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="text-sm text-gray-600">Weekly Compliance</div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {Math.round(activePlan.weekly_compliance_rate)}%
+                </div>
+              </div>
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="text-sm text-gray-600">Days Remaining</div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {Math.max(
+                    0,
+                    Math.ceil(
+                      (new Date(activePlan.target_end_date).getTime() -
+                        new Date().getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )
+                  )}
+                </div>
+              </div>
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="text-sm text-gray-600">Status</div>
+                <div className="text-lg font-semibold capitalize text-gray-800">
+                  {activePlan.status}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  // Navigate to plan details
+                  console.log("View plan details");
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                View Progress
+              </button>
+              <button
+                onClick={() => {
+                  // Navigate to today's plan
+                  console.log("View today's plan");
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Today's Plan
+              </button>
+              <button
+                onClick={() => {
+                  setActivePlan(null);
+                  setShowInputBar(true);
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                New Plan
+              </button>
             </div>
           </div>
         )}
 
-        {/* Test Button - Remove this after testing */}
-        {!isGenerating && generatedPlans.length === 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <p className="text-sm text-yellow-800 mb-2">
-              Debug: Test the function directly
-            </p>
-            <button
-              onClick={() => handlePlanGeneration("I want to lose weight")}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
-            >
-              Test Generate Plan
-            </button>
-          </div>
-        )}
+        {/* Test Button - Enhanced with realistic examples */}
+        {!progress.isGenerating &&
+          generatedPlans.length === 0 &&
+          !activePlan && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p className="text-sm text-blue-800 mb-3">
+                🧪 Try these realistic health goals:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {[
+                  {
+                    goal: "I want to lose 10kg safely",
+                    weeks: "12-16 weeks",
+                    type: "Weight Loss",
+                  },
+                  {
+                    goal: "Help me manage my diabetes",
+                    weeks: "24 weeks",
+                    type: "Disease Management",
+                  },
+                  {
+                    goal: "Build muscle and strength",
+                    weeks: "16 weeks",
+                    type: "Fitness",
+                  },
+                  {
+                    goal: "Improve my sleep quality",
+                    weeks: "6 weeks",
+                    type: "Wellness",
+                  },
+                  {
+                    goal: "Reduce stress and anxiety",
+                    weeks: "4 weeks",
+                    type: "Mental Health",
+                  },
+                  {
+                    goal: "Quick energy boost",
+                    weeks: "1 week",
+                    type: "Quick Win",
+                  },
+                ].map((example, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePlanGeneration(example.goal)}
+                    className="text-left bg-white border border-blue-200 rounded-lg p-3 hover:bg-blue-50 transition-colors"
+                  >
+                    <div className="font-medium text-blue-800 text-sm">
+                      {example.type}
+                    </div>
+                    <div className="text-xs text-blue-600 mb-1">
+                      {example.weeks}
+                    </div>
+                    <div className="text-xs text-gray-600">{example.goal}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
         {/* Health Input Bar - Show when no plans generated or when generating */}
-        {(showInputBar || isGenerating) && (
+        {(showInputBar || progress.isGenerating) && (
           <HealthInputBar onPlanGenerate={handlePlanGeneration} />
         )}
 
         {/* Plan Selection Cards - Show when plans are generated */}
         {generatedPlans.length > 0 && (
-          <PlanSelectionCards
+          <ComprehensivePlanSelectionCards
             plans={generatedPlans}
             onPlanSelect={handlePlanSelect}
+            onViewPlanDetails={handleViewPlanDetails}
           />
         )}
       </div>

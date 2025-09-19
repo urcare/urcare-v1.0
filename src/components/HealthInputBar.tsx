@@ -303,9 +303,17 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
 
           {/* Status Indicators */}
           {isLoading && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-blue-600">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Generating your personalized health plan...</span>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-blue-600 mb-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="font-medium">
+                  Generating your personalized health plan...
+                </span>
+              </div>
+              <div className="text-xs text-blue-500">
+                Our AI is analyzing your data and creating a comprehensive plan
+                tailored to your needs
+              </div>
             </div>
           )}
 
