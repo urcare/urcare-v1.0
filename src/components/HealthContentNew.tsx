@@ -49,10 +49,17 @@ export const HealthContentNew = () => {
   const [activePlan, setActivePlan] = useState<ComprehensiveHealthPlan | null>(
     null
   );
-  const [userProfile, setUserProfile] = useState<Record<string, any> | null>(
+  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(
     null
   );
-  const [realTimeProgress, setRealTimeProgress] = useState<any>(null);
+  const [realTimeProgress, setRealTimeProgress] = useState<{
+    overallProgress: number;
+    weeklyCompliance: number;
+    currentWeek: number;
+    daysRemaining: number;
+    milestonesAchieved: number;
+    totalMilestones: number;
+  } | null>(null);
   const [progressSubscription, setProgressSubscription] = useState<
     (() => void) | null
   >(null);
@@ -70,44 +77,76 @@ export const HealthContentNew = () => {
   // Set up real-time progress tracking for active plan
   useEffect(() => {
     if (activePlan) {
-      // Subscribe to real-time progress updates
-      const unsubscribe = progressTrackingService.subscribeToProgressUpdates(
-        activePlan.id,
-        (progress) => {
-          setRealTimeProgress(progress);
-          // Update the active plan with new progress data
-          setActivePlan((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  overall_progress_percentage: progress.overallProgress,
-                  weekly_compliance_rate: progress.weeklyCompliance,
-                }
-              : null
-          );
-        }
-      );
+      let unsubscribe: (() => void) | null = null;
 
-      setProgressSubscription(() => unsubscribe);
+      // Subscribe to real-time progress updates
+      progressTrackingService
+        .subscribeToProgressUpdates(
+          activePlan.id,
+          (progress) => {
+            setRealTimeProgress(progress);
+            // Update the active plan with new progress data
+            setActivePlan((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    overall_progress_percentage: progress.overallProgress,
+                    weekly_compliance_rate: progress.weeklyCompliance,
+                  }
+                : null
+            );
+          }
+        )
+        .then((unsubFn) => {
+          unsubscribe = unsubFn;
+          setProgressSubscription(() => unsubFn);
+        })
+        .catch((error) => {
+          console.warn("Failed to subscribe to progress updates:", error);
+          // Set a no-op unsubscribe function
+          const noOpUnsubscribe = () => {};
+          setProgressSubscription(() => noOpUnsubscribe);
+        });
 
       // Get initial progress summary
       progressTrackingService
         .getPlanProgressSummary(activePlan.id)
         .then(setRealTimeProgress)
-        .catch(console.error);
+        .catch((error) => {
+          console.warn("Failed to get initial progress summary:", error);
+          // Set fallback progress data
+          setRealTimeProgress({
+            overallProgress: 0,
+            weeklyCompliance: 0,
+            currentWeek: 1,
+            daysRemaining: 28,
+            milestonesAchieved: 0,
+            totalMilestones: 4,
+          });
+        });
 
       return () => {
-        if (unsubscribe) unsubscribe();
+        if (unsubscribe && typeof unsubscribe === 'function') {
+          try {
+            unsubscribe();
+          } catch (error) {
+            console.warn("Error during unsubscribe:", error);
+          }
+        }
       };
     } else {
       // Clean up subscription when no active plan
-      if (progressSubscription) {
-        progressSubscription();
+      if (progressSubscription && typeof progressSubscription === 'function') {
+        try {
+          progressSubscription();
+        } catch (error) {
+          console.warn("Error cleaning up progress subscription:", error);
+        }
         setProgressSubscription(null);
       }
       setRealTimeProgress(null);
     }
-  }, [activePlan]);
+  }, [activePlan]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUserData = async () => {
     try {

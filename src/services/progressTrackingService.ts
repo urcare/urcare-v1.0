@@ -440,9 +440,22 @@ export class ProgressTrackingService {
             filter: `plan_id=eq.${planId}`,
           },
           async () => {
-            // Fetch updated progress when changes occur
-            const summary = await this.getPlanProgressSummary(planId);
-            onUpdate(summary);
+            try {
+              // Fetch updated progress when changes occur
+              const summary = await this.getPlanProgressSummary(planId);
+              onUpdate(summary);
+            } catch (error) {
+              console.warn("Error fetching progress summary in subscription:", error);
+              // Provide fallback progress data
+              onUpdate({
+                overallProgress: 0,
+                weeklyCompliance: 0,
+                currentWeek: 1,
+                daysRemaining: 28,
+                milestonesAchieved: 0,
+                totalMilestones: 4,
+              });
+            }
           }
         )
         .on(
@@ -454,19 +467,39 @@ export class ProgressTrackingService {
             filter: `plan_id=eq.${planId}`,
           },
           async () => {
-            // Fetch updated progress when changes occur
-            const summary = await this.getPlanProgressSummary(planId);
-            onUpdate(summary);
+            try {
+              // Fetch updated progress when changes occur
+              const summary = await this.getPlanProgressSummary(planId);
+              onUpdate(summary);
+            } catch (error) {
+              console.warn("Error fetching progress summary in subscription:", error);
+              // Provide fallback progress data
+              onUpdate({
+                overallProgress: 0,
+                weeklyCompliance: 0,
+                currentWeek: 1,
+                daysRemaining: 28,
+                milestonesAchieved: 0,
+                totalMilestones: 4,
+              });
+            }
           }
         )
         .subscribe();
 
       return () => {
-        subscription.unsubscribe();
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.warn("Error unsubscribing from progress updates:", error);
+        }
       };
     } catch (error) {
       console.error("Error subscribing to progress updates:", error);
-      throw error;
+      // Return a no-op unsubscribe function as fallback
+      return () => {
+        console.warn("No-op unsubscribe called due to subscription error");
+      };
     }
   }
 }
