@@ -38,41 +38,36 @@ class AuthFlowService {
     }
 
     try {
-      console.log("AuthFlowService: Getting auth flow state for user:", user.id);
-      
       // Get user profile to check onboarding status
-      console.log("AuthFlowService: Fetching user profile...");
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
         .select("onboarding_completed")
         .eq("id", user.id)
         .single();
 
-      console.log("AuthFlowService: Profile result:", { profile, profileError });
       const isOnboardingComplete = profile?.onboarding_completed ?? false;
 
       // Get subscription status
-      console.log("AuthFlowService: Getting subscription status...");
       const subscriptionStatus =
         await subscriptionService.getSubscriptionStatus(user.id);
       const hasActiveSubscription = subscriptionStatus.isActive;
-      console.log("AuthFlowService: Subscription status:", subscriptionStatus);
 
       // Get trial status with timeout
-      console.log("AuthFlowService: Getting trial status...");
       let hasActiveTrial = false;
       try {
         // Add timeout to prevent hanging
         const trialStatusPromise = trialService.getTrialStatus(user.id);
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Trial service timeout')), 5000)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Trial service timeout")), 5000)
         );
-        
-        const trialStatus = await Promise.race([trialStatusPromise, timeoutPromise]) as any;
+
+        const trialStatus = (await Promise.race([
+          trialStatusPromise,
+          timeoutPromise,
+        ])) as any;
         hasActiveTrial = trialStatus.isActive;
-        console.log("AuthFlowService: Trial status:", trialStatus);
       } catch (trialError) {
-        console.warn("AuthFlowService: Trial service failed, continuing without trial check:", trialError);
+        console.warn("❌ Trial service failed:", trialError);
         hasActiveTrial = false;
       }
 

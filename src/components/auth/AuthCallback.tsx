@@ -1,7 +1,6 @@
 import { devUtils, isDevelopment } from "@/config/development";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDevAuthFallback } from "@/hooks/useDevAuthFallback";
-import { supabase } from "@/integrations/supabase/client";
 import { authFlowService } from "@/services/authFlowService";
 import { devAuthService } from "@/services/devAuthService";
 import React, { useEffect, useRef } from "react";
@@ -16,8 +15,6 @@ export const AuthCallback: React.FC = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      console.log("AuthCallback: Starting OAuth callback handling...");
-
       // Check if we're in development and need to redirect to local URL
       if (isDevelopment()) {
         devUtils.log("Handling auth callback in development mode");
@@ -35,16 +32,6 @@ export const AuthCallback: React.FC = () => {
   // Handle redirect when user is authenticated and context is ready
   useEffect(() => {
     const handleRedirect = async () => {
-      console.log("AuthCallback: Checking redirect conditions:", {
-        hasRedirected: hasRedirected.current,
-        isInitialized,
-        loading,
-        hasUser: !!user,
-        hasProfile: !!profile,
-        user: user?.id,
-        profile: profile?.id
-      });
-      
       // Only redirect once and when everything is ready
       if (
         !hasRedirected.current &&
@@ -54,24 +41,26 @@ export const AuthCallback: React.FC = () => {
         // Removed profile requirement - it might not be set yet
       ) {
         hasRedirected.current = true;
-        
+
         try {
           console.log("AuthCallback: User authenticated, determining redirect");
           console.log("AuthCallback: User ID:", user.id);
           console.log("AuthCallback: Profile:", profile);
-          
+
           // Add a small delay to ensure auth context is fully settled
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
           // Get the appropriate redirect route using the auth flow service
-          console.log("AuthCallback: Calling authFlowService.getRedirectRoute...");
+          console.log(
+            "AuthCallback: Calling authFlowService.getRedirectRoute..."
+          );
           const redirectRoute = await authFlowService.getRedirectRoute(user);
           console.log("AuthCallback: Got redirect route:", redirectRoute);
-          
+
           toast.success("Welcome back!", {
             description: "Redirecting to your dashboard...",
           });
-          
+
           navigate(redirectRoute, { replace: true });
         } catch (error) {
           console.error("AuthCallback: Error determining redirect:", error);

@@ -32,6 +32,25 @@ const Paywall: React.FC = () => {
     checkTrialStatus();
   }, [user]);
 
+  // Handle payment success redirect
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      // Check if user came back from successful payment
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentSuccess = urlParams.get("payment_success");
+
+      if (paymentSuccess === "true") {
+        toast.success("🎉 Payment successful! Welcome to UrCare Assistant!");
+        // Redirect to dashboard with access unlocked
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      }
+    };
+
+    handlePaymentSuccess();
+  }, []);
+
   const handleStartTrial = async () => {
     if (!user?.id) {
       toast.error("Please log in to start your trial");
@@ -84,26 +103,31 @@ const Paywall: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-white overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+      <div className="flex items-center justify-between p-6">
         <button
           onClick={() => navigate("/")}
-          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-100"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <button className="text-sm text-gray-600 hover:text-gray-800 transition-colors">
+        <button className="text-sm text-gray-600 hover:text-gray-800 transition-colors font-medium">
           Restore
         </button>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center px-6 max-w-md mx-auto w-full">
+      <div className="max-w-md mx-auto px-6 pb-8">
         {/* Main Headline */}
-        <h1 className="text-2xl md:text-3xl font-bold text-black text-center mb-8">
-          Start your 3-day FREE trial to continue.
-        </h1>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black mb-2">
+            Start your 3-day FREE trial to continue.
+          </h1>
+          <p className="text-gray-600 text-base">
+            Unlock all features and get the most out of your health journey
+          </p>
+        </div>
 
         {/* Trial Timeline */}
         <div className="space-y-6 mb-8">
@@ -159,76 +183,89 @@ const Paywall: React.FC = () => {
         </div>
 
         {/* Subscription Options */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="space-y-4 mb-8">
           {/* Monthly Option */}
           <div
-            className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+            className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-sm ${
               billingCycle === "monthly"
-                ? "border-black"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-black shadow-lg"
+                : "border-gray-200 hover:border-gray-300 hover:shadow-md"
             }`}
             onClick={() => setBillingCycle("monthly")}
           >
-            <div className="text-center">
-              <h3 className="font-medium text-black text-sm mb-1">Monthly</h3>
-              <p className="text-black text-sm">$12.99 /mo</p>
-            </div>
-            <div
-              className={`absolute top-3 right-3 w-4 h-4 rounded-full border-2 ${
-                billingCycle === "monthly"
-                  ? "border-black bg-black"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              {billingCycle === "monthly" && (
-                <Check className="w-2.5 h-2.5 text-white mx-auto mt-0.5" />
-              )}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-black text-lg mb-1">
+                  Monthly
+                </h3>
+                <p className="text-gray-600 text-sm">₹599 /mo</p>
+              </div>
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  billingCycle === "monthly"
+                    ? "border-black bg-black"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                {billingCycle === "monthly" && (
+                  <Check className="w-3 h-3 text-white" />
+                )}
+              </div>
             </div>
           </div>
 
           {/* Yearly Option */}
           <div
-            className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+            className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-sm ${
               billingCycle === "annual"
-                ? "border-black"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-black shadow-lg"
+                : "border-gray-200 hover:border-gray-300 hover:shadow-md"
             }`}
             onClick={() => setBillingCycle("annual")}
           >
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-              <div className="bg-black text-white text-xs px-2 py-1 rounded-full font-medium">
+            <div className="absolute -top-3 left-6">
+              <div className="bg-black text-white text-xs px-3 py-1 rounded-full font-medium">
                 3 DAYS FREE
               </div>
             </div>
-            <div className="text-center">
-              <h3 className="font-medium text-black text-sm mb-1">Yearly</h3>
-              <p className="text-black text-sm">$3.33/mo</p>
-            </div>
-            <div
-              className={`absolute top-3 right-3 w-4 h-4 rounded-full border-2 ${
-                billingCycle === "annual"
-                  ? "border-black bg-black"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              {billingCycle === "annual" && (
-                <Check className="w-2.5 h-2.5 text-white mx-auto mt-0.5" />
-              )}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-black text-lg mb-1">
+                  Yearly
+                </h3>
+                <p className="text-gray-600 text-sm">₹416.58 /mo</p>
+                <p className="text-green-600 text-xs font-medium mt-1">
+                  Save 30%
+                </p>
+              </div>
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  billingCycle === "annual"
+                    ? "border-black bg-black"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                {billingCycle === "annual" && (
+                  <Check className="w-3 h-3 text-white" />
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Payment Status */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <Check className="w-4 h-4 text-black" />
-          <span className="text-black text-sm">No Payment Due Now</span>
+          <Check className="w-4 h-4 text-green-600" />
+          <span className="text-gray-600 text-sm font-medium">
+            No Payment Due Now
+          </span>
         </div>
 
         {/* CTA Button */}
         <Button
           onClick={handleSubscribe}
           disabled={isCreatingTrial || !canClaimTrial}
-          className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-lg text-base transition-colors disabled:bg-gray-400"
+          className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-2xl text-base transition-all duration-200 disabled:bg-gray-400 shadow-lg hover:shadow-xl"
         >
           {isCreatingTrial ? (
             <>
@@ -243,14 +280,14 @@ const Paywall: React.FC = () => {
         </Button>
 
         {/* Fine Print */}
-        <p className="text-center text-gray-500 text-xs mt-3">
-          3 days free, then $39.99 per year ($3.33/mo)
-        </p>
-      </div>
-
-      {/* iOS Home Indicator */}
-      <div className="flex justify-center pb-2">
-        <div className="w-32 h-1 bg-gray-300 rounded-full"></div>
+        <div className="text-center mt-4 space-y-1">
+          <p className="text-gray-500 text-xs">
+            3 days free, then ₹4,999 per year (₹416.58/mo)
+          </p>
+          <p className="text-gray-400 text-xs">
+            Cancel anytime. No commitment.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ export const supabase = createClient(
       redirectTo: config.supabase.redirectUrl,
       // Additional auth options for development
       flowType: "pkce",
-      debug: import.meta.env.MODE === "development",
+      debug: false, // Disable verbose auth logs
     },
   }
 );

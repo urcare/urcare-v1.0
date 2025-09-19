@@ -222,8 +222,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Handle user authentication
   const handleUserAuth = useCallback(
     async (user: User | null) => {
-      console.log("AuthContext: handleUserAuth called with user:", user?.id);
-
       if (!user) {
         setUser(null);
         setProfile(null);
@@ -232,30 +230,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setUser(user);
-      console.log("AuthContext: User set, now fetching profile...");
 
       try {
         await ensureUserProfile(user);
-        console.log("AuthContext: Profile ensured, fetching user profile...");
         const userProfile = await fetchUserProfile(user.id);
-        console.log("AuthContext: Fetched profile:", userProfile);
 
         if (userProfile) {
           setProfile(userProfile);
-          console.log("AuthContext: Real profile set");
         } else {
           const minimalProfile = createMinimalProfile(user);
           setProfile(minimalProfile);
-          console.log("AuthContext: Minimal profile set:", minimalProfile);
         }
       } catch (error) {
-        console.warn("Profile operations failed:", error);
+        console.warn("❌ Profile operations failed:", error);
         const minimalProfile = createMinimalProfile(user);
         setProfile(minimalProfile);
-        console.log(
-          "AuthContext: Error fallback - minimal profile set:",
-          minimalProfile
-        );
       }
     },
     [fetchUserProfile, ensureUserProfile]
@@ -267,25 +256,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     let isInitializing = true;
 
     const initializeAuth = async () => {
-      console.log("AuthContext: Starting initialization...");
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        console.log("AuthContext: Got user from getUser:", user?.id);
 
         if (mounted) {
           await handleUserAuth(user);
         }
       } catch (error) {
-        console.warn("Auth initialization failed:", error);
+        console.warn("❌ Auth initialization failed:", error);
         if (mounted) {
           setUser(null);
           setProfile(null);
         }
       } finally {
         if (mounted) {
-          console.log("AuthContext: Setting loading=false, initialized=true");
           setLoading(false);
           setIsInitialized(true);
           isInitializing = false;
@@ -293,12 +279,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    // Only initialize once
-    if (!authListenerRef.current) {
-      initializeAuth();
-    }
-
-    // Set up auth state listener
+    // Set up auth state listener first
     if (!authListenerRef.current) {
       authListenerRef.current = true;
 
@@ -307,13 +288,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!mounted) return;
 
-        console.log("Auth state change:", event, session?.user?.id);
-
         // Skip auth state changes during initialization to prevent duplicate calls
         if (isInitializing) {
-          console.log(
-            "AuthContext: Skipping auth state change during initialization"
-          );
           return;
         }
 
@@ -326,6 +302,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
 
+      // Initialize auth after setting up listener
+      initializeAuth();
+
       return () => {
         mounted = false;
         authListenerRef.current = false;
@@ -336,7 +315,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       mounted = false;
     };
-  }, [handleUserAuth]);
+  }, []); // Remove handleUserAuth from dependencies to prevent re-initialization
 
   const signUp = useCallback(
     async (email: string, password: string, fullName: string) => {

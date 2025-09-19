@@ -35,7 +35,7 @@ class TrialService {
         .maybeSingle();
 
       // Handle "no record found" case
-      if (error && error.code === 'PGRST116') {
+      if (error && error.code === "PGRST116") {
         return false;
       }
 
@@ -64,8 +64,6 @@ class TrialService {
    */
   async getTrialStatus(userId: string): Promise<TrialStatus> {
     try {
-      console.log("TrialService: Getting trial status for user:", userId);
-      
       // Use .maybeSingle() instead of .single() to handle "no record found" gracefully
       const { data, error } = await supabase
         .from("user_trials")
@@ -74,12 +72,9 @@ class TrialService {
         .order("claimed_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      
-      console.log("TrialService: Trial query result:", { data, error });
 
       // Handle "no record found" case (PGRST116 error code)
-      if (error && error.code === 'PGRST116') {
-        console.log("TrialService: No trial found for user, returning default status");
+      if (error && error.code === "PGRST116") {
         return {
           hasTrial: false,
           isActive: false,
@@ -91,7 +86,7 @@ class TrialService {
 
       // Handle other errors
       if (error || !data) {
-        console.warn("TrialService: Error or no data:", error);
+        console.warn("❌ Trial service error:", error);
         return {
           hasTrial: false,
           isActive: false,
@@ -108,12 +103,6 @@ class TrialService {
       );
       const isActive = data.is_active && trialEnd > now;
 
-      console.log("TrialService: Trial found:", {
-        isActive,
-        daysRemaining,
-        trialEnd: data.trial_end
-      });
-
       return {
         hasTrial: true,
         isActive,
@@ -122,7 +111,10 @@ class TrialService {
         canClaimTrial: false, // User already has a trial
       };
     } catch (error) {
-      console.error("TrialService: Unexpected error getting trial status:", error);
+      console.error(
+        "TrialService: Unexpected error getting trial status:",
+        error
+      );
       return {
         hasTrial: false,
         isActive: false,

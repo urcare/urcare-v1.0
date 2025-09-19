@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
 import EnhancedPlanner from "./pages/EnhancedPlanner";
@@ -133,6 +134,18 @@ function App() {
                 requireSubscription={true}
               >
                 <EnhancedPlanner />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/camera"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={false}
+              >
+                <Camera />
               </ProtectedRoute>
             }
           />

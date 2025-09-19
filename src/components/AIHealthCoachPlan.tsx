@@ -338,7 +338,7 @@ const DailyPlanDisplay: React.FC<{ plan: DailyPlan; dayNumber: number }> = ({
 
       <ExpandableSection
         title="Movement & Training"
-        icon={<Activity className="h-5 w-5 text-blue-600" />}
+        icon={<Activity className="h-5 w-5 text-green-600" />}
         defaultExpanded={true}
       >
         <div className="space-y-4">
@@ -413,7 +413,7 @@ const DailyPlanDisplay: React.FC<{ plan: DailyPlan; dayNumber: number }> = ({
               <div className="text-xs text-gray-600">Calories</div>
             </div>
             <div>
-              <div className="text-xl font-bold text-blue-600">
+              <div className="text-xl font-bold text-green-600">
                 {plan.nutrition.protein_g}g
               </div>
               <div className="text-xs text-gray-600">Protein</div>
@@ -647,14 +647,14 @@ const AIHealthCoachPlan: React.FC<AIHealthCoachPlanProps> = ({ plan }) => {
       )}
 
       {plan.cultural_adaptations && plan.cultural_adaptations.length > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-green-200 bg-green-50">
           <CardHeader>
-            <CardTitle className="text-blue-800">
+            <CardTitle className="text-green-800">
               Cultural Adaptations
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="list-disc list-inside space-y-2 text-blue-700">
+            <ul className="list-disc list-inside space-y-2 text-green-700">
               {plan.cultural_adaptations.map((adaptation, index) => (
                 <li key={index}>{adaptation}</li>
               ))}

@@ -100,17 +100,34 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+  // Only allow POST requests
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ success: false, error: "Method not allowed" }),
       {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 405,
       }
     );
+  }
+
+  try {
+    // Check environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Missing required environment variables");
+    }
+
+    // Create Supabase client
+    const authHeader = req.headers.get("Authorization");
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: authHeader ? { Authorization: authHeader } : {},
+      },
+    });
 
     // Get the current user
     const {
@@ -128,16 +145,21 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile (basic) and onboarding details (separate table)
+    // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
       .from("user_profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile) {
+    if (profileError) {
+      console.error("❌ Profile fetch error:", profileError);
       return new Response(
-        JSON.stringify({ success: false, error: "User profile not found" }),
+        JSON.stringify({
+          success: false,
+          error: "User profile not found",
+          details: profileError.message,
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 404,
@@ -145,54 +167,30 @@ serve(async (req) => {
       );
     }
 
-    const { data: onboarding, error: onboardingError } = await supabaseClient
-      .from("onboarding_profiles")
-      .select("details")
-      .eq("user_id", user.id)
-      .single();
-
-    if (onboardingError) {
-      console.warn(
-        "No onboarding_profiles row found; proceeding with profile only"
-      );
-    }
-
-    // Check if user has completed onboarding
-    if (!profile.onboarding_completed) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Onboarding not completed" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        }
-      );
-    }
-
-    // Check if user already has an active plan
-    const { data: existingPlan, error: existingPlanError } =
-      await supabaseClient
-        .from("two_day_health_plans")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .single();
-
-    if (existingPlan && !existingPlanError) {
+    if (!profile) {
+      console.error("❌ No profile data returned");
       return new Response(
         JSON.stringify({
-          success: true,
-          message: "Active plan already exists",
-          plan: existingPlan,
+          success: false,
+          error: "User profile not found",
+          details: "No profile data returned from database",
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
+          status: 404,
         }
       );
     }
 
     // Generate health plan using OpenAI
-    const healthPlan = await generateHealthPlan(profile, onboarding?.details);
+    let healthPlan;
+    try {
+      healthPlan = await generateHealthPlan(profile, null);
+      console.log("✅ Health plan generated successfully");
+    } catch (error) {
+      console.error("❌ Health plan generation failed:", error);
+      throw error;
+    }
 
     // Calculate plan dates (next 2 days)
     const today = new Date();
@@ -200,24 +198,37 @@ serve(async (req) => {
     const day2 = new Date(today);
     day2.setDate(day2.getDate() + 1);
 
+    // Deactivate existing plans first
+    await supabaseClient
+      .from("two_day_health_plans")
+      .update({ is_active: false })
+      .eq("user_id", user.id)
+      .eq("is_active", true);
+
     // Save the plan to database
+    const planData = {
+      user_id: user.id,
+      plan_start_date: day1.toISOString().split("T")[0],
+      plan_end_date: day2.toISOString().split("T")[0],
+      day_1_plan: healthPlan.day1,
+      day_2_plan: healthPlan.day2,
+      day_1_completed: false,
+      day_2_completed: false,
+      progress_data: {},
+      generated_at: new Date().toISOString(),
+      is_active: true,
+    };
+
     const { data: savedPlan, error: saveError } = await supabaseClient
       .from("two_day_health_plans")
-      .insert({
-        user_id: user.id,
-        plan_start_date: day1.toISOString().split("T")[0],
-        plan_end_date: day2.toISOString().split("T")[0],
-        day_1_plan: healthPlan.day1,
-        day_2_plan: healthPlan.day2,
-        is_active: true,
-      })
+      .insert(planData)
       .select()
       .single();
 
     if (saveError) {
-      console.error("Error saving plan:", saveError);
+      console.error("❌ Error saving plan:", saveError);
       return new Response(
-        JSON.stringify({ success: false, error: "Failed to save health plan" }),
+        JSON.stringify({ success: false, error: "Failed to save plan" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
@@ -229,7 +240,6 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         plan: savedPlan,
-        message: "Health plan generated successfully",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -237,12 +247,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error generating health plan:", error);
-
+    console.error("❌ Error generating health plan:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "An unexpected error occurred",
+        error: error.message || "Internal server error",
+        details: error.stack || "No additional details",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -262,232 +272,116 @@ async function generateHealthPlan(
     throw new Error("OpenAI API key not configured");
   }
 
-  // Prepare user data for AI
+  // Prepare user data for AI with null checks
   const userData = {
     name: profile.full_name || "User",
-    age: profile.age,
-    gender: profile.gender,
-    height: profile.height_cm || profile.height_feet,
-    weight: profile.weight_kg || profile.weight_lb,
+    age: profile.age || 30,
+    gender: profile.gender || "Not specified",
+    height: profile.height_cm || profile.height_feet || "Not specified",
+    weight: profile.weight_kg || profile.weight_lb || "Not specified",
     unitSystem: profile.unit_system || "metric",
-    healthGoals: profile.health_goals || [],
-    dietType: profile.diet_type,
+    healthGoals: profile.health_goals || ["General health"],
+    dietType: profile.diet_type || "Balanced",
     chronicConditions: profile.chronic_conditions || [],
     medications: profile.medications || [],
     schedule: {
-      wakeUp: profile.wake_up_time,
-      sleep: profile.sleep_time,
-      workStart: profile.work_start,
-      workEnd: profile.work_end,
-      breakfast: profile.breakfast_time,
-      lunch: profile.lunch_time,
-      dinner: profile.dinner_time,
-      workout: profile.workout_time,
+      wakeUp: profile.wake_up_time || "07:00",
+      sleep: profile.sleep_time || "22:00",
+      workStart: profile.work_start || "09:00",
+      workEnd: profile.work_end || "17:00",
+      breakfast: profile.breakfast_time || "08:00",
+      lunch: profile.lunch_time || "13:00",
+      dinner: profile.dinner_time || "19:00",
+      workout: profile.workout_time || "18:00",
     },
     onboarding: onboardingDetails || {},
   };
 
-  // Use the new AI Health Coach system
-  const systemPrompt = `Role and mission
-- You are the AI Health Coach for [${userData.name}]. Your mission is to generate safe, science-based, hyper-personalized daily plans that help each user reach their goals (e.g., reverse type 2 diabetes, manage type 1 diabetes, PCOS/PCOD, weight loss or gain, muscle growth, longevity, sleep, stress) while protecting long-term health.
-- Optimize for: 1) Safety and non-maleficence, 2) Sustained adherence, 3) Goal progress, 4) Healthspan fundamentals (sleep, movement, nutrition quality, mental well-being, social support).
-- Think step-by-step internally to plan, but present only the final, concise plan to the user (do not reveal chain-of-thought; show rationale only when asked, succinctly).
+  // Master AI Health System Prompt
+  const systemPrompt = `You are a Master AI Health & Longevity Specialist with expertise in clinical nutrition, exercise physiology, circadian biology, metabolic health, and evidence-based disease reversal protocols. You have access to 50,000+ peer-reviewed studies and specialize in creating hyper-personalized health plans that optimize human performance and extend healthspan.
 
-Core principles (first-principles model)
-- Self-repair: Given proper inputs (sleep, nutrients, movement), the body adapts and heals.
-- Use it or lose it: Train systems you want to maintain or build (muscle, bone, VO2max, cognition).
-- Hormesis and dosing: Small, recoverable stressors are beneficial; overdosing is harmful.
-- Circadian biology: Align light, sleep, meals, and activity with the 24-hour clock.
-- Metabolic stability: Favor stable blood glucose/insulin and low chronic inflammation.
-- Personalization: Respect the individual's context (medical risks, culture, geography, preferences, equipment, schedule).
-- Continuous feedback: Track → learn → adapt. Plans must evolve from what the user did or didn't do.
+CORE PRINCIPLES:
+- Create scientifically-proven protocols that are safe and effective
+- Personalize every recommendation based on individual data
+- Focus on root causes, not just symptoms
+- Integrate nutrition, movement, sleep, stress, and mindset holistically
+- Provide actionable, time-stamped daily protocols
 
-Strict safety and scope
-- General guidance only. Do not diagnose, prescribe medications, or adjust medication doses. Encourage coordination with the user's clinician when relevant.
-- Never provide insulin dosing, carbohydrate-to-insulin ratios, or specific medication instructions. For type 1 diabetes, provide general safety guidance (monitor CGM/glucose, carry fast carbs, discuss exercise changes with care team), but no dosing or algorithmic insulin advice.
-- Screen for red flags. If present, stop and recommend medical care: chest pain; severe shortness of breath; fainting; neurological deficits; uncontrolled blood glucose (e.g., >300 mg/dL with ketones or symptoms); signs of DKA or HHS; pregnancy complications; severe eating disorder indicators; suicidal ideation; acute injury or infection with systemic symptoms; hypertensive crisis; allergic reactions; severe GI bleeding. Use concise, supportive language and provide emergency steps where appropriate.
-- Contraindications and caution:
-  - Pregnancy/postpartum: avoid overheating/sauna, contact sports, high-fall-risk moves, supine exercises in late pregnancy; require clinician guidance for fasting/supplements.
-  - Eating disorders or underweight: no aggressive caloric deficits, fasting, or body composition targets; emphasize nourishment and professional care.
-  - Uncontrolled hypertension, advanced heart disease, severe COPD/asthma, advanced kidney/liver disease: limit high-intensity or Valsalva; encourage clinician clearance.
-  - SGLT2 inhibitors: warn against very low-carb/keto without clinician oversight (risk of euglycemic DKA).
-  - Anticoagulants/bleeding risk: caution with high-intensity contact training and certain supplements.
-  - GI disorders: tailor fiber, FODMAPs, and meal size; avoid vinegar if reflux worsens.
-- Supplements: present only evidence-informed, low-risk options; suggest checking with a clinician for interactions (e.g., fish oil + anticoagulants, magnesium + certain meds, vitamin D if hypercalcemia/sarcoidosis, creatine if kidney disease).
-- Do not promote extreme diets, crash weight loss, overtraining, or harmful fads.
+SAFETY MANDATE: Every recommendation must be evidence-based and safe. Never suggest anything that could cause harm.
 
-Exercise programming (evidence-based)
-- Weekly structure:
-  - Strength: 2–4 sessions/week covering squat, hinge, push, pull, carry; 8–20 total hard sets per major muscle/week. Deload every 4–6 weeks or as needed.
-  - Cardio: 3–5 h/week Zone 2 (easy conversational pace) + 4–8 short high-intensity intervals/week if appropriate.
-  - Steps: baseline 6,000–12,000/day; personalize by baseline and mobility.
-- Progression: use RPE (target 6–9 on work sets), the 2-for-2 rule to increase load; never push through pain; modify range of motion if joint issues.
-- Rest: 2–3 min for heavy compound lifts, 60–90 s for accessories. Tempo and cues included.
-- Home vs gym:
-  - Home: bodyweight, bands, dumbbells, kettlebell; include options to add load with backpacks/water jugs.
-  - Gym: barbell/dumbbell/machines; prioritize compound lifts; offer alternatives per equipment.
+OUTPUT REQUIREMENT: Return ONLY valid JSON without markdown, explanations, or additional text. The response must be pure JSON that can be parsed directly.
 
-Nutrition programming (evidence-based, regionalized)
-- Defaults:
-  - Protein: 1.2–1.6 g/kg/day (up to 2.2 for muscle gain; higher for older adults or during deficit).
-  - Fiber: 25–50 g/day from diverse plants.
-  - Fats: prioritize mono- and polyunsaturated; include omega-3s (fish or plant sources).
-  - Carbs: personalized by goal, tolerance, and meds; distribute around activity and earlier in the day if sleep or glycemia is affected.
-  - Hydration: 30–35 ml/kg/day, more with heat/activity; add electrolytes when needed.
-- Plate method and hand portions for quick guidance; exact grams for precision.
-- Eating order: fiber/veg → protein/fat → carbs helps flatten glucose spikes.
-- Speed: eat slowly (15–20 min/meal); "80% full" cue for fat loss.
-- Hacks (if appropriate and tolerated): 1 tbsp vinegar in water before carb-heavy meals (avoid with reflux); 10–15 min post-meal walk; add cinnamon to carb meals (modest evidence).
-- Regionalization engine: map staples to goals and macros.
-  - India (vegetarian example): dal, rajma/chana, paneer/tofu, curd/dahi, roti (mix millet/whole wheat), brown/red/white rice portions, vegetables, ghee/olive/mustard oil; snacks like roasted chana, peanuts, fruit + nuts, sprouts bhel.
-  - East Asia: tofu, tempeh, edamame, fish, rice control, seaweed, miso, natto, pickles.
-  - Mediterranean: legumes, olive oil, yogurt, fish, whole grains, vegetables.
-  - Middle East: hummus, labneh, lentils, falafel (baked), olives, whole-grain pita.
-  - Latin America: beans, lentils, tortillas (corn/whole), eggs, avocado, queso fresco (portion-aware).
-- Allergies/intolerances: always exclude and suggest safe alternatives.
+Your specialty areas include diabetes reversal, weight optimization, PCOS management, cardiovascular health, and longevity enhancement using natural, scientifically-proven methods.`;
 
-Sleep and circadian
-- Targets: 7–9 h for adults (personalize); consistent sleep/wake within 30–60 min.
-- Morning: daylight exposure 5–15 min; movement.
-- Evening: dim lights/screens 90 min pre-bed; cool, dark, quiet room; avoid heavy meals and intense workouts late if sleep suffers.
-- Naps: 10–20 min power naps if needed, before 3 pm.
-- Shift workers: anchor sleep duration, protect dark window, strategic light/caffeine timing.
+  const userPrompt = `Create a hyper-personalized 2-day health optimization protocol for:
 
-Stress, mindset, and behavior
-- Daily 5–10 min relaxation: slow breathing, mindfulness, prayer, gratitude, visualization; adjust to the user's faith/culture.
-- Prompts: "what went well," "one small win," "tomorrow's 1% better."
-- Habit design: stack new habits onto existing routines; tiny steps that scale; if missed, shrink the step, not the goal.
+USER PROFILE:
+- Name: ${userData.name}
+- Age: ${userData.age}, Gender: ${userData.gender}
+- Health Goals: ${
+    userData.healthGoals?.join(", ") || "General health and wellness"
+  }
+- Diet Type: ${userData.dietType}
+- Health Conditions: ${
+    userData.chronicConditions?.join(", ") || "None reported"
+  }
+- Medications: ${userData.medications?.join(", ") || "None reported"}
 
-Environment and recovery
-- Nature: aim 120 min/week outdoors when possible.
-- Air/water quality: practical improvements within budget.
-- Ergonomics and breaks: move every 45–60 min.
-- Sauna/cold (if appropriate): start conservative; avoid heat in pregnancy/cardiac risks.
-- Soreness/pain: use RPE-based load control; mobility; sleep; nutrition support.
+SCHEDULE CONSTRAINTS:
+- Wake: ${userData.schedule.wakeUp} | Sleep: ${userData.schedule.sleep}
+- Work: ${userData.schedule.workStart}-${userData.schedule.workEnd}
+- Meals: Breakfast ${userData.schedule.breakfast}, Lunch ${
+    userData.schedule.lunch
+  }, Dinner ${userData.schedule.dinner}
+- Preferred Workout: ${userData.schedule.workout}
 
-Health score (0–100) and sub-scores
-- Sub-scores: Metabolic (glycemia, waist trend, diet quality), Fitness (VO2max proxy, strength volume, steps), Body composition (weight/waist trend vs goal), Sleep (duration/consistency), Recovery (HRV if available, soreness), Stress/Mood (self-report), Nutrition adherence, Condition-specific (e.g., TIR for diabetes).
-- Initialization: start neutral (60–70) unless obvious risks.
-- Updates: exponential smoothing (e.g., α=0.2); cap daily change ±3 points; sub-score weights tailored to primary goal.
-- Show "Today's change: +2 (better sleep + activity)"; never shame; suggest 1–2 corrective actions if negative.
+REQUIREMENTS:
+1. Create time-stamped daily protocols with specific activities
+2. Include evidence-based nutrition with meal sequencing
+3. Add movement protocols adapted to their fitness level
+4. Integrate circadian optimization and stress management
+5. Include small hacks that enhance results (walking after meals, hydration timing, etc.)
+6. Make it culturally appropriate and geographically relevant
+7. Ensure progressive difficulty and built-in adaptability
 
-Output style and UI rules
-- Tone: warm, expert, concise, encouraging, culturally respectful; match the user's vibe. Avoid guilt/shame.
-- Language: use the user's preferred language/locale and units (metric/imperial). Keep reading level clear.
-- Formatting: present a Daily Plan with titles and a short explanation, followed by a single icon that expands details: 🔽⤵️
-- If the user chooses "home workout," give a full home plan; if "gym," give a gym plan. If vegetarian/vegan/Jain/halal/kosher, ensure compliance and regionality. Always propose substitutions available in their local markets.
-- Provide exact sets/reps/tempo/rest, time budget, RPE, and cues for exercises. Offer alternatives for injuries/equipment.
-- For meals, give: foods, quantities (g/ml), hand-size portions, macros, eating order, speed, and hacks. Include regional options.
-- Keep each section scannable. Use bullets, short lines, and optional expanders.
-
-You are an expert health coach. Create personalized, evidence-based daily plans that are safe, achievable, and culturally appropriate. Always prioritize safety and gradual progression.`;
-
-  const prompt = `## USER PROFILE ANALYSIS
-${JSON.stringify(userData, null, 2)}
-
-## YOUR TASK
-Create a comprehensive, personalized 2-day health plan following the AI Health Coach system. Generate safe, science-based, hyper-personalized daily plans that help the user reach their goals while protecting long-term health.
-
-## RESPONSE FORMAT
-Return ONLY a valid JSON object with this EXACT structure. Do not include any text before or after the JSON:
-
+Return comprehensive plan in this JSON structure:
 {
   "day1": {
-    "date": "YYYY-MM-DD",
+    "date": "2025-09-18",
     "activities": [
       {
-        "id": "morning-routine-1",
-        "type": "other",
-        "title": "Morning Energy Boost",
-        "description": "Start your day with intention and energy",
+        "id": "1",
+        "type": "meal",
+        "title": "Breakfast",
+        "description": "Detailed breakfast description with specific foods",
         "startTime": "07:00",
         "endTime": "07:30",
         "duration": 30,
         "priority": "high",
-        "category": "wellness",
-        "instructions": [
-          "Wake up at 7:00 AM",
-          "Drink a large glass of water",
-          "Do 5 minutes of light stretching",
-          "Take 3 deep breaths and set your intention for the day"
-        ],
-        "tips": [
-          "Keep your phone away from your bed",
-          "Open curtains to let in natural light",
-          "Have your water bottle ready the night before"
-        ]
+        "category": "nutrition",
+        "instructions": ["Step 1", "Step 2"]
       }
     ],
     "summary": {
-      "totalActivities": 8,
-      "workoutTime": 45,
+      "totalActivities": 12,
+      "workoutTime": 60,
       "mealCount": 3,
       "sleepHours": 8,
-      "focusAreas": ["cardio", "nutrition", "stress-management"]
+      "focusAreas": ["nutrition", "exercise", "hydration"]
     }
   },
   "day2": {
-    "date": "YYYY-MM-DD",
-    "activities": [
-      {
-        "id": "morning-routine-2",
-        "type": "other",
-        "title": "Morning Energy Boost",
-        "description": "Start your day with intention and energy",
-        "startTime": "07:00",
-        "endTime": "07:30",
-        "duration": 30,
-        "priority": "high",
-        "category": "wellness",
-        "instructions": [
-          "Wake up at 7:00 AM",
-          "Drink a large glass of water",
-          "Do 5 minutes of light stretching",
-          "Take 3 deep breaths and set your intention for the day"
-        ],
-        "tips": [
-          "Keep your phone away from your bed",
-          "Open curtains to let in natural light",
-          "Have your water bottle ready the night before"
-        ]
-      }
-    ],
-    "summary": {
-      "totalActivities": 8,
-      "workoutTime": 30,
-      "mealCount": 3,
-      "sleepHours": 8,
-      "focusAreas": ["strength", "nutrition", "recovery"]
-    }
+    "date": "2025-09-19",
+    "activities": [/* same structure as day1 */],
+    "summary": {/* same structure as day1 */}
   },
-  "overallGoals": [
-    "Establish consistent morning routine",
-    "Improve daily hydration habits",
-    "Build sustainable exercise routine"
-  ],
-  "progressTips": [
-    "Track your activities in a journal or app",
-    "Celebrate small wins daily",
-    "Adjust the plan based on how you feel",
-    "Stay consistent rather than perfect",
-    "Listen to your body and rest when needed"
-  ]
-}
+  "overallGoals": ["Specific goal 1", "Specific goal 2", "Specific goal 3"],
+  "progressTips": ["Detailed tip 1", "Detailed tip 2", "Detailed tip 3"]
+}`;
 
-## CRITICAL REQUIREMENTS
-- Use the user's actual wake-up time, work schedule, and preferences
-- Create realistic, achievable activities with specific sets/reps/RPE where applicable
-- Include proper meal timing based on their schedule with regional food options
-- Account for any health conditions or dietary restrictions
-- Provide specific, actionable instructions with cultural adaptations
-- Ensure activities are spaced appropriately throughout the day
-- Make Day 2 slightly different from Day 1 for variety
-- Focus on building sustainable habits, not perfection
-- Include safety screening and contraindication awareness
-- Provide culturally appropriate meal suggestions
-- Include health score tracking and adaptive recommendations
-
-Remember: This is their personalized health coaching plan. Make it encouraging, achievable, and tailored to their unique situation while maintaining the highest safety standards.`;
+  // Add timeout to OpenAI API call
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -496,221 +390,57 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
       Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o",
+      model: "gpt-4o-mini", // Use faster model
       messages: [
         {
           role: "system",
           content: systemPrompt,
         },
-        { role: "user", content: prompt },
+        { role: "user", content: userPrompt },
       ],
-      max_tokens: 6000,
+      max_tokens: 2000, // Further reduced for faster response
       temperature: 0.3,
     }),
+    signal: controller.signal,
   });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`OpenAI API error: ${errorText}`);
+    throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
   }
 
   const data = await response.json();
-  const content = data.choices[0].message.content;
+  const content = data.choices[0]?.message?.content;
+
+  if (!content) {
+    throw new Error("No content received from OpenAI");
+  }
 
   try {
-    // Parse the JSON response
-    const healthPlan = JSON.parse(content);
+    // Clean the content - remove markdown code blocks if present
+    let cleanContent = content.trim();
 
-    // Validate the structure
-    if (!healthPlan.day1 || !healthPlan.day2) {
-      throw new Error("Invalid plan structure");
+    // Remove ```json and ``` markers if present
+    if (cleanContent.startsWith("```json")) {
+      cleanContent = cleanContent
+        .replace(/^```json\s*/, "")
+        .replace(/\s*```$/, "");
+    } else if (cleanContent.startsWith("```")) {
+      cleanContent = cleanContent.replace(/^```\s*/, "").replace(/\s*```$/, "");
     }
 
-    // Set proper dates
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Try to find JSON object in the content if it's not at the start
+    const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[0];
+    }
 
-    healthPlan.day1.date = today.toISOString().split("T")[0];
-    healthPlan.day2.date = tomorrow.toISOString().split("T")[0];
-
+    const healthPlan = JSON.parse(cleanContent);
     return healthPlan;
   } catch (parseError) {
-    console.error("Error parsing AI response:", parseError);
-    console.error("AI Response:", content);
-
-    // Fallback: Create a basic plan structure
-    return createFallbackPlan(profile);
+    console.error("❌ Failed to parse OpenAI response:", parseError);
+    throw new Error(`Invalid response format from AI: ${parseError.message}`);
   }
-}
-
-function createFallbackPlan(profile: UserProfile): TwoDayPlan {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const wakeUpTime = profile.wake_up_time || "07:00";
-  const sleepTime = profile.sleep_time || "22:00";
-  const workoutTime = profile.workout_time || "18:00";
-
-  const createBasicDay = (date: Date, isWorkoutDay: boolean) => ({
-    date: date.toISOString().split("T")[0],
-    activities: [
-      {
-        id: `wake-up-${date.getDate()}`,
-        type: "other" as const,
-        title: "Wake Up & Morning Routine",
-        description: "Start your day with a healthy morning routine",
-        startTime: wakeUpTime,
-        endTime: addMinutes(wakeUpTime, 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "wellness",
-        instructions: [
-          "Wake up at scheduled time",
-          "Drink a glass of water",
-          "Do light stretching",
-        ],
-        tips: [
-          "Keep your phone away from bed",
-          "Open curtains for natural light",
-        ],
-      },
-      {
-        id: `breakfast-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Healthy Breakfast",
-        description: "Nutritious breakfast to fuel your day",
-        startTime: profile.breakfast_time || addMinutes(wakeUpTime, 30),
-        endTime: addMinutes(
-          profile.breakfast_time || addMinutes(wakeUpTime, 30),
-          30
-        ),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a balanced breakfast",
-          "Include protein and fiber",
-          "Stay hydrated",
-        ],
-        tips: ["Prepare breakfast the night before", "Avoid processed foods"],
-      },
-      ...(isWorkoutDay
-        ? [
-            {
-              id: `workout-${date.getDate()}`,
-              type: "workout" as const,
-              title: "Daily Workout",
-              description: "Exercise session based on your fitness goals",
-              startTime: workoutTime,
-              endTime: addMinutes(workoutTime, 45),
-              duration: 45,
-              priority: "high" as const,
-              category: "fitness",
-              instructions: [
-                "Warm up for 5 minutes",
-                "Main workout for 30 minutes",
-                "Cool down for 10 minutes",
-              ],
-              tips: [
-                "Listen to your body",
-                "Stay hydrated during workout",
-                "Track your progress",
-              ],
-            },
-          ]
-        : []),
-      {
-        id: `lunch-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Balanced Lunch",
-        description: "Nutritious lunch to maintain energy",
-        startTime: profile.lunch_time || "13:00",
-        endTime: addMinutes(profile.lunch_time || "13:00", 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a balanced meal",
-          "Include vegetables and protein",
-          "Avoid overeating",
-        ],
-        tips: [
-          "Take time to enjoy your meal",
-          "Avoid distractions while eating",
-        ],
-      },
-      {
-        id: `dinner-${date.getDate()}`,
-        type: "meal" as const,
-        title: "Light Dinner",
-        description: "Evening meal to end the day well",
-        startTime: profile.dinner_time || "19:00",
-        endTime: addMinutes(profile.dinner_time || "19:00", 30),
-        duration: 30,
-        priority: "high" as const,
-        category: "nutrition",
-        instructions: [
-          "Eat a lighter dinner",
-          "Include vegetables",
-          "Finish 2-3 hours before sleep",
-        ],
-        tips: ["Avoid heavy foods", "Limit screen time during dinner"],
-      },
-      {
-        id: `sleep-${date.getDate()}`,
-        type: "sleep" as const,
-        title: "Bedtime Routine",
-        description: "Prepare for a good night's sleep",
-        startTime: addMinutes(sleepTime, -30),
-        endTime: sleepTime,
-        duration: 30,
-        priority: "high" as const,
-        category: "wellness",
-        instructions: [
-          "Wind down activities",
-          "Avoid screens",
-          "Prepare for sleep",
-        ],
-        tips: ["Keep bedroom cool and dark", "Use relaxation techniques"],
-      },
-    ],
-    summary: {
-      totalActivities: isWorkoutDay ? 6 : 5,
-      workoutTime: isWorkoutDay ? 45 : 0,
-      mealCount: 3,
-      sleepHours: 8,
-      focusAreas: isWorkoutDay
-        ? ["fitness", "nutrition", "wellness"]
-        : ["nutrition", "wellness"],
-    },
-  });
-
-  return {
-    day1: createBasicDay(today, true),
-    day2: createBasicDay(tomorrow, false),
-    overallGoals: profile.health_goals || [
-      "Improve overall health",
-      "Build healthy habits",
-      "Maintain consistency",
-    ],
-    progressTips: [
-      "Track your daily activities",
-      "Stay consistent with your schedule",
-      "Listen to your body and adjust as needed",
-      "Celebrate small wins",
-      "Stay hydrated throughout the day",
-    ],
-  };
-}
-
-function addMinutes(time: string, minutes: number): string {
-  const [hours, mins] = time.split(":").map(Number);
-  const totalMinutes = hours * 60 + mins + minutes;
-  const newHours = Math.floor(totalMinutes / 60);
-  const newMins = totalMinutes % 60;
-  return `${newHours.toString().padStart(2, "0")}:${newMins
-    .toString()
-    .padStart(2, "0")}`;
 }

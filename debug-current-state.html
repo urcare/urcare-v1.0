@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debug Current State</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        background: #f5f5f5;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+      .success {
+        background: #e8f5e8;
+        border: 1px solid #4caf50;
+      }
+      .error {
+        background: #ffe8e8;
+        border: 1px solid #f44336;
+      }
+      .info {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #007cba;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #005a87;
+      }
+      .debug-data {
+        background: #f0f0f0;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Debug Current State</h1>
+    <p>This will check your current authentication and profile status.</p>
+
+    <button id="checkAuth">Check Authentication Status</button>
+    <button id="checkProfile">Check User Profile</button>
+    <button id="testFunction">Test AI Function (Authenticated)</button>
+    <div id="result"></div>
+
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+      const supabaseUrl = "https://lvnkpserdydhnqbigfbz.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc";
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      document
+        .getElementById("checkAuth")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+
+          try {
+            const {
+              data: { session },
+              error,
+            } = await supabase.auth.getSession();
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Auth Error</h3><p>${error.message}</p></div>`;
+              result.className = "result error";
+            } else if (session) {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Authenticated</h3>
+                            <p><strong>User ID:</strong> ${session.user.id}</p>
+                            <p><strong>Email:</strong> ${session.user.email}</p>
+                            <p><strong>Access Token:</strong> ${
+                              session.access_token ? "Present" : "Missing"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              session.user,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>No active session found. Please log in first.</p></div>`;
+              result.className = "result error";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+          }
+        });
+
+      document
+        .getElementById("checkProfile")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>Please check authentication first.</p></div>`;
+              result.className = "result error";
+              return;
+            }
+
+            const { data: profile, error } = await supabase
+              .from("user_profiles")
+              .select("*")
+              .eq("id", session.user.id)
+              .single();
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Profile Error</h3><p>${error.message}</p></div>`;
+              result.className = "result error";
+            } else if (profile) {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ User Profile Found</h3>
+                            <p><strong>Name:</strong> ${
+                              profile.full_name || "Not set"
+                            }</p>
+                            <p><strong>Onboarding Completed:</strong> ${
+                              profile.onboarding_completed ? "Yes" : "No"
+                            }</p>
+                            <p><strong>Health Goals:</strong> ${
+                              profile.health_goals
+                                ? profile.health_goals.join(", ")
+                                : "Not set"
+                            }</p>
+                            <p><strong>Diet Type:</strong> ${
+                              profile.diet_type || "Not set"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              profile,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ No Profile Found</h3><p>User profile not found. Please complete onboarding first.</p></div>`;
+              result.className = "result error";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+          }
+        });
+
+      document
+        .getElementById("testFunction")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+          result.innerHTML =
+            "Testing AI function with authentication... Please wait";
+          result.className = "result info";
+
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>Please check authentication first.</p></div>`;
+              result.className = "result error";
+              return;
+            }
+
+            console.log("🚀 Testing AI function with auth...");
+
+            const { data, error } = await supabase.functions.invoke(
+              "generate-ai-health-coach-plan",
+              {
+                method: "POST",
+                body: {},
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            );
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Function Error</h3><p>${
+                error.message
+              }</p><p>Status: ${error.status || "Unknown"}</p></div>`;
+              result.className = "result error";
+              console.error("Function error:", error);
+            } else if (data.success) {
+              const plan = data.plan;
+              const day1Plan = plan.day_1_plan;
+              const isDetailedPlan =
+                day1Plan &&
+                typeof day1Plan === "object" &&
+                "focus" in day1Plan &&
+                "movement" in day1Plan &&
+                "nutrition" in day1Plan;
+
+              if (isDetailedPlan) {
+                result.innerHTML = `
+                            <div class="success">
+                                <h3>✅ AI Function Working!</h3>
+                                <p><strong>Plan ID:</strong> ${plan.id}</p>
+                                <p><strong>Plan Type:</strong> Detailed AI Plan</p>
+                                <p><strong>Day 1 Focus:</strong> ${
+                                  day1Plan.focus || "Not set"
+                                }</p>
+                                <div class="debug-data">${JSON.stringify(
+                                  Object.keys(day1Plan),
+                                  null,
+                                  2
+                                )}</div>
+                            </div>
+                        `;
+              } else {
+                result.innerHTML = `
+                            <div class="error">
+                                <h3>❌ Generic Plan Generated</h3>
+                                <p><strong>Plan ID:</strong> ${plan.id}</p>
+                                <p><strong>Plan Type:</strong> Simple/Generic</p>
+                                <div class="debug-data">${JSON.stringify(
+                                  Object.keys(day1Plan || {}),
+                                  null,
+                                  2
+                                )}</div>
+                            </div>
+                        `;
+              }
+              result.className = "result success";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ Function Failed</h3><p>${data.error}</p></div>`;
+              result.className = "result error";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+            console.error("Exception:", err);
+          }
+        });
+    </script>
+  </body>
+</html>

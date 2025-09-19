@@ -10,7 +10,13 @@ import {
 } from "lucide-react";
 import React, { useRef, useState } from "react";
 
-export const HealthInputBar: React.FC = () => {
+interface HealthInputBarProps {
+  onPlanGenerate?: (input: string) => void;
+}
+
+export const HealthInputBar: React.FC<HealthInputBarProps> = ({
+  onPlanGenerate,
+}) => {
   const { user, profile } = useAuth();
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -24,6 +30,16 @@ export const HealthInputBar: React.FC = () => {
   } | null>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Suggested health goals
+  const suggestedInputs = [
+    "I want to lose weight",
+    "I want to build muscle",
+    "I want to improve my sleep",
+    "I want to eat healthier",
+    "I want to reduce stress",
+    "I want to increase energy",
+  ];
 
   // Initialize speech recognition
   const initializeSpeechRecognition = () => {
@@ -76,14 +92,24 @@ export const HealthInputBar: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-
+    if (!input.trim()) {
+      return;
+    }
     setIsLoading(true);
     setError(null);
     setSuccess(null);
     setTokenUsage(null);
 
     try {
+      // If onPlanGenerate is provided, use it for the new flow
+      if (onPlanGenerate) {
+        onPlanGenerate(input);
+        setInput("");
+        setAttachedFile(null);
+        setIsLoading(false);
+        return;
+      }
+
       // Read file content if attached
       let fileContent = "";
       if (attachedFile) {
@@ -116,7 +142,6 @@ export const HealthInputBar: React.FC = () => {
         });
         setInput("");
         setAttachedFile(null);
-        console.log("Generated health plan:", result.plan);
       } else {
         setError(result.error || "Failed to generate health plan");
       }
@@ -169,20 +194,36 @@ export const HealthInputBar: React.FC = () => {
   };
 
   return (
-    <div className="bg-transparent px-2 sm:px-4 pb-2 sm:pb-4">
+    <div className="bg-transparent px-2 sm:px-3 pb-1 sm:pb-2">
       <div className="flex flex-col justify-center">
         {/* Input Container - White Glassy Theme */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-3 sm:p-4 shadow-xl border border-gray-100/50">
+        {/* Suggested Inputs */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">Try these suggestions:</p>
+          <div className="flex flex-wrap gap-2">
+            {suggestedInputs.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => setInput(suggestion)}
+                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-xs transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white/95 backdrop-blur-xl rounded-xl p-2 sm:p-3 shadow-xl border border-gray-100/50">
           <form onSubmit={handleSubmit} className="relative">
             {/* Text Input */}
-            <div className="mb-3">
+            <div className="mb-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask anything"
-                className="w-full p-3 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Set your health goals or ask for advice..."
+                className="w-full p-2.5 bg-gray-50/80 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 disabled={isLoading}
               />
             </div>
@@ -195,9 +236,9 @@ export const HealthInputBar: React.FC = () => {
                   type="button"
                   onClick={handleAttachClick}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 rounded-xl transition-all duration-200 text-sm disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 rounded-lg transition-all duration-200 text-xs disabled:opacity-50"
                 >
-                  <Paperclip className="w-4 h-4" />
+                  <Paperclip className="w-3.5 h-3.5" />
                   <span>Attach</span>
                 </button>
               </div>
@@ -208,7 +249,7 @@ export const HealthInputBar: React.FC = () => {
                   type="button"
                   onClick={handleMicClick}
                   disabled={isLoading}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 text-sm ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-xs ${
                     isRecording || isListening
                       ? "bg-red-500/80 text-white animate-pulse"
                       : "bg-gray-100/80 hover:bg-gray-200/80 text-gray-700"
@@ -219,9 +260,9 @@ export const HealthInputBar: React.FC = () => {
                   }`}
                 >
                   {isListening ? (
-                    <MicOff className="w-4 h-4" />
+                    <MicOff className="w-3.5 h-3.5" />
                   ) : (
-                    <Mic className="w-4 h-4" />
+                    <Mic className="w-3.5 h-3.5" />
                   )}
                   <span>Voice</span>
                 </button>
@@ -230,16 +271,16 @@ export const HealthInputBar: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 ${
                     input.trim() && !isLoading
                       ? "bg-blue-500 hover:bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>

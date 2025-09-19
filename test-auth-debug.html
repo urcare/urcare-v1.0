@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Auth Debug Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        background: #f5f5f5;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+      .success {
+        background: #e8f5e8;
+        border: 1px solid #4caf50;
+      }
+      .error {
+        background: #ffe8e8;
+        border: 1px solid #f44336;
+      }
+      .info {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #007cba;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #005a87;
+      }
+      .debug-data {
+        background: #f0f0f0;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Authentication Debug Test</h1>
+    <p>This will help identify why the AI function is hanging.</p>
+
+    <button id="checkAuth">1. Check Authentication</button>
+    <button id="checkProfile">2. Check Profile</button>
+    <button id="testFunctionSimple">3. Test Function (Simple)</button>
+    <button id="testFunctionWithTimeout">
+      4. Test Function (With Timeout)
+    </button>
+    <div id="result"></div>
+
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+      const supabaseUrl = "https://lvnkpserdydhnqbigfbz.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc";
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      document
+        .getElementById("checkAuth")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+          result.innerHTML = "Checking authentication...";
+          result.className = "result info";
+
+          try {
+            const {
+              data: { session },
+              error,
+            } = await supabase.auth.getSession();
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Auth Error</h3><p>${error.message}</p></div>`;
+              result.className = "result error";
+            } else if (session) {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Authenticated</h3>
+                            <p><strong>User ID:</strong> ${session.user.id}</p>
+                            <p><strong>Email:</strong> ${session.user.email}</p>
+                            <p><strong>Access Token:</strong> ${
+                              session.access_token ? "Present" : "Missing"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              session.user,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>No active session found. Please log in first.</p></div>`;
+              result.className = "result error";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+          }
+        });
+
+      document
+        .getElementById("checkProfile")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+          result.innerHTML = "Checking profile...";
+          result.className = "result info";
+
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>Please check authentication first.</p></div>`;
+              result.className = "result error";
+              return;
+            }
+
+            const { data: profile, error } = await supabase
+              .from("user_profiles")
+              .select("*")
+              .eq("id", session.user.id)
+              .single();
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Profile Error</h3><p>${error.message}</p></div>`;
+              result.className = "result error";
+            } else if (profile) {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ User Profile Found</h3>
+                            <p><strong>Name:</strong> ${
+                              profile.full_name || "Not set"
+                            }</p>
+                            <p><strong>Onboarding Completed:</strong> ${
+                              profile.onboarding_completed ? "Yes" : "No"
+                            }</p>
+                            <p><strong>Health Goals:</strong> ${
+                              profile.health_goals
+                                ? profile.health_goals.join(", ")
+                                : "Not set"
+                            }</p>
+                            <p><strong>Diet Type:</strong> ${
+                              profile.diet_type || "Not set"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              profile,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ No Profile Found</h3><p>User profile not found. Please complete onboarding first.</p></div>`;
+              result.className = "result error";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+          }
+        });
+
+      document
+        .getElementById("testFunctionSimple")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+          result.innerHTML = "Testing function (simple)...";
+          result.className = "result info";
+
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>Please check authentication first.</p></div>`;
+              result.className = "result error";
+              return;
+            }
+
+            console.log("🚀 Testing AI function...");
+
+            const { data, error } = await supabase.functions.invoke(
+              "generate-ai-health-coach-plan",
+              {
+                method: "POST",
+                body: {},
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            );
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Function Error</h3><p>${
+                error.message
+              }</p><p>Status: ${error.status || "Unknown"}</p></div>`;
+              result.className = "result error";
+              console.error("Function error:", error);
+            } else {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Function Response</h3>
+                            <p><strong>Success:</strong> ${
+                              data.success ? "Yes" : "No"
+                            }</p>
+                            <p><strong>Message:</strong> ${
+                              data.message || "No message"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              data,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            }
+          } catch (err) {
+            result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+            result.className = "result error";
+            console.error("Exception:", err);
+          }
+        });
+
+      document
+        .getElementById("testFunctionWithTimeout")
+        .addEventListener("click", async () => {
+          const result = document.getElementById("result");
+          result.innerHTML = "Testing function with timeout (30s)...";
+          result.className = "result info";
+
+          try {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+              result.innerHTML = `<div class="error"><h3>❌ Not Authenticated</h3><p>Please check authentication first.</p></div>`;
+              result.className = "result error";
+              return;
+            }
+
+            console.log("🚀 Testing AI function with timeout...");
+
+            // Create a timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(
+                () => reject(new Error("Function timeout after 30 seconds")),
+                30000
+              );
+            });
+
+            // Create the function call promise
+            const functionPromise = supabase.functions.invoke(
+              "generate-ai-health-coach-plan",
+              {
+                method: "POST",
+                body: {},
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            );
+
+            // Race between function call and timeout
+            const { data, error } = await Promise.race([
+              functionPromise,
+              timeoutPromise,
+            ]);
+
+            if (error) {
+              result.innerHTML = `<div class="error"><h3>❌ Function Error</h3><p>${
+                error.message
+              }</p><p>Status: ${error.status || "Unknown"}</p></div>`;
+              result.className = "result error";
+              console.error("Function error:", error);
+            } else {
+              result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Function Response (With Timeout)</h3>
+                            <p><strong>Success:</strong> ${
+                              data.success ? "Yes" : "No"
+                            }</p>
+                            <p><strong>Message:</strong> ${
+                              data.message || "No message"
+                            }</p>
+                            <div class="debug-data">${JSON.stringify(
+                              data,
+                              null,
+                              2
+                            )}</div>
+                        </div>
+                    `;
+              result.className = "result success";
+            }
+          } catch (err) {
+            if (err.message.includes("timeout")) {
+              result.innerHTML = `<div class="error"><h3>⏰ Function Timeout</h3><p>The function is hanging and not responding within 30 seconds. This suggests an issue with the OpenAI API call or function execution.</p></div>`;
+              result.className = "result error";
+            } else {
+              result.innerHTML = `<div class="error"><h3>❌ Exception</h3><p>${err.message}</p></div>`;
+              result.className = "result error";
+            }
+            console.error("Exception:", err);
+          }
+        });
+    </script>
+  </body>
+</html>
+

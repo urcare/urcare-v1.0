@@ -5,7 +5,7 @@ import { StepCounterCard } from "./StepCounterCard";
 
 export const HealthContent = () => {
   return (
-    <div className="h-screen bg-gradient-to-br from-green-100 via-emerald-50 to-green-100 relative overflow-hidden">
+    <div className="bg-gradient-to-br from-green-100 via-emerald-50 to-green-100 relative">
       {/* Header Section - Top 15% */}
       <DashboardHeader />
 

@@ -63,55 +63,73 @@ export interface HealthPlanRecord {
 }
 
 class HealthPlanService {
-  // Optimized plan generation with caching and faster fallback
+  // Generate health plan using AI API with fallback
   async generateHealthPlan(): Promise<HealthPlanRecord> {
     try {
-      // Check if we have a recent plan in cache
-      const cacheKey = 'current_plan';
-      const cached = planCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.plan;
-      }
+      console.log("🚀 Generating AI health plan...");
 
-      // Add timeout for faster failure
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error("Plan generation timeout")), 15000)
+      // First try the main AI health coach plan function
+      const { data, error } = await supabase.functions.invoke(
+        "generate-ai-health-coach-plan",
+        {
+          method: "POST",
+          body: {},
+          headers: {
+            Authorization: `Bearer ${
+              (
+                await supabase.auth.getSession()
+              ).data.session?.access_token
+            }`,
+          },
+        }
       );
 
-      const generatePromise = async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "generate-health-plan",
-          {
+      if (error) {
+        console.warn("❌ AI health coach plan failed:", error.message);
+        throw new Error(
+          `Failed to generate AI Health Coach plan: ${error.message}`
+        );
+      }
+
+      if (!data.success) {
+        console.warn("❌ AI health coach plan returned error:", data.error);
+        throw new Error(
+          data.error || "Failed to generate AI Health Coach plan"
+        );
+      }
+
+      console.log("✅ Successfully generated AI health plan");
+      return data.plan;
+    } catch (error) {
+      console.error("❌ Error generating AI Health Coach plan:", error);
+
+      // Try the simple health plan function as backup
+      try {
+        console.log("🔄 Trying simple health plan as fallback...");
+
+        const { data: simpleData, error: simpleError } =
+          await supabase.functions.invoke("generate-health-plan-simple", {
             method: "POST",
             body: {},
-          }
-        );
+            headers: {
+              Authorization: `Bearer ${
+                (
+                  await supabase.auth.getSession()
+                ).data.session?.access_token
+              }`,
+            },
+          });
 
-        if (error) {
-          throw new Error(
-            `Failed to generate AI Health Coach plan: ${error.message}`
-          );
+        if (!simpleError && simpleData?.success) {
+          console.log("✅ Successfully generated simple health plan");
+          return simpleData.plan;
         }
+      } catch (simpleError) {
+        console.error("❌ Simple health plan also failed:", simpleError);
+      }
 
-        if (!data.success) {
-          throw new Error(
-            data.error || "Failed to generate AI Health Coach plan"
-          );
-        }
-
-        return data.plan;
-      };
-
-      const plan = await Promise.race([generatePromise(), timeoutPromise]);
-      
-      // Cache the result
-      planCache.set(cacheKey, { plan, timestamp: Date.now() });
-      
-      return plan;
-    } catch (error) {
-      console.error("Error generating AI Health Coach plan:", error);
-      
-      // Return a fallback plan immediately instead of throwing
+      // Final fallback to client-side plan
+      console.warn("⚠️ Using client-side fallback plan");
       return this.createFallbackPlan();
     }
   }
@@ -119,7 +137,7 @@ class HealthPlanService {
   // Optimized current plan fetching with caching
   async getCurrentPlan(): Promise<HealthPlanRecord | null> {
     try {
-      const cacheKey = 'current_plan';
+      const cacheKey = "current_plan";
       const cached = planCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.plan;
@@ -211,7 +229,10 @@ class HealthPlanService {
       });
 
       // Cache the result
-      progressCache.set(cacheKey, { progress: completionMap, timestamp: Date.now() });
+      progressCache.set(cacheKey, {
+        progress: completionMap,
+        timestamp: Date.now(),
+      });
 
       return completionMap;
     } catch (error) {
@@ -330,7 +351,7 @@ class HealthPlanService {
 
     const fallbackPlan: HealthPlanRecord = {
       id: `fallback-${Date.now()}`,
-      user_id: 'fallback-user',
+      user_id: "fallback-user",
       plan_start_date: today.toISOString().split("T")[0],
       plan_end_date: tomorrow.toISOString().split("T")[0],
       day_1_plan: {
@@ -371,7 +392,10 @@ class HealthPlanService {
               "Include protein and fiber",
               "Stay hydrated",
             ],
-            tips: ["Prepare breakfast the night before", "Avoid processed foods"],
+            tips: [
+              "Prepare breakfast the night before",
+              "Avoid processed foods",
+            ],
           },
           {
             id: "workout-1",
@@ -441,7 +465,10 @@ class HealthPlanService {
               "Include protein and fiber",
               "Stay hydrated",
             ],
-            tips: ["Prepare breakfast the night before", "Avoid processed foods"],
+            tips: [
+              "Prepare breakfast the night before",
+              "Avoid processed foods",
+            ],
           },
         ],
         summary: {

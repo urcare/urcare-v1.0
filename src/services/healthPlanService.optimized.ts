@@ -83,10 +83,17 @@ class HealthPlanService {
 
       const generatePromise = async () => {
         const { data, error } = await supabase.functions.invoke(
-          "generate-health-plan",
+          "generate-ai-health-coach-plan",
           {
             method: "POST",
             body: {},
+            headers: {
+              Authorization: `Bearer ${
+                (
+                  await supabase.auth.getSession()
+                ).data.session?.access_token
+              }`,
+            },
           }
         );
 

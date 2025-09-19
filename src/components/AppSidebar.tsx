@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
@@ -87,7 +86,7 @@ export const AppSidebar = () => {
       )}
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-4">
+      <div className="flex-1 px-3 py-4 scrollable-container">
         <nav className="space-y-6">
           {sections.map((section, sectionIndex) => (
             <div key={sectionIndex}>
@@ -121,7 +120,7 @@ export const AppSidebar = () => {
             </div>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
       {/* Footer */}
       <div className="p-4 border-t border-border">

@@ -21,21 +21,12 @@ export const InitialRouteHandler: React.FC = () => {
       ) {
         processedRedirect.current = true;
 
-        console.log(
-          "InitialRouteHandler: User on landing page, determining redirect"
-        );
-
         try {
           const redirectRoute = await authFlowService.getRedirectRoute(user);
-          console.log("InitialRouteHandler: Redirecting to:", redirectRoute);
-
           // Use window.location.replace for a clean redirect
           window.location.replace(redirectRoute);
         } catch (error) {
-          console.error(
-            "InitialRouteHandler: Error determining redirect:",
-            error
-          );
+          console.error("❌ Error determining redirect:", error);
           // Fallback to onboarding
           window.location.replace("/onboarding");
         }

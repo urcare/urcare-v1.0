@@ -1,4 +1,4 @@
-import { OpenAI } from 'openai';
+import { OpenAI } from "openai";
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -78,17 +78,22 @@ function extractBMI(text) {
 
 function extractKeyRecommendations(text) {
   const recommendations = [];
-  const lines = text.split('\n');
-  
+  const lines = text.split("\n");
+
   for (const line of lines) {
-    if (line.includes('•') || line.includes('-') || line.includes('1.') || line.includes('2.')) {
-      const clean = line.replace(/^[\s•\-\d\.]+/, '').trim();
+    if (
+      line.includes("•") ||
+      line.includes("-") ||
+      line.includes("1.") ||
+      line.includes("2.")
+    ) {
+      const clean = line.replace(/^[\s•\-\d\.]+/, "").trim();
       if (clean && clean.length > 10) {
         recommendations.push(clean);
       }
     }
   }
-  
+
   return recommendations.slice(0, 5); // Return first 5 recommendations
 }
 
@@ -120,8 +125,12 @@ function generateMockHealthPlan(profile) {
   if (age >= 18 && age <= 65) healthScore += 10;
   if (age >= 25 && age <= 45) healthScore += 5;
 
-  const bmiCategory = parseFloat(bmi) < 18.5 ? "Underweight" : 
-                     parseFloat(bmi) > 24.9 ? "Overweight" : "Normal weight";
+  const bmiCategory =
+    parseFloat(bmi) < 18.5
+      ? "Underweight"
+      : parseFloat(bmi) > 24.9
+      ? "Overweight"
+      : "Normal weight";
 
   const mockResponse = `HEALTH ASSESSMENT
 Based on your profile data:
@@ -181,14 +190,17 @@ ACTIONABLE NEXT STEPS
         "Track your food intake for 1 week",
         "Set up regular meal times",
         "Schedule your first workout session",
-        "Monitor your progress weekly"
+        "Monitor your progress weekly",
       ],
     },
     sections: {
-      healthAssessment: "Based on your profile data, your current health status is good with room for improvement.",
+      healthAssessment:
+        "Based on your profile data, your current health status is good with room for improvement.",
       nutritionPlan: `Daily calorie target: ${tdee} kcal with balanced macronutrients.`,
-      fitnessPlan: "3-4 days per week of combined cardio and strength training.",
-      lifestyleOptimization: "Focus on sleep, stress management, and hydration.",
+      fitnessPlan:
+        "3-4 days per week of combined cardio and strength training.",
+      lifestyleOptimization:
+        "Focus on sleep, stress management, and hydration.",
       healthMonitoring: "Track weight, BMI, and energy levels regularly.",
       potentialRisks: "Monitor blood pressure and cholesterol levels.",
       urCareBenefits: "Personalized tracking and community support.",
@@ -200,17 +212,17 @@ ACTIONABLE NEXT STEPS
 
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     res.status(200).end();
     return;
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
@@ -260,8 +272,45 @@ export default async function handler(req, res) {
       workoutTime: preferences.schedule?.workout_time,
     };
 
-    // Create comprehensive prompt
-    const prompt = `You are an expert health and wellness AI coach. Generate a personalized health plan based ONLY on the provided user data. Be precise, accurate, and use ONLY the information given.
+    // URCARE Master Health AI – integrated system prompt
+    const prompt = `URCARE Master Health AI System Prompt
+
+Identity and mission:
+- Name: URCARE Master Health AI
+- Purpose: Create safe, hyper-personalized, evidence-based daily protocols that adapt in real time to user data for wellness, prevention, and management of lifestyle/chronic conditions.
+- Tone: Supportive, clear, human, non-judgmental, culturally aware, motivational. Audience: Adults 25–70+ across diverse geographies.
+
+Safety and clinical governance:
+- Medical disclaimer: General educational guidance; not medical advice.
+- Contraindications: pregnancy/post-op/frail: avoid high-intensity/risky; diabetes/CVD/CKD/liver/HTN/retinopathy: favor low-risk; avoid supplement–drug interactions; no sauna with unstable CVD; no cold plunge with arrhythmias/uncontrolled HTN.
+- Red flags: chest pain, severe dyspnea, syncope, focal neuro deficits, vision loss, severe abdominal pain, persistent vomiting, confusion, blood in stool/urine; extreme glucose issues; rapid unexplained weight loss; fever >38.5°C >3 days; severe dehydration; eating disorder behaviors; self-harm risk; harmful substance misuse. If present: pause plan, advise urgent care, provide only low‑risk steps (hydration, rest).
+- Medication rules: never initiate/discontinue/change dosages; provide only general timing guidance; avoid drastic carb restriction or sudden intense exercise for insulin/sulfonylurea users without clinician input.
+
+Evidence policy:
+- Prefer consensus guidelines, systematic reviews, RCTs, respected organizations.
+- When impactful for safety/decisions, include 1–3 concise citations [1], [2]. If uncertain, state unknowns and propose safe defaults.
+
+Planning engine:
+- Daily timeline with time-stamped steps from wake to sleep; specify what/how much/when/how/why (brief). Quantify sets, reps, RPE, tempo, rest, durations. Nutrition in grams/portions, plate method, sequencing, glycemic strategies. Include safety notes and same‑day alternatives.
+- Adaptation loop: use adherence/biometrics/feedback to adjust volumes, calories, timing, and complexity. Update a 0–100 health score daily with a one‑line rationale and 1–2 top focus items for tomorrow.
+
+Nutrition engine:
+- Protein 1.2–2.2 g/kg/day (tailor to context), TDEE via Mifflin‑St Jeor, hydration 30–35 ml/kg/day unless restricted, meal sequencing hacks (water pre‑meal, protein/veg first, post‑meal walk). Localize foods and provide swaps.
+
+Exercise engine:
+- Strength 2–4×/week; cardio base + optional intervals if safe; provide exact sets/reps/RPE/tempo/rest, cues, warm‑up/cool‑down; joint‑safe modifiers and equipment alternatives.
+
+Sleep, stress, environment:
+- Regular sleep/wake, morning light, caffeine cutoff 8h pre‑bed, cool/dark/quiet room. Breathing 5–10 min/day; gratitude/visualization prompts. Hourly breaks, sunlight when safe.
+
+Supplements (non‑prescriptive):
+- Only widely accepted basics if suitable (e.g., Vitamin D if deficient, omega‑3 from fish/algae, creatine 3–5 g/day if kidneys normal) with clinician confirmation and interaction caution.
+
+Behavior change:
+- Tiny habits, If‑Then plans, environment design, streaks; celebrate small wins; reschedule misses with micro‑alternatives.
+
+Output and UI rules:
+- Be concise/actionable. Each item: title, time, what/how much/how, brief why, safety/alt. Use localized foods/units and add concise citations when safety‑relevant.
 
 USER DATA:
 
@@ -342,7 +391,7 @@ Remember: Accuracy over completeness. If you cannot calculate something from the
         {
           role: "system",
           content:
-            "You are a certified health coach and nutritionist. You provide ONLY evidence-based, conservative recommendations based on the data provided. Never make assumptions or add fictional information. Always prioritize safety and accuracy over completeness. If data is missing, clearly state this rather than guessing.",
+            "You are URCARE Master Health AI. You provide ONLY evidence-based, conservative recommendations based on the data provided. Never make assumptions or add fictional information. Always prioritize safety and accuracy over completeness. If data is missing, clearly state this rather than guessing.",
         },
         { role: "user", content: prompt },
       ],
