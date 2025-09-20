@@ -117,7 +117,10 @@ const Calendar: React.FC = () => {
     };
 
     // Process morning routine activities
-    if (weekdayTemplate.morning_routine && weekdayTemplate.morning_routine.length > 0) {
+    if (
+      weekdayTemplate.morning_routine &&
+      weekdayTemplate.morning_routine.length > 0
+    ) {
       weekdayTemplate.morning_routine.forEach((activity: Activity) => {
         events.push({
           id: `morning-${eventId++}`,
@@ -192,7 +195,10 @@ const Calendar: React.FC = () => {
     }
 
     // Process wellness activities
-    if (weekdayTemplate.wellness_activities && weekdayTemplate.wellness_activities.length > 0) {
+    if (
+      weekdayTemplate.wellness_activities &&
+      weekdayTemplate.wellness_activities.length > 0
+    ) {
       weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
         events.push({
           id: `wellness-${eventId++}`,
@@ -208,7 +214,10 @@ const Calendar: React.FC = () => {
     }
 
     // Process evening routine
-    if (weekdayTemplate.evening_routine && weekdayTemplate.evening_routine.length > 0) {
+    if (
+      weekdayTemplate.evening_routine &&
+      weekdayTemplate.evening_routine.length > 0
+    ) {
       weekdayTemplate.evening_routine.forEach((activity: Activity) => {
         // Schedule evening activities around 8:00 PM
         let eveningTime = Math.max(currentTime, 20 * 60); // At least 8:00 PM

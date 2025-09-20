@@ -30,40 +30,7 @@ export const useHealthPlanGeneration = (): UseHealthPlanGenerationReturn => {
     setProgress((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const simulateProgress = useCallback(() => {
-    const steps = [
-      { step: "analyzing", progress: 15, duration: 2000 },
-      { step: "disease-detection", progress: 25, duration: 1500 },
-      { step: "nutrition-plan", progress: 45, duration: 3000 },
-      { step: "exercise-protocol", progress: 65, duration: 2500 },
-      { step: "lifestyle-integration", progress: 80, duration: 2000 },
-      { step: "finalizing", progress: 100, duration: 1500 },
-    ];
-
-    let currentStepIndex = 0;
-
-    const progressInterval = setInterval(() => {
-      if (currentStepIndex >= steps.length) {
-        clearInterval(progressInterval);
-        updateProgress({
-          isGenerating: false,
-          status: "completed",
-          currentStep: "finalizing",
-        });
-        return;
-      }
-
-      const currentStep = steps[currentStepIndex];
-      updateProgress({
-        currentStep: currentStep.step,
-        progress: currentStep.progress,
-      });
-
-      currentStepIndex++;
-    }, 1500);
-
-    return progressInterval;
-  }, [updateProgress]);
+  // Removed simulateProgress - now using real progress from service
 
   const generatePlan = useCallback(async () => {
     try {

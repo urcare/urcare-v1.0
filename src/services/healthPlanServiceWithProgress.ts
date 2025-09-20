@@ -43,15 +43,16 @@ class HealthPlanServiceWithProgress {
   // Generate health plan using AI API with progress tracking
   async generateHealthPlan(): Promise<HealthPlanRecord> {
     try {
-      this.updateProgress("analyzing", 10, "Analyzing your health profile...");
-
+      this.updateProgress("analyzing", 5, "Starting plan generation...");
+      
+      // Small delay to show initial progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      this.updateProgress("analyzing", 15, "Analyzing your health profile...");
+      
       console.log("🚀 Generating AI health plan...");
 
-      this.updateProgress(
-        "disease-detection",
-        25,
-        "Detecting health conditions..."
-      );
+      this.updateProgress("analyzing", 25, "Connecting to AI service...");
 
       // First try the main AI health coach plan function
       const { data, error } = await supabase.functions.invoke(
@@ -69,11 +70,7 @@ class HealthPlanServiceWithProgress {
         }
       );
 
-      this.updateProgress(
-        "nutrition-plan",
-        45,
-        "Creating personalized nutrition plan..."
-      );
+      this.updateProgress("analyzing", 45, "Processing AI response...");
 
       if (error) {
         console.warn("❌ AI health coach plan failed:", error.message);
@@ -89,31 +86,25 @@ class HealthPlanServiceWithProgress {
         );
       }
 
-      this.updateProgress(
-        "exercise-protocol",
-        65,
-        "Building exercise protocols..."
-      );
+      this.updateProgress("analyzing", 70, "Validating plan data...");
 
       console.log("✅ Successfully generated AI health plan");
 
-      this.updateProgress(
-        "lifestyle-integration",
-        80,
-        "Integrating lifestyle factors..."
-      );
+      this.updateProgress("analyzing", 90, "Preparing your plan...");
 
-      this.updateProgress("finalizing", 100, "Finalizing your health plan...");
+      this.updateProgress("analyzing", 100, "Plan generation complete!");
 
       return data.plan;
     } catch (error) {
       console.error("❌ Error generating AI Health Coach plan:", error);
 
-      this.updateProgress("fallback", 50, "Using enhanced fallback system...");
+      this.updateProgress("analyzing", 30, "Trying alternative method...");
 
       // Try the simple health plan function as backup
       try {
         console.log("🔄 Trying simple health plan as fallback...");
+
+        this.updateProgress("analyzing", 50, "Using backup system...");
 
         const { data: simpleData, error: simpleError } =
           await supabase.functions.invoke("generate-health-plan-simple", {
@@ -128,10 +119,11 @@ class HealthPlanServiceWithProgress {
             },
           });
 
-        this.updateProgress("finalizing", 100, "Finalizing fallback plan...");
+        this.updateProgress("analyzing", 80, "Processing backup plan...");
 
         if (!simpleError && simpleData?.success) {
           console.log("✅ Successfully generated simple health plan");
+          this.updateProgress("analyzing", 100, "Backup plan ready!");
           return simpleData.plan;
         }
       } catch (simpleError) {
@@ -140,11 +132,12 @@ class HealthPlanServiceWithProgress {
 
       // Final fallback to client-side plan
       console.warn("⚠️ Using enhanced client-side fallback plan");
-      this.updateProgress(
-        "finalizing",
-        100,
-        "Creating comprehensive fallback plan..."
-      );
+      this.updateProgress("analyzing", 60, "Creating comprehensive plan...");
+      
+      // Small delay to show progress
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      this.updateProgress("analyzing", 100, "Fallback plan ready!");
 
       return this.createFallbackPlan();
     }

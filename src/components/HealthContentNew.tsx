@@ -14,7 +14,7 @@ import { useHealthPlanGeneration } from "../hooks/useHealthPlanGeneration";
 import { ComprehensivePlanSelectionCards } from "./ComprehensivePlanSelectionCards";
 import { HealthInputBar } from "./HealthInputBar";
 import { HealthPlanCalendarView } from "./HealthPlanCalendarView";
-import { HealthPlanProgress } from "./HealthPlanProgress";
+import { SimplePlanLoading } from "./SimplePlanLoading";
 import { PlannerPage } from "./PlannerPage";
 import { DashboardHeaderNew } from "./dashboard/DashboardHeaderNew";
 import { ProgressCard } from "./dashboard/ProgressCard";
@@ -414,9 +414,9 @@ export const HealthContentNew = () => {
 
         {/* Loading State with Progress */}
         {progress.isGenerating && (
-          <HealthPlanProgress
+          <SimplePlanLoading
             isGenerating={progress.isGenerating}
-            currentStep={progress.currentStep}
+            progress={progress.progress}
             error={progress.error}
             onComplete={() => {
               // Handle completion if needed
@@ -487,15 +487,15 @@ export const HealthContentNew = () => {
                 onClick={() => {
                   // Navigate to calendar with active plan
                   if (activePlan) {
-                    navigate('/calendar', { 
-                      state: { 
+                    navigate("/calendar", {
+                      state: {
                         planData: activePlan,
-                        planName: activePlan.plan_name 
-                      } 
+                        planName: activePlan.plan_name,
+                      },
                     });
                   } else {
                     // If no active plan, navigate to calendar with demo data
-                    navigate('/calendar');
+                    navigate("/calendar");
                   }
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"

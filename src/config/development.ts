@@ -9,7 +9,7 @@ export const DEV_CONFIG = {
 
   // Development user for local testing
   DEV_USER: {
-    id: "dev-user-123",
+    id: "9d1051c9-0241-4370-99a3-034bd2d5d001",
     email: "dev@urcare.local",
     user_metadata: {
       full_name: "Development User",
@@ -26,7 +26,7 @@ export const DEV_CONFIG = {
 
   // Development profile
   DEV_PROFILE: {
-    id: "dev-user-123",
+    id: "9d1051c9-0241-4370-99a3-034bd2d5d001",
     full_name: "Development User",
     email: "dev@urcare.local",
     age: 25,
