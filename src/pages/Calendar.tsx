@@ -904,15 +904,6 @@ const Calendar: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Current Time Indicator for first event */}
-                      {index === 0 && (
-                        <div className="relative mt-2">
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 bg-black rounded-full"></div>
-                            <div className="flex-1 h-px bg-black ml-2"></div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
