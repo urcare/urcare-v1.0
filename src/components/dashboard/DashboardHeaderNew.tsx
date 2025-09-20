@@ -40,17 +40,8 @@ export const DashboardHeaderNew: React.FC = () => {
 
   return (
     <div className="flex items-center justify-between px-4 py-1">
-      {/* Left side - Logout button and Profile info */}
+      {/* Left side - Profile info */}
       <div className="flex items-center gap-3">
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
-          title="Logout"
-        >
-          <LogOut className="w-5 h-5 text-gray-600" />
-        </button>
-
         {/* Profile Photo */}
         <Avatar className="w-12 h-12">
           <AvatarImage
@@ -74,7 +65,7 @@ export const DashboardHeaderNew: React.FC = () => {
         </div>
       </div>
 
-      {/* Right side - Notifications only */}
+      {/* Right side - Notifications and Logout */}
       <div className="flex items-center gap-3">
         {/* Notifications icon with red dot */}
         <div className="relative">
@@ -84,6 +75,15 @@ export const DashboardHeaderNew: React.FC = () => {
           {/* Notification dot */}
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5 text-gray-600" />
+        </button>
       </div>
     </div>
   );
