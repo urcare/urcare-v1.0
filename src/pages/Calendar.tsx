@@ -3,7 +3,7 @@ import {
   ComprehensiveHealthPlan,
   MealPlan,
   WorkoutPlan,
-} from "@/types/comprehensiveHealthPlan";
+} from "../types/comprehensiveHealthPlan";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
