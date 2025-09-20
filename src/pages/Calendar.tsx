@@ -85,21 +85,6 @@ const Calendar: React.FC = () => {
     let eventId = 1;
     let currentTime = 7 * 60; // Start at 7:00 AM (420 minutes)
 
-    // Add error handling for plan data structure
-    try {
-      // Check if plan and plan_data exist
-      if (!plan || !plan.plan_data || !plan.plan_data.daily_templates) {
-        console.warn("Plan data structure is incomplete:", plan);
-        return events;
-      }
-
-      // Get weekday template (assuming we're showing a weekday)
-      const weekdayTemplate = plan.plan_data.daily_templates.weekday;
-      if (!weekdayTemplate) {
-        console.warn("Weekday template not found in plan data");
-        return events;
-      }
-
     // Helper function to format time from minutes
     const formatTime = (minutes: number): string => {
       const hours = Math.floor(minutes / 60);
@@ -127,146 +112,161 @@ const Calendar: React.FC = () => {
       }
     };
 
-    // Process morning routine activities
-    if (
-      weekdayTemplate.morning_routine &&
-      weekdayTemplate.morning_routine.length > 0
-    ) {
-      weekdayTemplate.morning_routine.forEach((activity: Activity) => {
-        events.push({
-          id: `morning-${eventId++}`,
-          title: activity.title,
-          duration: `${activity.duration} min`,
-          time: formatTime(currentTime),
-          color: getActivityColor(activity.type),
-          type: "activity",
-          description: activity.description,
+    // Add error handling for plan data structure
+    try {
+      // Check if plan and plan_data exist
+      if (!plan || !plan.plan_data || !plan.plan_data.daily_templates) {
+        console.warn("Plan data structure is incomplete:", plan);
+        return events;
+      }
+
+      // Get weekday template (assuming we're showing a weekday)
+      const weekdayTemplate = plan.plan_data.daily_templates.weekday;
+      if (!weekdayTemplate) {
+        console.warn("Weekday template not found in plan data");
+        return events;
+      }
+
+      // Process morning routine activities
+      if (
+        weekdayTemplate.morning_routine &&
+        weekdayTemplate.morning_routine.length > 0
+      ) {
+        weekdayTemplate.morning_routine.forEach((activity: Activity) => {
+          events.push({
+            id: `morning-${eventId++}`,
+            title: activity.title,
+            duration: `${activity.duration} min`,
+            time: formatTime(currentTime),
+            color: getActivityColor(activity.type),
+            type: "activity",
+            description: activity.description,
+          });
+          currentTime += activity.duration + 15; // Add 15 min buffer between activities
         });
-        currentTime += activity.duration + 15; // Add 15 min buffer between activities
-      });
-    }
+      }
 
-    // Process meals with proper spacing
-    if (weekdayTemplate.meals && weekdayTemplate.meals.length > 0) {
-      weekdayTemplate.meals.forEach((meal: MealPlan, index: number) => {
-        // Space meals appropriately throughout the day
-        let mealTime = currentTime;
-        if (index === 0) {
-          // Breakfast - after morning routine
-          mealTime = currentTime;
-        } else if (index === 1) {
-          // Lunch - around 12:00 PM
-          mealTime = 12 * 60; // 12:00 PM
-        } else if (index === 2) {
-          // Dinner - around 6:00 PM
-          mealTime = 18 * 60; // 6:00 PM
-        } else {
-          // Additional meals - space them out
-          mealTime = currentTime + index * 4 * 60; // Every 4 hours
-        }
+      // Process meals with proper spacing
+      if (weekdayTemplate.meals && weekdayTemplate.meals.length > 0) {
+        weekdayTemplate.meals.forEach((meal: MealPlan, index: number) => {
+          // Space meals appropriately throughout the day
+          let mealTime = currentTime;
+          if (index === 0) {
+            // Breakfast - after morning routine
+            mealTime = currentTime;
+          } else if (index === 1) {
+            // Lunch - around 12:00 PM
+            mealTime = 12 * 60; // 12:00 PM
+          } else if (index === 2) {
+            // Dinner - around 6:00 PM
+            mealTime = 18 * 60; // 6:00 PM
+          } else {
+            // Additional meals - space them out
+            mealTime = currentTime + index * 4 * 60; // Every 4 hours
+          }
 
-        events.push({
-          id: `meal-${eventId++}`,
-          title: meal.name,
-          duration: `${meal.prep_time + meal.cook_time} min`,
-          time: formatTime(mealTime),
-          color: "lime",
-          type: "meal",
-          description: meal.description,
+          events.push({
+            id: `meal-${eventId++}`,
+            title: meal.name,
+            duration: `${meal.prep_time + meal.cook_time} min`,
+            time: formatTime(mealTime),
+            color: "lime",
+            type: "meal",
+            description: meal.description,
+          });
+
+          // Update current time if this meal is later than current
+          if (mealTime > currentTime) {
+            currentTime = mealTime + meal.prep_time + meal.cook_time + 30; // 30 min buffer
+          } else {
+            currentTime += meal.prep_time + meal.cook_time + 30;
+          }
         });
+      }
 
-        // Update current time if this meal is later than current
-        if (mealTime > currentTime) {
-          currentTime = mealTime + meal.prep_time + meal.cook_time + 30; // 30 min buffer
-        } else {
-          currentTime += meal.prep_time + meal.cook_time + 30;
-        }
-      });
-    }
+      // Process workouts
+      if (weekdayTemplate.workouts && weekdayTemplate.workouts.length > 0) {
+        weekdayTemplate.workouts.forEach((workout: WorkoutPlan) => {
+          // Schedule workouts in the afternoon/evening
+          let workoutTime = Math.max(currentTime, 15 * 60); // At least 3:00 PM
+          if (workoutTime < 15 * 60) workoutTime = 15 * 60; // Force afternoon time
 
-    // Process workouts
-    if (weekdayTemplate.workouts && weekdayTemplate.workouts.length > 0) {
-      weekdayTemplate.workouts.forEach((workout: WorkoutPlan) => {
-        // Schedule workouts in the afternoon/evening
-        let workoutTime = Math.max(currentTime, 15 * 60); // At least 3:00 PM
-        if (workoutTime < 15 * 60) workoutTime = 15 * 60; // Force afternoon time
+          events.push({
+            id: `workout-${eventId++}`,
+            title: workout.name,
+            duration: `${workout.duration} min`,
+            time: formatTime(workoutTime),
+            color: "beige",
+            type: "workout",
+            description: workout.description,
+          });
 
-        events.push({
-          id: `workout-${eventId++}`,
-          title: workout.name,
-          duration: `${workout.duration} min`,
-          time: formatTime(workoutTime),
-          color: "beige",
-          type: "workout",
-          description: workout.description,
+          currentTime = workoutTime + workout.duration + 30; // 30 min buffer
         });
+      }
 
-        currentTime = workoutTime + workout.duration + 30; // 30 min buffer
-      });
-    }
-
-    // Process wellness activities
-    if (
-      weekdayTemplate.wellness_activities &&
-      weekdayTemplate.wellness_activities.length > 0
-    ) {
-      weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
-        events.push({
-          id: `wellness-${eventId++}`,
-          title: activity.title,
-          duration: `${activity.duration} min`,
-          time: formatTime(currentTime),
-          color: getActivityColor(activity.type),
-          type: "wellness",
-          description: activity.description,
+      // Process wellness activities
+      if (
+        weekdayTemplate.wellness_activities &&
+        weekdayTemplate.wellness_activities.length > 0
+      ) {
+        weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
+          events.push({
+            id: `wellness-${eventId++}`,
+            title: activity.title,
+            duration: `${activity.duration} min`,
+            time: formatTime(currentTime),
+            color: getActivityColor(activity.type),
+            type: "wellness",
+            description: activity.description,
+          });
+          currentTime += activity.duration + 15; // 15 min buffer
         });
-        currentTime += activity.duration + 15; // 15 min buffer
-      });
-    }
+      }
 
-    // Process evening routine
-    if (
-      weekdayTemplate.evening_routine &&
-      weekdayTemplate.evening_routine.length > 0
-    ) {
-      weekdayTemplate.evening_routine.forEach((activity: Activity) => {
-        // Schedule evening activities around 8:00 PM
-        let eveningTime = Math.max(currentTime, 20 * 60); // At least 8:00 PM
-        if (eveningTime < 20 * 60) eveningTime = 20 * 60;
+      // Process evening routine
+      if (
+        weekdayTemplate.evening_routine &&
+        weekdayTemplate.evening_routine.length > 0
+      ) {
+        weekdayTemplate.evening_routine.forEach((activity: Activity) => {
+          // Schedule evening activities around 8:00 PM
+          let eveningTime = Math.max(currentTime, 20 * 60); // At least 8:00 PM
+          if (eveningTime < 20 * 60) eveningTime = 20 * 60;
 
+          events.push({
+            id: `evening-${eventId++}`,
+            title: activity.title,
+            duration: `${activity.duration} min`,
+            time: formatTime(eveningTime),
+            color: "text",
+            type: "wellness",
+            description: activity.description,
+          });
+          eveningTime += activity.duration + 15; // 15 min buffer
+        });
+      }
+
+      // Add sleep time if specified
+      if (weekdayTemplate.sleep_targets) {
+        const sleepTime = 22 * 60; // 10:00 PM
         events.push({
-          id: `evening-${eventId++}`,
-          title: activity.title,
-          duration: `${activity.duration} min`,
-          time: formatTime(eveningTime),
+          id: `sleep-${eventId++}`,
+          title: "Sleep",
+          duration: `${weekdayTemplate.sleep_targets.target_hours * 60} min`,
+          time: formatTime(sleepTime),
           color: "text",
           type: "wellness",
-          description: activity.description,
+          description: `Target: ${weekdayTemplate.sleep_targets.target_hours} hours of sleep`,
         });
-        eveningTime += activity.duration + 15; // 15 min buffer
-      });
-    }
+      }
 
-    // Add sleep time if specified
-    if (weekdayTemplate.sleep_targets) {
-      const sleepTime = 22 * 60; // 10:00 PM
-      events.push({
-        id: `sleep-${eventId++}`,
-        title: "Sleep",
-        duration: `${weekdayTemplate.sleep_targets.target_hours * 60} min`,
-        time: formatTime(sleepTime),
-        color: "text",
-        type: "wellness",
-        description: `Target: ${weekdayTemplate.sleep_targets.target_hours} hours of sleep`,
+      // Sort events by time
+      return events.sort((a, b) => {
+        const timeA = parseTime(a.time);
+        const timeB = parseTime(b.time);
+        return timeA - timeB;
       });
-    }
-
-    // Sort events by time
-    return events.sort((a, b) => {
-      const timeA = parseTime(a.time);
-      const timeB = parseTime(b.time);
-      return timeA - timeB;
-    });
     } catch (error) {
       console.error("Error converting plan to events:", error);
       return events; // Return empty events array on error
