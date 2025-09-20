@@ -181,9 +181,19 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Dark Header */}
-      <div className="bg-gray-900 px-6 pt-12 pb-4">
-        <div className="flex justify-between items-start">
+      {/* Header with Background Image */}
+      <div 
+        className="px-6 pt-12 pb-4 relative"
+        style={{
+          backgroundImage: 'url(/imgg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="flex justify-between items-start relative z-10">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleBackToDashboard}
