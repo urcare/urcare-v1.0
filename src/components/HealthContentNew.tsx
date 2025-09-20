@@ -18,7 +18,6 @@ import { PlannerPage } from "./PlannerPage";
 import { SimplePlanLoading } from "./SimplePlanLoading";
 import { DashboardHeaderNew } from "./dashboard/DashboardHeaderNew";
 import { ProgressCard } from "./dashboard/ProgressCard";
-import { StatsCards } from "./dashboard/StatsCards";
 
 interface PlanData {
   id: string;
@@ -417,14 +416,10 @@ export const HealthContentNew = () => {
           currentDate="19 September"
         />
 
-        {/* Stats Cards */}
-        <StatsCards
-          currentSteps={8247}
-          stepsGoal={10000}
-          stepsChange={1753}
-          todayCalories={1278}
-          calorieChangePercent={-5.6}
-        />
+        {/* Health Input Bar - Show when no plans generated or when generating */}
+        {(showInputBar || progress.isGenerating) && (
+          <HealthInputBar onPlanGenerate={handlePlanGeneration} />
+        )}
 
         {/* Loading State with Progress */}
         {progress.isGenerating && (
@@ -584,11 +579,6 @@ export const HealthContentNew = () => {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Health Input Bar - Show when no plans generated or when generating */}
-        {(showInputBar || progress.isGenerating) && (
-          <HealthInputBar onPlanGenerate={handlePlanGeneration} />
         )}
 
         {/* Plan Selection Cards - Show when plans are generated */}
