@@ -1,10 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import React from "react";
 
 export const DashboardHeaderNew: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -14,6 +14,14 @@ export const DashboardHeaderNew: React.FC = () => {
       return user.email.split("@")[0];
     }
     return "User";
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   if (!user) {
@@ -32,8 +40,17 @@ export const DashboardHeaderNew: React.FC = () => {
 
   return (
     <div className="flex items-center justify-between px-4 py-1">
-      {/* Left side - Profile info */}
+      {/* Left side - Logout button and Profile info */}
       <div className="flex items-center gap-3">
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5 text-gray-600" />
+        </button>
+
         {/* Profile Photo */}
         <Avatar className="w-12 h-12">
           <AvatarImage
