@@ -72,8 +72,34 @@ export const HealthContentNew = () => {
 
   // Load user's active plan on component mount
   useEffect(() => {
-    loadUserData();
+    // Only load data if user is authenticated
+    const checkAuthAndLoad = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        loadUserData();
+      } else {
+        console.log("User not authenticated, skipping data load");
+      }
+    };
+
+    checkAuthAndLoad();
   }, []);
+
+  // Add error handling for database queries
+  const handleDatabaseError = (error: any, context: string) => {
+    console.error(`Database error in ${context}:`, error);
+    if (
+      error.code === "PGRST116" ||
+      error.message?.includes("relation") ||
+      error.message?.includes("does not exist")
+    ) {
+      console.warn(
+        "Database table may not exist. Please run the migration script."
+      );
+    }
+  };
 
   // Set up real-time progress tracking for active plan
   useEffect(() => {
@@ -150,28 +176,56 @@ export const HealthContentNew = () => {
     try {
       const {
         data: { user },
+        error: authError,
       } = await supabase.auth.getUser();
-      if (!user) return;
+
+      if (authError) {
+        console.error("Authentication error:", authError);
+        return;
+      }
+
+      if (!user) {
+        console.log("No authenticated user found");
+        return;
+      }
+
+      // Check if this is a development user
+      if (user.id === "dev-user-123") {
+        console.log("Development user detected - using mock data");
+        setUserProfile({
+          id: "dev-user-123",
+          full_name: "Development User",
+          onboarding_completed: true,
+        });
+        return;
+      }
+
+      console.log("Loading data for user:", user.id);
 
       // Load user profile
       const { data: profile } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
 
       setUserProfile(profile);
 
       // Check for existing active plan
-      const existingPlan = await comprehensiveHealthPlanService.getActivePlan(
-        user.id
-      );
-      if (existingPlan) {
-        setActivePlan(existingPlan);
-        setShowInputBar(false);
+      try {
+        const existingPlan = await comprehensiveHealthPlanService.getActivePlan(
+          user.id
+        );
+        if (existingPlan) {
+          setActivePlan(existingPlan);
+          setShowInputBar(false);
+        }
+      } catch (planError) {
+        handleDatabaseError(planError, "getActivePlan");
+        // Continue without existing plan - user can create a new one
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      handleDatabaseError(error, "loadUserData");
     }
   };
 
