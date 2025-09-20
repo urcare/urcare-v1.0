@@ -157,7 +157,7 @@ function App() {
             element={
               <ProtectedRoute
                 requireOnboardingComplete={true}
-                requireSubscription={true}
+                requireSubscription={false}
               >
                 <Calendar />
               </ProtectedRoute>
