@@ -227,13 +227,6 @@ const Calendar: React.FC = () => {
               type: "meal",
               description: meal.description,
             });
-
-            // Update current time if this meal is later than current
-            if (mealTime > currentTime) {
-              currentTime = mealTime + meal.prep_time + meal.cook_time + 30; // 30 min buffer
-            } else {
-              currentTime += meal.prep_time + meal.cook_time + 30;
-            }
           });
         }
 
