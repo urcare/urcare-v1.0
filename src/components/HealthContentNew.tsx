@@ -334,6 +334,13 @@ export const HealthContentNew = () => {
       );
       console.log(`📊 Plan type: ${comprehensivePlan.plan_type}`);
       console.log(`🎯 Expected outcomes:`, planCalculation.expected_outcomes);
+      console.log(`📋 Generated plans count:`, multiplePlans.length);
+      console.log(`🔍 Current state after plan generation:`, {
+        showInputBar,
+        generatedPlansLength: multiplePlans.length,
+        activePlan: !!comprehensivePlan,
+        progressIsGenerating: progress.isGenerating
+      });
     } catch (error) {
       console.error("❌ Error generating comprehensive health plan:", error);
       setShowInputBar(true); // Show input bar again on error
@@ -584,6 +591,19 @@ export const HealthContentNew = () => {
             onPlanSelect={handlePlanSelect}
             onViewPlanDetails={handleViewPlanDetails}
           />
+        )}
+
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-100 p-4 rounded-lg text-sm">
+            <h3 className="font-bold">Debug Info:</h3>
+            <p>showInputBar: {showInputBar.toString()}</p>
+            <p>progress.isGenerating: {progress.isGenerating.toString()}</p>
+            <p>generatedPlans.length: {generatedPlans.length}</p>
+            <p>activePlan: {activePlan ? 'Yes' : 'No'}</p>
+            <p>showPlannerPage: {showPlannerPage.toString()}</p>
+            <p>showCalendarView: {showCalendarView.toString()}</p>
+          </div>
         )}
       </div>
     </div>
