@@ -85,9 +85,20 @@ const Calendar: React.FC = () => {
     let eventId = 1;
     let currentTime = 7 * 60; // Start at 7:00 AM (420 minutes)
 
-    // Get weekday template (assuming we're showing a weekday)
-    const weekdayTemplate = plan.plan_data.daily_templates.weekday;
-    if (!weekdayTemplate) return events;
+    // Add error handling for plan data structure
+    try {
+      // Check if plan and plan_data exist
+      if (!plan || !plan.plan_data || !plan.plan_data.daily_templates) {
+        console.warn("Plan data structure is incomplete:", plan);
+        return events;
+      }
+
+      // Get weekday template (assuming we're showing a weekday)
+      const weekdayTemplate = plan.plan_data.daily_templates.weekday;
+      if (!weekdayTemplate) {
+        console.warn("Weekday template not found in plan data");
+        return events;
+      }
 
     // Helper function to format time from minutes
     const formatTime = (minutes: number): string => {
@@ -250,22 +261,33 @@ const Calendar: React.FC = () => {
       });
     }
 
-    // Sort events by time
-    return events.sort((a, b) => {
-      const timeA = parseTime(a.time);
-      const timeB = parseTime(b.time);
-      return timeA - timeB;
-    });
+      // Sort events by time
+      return events.sort((a, b) => {
+        const timeA = parseTime(a.time);
+        const timeB = parseTime(b.time);
+        return timeA - timeB;
+      });
+    } catch (error) {
+      console.error("Error converting plan to events:", error);
+      return events; // Return empty events array on error
+    }
   };
 
   // Load plan data from location state
   useEffect(() => {
-    if (location.state?.planData) {
-      setPlanData(location.state.planData);
-      const planEvents = convertPlanToEvents(location.state.planData);
-      setEvents(planEvents);
-    } else {
-      setEvents(defaultEvents);
+    try {
+      if (location.state?.planData) {
+        console.log("Loading plan data from location state:", location.state.planData);
+        setPlanData(location.state.planData);
+        const planEvents = convertPlanToEvents(location.state.planData);
+        setEvents(planEvents);
+      } else {
+        console.log("No plan data in location state, using default events");
+        setEvents(defaultEvents);
+      }
+    } catch (error) {
+      console.error("Error loading plan data:", error);
+      setEvents(defaultEvents); // Fallback to default events
     }
   }, [location.state]);
 

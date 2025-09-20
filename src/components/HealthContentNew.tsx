@@ -485,16 +485,24 @@ export const HealthContentNew = () => {
               </button>
               <button
                 onClick={() => {
-                  // Navigate to calendar with active plan
-                  if (activePlan) {
-                    navigate("/calendar", {
-                      state: {
-                        planData: activePlan,
-                        planName: activePlan.plan_name,
-                      },
-                    });
-                  } else {
-                    // If no active plan, navigate to calendar with demo data
+                  try {
+                    // Navigate to calendar with active plan
+                    if (activePlan) {
+                      console.log("Navigating to calendar with active plan:", activePlan);
+                      navigate("/calendar", {
+                        state: {
+                          planData: activePlan,
+                          planName: activePlan.plan_name,
+                        },
+                      });
+                    } else {
+                      // If no active plan, navigate to calendar with demo data
+                      console.log("Navigating to calendar without plan data");
+                      navigate("/calendar");
+                    }
+                  } catch (error) {
+                    console.error("Error navigating to calendar:", error);
+                    // Fallback navigation without state
                     navigate("/calendar");
                   }
                 }}
