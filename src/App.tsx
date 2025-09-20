@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import Calendar from "./pages/Calendar";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
@@ -147,6 +148,18 @@ function App() {
                 requireSubscription={false}
               >
                 <Camera />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
+                <Calendar />
               </ProtectedRoute>
             }
           />

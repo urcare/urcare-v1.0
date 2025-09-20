@@ -1018,15 +1018,28 @@ export class ComprehensiveHealthPlanService {
    * Get user's active comprehensive plan
    */
   async getActivePlan(userId: string): Promise<ComprehensiveHealthPlan | null> {
-    const { data, error } = await supabase
-      .from("comprehensive_health_plans")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("comprehensive_health_plans")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-    if (error || !data) return null;
-    return data;
+      if (error) {
+        // Log the error for debugging but don't throw
+        console.warn("Error fetching active plan:", error);
+        return null;
+      }
+
+      // Return the most recent active plan, or null if none found
+      return data && data.length > 0 ? data[0] : null;
+    } catch (error) {
+      // Handle any unexpected errors gracefully
+      console.warn("Unexpected error fetching active plan:", error);
+      return null;
+    }
   }
 
   /**

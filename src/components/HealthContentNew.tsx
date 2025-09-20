@@ -8,7 +8,8 @@ import {
   ComprehensiveHealthPlan,
   PLAN_TYPE_DEFINITIONS,
 } from "@/types/comprehensiveHealthPlan";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useHealthPlanGeneration } from "../hooks/useHealthPlanGeneration";
 import { ComprehensivePlanSelectionCards } from "./ComprehensivePlanSelectionCards";
 import { HealthInputBar } from "./HealthInputBar";
@@ -42,6 +43,7 @@ interface PlanData {
 }
 
 export const HealthContentNew = () => {
+  const navigate = useNavigate();
   const [suggestedInput, setSuggestedInput] = useState<string>("");
   const [generatedPlans, setGeneratedPlans] = useState<PlanData[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<PlanData | null>(null);
@@ -70,30 +72,14 @@ export const HealthContentNew = () => {
   const [showPlannerPage, setShowPlannerPage] = useState(false);
   const [showCalendarView, setShowCalendarView] = useState(false);
 
-  // Load user's active plan on component mount
-  useEffect(() => {
-    // Only load data if user is authenticated
-    const checkAuthAndLoad = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        loadUserData();
-      } else {
-        console.log("User not authenticated, skipping data load");
-      }
-    };
-
-    checkAuthAndLoad();
-  }, []);
-
   // Add error handling for database queries
-  const handleDatabaseError = (error: any, context: string) => {
+  const handleDatabaseError = (error: unknown, context: string) => {
     console.error(`Database error in ${context}:`, error);
+    const errorObj = error as { code?: string; message?: string };
     if (
-      error.code === "PGRST116" ||
-      error.message?.includes("relation") ||
-      error.message?.includes("does not exist")
+      errorObj?.code === "PGRST116" ||
+      errorObj?.message?.includes("relation") ||
+      errorObj?.message?.includes("does not exist")
     ) {
       console.warn(
         "Database table may not exist. Please run the migration script."
@@ -172,7 +158,7 @@ export const HealthContentNew = () => {
     }
   }, [activePlan]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const {
         data: { user },
@@ -193,7 +179,7 @@ export const HealthContentNew = () => {
       if (user.id === "dev-user-123") {
         console.log("Development user detected - using mock data");
         setUserProfile({
-          id: "dev-user-123",
+          id: "9d1051c9-0241-4370-99a3-034bd2d5d001", // Use valid UUID
           full_name: "Development User",
           onboarding_completed: true,
         });
@@ -227,7 +213,24 @@ export const HealthContentNew = () => {
     } catch (error) {
       handleDatabaseError(error, "loadUserData");
     }
-  };
+  }, []);
+
+  // Load user's active plan on component mount
+  useEffect(() => {
+    // Only load data if user is authenticated
+    const checkAuthAndLoad = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        loadUserData();
+      } else {
+        console.log("User not authenticated, skipping data load");
+      }
+    };
+
+    checkAuthAndLoad();
+  }, [loadUserData]);
 
   const handleSuggestedInput = (input: string) => {
     setSuggestedInput(input);
@@ -349,8 +352,19 @@ export const HealthContentNew = () => {
   };
 
   const handleViewPlanDetails = (plan: PlanData) => {
-    setSelectedPlan(plan);
-    setShowCalendarView(true);
+    // Navigate to calendar with plan data
+    if (plan.comprehensive_plan) {
+      navigate("/calendar", {
+        state: {
+          planData: plan.comprehensive_plan,
+          planName: plan.name,
+        },
+      });
+    } else {
+      // Fallback to existing behavior for non-comprehensive plans
+      setSelectedPlan(plan);
+      setShowCalendarView(true);
+    }
   };
 
   const handleBackToPlans = () => {
