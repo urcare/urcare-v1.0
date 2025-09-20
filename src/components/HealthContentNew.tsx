@@ -343,13 +343,20 @@ export const HealthContentNew = () => {
       });
     } catch (error) {
       console.error("❌ Error generating comprehensive health plan:", error);
-      setShowInputBar(true); // Show input bar again on error
-      // Show error to user with more helpful message
-      alert(
-        `Unable to generate health plan at this time. Please try again in a few moments. Error: ${
-          error.message || "Unknown error"
-        }`
-      );
+      
+      // Only show input bar again if no plans were generated
+      if (generatedPlans.length === 0) {
+        setShowInputBar(true);
+        // Show error to user with more helpful message
+        alert(
+          `Unable to generate health plan at this time. Please try again in a few moments. Error: ${
+            error.message || "Unknown error"
+          }`
+        );
+      } else {
+        // If plans were generated, keep them visible even if there was an error
+        console.log("✅ Plans were generated successfully, keeping them visible despite error");
+      }
     }
   };
 
