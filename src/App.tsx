@@ -5,11 +5,15 @@ import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
 import EnhancedPlanner from "./pages/EnhancedPlanner";
+import Goals from "./pages/Goals";
 import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import ProfileManagement from "./pages/ProfileManagement";
+import Progress from "./pages/Progress";
+import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import Workout from "./pages/Workout";
 
@@ -160,6 +164,54 @@ function App() {
                 requireSubscription={false}
               >
                 <Calendar />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/goals"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
+                <Goals />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={true}
+              >
+                <Progress />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={false}
+              >
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile-management"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={false}
+              >
+                <ProfileManagement />
               </ProtectedRoute>
             }
           />
