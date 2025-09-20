@@ -182,13 +182,13 @@ const Calendar: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header with Background Image */}
-      <div 
+      <div
         className="px-6 pt-12 pb-4 relative"
         style={{
-          backgroundImage: 'url(/imgg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundImage: "url(/images/imgg.JPG)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         {/* Dark overlay for better text readability */}
