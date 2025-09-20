@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   Activity,
   ComprehensiveHealthPlan,
@@ -15,6 +16,25 @@ interface Event {
   color: "green" | "lime" | "beige" | "text";
   type?: "activity" | "meal" | "workout" | "wellness";
   description?: string;
+  // Add details for expandable content
+  details?: {
+    description?: string;
+    exercises?: Array<{
+      name: string;
+      sets: number;
+      reps: number;
+      rest: string;
+    }>;
+    nutrition?: {
+      calories: number;
+      protein: string;
+      carbs: string;
+      fats: string;
+      foods: string[];
+    };
+    instructions?: string[];
+    tips?: string[];
+  };
 }
 
 const Calendar: React.FC = () => {
@@ -28,6 +48,8 @@ const Calendar: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Add state for expanded events
+  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
   const weekDays = [
     { day: "S", date: 18 },
@@ -194,6 +216,19 @@ const Calendar: React.FC = () => {
               color: getActivityColor(activity.type),
               type: "activity",
               description: activity.description,
+              details: {
+                description: activity.description,
+                instructions: activity.instructions || [
+                  "Follow the activity instructions carefully",
+                  "Take breaks as needed",
+                  "Stay hydrated throughout"
+                ],
+                tips: activity.tips || [
+                  "Start slowly and build up intensity",
+                  "Listen to your body",
+                  "Maintain proper form"
+                ]
+              }
             });
             morningTime += activity.duration + 15; // Add 15 min buffer between activities
           });
@@ -226,6 +261,21 @@ const Calendar: React.FC = () => {
               color: "lime",
               type: "meal",
               description: meal.description,
+              details: {
+                description: meal.description,
+                nutrition: {
+                  calories: meal.nutrition?.calories || 400,
+                  protein: `${meal.nutrition?.protein || 25}g`,
+                  carbs: `${meal.nutrition?.carbohydrates || 35}g`,
+                  fats: `${meal.nutrition?.fat || 15}g`,
+                  foods: meal.ingredients?.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`) || ["Sample ingredient 1", "Sample ingredient 2"]
+                },
+                instructions: meal.instructions || [
+                  "Prepare all ingredients",
+                  "Follow cooking instructions",
+                  "Serve and enjoy your meal"
+                ]
+              }
             });
           });
         }
@@ -252,6 +302,25 @@ const Calendar: React.FC = () => {
               color: "beige",
               type: "workout",
               description: workout.description,
+              details: {
+                description: workout.description,
+                exercises: workout.exercises?.map(exercise => ({
+                  name: exercise.name,
+                  sets: exercise.sets || 3,
+                  reps: exercise.reps || 12,
+                  rest: `${exercise.rest_between_sets || 60}s`
+                })) || [
+                  { name: "Sample Exercise 1", sets: 3, reps: 12, rest: "60s" },
+                  { name: "Sample Exercise 2", sets: 3, reps: 15, rest: "60s" },
+                  { name: "Sample Exercise 3", sets: 3, reps: 10, rest: "90s" }
+                ],
+                instructions: [
+                  "Warm up for 5-10 minutes",
+                  "Focus on proper form",
+                  "Take rest between sets",
+                  "Cool down with stretching"
+                ]
+              }
             });
           });
         }
@@ -273,6 +342,20 @@ const Calendar: React.FC = () => {
               color: getActivityColor(activity.type),
               type: "wellness",
               description: activity.description,
+              details: {
+                description: activity.description,
+                instructions: activity.instructions || [
+                  "Find a quiet, comfortable space",
+                  "Focus on your breathing",
+                  "Practice mindfulness",
+                  "Take your time with the activity"
+                ],
+                tips: activity.tips || [
+                  "Start with short sessions",
+                  "Be patient with yourself",
+                  "Consistency is key"
+                ]
+              }
             });
           });
         }
@@ -292,6 +375,20 @@ const Calendar: React.FC = () => {
               color: "text",
               type: "wellness",
               description: activity.description,
+              details: {
+                description: activity.description,
+                instructions: activity.instructions || [
+                  "Prepare for evening routine",
+                  "Follow activity instructions",
+                  "Relax and unwind",
+                  "Prepare for sleep"
+                ],
+                tips: activity.tips || [
+                  "Create a calm environment",
+                  "Avoid screens before bed",
+                  "Practice relaxation techniques"
+                ]
+              }
             });
             eveningTime -= activity.duration + 15; // Move earlier for next activity
           });
@@ -309,6 +406,21 @@ const Calendar: React.FC = () => {
             color: "text",
             type: "wellness",
             description: `Target: ${sleepDuration} hours of sleep`,
+            details: {
+              description: `Target: ${sleepDuration} hours of sleep`,
+              instructions: [
+                "Turn off all screens 1 hour before bed",
+                "Create a cool, dark sleeping environment",
+                "Practice relaxation techniques",
+                "Aim for consistent sleep schedule"
+              ],
+              tips: [
+                "Keep bedroom temperature cool (65-68°F)",
+                "Use blackout curtains or eye mask",
+                "Avoid caffeine after 2 PM",
+                "Establish a bedtime routine"
+              ]
+            }
           });
         }
 
@@ -634,53 +746,177 @@ const Calendar: React.FC = () => {
           {/* Timeline */}
           <div className="space-y-6">
             {events && events.length > 0 ? (
-              events.map((event, index) => (
-                <div key={event.id} className="flex items-start space-x-4">
-                  {/* Time Label */}
-                  <div className="w-16 text-sm text-gray-600 mt-1">
-                    {event.time}
-                  </div>
+              events.map((event, index) => {
+                const isExpanded = expandedEvent === event.id;
+                
+                return (
+                  <div key={event.id} className="flex items-start space-x-4">
+                    {/* Time Label */}
+                    <div className="w-16 text-sm text-gray-600 mt-1">
+                      {event.time}
+                    </div>
 
-                  {/* Event Card */}
-                  <div className="flex-1">
-                    {event.color === "text" ? (
-                      <div className="py-2">
-                        <h3 className="text-black font-medium">
-                          {event.title}
-                        </h3>
-                        {event.duration && (
-                          <p className="text-sm text-gray-600">
-                            {event.duration}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div
-                        className={`rounded-xl p-4 ${getEventColorClass(
-                          event.color
-                        )}`}
-                      >
-                        <h3 className="font-medium">{event.title}</h3>
-                        {event.duration && (
-                          <p className="text-sm opacity-80 mt-1">
-                            {event.duration}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Current Time Indicator for first event */}
-                    {index === 0 && (
-                      <div className="relative mt-2">
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 bg-black rounded-full"></div>
-                          <div className="flex-1 h-px bg-black ml-2"></div>
+                    {/* Event Card */}
+                    <div className="flex-1">
+                      {event.color === "text" ? (
+                        <div className="py-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-black font-medium">
+                                {event.title}
+                              </h3>
+                              {event.duration && (
+                                <p className="text-sm text-gray-600">
+                                  {event.duration}
+                                </p>
+                              )}
+                            </div>
+                            {/* Expand/Collapse Button */}
+                            {event.details && (
+                              <button
+                                onClick={() => 
+                                  setExpandedEvent(isExpanded ? null : event.id)
+                                }
+                                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div
+                          className={`rounded-xl p-4 ${getEventColorClass(
+                            event.color
+                          )}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-medium">{event.title}</h3>
+                              {event.duration && (
+                                <p className="text-sm opacity-80 mt-1">
+                                  {event.duration}
+                                </p>
+                              )}
+                            </div>
+                            {/* Expand/Collapse Button */}
+                            {event.details && (
+                              <button
+                                onClick={() => 
+                                  setExpandedEvent(isExpanded ? null : event.id)
+                                }
+                                className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Expanded Details */}
+                      {isExpanded && event.details && (
+                        <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-3">
+                          {event.details.description && (
+                            <p className="text-gray-700 text-sm font-medium">{event.details.description}</p>
+                          )}
+                          
+                          {/* Workout Details */}
+                          {event.details.exercises && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Exercises</h4>
+                              <div className="space-y-2">
+                                {event.details.exercises.map((exercise, exerciseIndex) => (
+                                  <div key={exerciseIndex} className="flex justify-between items-center p-2 bg-white rounded text-sm">
+                                    <span className="font-medium">{exercise.name}</span>
+                                    <span className="text-gray-600">
+                                      {exercise.sets} sets × {exercise.reps} reps • Rest: {exercise.rest}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Nutrition Details */}
+                          {event.details.nutrition && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Nutrition Info</h4>
+                              <div className="grid grid-cols-2 gap-2 mb-3">
+                                <div className="p-2 bg-white rounded text-center">
+                                  <div className="font-bold text-lg">{event.details.nutrition.calories}</div>
+                                  <div className="text-xs text-gray-600">Calories</div>
+                                </div>
+                                <div className="space-y-1 text-xs">
+                                  <div>Protein: {event.details.nutrition.protein}</div>
+                                  <div>Carbs: {event.details.nutrition.carbs}</div>
+                                  <div>Fats: {event.details.nutrition.fats}</div>
+                                </div>
+                              </div>
+                              <div>
+                                <h5 className="font-medium mb-1 text-sm">Foods:</h5>
+                                <ul className="text-xs text-gray-600 space-y-1">
+                                  {event.details.nutrition.foods.map((food, foodIndex) => (
+                                    <li key={foodIndex}>• {food}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Instructions */}
+                          {event.details.instructions && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Instructions</h4>
+                              <ol className="text-xs text-gray-700 space-y-1">
+                                {event.details.instructions.map((instruction, instructionIndex) => (
+                                  <li key={instructionIndex} className="flex">
+                                    <span className="font-medium mr-2">{instructionIndex + 1}.</span>
+                                    <span>{instruction}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+
+                          {/* Tips */}
+                          {event.details.tips && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">💡 Tips</h4>
+                              <ul className="text-xs text-gray-700 space-y-1">
+                                {event.details.tips.map((tip, tipIndex) => (
+                                  <li key={tipIndex} className="flex">
+                                    <span className="mr-2">•</span>
+                                    <span>{tip}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Current Time Indicator for first event */}
+                      {index === 0 && (
+                        <div className="relative mt-2">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-black rounded-full"></div>
+                            <div className="flex-1 h-px bg-black ml-2"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-600">No events scheduled for today</p>
