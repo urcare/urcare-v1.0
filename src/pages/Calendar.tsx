@@ -261,12 +261,12 @@ const Calendar: React.FC = () => {
       });
     }
 
-      // Sort events by time
-      return events.sort((a, b) => {
-        const timeA = parseTime(a.time);
-        const timeB = parseTime(b.time);
-        return timeA - timeB;
-      });
+    // Sort events by time
+    return events.sort((a, b) => {
+      const timeA = parseTime(a.time);
+      const timeB = parseTime(b.time);
+      return timeA - timeB;
+    });
     } catch (error) {
       console.error("Error converting plan to events:", error);
       return events; // Return empty events array on error
