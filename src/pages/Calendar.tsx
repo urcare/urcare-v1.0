@@ -1,11 +1,11 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
   ComprehensiveHealthPlan,
   MealPlan,
   WorkoutPlan,
 } from "../types/comprehensiveHealthPlan";
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 interface Event {
   id: string;
@@ -26,6 +26,8 @@ const Calendar: React.FC = () => {
     null
   );
   const [events, setEvents] = useState<Event[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const weekDays = [
     { day: "S", date: 18 },
@@ -80,220 +82,359 @@ const Calendar: React.FC = () => {
   };
 
   // Convert plan data to calendar events with dynamic timing
-  const convertPlanToEvents = (plan: ComprehensiveHealthPlan): Event[] => {
-    const events: Event[] = [];
-    let eventId = 1;
-    let currentTime = 7 * 60; // Start at 7:00 AM (420 minutes)
+  const convertPlanToEvents = useCallback(
+    (plan: ComprehensiveHealthPlan): Event[] => {
+      console.log("🔄 CONVERTING PLAN TO EVENTS");
+      console.log("📋 Plan received for conversion:", {
+        planId: plan.id,
+        planName: plan.plan_name,
+        planType: plan.plan_type,
+        hasPlanData: !!plan.plan_data,
+        planDataKeys: plan.plan_data ? Object.keys(plan.plan_data) : null,
+      });
 
-    // Helper function to format time from minutes
-    const formatTime = (minutes: number): string => {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      const period = hours >= 12 ? "pm" : "am";
-      const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-      return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
-    };
+      const events: Event[] = [];
+      let eventId = 1;
+      let currentTime = 7 * 60; // Start at 7:00 AM (420 minutes)
 
-    // Helper function to get color based on activity type
-    const getActivityColor = (type: string): Event["color"] => {
-      switch (type) {
-        case "meal":
-          return "lime";
-        case "exercise":
-          return "beige";
-        case "wellness":
-          return "green";
-        case "hydration":
-          return "green";
-        case "sleep":
-          return "text";
-        default:
-          return "green";
-      }
-    };
+      // Helper function to format time from minutes
+      const formatTime = (minutes: number): string => {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const period = hours >= 12 ? "pm" : "am";
+        const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+        return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
+      };
 
-    // Add error handling for plan data structure
-    try {
-      // Check if plan and plan_data exist
-      if (!plan || !plan.plan_data || !plan.plan_data.daily_templates) {
-        console.warn("Plan data structure is incomplete:", plan);
-        return events;
-      }
+      // Helper function to get color based on activity type
+      const getActivityColor = (type: string): Event["color"] => {
+        switch (type) {
+          case "meal":
+            return "lime";
+          case "exercise":
+            return "beige";
+          case "wellness":
+            return "green";
+          case "hydration":
+            return "green";
+          case "sleep":
+            return "text";
+          default:
+            return "green";
+        }
+      };
 
-      // Get weekday template (assuming we're showing a weekday)
-      const weekdayTemplate = plan.plan_data.daily_templates.weekday;
-      if (!weekdayTemplate) {
-        console.warn("Weekday template not found in plan data");
-        return events;
-      }
+      // Add error handling for plan data structure
+      try {
+        // Check if plan and plan_data exist
+        if (!plan || !plan.plan_data || !plan.plan_data.daily_templates) {
+          console.warn("Plan data structure is incomplete:", plan);
+          return events;
+        }
 
-      // Process morning routine activities
-      if (
-        weekdayTemplate.morning_routine &&
-        weekdayTemplate.morning_routine.length > 0
-      ) {
-        weekdayTemplate.morning_routine.forEach((activity: Activity) => {
-          events.push({
-            id: `morning-${eventId++}`,
-            title: activity.title,
-            duration: `${activity.duration} min`,
-            time: formatTime(currentTime),
-            color: getActivityColor(activity.type),
-            type: "activity",
-            description: activity.description,
+        // Get weekday template (assuming we're showing a weekday)
+        const weekdayTemplate = plan.plan_data.daily_templates.weekday;
+        if (!weekdayTemplate) {
+          console.warn("Weekday template not found in plan data");
+          return events;
+        }
+
+        // Process morning routine activities
+        if (
+          weekdayTemplate.morning_routine &&
+          weekdayTemplate.morning_routine.length > 0
+        ) {
+          weekdayTemplate.morning_routine.forEach((activity: Activity) => {
+            events.push({
+              id: `morning-${eventId++}`,
+              title: activity.title,
+              duration: `${activity.duration} min`,
+              time: formatTime(currentTime),
+              color: getActivityColor(activity.type),
+              type: "activity",
+              description: activity.description,
+            });
+            currentTime += activity.duration + 15; // Add 15 min buffer between activities
           });
-          currentTime += activity.duration + 15; // Add 15 min buffer between activities
-        });
-      }
+        }
 
-      // Process meals with proper spacing
-      if (weekdayTemplate.meals && weekdayTemplate.meals.length > 0) {
-        weekdayTemplate.meals.forEach((meal: MealPlan, index: number) => {
-          // Space meals appropriately throughout the day
-          let mealTime = currentTime;
-          if (index === 0) {
-            // Breakfast - after morning routine
-            mealTime = currentTime;
-          } else if (index === 1) {
-            // Lunch - around 12:00 PM
-            mealTime = 12 * 60; // 12:00 PM
-          } else if (index === 2) {
-            // Dinner - around 6:00 PM
-            mealTime = 18 * 60; // 6:00 PM
-          } else {
-            // Additional meals - space them out
-            mealTime = currentTime + index * 4 * 60; // Every 4 hours
-          }
+        // Process meals with proper spacing
+        if (weekdayTemplate.meals && weekdayTemplate.meals.length > 0) {
+          weekdayTemplate.meals.forEach((meal: MealPlan, index: number) => {
+            // Space meals appropriately throughout the day
+            let mealTime = currentTime;
+            if (index === 0) {
+              // Breakfast - after morning routine
+              mealTime = currentTime;
+            } else if (index === 1) {
+              // Lunch - around 12:00 PM
+              mealTime = 12 * 60; // 12:00 PM
+            } else if (index === 2) {
+              // Dinner - around 6:00 PM
+              mealTime = 18 * 60; // 6:00 PM
+            } else {
+              // Additional meals - space them out
+              mealTime = currentTime + index * 4 * 60; // Every 4 hours
+            }
 
-          events.push({
-            id: `meal-${eventId++}`,
-            title: meal.name,
-            duration: `${meal.prep_time + meal.cook_time} min`,
-            time: formatTime(mealTime),
-            color: "lime",
-            type: "meal",
-            description: meal.description,
+            events.push({
+              id: `meal-${eventId++}`,
+              title: meal.name,
+              duration: `${meal.prep_time + meal.cook_time} min`,
+              time: formatTime(mealTime),
+              color: "lime",
+              type: "meal",
+              description: meal.description,
+            });
+
+            // Update current time if this meal is later than current
+            if (mealTime > currentTime) {
+              currentTime = mealTime + meal.prep_time + meal.cook_time + 30; // 30 min buffer
+            } else {
+              currentTime += meal.prep_time + meal.cook_time + 30;
+            }
           });
+        }
 
-          // Update current time if this meal is later than current
-          if (mealTime > currentTime) {
-            currentTime = mealTime + meal.prep_time + meal.cook_time + 30; // 30 min buffer
-          } else {
-            currentTime += meal.prep_time + meal.cook_time + 30;
-          }
-        });
-      }
+        // Process workouts
+        if (weekdayTemplate.workouts && weekdayTemplate.workouts.length > 0) {
+          weekdayTemplate.workouts.forEach((workout: WorkoutPlan) => {
+            // Schedule workouts in the afternoon/evening
+            let workoutTime = Math.max(currentTime, 15 * 60); // At least 3:00 PM
 
-      // Process workouts
-      if (weekdayTemplate.workouts && weekdayTemplate.workouts.length > 0) {
-        weekdayTemplate.workouts.forEach((workout: WorkoutPlan) => {
-          // Schedule workouts in the afternoon/evening
-          let workoutTime = Math.max(currentTime, 15 * 60); // At least 3:00 PM
-          if (workoutTime < 15 * 60) workoutTime = 15 * 60; // Force afternoon time
+            events.push({
+              id: `workout-${eventId++}`,
+              title: workout.name,
+              duration: `${workout.duration} min`,
+              time: formatTime(workoutTime),
+              color: "beige",
+              type: "workout",
+              description: workout.description,
+            });
 
-          events.push({
-            id: `workout-${eventId++}`,
-            title: workout.name,
-            duration: `${workout.duration} min`,
-            time: formatTime(workoutTime),
-            color: "beige",
-            type: "workout",
-            description: workout.description,
+            currentTime = workoutTime + workout.duration + 30; // 30 min buffer
           });
+        }
 
-          currentTime = workoutTime + workout.duration + 30; // 30 min buffer
-        });
-      }
-
-      // Process wellness activities
-      if (
-        weekdayTemplate.wellness_activities &&
-        weekdayTemplate.wellness_activities.length > 0
-      ) {
-        weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
-          events.push({
-            id: `wellness-${eventId++}`,
-            title: activity.title,
-            duration: `${activity.duration} min`,
-            time: formatTime(currentTime),
-            color: getActivityColor(activity.type),
-            type: "wellness",
-            description: activity.description,
+        // Process wellness activities
+        if (
+          weekdayTemplate.wellness_activities &&
+          weekdayTemplate.wellness_activities.length > 0
+        ) {
+          weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
+            events.push({
+              id: `wellness-${eventId++}`,
+              title: activity.title,
+              duration: `${activity.duration} min`,
+              time: formatTime(currentTime),
+              color: getActivityColor(activity.type),
+              type: "wellness",
+              description: activity.description,
+            });
+            currentTime += activity.duration + 15; // 15 min buffer
           });
-          currentTime += activity.duration + 15; // 15 min buffer
-        });
-      }
+        }
 
-      // Process evening routine
-      if (
-        weekdayTemplate.evening_routine &&
-        weekdayTemplate.evening_routine.length > 0
-      ) {
-        weekdayTemplate.evening_routine.forEach((activity: Activity) => {
-          // Schedule evening activities around 8:00 PM
-          let eveningTime = Math.max(currentTime, 20 * 60); // At least 8:00 PM
-          if (eveningTime < 20 * 60) eveningTime = 20 * 60;
+        // Process evening routine
+        if (
+          weekdayTemplate.evening_routine &&
+          weekdayTemplate.evening_routine.length > 0
+        ) {
+          let eveningTime = Math.max(currentTime, 20 * 60); // Start at least at 8:00 PM
+          weekdayTemplate.evening_routine.forEach((activity: Activity) => {
+            events.push({
+              id: `evening-${eventId++}`,
+              title: activity.title,
+              duration: `${activity.duration} min`,
+              time: formatTime(eveningTime),
+              color: "text",
+              type: "wellness",
+              description: activity.description,
+            });
+            eveningTime += activity.duration + 15; // 15 min buffer
+          });
+          currentTime = eveningTime; // Update currentTime for sleep scheduling
+        }
 
+        // Add sleep time if specified
+        if (weekdayTemplate.sleep_targets) {
+          const sleepTime = 22 * 60; // 10:00 PM
+          const sleepDuration =
+            weekdayTemplate.sleep_targets.target_duration || 8; // Default to 8 hours if not specified
           events.push({
-            id: `evening-${eventId++}`,
-            title: activity.title,
-            duration: `${activity.duration} min`,
-            time: formatTime(eveningTime),
+            id: `sleep-${eventId++}`,
+            title: "Sleep",
+            duration: `${sleepDuration * 60} min`,
+            time: formatTime(sleepTime),
             color: "text",
             type: "wellness",
-            description: activity.description,
+            description: `Target: ${sleepDuration} hours of sleep`,
           });
-          eveningTime += activity.duration + 15; // 15 min buffer
+        }
+
+        // Sort events by time
+        const sortedEvents = events.sort((a, b) => {
+          const timeA = parseTime(a.time);
+          const timeB = parseTime(b.time);
+          return timeA - timeB;
         });
-      }
 
-      // Add sleep time if specified
-      if (weekdayTemplate.sleep_targets) {
-        const sleepTime = 22 * 60; // 10:00 PM
-        events.push({
-          id: `sleep-${eventId++}`,
-          title: "Sleep",
-          duration: `${weekdayTemplate.sleep_targets.target_hours * 60} min`,
-          time: formatTime(sleepTime),
-          color: "text",
-          type: "wellness",
-          description: `Target: ${weekdayTemplate.sleep_targets.target_hours} hours of sleep`,
+        console.log("✅ Plan conversion completed successfully");
+        console.log("📅 Final events generated:", {
+          totalEvents: sortedEvents.length,
+          events: sortedEvents.map((e) => ({
+            id: e.id,
+            title: e.title,
+            time: e.time,
+            type: e.type,
+            color: e.color,
+          })),
         });
+
+        return sortedEvents;
+      } catch (error) {
+        console.error("❌ Error converting plan to events:", error);
+        console.error("🔍 Conversion error details:", {
+          errorMessage: error.message,
+          errorStack: error.stack,
+          planData: plan,
+        });
+        setError("Failed to process plan data");
+        return events; // Return empty events array on error
       }
+    },
+    []
+  );
 
-      // Sort events by time
-      return events.sort((a, b) => {
-        const timeA = parseTime(a.time);
-        const timeB = parseTime(b.time);
-        return timeA - timeB;
-      });
-    } catch (error) {
-      console.error("Error converting plan to events:", error);
-      return events; // Return empty events array on error
-    }
-  };
-
-  // Load plan data from location state
+  // Load plan data from location state with comprehensive error handling
   useEffect(() => {
-    try {
-      if (location.state?.planData) {
-        console.log("Loading plan data from location state:", location.state.planData);
-        setPlanData(location.state.planData);
-        const planEvents = convertPlanToEvents(location.state.planData);
-        setEvents(planEvents);
-      } else {
-        console.log("No plan data in location state, using default events");
-        setEvents(defaultEvents);
-      }
-    } catch (error) {
-      console.error("Error loading plan data:", error);
-      setEvents(defaultEvents); // Fallback to default events
-    }
-  }, [location.state]);
+    const loadPlanData = async () => {
+      console.log("📅 CALENDAR PAGE LOADING STARTED");
+      console.log("🔍 Location state received:", {
+        hasLocationState: !!location.state,
+        hasPlanData: !!location.state?.planData,
+        hasPlanName: !!location.state?.planName,
+        locationStateKeys: location.state ? Object.keys(location.state) : null,
+        currentPath: window.location.pathname,
+        timestamp: new Date().toISOString(),
+      });
 
-  const handleBackToDashboard = () => {
-    navigate("/dashboard");
-  };
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        if (location.state?.planData) {
+          console.log("✅ Plan data found in location state");
+          console.log("📋 Plan data details:", {
+            planId: location.state.planData.id,
+            planName: location.state.planData.plan_name,
+            planType: location.state.planData.plan_type,
+            startDate: location.state.planData.start_date,
+            durationWeeks: location.state.planData.duration_weeks,
+            status: location.state.planData.status,
+            hasPlanData: !!location.state.planData.plan_data,
+            planDataKeys: location.state.planData.plan_data
+              ? Object.keys(location.state.planData.plan_data)
+              : null,
+            fullPlanData: location.state.planData,
+          });
+
+          // Validate plan data structure with more robust checks
+          const planData = location.state.planData;
+          if (!planData || typeof planData !== "object") {
+            console.warn(
+              "❌ Invalid plan data structure, using default events"
+            );
+            console.log("🔍 Invalid plan data:", planData);
+            setEvents(defaultEvents);
+            return;
+          }
+
+          console.log("✅ Plan data validation passed, setting plan data");
+          setPlanData(planData);
+
+          // Try to convert plan to events with error handling
+          try {
+            console.log("🔄 Converting plan to events...");
+            const planEvents = convertPlanToEvents(planData);
+            console.log("📅 Plan events generated:", {
+              eventCount: planEvents.length,
+              events: planEvents.map((e) => ({
+                id: e.id,
+                title: e.title,
+                time: e.time,
+                type: e.type,
+              })),
+            });
+            setEvents(planEvents.length > 0 ? planEvents : defaultEvents);
+            console.log("✅ Events set successfully");
+          } catch (conversionError) {
+            console.warn(
+              "❌ Plan conversion failed, using default events:",
+              conversionError
+            );
+            console.log("🔍 Conversion error details:", {
+              errorMessage: conversionError.message,
+              errorStack: conversionError.stack,
+              planData: planData,
+            });
+            setEvents(defaultEvents);
+          }
+        } else {
+          console.log(
+            "⚠️ No plan data in location state, using default events"
+          );
+          console.log(
+            "📝 Default events:",
+            defaultEvents.map((e) => ({
+              id: e.id,
+              title: e.title,
+              time: e.time,
+            }))
+          );
+          setEvents(defaultEvents);
+        }
+      } catch (error) {
+        console.error("❌ Error loading plan data:", error);
+        console.error("🔍 Error details:", {
+          errorMessage: error.message,
+          errorStack: error.stack,
+          errorName: error.name,
+          locationState: location.state,
+        });
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load calendar data"
+        );
+        setEvents(defaultEvents); // Fallback to default events
+        console.log("🔄 Fallback to default events due to error");
+      } finally {
+        console.log("🏁 Calendar loading completed");
+        setIsLoading(false);
+      }
+    };
+
+    // Debounce multiple calls to prevent rapid reloads
+    const timeoutId = setTimeout(loadPlanData, 50);
+    return () => clearTimeout(timeoutId);
+  }, [location.state?.planData, convertPlanToEvents]); // More specific dependency
+
+  const handleBackToDashboard = useCallback(() => {
+    try {
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      window.location.href = "/dashboard";
+    }
+  }, [navigate]);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setIsLoading(true);
+    // Trigger re-load
+    window.location.reload();
+  }, []);
 
   const getEventColorClass = (color: Event["color"]) => {
     switch (color) {
@@ -309,6 +450,59 @@ const Calendar: React.FC = () => {
         return "bg-gray-200 text-black";
     }
   };
+
+  // Error Boundary Component
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-white p-6">
+          <div className="mb-4">
+            <svg
+              className="w-16 h-16 mx-auto text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Calendar Error</h2>
+          <p className="text-gray-300 mb-4">{error}</p>
+          <div className="space-x-4">
+            <button
+              onClick={handleRetry}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleBackToDashboard}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-lg">Loading your calendar...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -346,12 +540,14 @@ const Calendar: React.FC = () => {
             </button>
             <div>
               <h1 className="text-3xl font-bold text-white mb-1">
-                {planData ? planData.plan_name : "Sleipner"}
+                {planData
+                  ? planData.primary_goal || planData.plan_name
+                  : "Habit Builder"}
               </h1>
               <p className="text-white text-sm">
                 {planData
                   ? `${planData.duration_weeks} weeks plan`
-                  : "331 days left"}
+                  : "4 weeks plan"}
               </p>
             </div>
           </div>
@@ -394,51 +590,59 @@ const Calendar: React.FC = () => {
 
           {/* Timeline */}
           <div className="space-y-6">
-            {events.map((event, index) => (
-              <div key={event.id} className="flex items-start space-x-4">
-                {/* Time Label */}
-                <div className="w-16 text-sm text-gray-600 mt-1">
-                  {event.time}
-                </div>
+            {events && events.length > 0 ? (
+              events.map((event, index) => (
+                <div key={event.id} className="flex items-start space-x-4">
+                  {/* Time Label */}
+                  <div className="w-16 text-sm text-gray-600 mt-1">
+                    {event.time}
+                  </div>
 
-                {/* Event Card */}
-                <div className="flex-1">
-                  {event.color === "text" ? (
-                    <div className="py-2">
-                      <h3 className="text-black font-medium">{event.title}</h3>
-                      {event.duration && (
-                        <p className="text-sm text-gray-600">
-                          {event.duration}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div
-                      className={`rounded-xl p-4 ${getEventColorClass(
-                        event.color
-                      )}`}
-                    >
-                      <h3 className="font-medium">{event.title}</h3>
-                      {event.duration && (
-                        <p className="text-sm opacity-80 mt-1">
-                          {event.duration}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Current Time Indicator for first event */}
-                  {index === 0 && (
-                    <div className="relative mt-2">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-black rounded-full"></div>
-                        <div className="flex-1 h-px bg-black ml-2"></div>
+                  {/* Event Card */}
+                  <div className="flex-1">
+                    {event.color === "text" ? (
+                      <div className="py-2">
+                        <h3 className="text-black font-medium">
+                          {event.title}
+                        </h3>
+                        {event.duration && (
+                          <p className="text-sm text-gray-600">
+                            {event.duration}
+                          </p>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div
+                        className={`rounded-xl p-4 ${getEventColorClass(
+                          event.color
+                        )}`}
+                      >
+                        <h3 className="font-medium">{event.title}</h3>
+                        {event.duration && (
+                          <p className="text-sm opacity-80 mt-1">
+                            {event.duration}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Current Time Indicator for first event */}
+                    {index === 0 && (
+                      <div className="relative mt-2">
+                        <div className="flex items-center">
+                          <div className="w-2 h-2 bg-black rounded-full"></div>
+                          <div className="flex-1 h-px bg-black ml-2"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600">No events scheduled for today</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 

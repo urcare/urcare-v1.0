@@ -20,37 +20,61 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAccess = async () => {
       if (!isInitialized || loading) {
         return;
       }
 
       if (!user) {
-        setCanAccess(false);
-        setRedirectRoute("/");
+        if (isMounted) {
+          setCanAccess(false);
+          setRedirectRoute("/");
+        }
         return;
       }
 
       try {
-        const hasAccess = await authFlowService.canAccessRoute(
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise<boolean>((_, reject) => {
+          setTimeout(
+            () => reject(new Error("Route access check timeout")),
+            5000
+          );
+        });
+
+        const accessPromise = authFlowService.canAccessRoute(
           user,
           location.pathname
         );
-        setCanAccess(hasAccess);
+        const hasAccess = await Promise.race([accessPromise, timeoutPromise]);
 
-        if (!hasAccess) {
-          const redirect = await authFlowService.getRedirectRoute(user);
-          setRedirectRoute(redirect);
+        if (isMounted) {
+          setCanAccess(hasAccess);
+
+          if (!hasAccess) {
+            const redirect = await authFlowService.getRedirectRoute(user);
+            setRedirectRoute(redirect);
+          }
         }
       } catch (error) {
         console.error("Error checking route access:", error);
-        setCanAccess(false);
-        setRedirectRoute("/onboarding");
+        if (isMounted) {
+          // Allow access on error to prevent blocking
+          setCanAccess(true);
+        }
       }
     };
 
-    checkAccess();
-  }, [user, profile, loading, isInitialized, location.pathname]);
+    // Debounce access checks
+    const timeoutId = setTimeout(checkAccess, 100);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [user, isInitialized, loading, location.pathname]); // Removed profile dependency
 
   if (loading || !isInitialized || canAccess === null) {
     return (

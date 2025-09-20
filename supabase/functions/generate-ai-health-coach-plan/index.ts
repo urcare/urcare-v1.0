@@ -238,27 +238,31 @@ serve(async (req) => {
       );
     }
 
-    // Check for existing active plan
-    const { data: existingPlan, error: existingPlanError } =
-      await supabaseClient
-        .from("two_day_health_plans")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .single();
+    // Check for existing active plan - but only return if explicitly requested
+    const forceGenerate = req.headers.get("X-Force-Generate") === "true";
 
-    if (existingPlan && !existingPlanError) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Active plan already exists",
-          plan: existingPlan,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
+    if (!forceGenerate) {
+      const { data: existingPlan, error: existingPlanError } =
+        await supabaseClient
+          .from("two_day_health_plans")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .single();
+
+      if (existingPlan && !existingPlanError) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Active plan already exists",
+            plan: existingPlan,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
     }
 
     // Generate AI Health Coach plan

@@ -44,46 +44,75 @@ class HealthPlanServiceWithProgress {
   async generateHealthPlan(): Promise<HealthPlanRecord> {
     try {
       this.updateProgress("analyzing", 5, "Starting plan generation...");
-      
+
       // Small delay to show initial progress
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       this.updateProgress("analyzing", 15, "Analyzing your health profile...");
-      
+
       console.log("🚀 Generating AI health plan...");
 
       this.updateProgress("analyzing", 25, "Connecting to AI service...");
 
+      // Add timeout to prevent hanging at 25%
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error("Health plan generation timeout - trying fallback")
+            ),
+          10000
+        );
+      });
+
       // First try the main AI health coach plan function
-      const { data, error } = await supabase.functions.invoke(
+      const generatePromise = supabase.functions.invoke(
         "generate-ai-health-coach-plan",
         {
           method: "POST",
           body: {},
           headers: {
             Authorization: `Bearer ${
-              (
-                await supabase.auth.getSession()
-              ).data.session?.access_token
+              (await supabase.auth.getSession()).data.session?.access_token
             }`,
           },
         }
       );
 
+      let data, error;
+      try {
+        const result = await Promise.race([generatePromise, timeoutPromise]);
+        data = result.data;
+        error = result.error;
+      } catch (timeoutError) {
+        console.warn("⚠️ AI service timeout, using fallback plan");
+        this.updateProgress("analyzing", 60, "Using fallback plan...");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        this.updateProgress("analyzing", 100, "Fallback plan ready!");
+        return this.createFallbackPlan();
+      }
+
       this.updateProgress("analyzing", 45, "Processing AI response...");
 
       if (error) {
         console.warn("❌ AI health coach plan failed:", error.message);
-        throw new Error(
-          `Failed to generate AI Health Coach plan: ${error.message}`
-        );
+        // Don't throw error, use fallback instead
+        this.updateProgress("analyzing", 60, "Using fallback plan...");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        this.updateProgress("analyzing", 100, "Fallback plan ready!");
+        return this.createFallbackPlan();
       }
 
-      if (!data.success) {
-        console.warn("❌ AI health coach plan returned error:", data.error);
-        throw new Error(
-          data.error || "Failed to generate AI Health Coach plan"
+      if (!data || !data.success) {
+        console.warn(
+          "❌ AI health coach plan returned error:",
+          data?.error || "No data received"
         );
+        // Don't throw error, use fallback instead
+        this.updateProgress("analyzing", 60, "Using fallback plan...");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        this.updateProgress("analyzing", 100, "Fallback plan ready!");
+        return this.createFallbackPlan();
       }
 
       this.updateProgress("analyzing", 70, "Validating plan data...");
@@ -133,10 +162,10 @@ class HealthPlanServiceWithProgress {
       // Final fallback to client-side plan
       console.warn("⚠️ Using enhanced client-side fallback plan");
       this.updateProgress("analyzing", 60, "Creating comprehensive plan...");
-      
+
       // Small delay to show progress
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       this.updateProgress("analyzing", 100, "Fallback plan ready!");
 
       return this.createFallbackPlan();

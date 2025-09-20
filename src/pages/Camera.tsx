@@ -10,7 +10,7 @@ import {
   Zap,
   ZapOff,
 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Camera: React.FC = () => {
@@ -24,21 +24,33 @@ const Camera: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     console.log("Camera component mounted");
-    startCamera();
+    let isMounted = true;
+
+    const initCamera = async () => {
+      if (isMounted) {
+        await startCamera();
+      }
+    };
+
+    initCamera();
 
     return () => {
       console.log("Camera component unmounting");
+      isMounted = false;
       stopCamera();
     };
   }, []);
 
-  const startCamera = async () => {
-    if (isStarting || stream) {
+  const startCamera = useCallback(async () => {
+    if (isStarting || (stream && streamRef.current)) {
       console.log("Camera already starting or started");
       return;
     }
@@ -47,152 +59,285 @@ const Camera: React.FC = () => {
       setIsStarting(true);
       setIsLoading(true);
       setError(null);
+      setRetryCount((prev) => prev + 1);
 
       // Check if getUserMedia is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not supported in this browser");
+      if (!navigator?.mediaDevices?.getUserMedia) {
+        throw new Error("Camera not supported in this browser or device");
       }
 
-      // Request camera access
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
+      // Check permissions first
+      try {
+        const permissionStatus = await navigator.permissions.query({
+          name: "camera" as PermissionName,
+        });
+        setHasPermission(permissionStatus.state === "granted");
+
+        if (permissionStatus.state === "denied") {
+          throw new Error(
+            "Camera permission denied. Please enable camera access in your browser settings."
+          );
+        }
+      } catch (permError) {
+        console.warn("Permission check failed:", permError);
+        // Continue anyway, getUserMedia will handle permissions
+      }
+
+      // Request camera access with fallback constraints
+      let constraints = {
         video: {
           facingMode: "environment", // Use back camera if available
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
         },
         audio: false,
-      });
+      };
 
+      let mediaStream: MediaStream;
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (firstError) {
+        console.warn(
+          "Failed with ideal constraints, trying basic:",
+          firstError
+        );
+        // Fallback to basic constraints
+        constraints = {
+          video: true,
+          audio: false,
+        };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      }
+
+      // Store stream reference
+      streamRef.current = mediaStream;
       setStream(mediaStream);
+      setHasPermission(true);
 
-      if (videoRef.current) {
+      if (videoRef.current && mediaStream) {
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
+
+        // Wait for video to be ready
+        await new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) {
+            reject(new Error("Video element not available"));
+            return;
+          }
+
+          const video = videoRef.current;
+
+          const onLoadedMetadata = () => {
+            video.removeEventListener("loadedmetadata", onLoadedMetadata);
+            video.removeEventListener("error", onError);
+            resolve();
+          };
+
+          const onError = (e: Event) => {
+            video.removeEventListener("loadedmetadata", onLoadedMetadata);
+            video.removeEventListener("error", onError);
+            reject(new Error(`Video loading failed: ${e}`));
+          };
+
+          video.addEventListener("loadedmetadata", onLoadedMetadata);
+          video.addEventListener("error", onError);
+
+          video.play().catch(reject);
+        });
       }
 
       setIsLoading(false);
       setIsStarting(false);
     } catch (err) {
       console.error("Error accessing camera:", err);
-      let errorMessage = "Unable to access camera. Please check permissions.";
+      let errorMessage =
+        "Unable to access camera. Please check permissions and try again.";
 
       if (err instanceof Error) {
-        if (err.name === "NotAllowedError") {
+        if (
+          err.name === "NotAllowedError" ||
+          err.message.includes("permission")
+        ) {
           errorMessage =
-            "Camera permission denied. Please allow camera access.";
+            "Camera permission denied. Please enable camera access in your browser settings and refresh the page.";
+          setHasPermission(false);
         } else if (err.name === "NotFoundError") {
           errorMessage = "No camera found on this device.";
         } else if (err.name === "NotSupportedError") {
-          errorMessage = "Camera not supported in this browser.";
+          errorMessage =
+            "Camera not supported in this browser. Please try a different browser.";
+        } else if (err.name === "NotReadableError") {
+          errorMessage = "Camera is already in use by another application.";
+        } else if (err.name === "OverconstrainedError") {
+          errorMessage =
+            "Camera constraints not supported. Trying basic camera access...";
+          // Auto-retry with basic constraints
+          if (retryCount < 2) {
+            setTimeout(() => startCamera(), 1000);
+            return;
+          }
+        } else {
+          errorMessage = err.message || errorMessage;
         }
       }
 
       setError(errorMessage);
       setIsLoading(false);
       setIsStarting(false);
+      setHasPermission(false);
     }
-  };
+  }, [isStarting, stream, retryCount]);
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     try {
       console.log("Stopping camera...");
 
-      if (stream) {
-        // Stop all tracks
-        stream.getTracks().forEach((track) => {
+      // Stop stream from ref first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
           console.log("Stopping track:", track.kind);
           track.stop();
         });
-        setStream(null);
+        streamRef.current = null;
       }
+
+      // Stop stream from state as backup
+      if (stream) {
+        stream.getTracks().forEach((track) => {
+          console.log("Stopping track (backup):", track.kind);
+          track.stop();
+        });
+      }
+
+      setStream(null);
 
       // Clear video source
       if (videoRef.current) {
         videoRef.current.srcObject = null;
+        videoRef.current.load(); // Reset video element
       }
 
       // Reset states
       setIsStarting(false);
       setIsLoading(false);
+      setError(null);
 
       console.log("Camera stopped successfully");
     } catch (error) {
       console.error("Error stopping camera:", error);
     }
-  };
+  }, [stream]);
 
-  const handleClose = () => {
-    // Stop camera before navigating away
-    stopCamera();
-    // Navigate back to dashboard
-    navigate("/dashboard");
-  };
+  const handleClose = useCallback(() => {
+    try {
+      // Stop camera before navigating away
+      stopCamera();
+      // Navigate back to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Fallback navigation
+      window.location.href = "/dashboard";
+    }
+  }, [navigate, stopCamera]);
 
-  const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  const handleCapture = useCallback(() => {
+    try {
+      if (!videoRef.current || !canvasRef.current || !stream) {
+        setError("Camera not ready for capture");
+        return;
+      }
 
-    setIsScanning(true);
+      setIsScanning(true);
+      setError(null);
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
 
-    if (!context) {
+      if (!context) {
+        setError("Canvas not available for capture");
+        setIsScanning(false);
+        return;
+      }
+
+      // Check if video is ready
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        setError("Video not ready for capture. Please wait.");
+        setIsScanning(false);
+        return;
+      }
+
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+
+      // Draw the current video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to blob
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            // Create download link or process the image
+            const url = URL.createObjectURL(blob);
+            console.log("Photo captured:", url);
+
+            // Here you would typically send the image to your backend for processing
+            // For now, we'll just simulate the scanning process
+            setTimeout(() => {
+              setIsScanning(false);
+              URL.revokeObjectURL(url); // Clean up
+            }, 1000);
+          } else {
+            setError("Failed to capture image");
+            setIsScanning(false);
+          }
+        },
+        "image/jpeg",
+        0.8
+      );
+    } catch (error) {
+      console.error("Capture error:", error);
+      setError("Failed to capture image");
       setIsScanning(false);
+    }
+  }, [stream]);
+
+  const toggleFlash = useCallback(() => {
+    try {
+      setFlashOn((prev) => !prev);
+      // Note: Flash control would require additional camera API implementation
+      // This is a UI toggle for now
+    } catch (error) {
+      console.error("Flash toggle error:", error);
+    }
+  }, []);
+
+  const switchCamera = useCallback(async () => {
+    if (!stream && !streamRef.current) {
+      setError("No camera active to switch");
       return;
     }
 
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw the current video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convert canvas to blob
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          // Create download link or process the image
-          const url = URL.createObjectURL(blob);
-          console.log("Photo captured:", url);
-
-          // Here you would typically send the image to your backend for processing
-          // For now, we'll just simulate the scanning process
-          setTimeout(() => {
-            setIsScanning(false);
-            URL.revokeObjectURL(url); // Clean up
-          }, 1000);
-        } else {
-          setIsScanning(false);
-        }
-      },
-      "image/jpeg",
-      0.8
-    );
-  };
-
-  const toggleFlash = () => {
-    setFlashOn(!flashOn);
-  };
-
-  const switchCamera = async () => {
-    if (!stream) return;
-
     try {
-      // Stop current stream
-      stopCamera();
+      setError(null);
 
       // Get current video track constraints
-      const videoTrack = stream.getVideoTracks()[0];
-      const currentConstraints = videoTrack?.getConstraints();
+      const currentStream = streamRef.current || stream;
+      const videoTrack = currentStream?.getVideoTracks()[0];
+      const currentSettings = videoTrack?.getSettings();
+
+      // Stop current stream
+      stopCamera();
 
       // Switch facing mode
       const newConstraints = {
         video: {
-          ...currentConstraints,
           facingMode:
-            currentConstraints?.facingMode === "user" ? "environment" : "user",
+            currentSettings?.facingMode === "user" ? "environment" : "user",
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
         },
         audio: false,
       };
@@ -201,21 +346,47 @@ const Camera: React.FC = () => {
       const newStream = await navigator.mediaDevices.getUserMedia(
         newConstraints
       );
+      streamRef.current = newStream;
       setStream(newStream);
 
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
-        videoRef.current.play();
+        await videoRef.current.play();
       }
     } catch (err) {
       console.error("Error switching camera:", err);
-      setError("Unable to switch camera");
+      setError("Unable to switch camera. Restarting with original camera...");
+      // Fallback: restart with original camera
+      setTimeout(() => startCamera(), 1000);
     }
-  };
+  }, [stream, stopCamera, startCamera]);
 
-  const openGallery = () => {
-    // Open photo gallery
-  };
+  const openGallery = useCallback(() => {
+    try {
+      // Create a file input to open gallery
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          console.log("Selected file:", file.name);
+          // Process the selected image here
+        }
+      };
+      input.click();
+    } catch (error) {
+      console.error("Gallery access error:", error);
+      setError("Unable to access photo gallery");
+    }
+  }, []);
+
+  // Retry function
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setRetryCount(0);
+    startCamera();
+  }, [startCamera]);
 
   // Add error boundary
   try {
@@ -251,15 +422,32 @@ const Camera: React.FC = () => {
           {/* Error State */}
           {error && (
             <div className="absolute inset-0 bg-black flex items-center justify-center">
-              <div className="text-white text-center p-6">
+              <div className="text-white text-center p-6 max-w-md">
                 <CameraIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-4">{error}</p>
-                <button
-                  onClick={startCamera}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  Try Again
-                </button>
+                <h3 className="text-xl font-bold mb-2">Camera Error</h3>
+                <p className="text-sm mb-6 text-gray-300">{error}</p>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleRetry}
+                    className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  >
+                    Try Again
+                  </button>
+                  {hasPermission === false && (
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                    >
+                      Refresh Page
+                    </button>
+                  )}
+                  <button
+                    onClick={handleClose}
+                    className="w-full bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors font-medium"
+                  >
+                    Go Back to Dashboard
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -19,6 +19,7 @@ import Workout from "./pages/Workout";
 
 import { DevPanel } from "./components/DevPanel";
 import { DevRedirectHandler } from "./components/DevRedirectHandler";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { TestComprehensiveHealthPlan } from "./components/TestComprehensiveHealthPlan";
@@ -151,7 +152,9 @@ function App() {
                 requireOnboardingComplete={true}
                 requireSubscription={false}
               >
-                <Camera />
+                <ErrorBoundary>
+                  <Camera />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -163,7 +166,9 @@ function App() {
                 requireOnboardingComplete={true}
                 requireSubscription={false}
               >
-                <Calendar />
+                <ErrorBoundary>
+                  <Calendar />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />

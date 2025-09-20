@@ -14,8 +14,8 @@ import { useHealthPlanGeneration } from "../hooks/useHealthPlanGeneration";
 import { ComprehensivePlanSelectionCards } from "./ComprehensivePlanSelectionCards";
 import { HealthInputBar } from "./HealthInputBar";
 import { HealthPlanCalendarView } from "./HealthPlanCalendarView";
-import { SimplePlanLoading } from "./SimplePlanLoading";
 import { PlannerPage } from "./PlannerPage";
+import { SimplePlanLoading } from "./SimplePlanLoading";
 import { DashboardHeaderNew } from "./dashboard/DashboardHeaderNew";
 import { ProgressCard } from "./dashboard/ProgressCard";
 import { StatsCards } from "./dashboard/StatsCards";
@@ -485,25 +485,74 @@ export const HealthContentNew = () => {
               </button>
               <button
                 onClick={() => {
+                  console.log("🔥 TODAY'S PLAN BUTTON CLICKED");
+                  console.log("📊 Current state:", {
+                    activePlan: activePlan,
+                    hasActivePlan: !!activePlan,
+                    activePlanId: activePlan?.id,
+                    activePlanName: activePlan?.plan_name,
+                    activePlanType: activePlan?.plan_type,
+                    activePlanStatus: activePlan?.status,
+                    userProfile: userProfile,
+                    hasUserProfile: !!userProfile,
+                    currentPath: window.location.pathname,
+                    timestamp: new Date().toISOString(),
+                  });
+
                   try {
                     // Navigate to calendar with active plan
                     if (activePlan) {
-                      console.log("Navigating to calendar with active plan:", activePlan);
+                      console.log(
+                        "✅ Active plan found, navigating to calendar with plan data"
+                      );
+                      console.log("📋 Plan data being passed:", {
+                        planId: activePlan.id,
+                        planName: activePlan.plan_name,
+                        planType: activePlan.plan_type,
+                        startDate: activePlan.start_date,
+                        durationWeeks: activePlan.duration_weeks,
+                        status: activePlan.status,
+                        hasPlanData: !!activePlan.plan_data,
+                        planDataKeys: activePlan.plan_data
+                          ? Object.keys(activePlan.plan_data)
+                          : null,
+                      });
+
                       navigate("/calendar", {
                         state: {
                           planData: activePlan,
                           planName: activePlan.plan_name,
                         },
                       });
+
+                      console.log(
+                        "🚀 Navigation initiated to /calendar with plan data"
+                      );
                     } else {
                       // If no active plan, navigate to calendar with demo data
-                      console.log("Navigating to calendar without plan data");
+                      console.log(
+                        "⚠️ No active plan found, navigating to calendar without plan data"
+                      );
+                      console.log("📝 Will use default events in calendar");
+
                       navigate("/calendar");
+
+                      console.log(
+                        "🚀 Navigation initiated to /calendar without plan data"
+                      );
                     }
                   } catch (error) {
-                    console.error("Error navigating to calendar:", error);
+                    console.error("❌ Error navigating to calendar:", error);
+                    console.error("🔍 Error details:", {
+                      errorMessage: error.message,
+                      errorStack: error.stack,
+                      errorName: error.name,
+                    });
+
                     // Fallback navigation without state
+                    console.log("🔄 Attempting fallback navigation");
                     navigate("/calendar");
+                    console.log("🚀 Fallback navigation initiated");
                   }
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -522,7 +571,6 @@ export const HealthContentNew = () => {
             </div>
           </div>
         )}
-
 
         {/* Health Input Bar - Show when no plans generated or when generating */}
         {(showInputBar || progress.isGenerating) && (
