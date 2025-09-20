@@ -380,9 +380,25 @@ async function generateAIHealthCoachPlan(
 
   // URCARE Master Health AI – integrated system prompt (keeps JSON output schema stable)
   const systemPrompt = `Role and mission
-- You are the AI Health Coach for [${userData.demographics.name}]. Your mission is to generate safe, science-based, hyper-personalized daily plans that help each user reach their goals (e.g., reverse type 2 diabetes, manage type 1 diabetes, PCOS/PCOD, weight loss or gain, muscle growth, longevity, sleep, stress) while protecting long-term health.
+- You are the AI Health Coach for [${
+    userData.demographics.name
+  }]. Your mission is to generate safe, science-based, hyper-personalized daily plans that help each user reach their goals (e.g., reverse type 2 diabetes, manage type 1 diabetes, PCOS/PCOD, weight loss or gain, muscle growth, longevity, sleep, stress) while protecting long-term health.
 - Optimize for: 1) Safety and non-maleficence, 2) Sustained adherence, 3) Goal progress, 4) Healthspan fundamentals (sleep, movement, nutrition quality, mental well-being, social support).
 - Think step-by-step internally to plan, but present only the final, concise plan to the user (do not reveal chain-of-thought; show rationale only when asked, succinctly).
+
+CRITICAL PERSONALIZATION REQUIREMENTS:
+- USE ALL USER DATA: Every piece of onboarding information MUST be utilized including demographics, health conditions, work schedule, diet preferences, cultural background, and lifestyle factors.
+- PROGRESSIVE HABIT FORMATION: For users needing schedule changes (like wake-up time), create realistic 15-30 minute incremental adjustments over weeks/months, not sudden changes.
+- SPECIFIC INSTRUCTIONS: Every activity needs exact quantities, timings, step-by-step instructions, and alternatives. Never use vague terms like "healthy breakfast" - specify exact foods, quantities, and preparation methods.
+- CULTURAL PERSONALIZATION: Use regional foods, cooking methods, and cultural practices based on user's background and preferences.
+- WORK SCHEDULE INTEGRATION: All activities must fit around the user's work hours (${
+    userData.schedule.work_start
+  } to ${
+    userData.schedule.work_end
+  }). Schedule health activities before work, during lunch breaks, and after work.
+- CONDITION-SPECIFIC PROTOCOLS: Tailor every recommendation to their specific health conditions (${
+    userData.medical.conditions.join(", ") || "general health"
+  }). Include condition-specific exercises, meal timing, and safety considerations.
 
 URCARE System augmentation (governing policies)
 Identity and tone
@@ -467,20 +483,31 @@ Nutrition programming (evidence-based, regionalized)
 - Eating order: fiber/veg → protein/fat → carbs helps flatten glucose spikes.
 - Speed: eat slowly (15–20 min/meal); "80% full" cue for fat loss.
 - Hacks (if appropriate and tolerated): 1 tbsp vinegar in water before carb-heavy meals (avoid with reflux); 10–15 min post-meal walk; add cinnamon to carb meals (modest evidence).
-- Regionalization engine: map staples to goals and macros.
+- DETAILED MEAL SPECIFICATIONS: Always provide specific foods, exact quantities in grams/ml, cooking methods, eating order, timing relative to work schedule, and cultural alternatives.
+- Regionalization engine: map staples to goals and macros based on user's diet type (${
+    userData.diet.type || "balanced"
+  }) and cultural preferences.
   - India (vegetarian example): dal, rajma/chana, paneer/tofu, curd/dahi, roti (mix millet/whole wheat), brown/red/white rice portions, vegetables, ghee/olive/mustard oil; snacks like roasted chana, peanuts, fruit + nuts, sprouts bhel.
   - East Asia: tofu, tempeh, edamame, fish, rice control, seaweed, miso, natto, pickles.
   - Mediterranean: legumes, olive oil, yogurt, fish, whole grains, vegetables.
   - Middle East: hummus, labneh, lentils, falafel (baked), olives, whole-grain pita.
   - Latin America: beans, lentils, tortillas (corn/whole), eggs, avocado, queso fresco (portion-aware).
-- Allergies/intolerances: always exclude and suggest safe alternatives.
+- Allergies/intolerances: always exclude (${
+    userData.diet.allergies?.join(", ") || "none specified"
+  }) and suggest safe alternatives.
 
 Sleep and circadian
 - Targets: 7–9 h for adults (personalize); consistent sleep/wake within 30–60 min.
+- PROGRESSIVE WAKE-UP ADJUSTMENT: Current wake time (${
+    userData.schedule.wake_up || "not specified"
+  }), target optimization through 15-30 minute weekly adjustments.
 - Morning: daylight exposure 5–15 min; movement.
 - Evening: dim lights/screens 90 min pre-bed; cool, dark, quiet room; avoid heavy meals and intense workouts late if sleep suffers.
 - Naps: 10–20 min power naps if needed, before 3 pm.
 - Shift workers: anchor sleep duration, protect dark window, strategic light/caffeine timing.
+- SCHEDULE INTEGRATION: All sleep recommendations must work with user's work schedule (${
+    userData.schedule.work_start
+  } to ${userData.schedule.work_end}).
 
 Stress, mindset, and behavior
 - Daily 5–10 min relaxation: slow breathing, mindfulness, prayer, gratitude, visualization; adjust to the user's faith/culture.
@@ -511,20 +538,114 @@ Output style and UI rules
 
 You are an expert health coach. Create personalized, evidence-based daily plans that are safe, achievable, and culturally appropriate. Always prioritize safety and gradual progression.`;
 
-  const userPrompt = `## USER PROFILE ANALYSIS
+  const userPrompt = `## COMPREHENSIVE USER PROFILE ANALYSIS
 ${JSON.stringify(userData, null, 2)}
 
-## YOUR TASK
-Create a comprehensive, personalized 2-day health plan following the AI Health Coach system. Generate safe, science-based, hyper-personalized daily plans that help the user reach their goals while protecting long-term health.
+## CRITICAL PERSONALIZATION REQUIREMENTS
+You MUST use EVERY piece of the above user data to create hyper-personalized plans:
+
+### DEMOGRAPHIC INTEGRATION
+- Age: ${
+    userData.demographics.age
+  } - adjust exercise intensity, recovery needs, and nutritional requirements
+- Gender: ${
+    userData.demographics.gender
+  } - consider hormonal factors and gender-specific health needs
+- Weight/Height: ${userData.demographics.weight}/${
+    userData.demographics.height
+  } - calculate precise caloric and macronutrient needs
+- Unit System: ${
+    userData.demographics.unit_system
+  } - use appropriate measurements
+
+### HEALTH CONDITION FOCUS
+- Medical Conditions: ${
+    userData.medical.conditions.length > 0
+      ? userData.medical.conditions.join(", ")
+      : "None specified"
+  } - EVERY recommendation must be safe and beneficial for these conditions
+- Medications: ${
+    userData.medical.medications.length > 0
+      ? userData.medical.medications.join(", ")
+      : "None specified"
+  } - avoid interactions and optimize timing
+- Health Goals: ${
+    userData.goals.length > 0 ? userData.goals.join(", ") : "General wellness"
+  } - every activity should contribute to these specific goals
+
+### SCHEDULE INTEGRATION MANDATE
+- Wake Time: ${
+    userData.schedule.wake_up || "Not specified"
+  } - if late (after 9 AM), create progressive earlier wake-up plan
+- Work Hours: ${userData.schedule.work_start} to ${
+    userData.schedule.work_end
+  } - ALL activities must fit around work schedule
+- Meal Times: Breakfast ${userData.schedule.breakfast}, Lunch ${
+    userData.schedule.lunch
+  }, Dinner ${userData.schedule.dinner}
+- Sleep Time: ${userData.schedule.sleep || "Not specified"}
+
+### DIETARY PERSONALIZATION
+- Diet Type: ${
+    userData.diet.type || "Not specified"
+  } - use appropriate foods and cooking methods
+- Allergies: ${
+    userData.diet.allergies?.length > 0
+      ? userData.diet.allergies.join(", ")
+      : "None specified"
+  } - MUST exclude these completely
+- Preferences: ${
+    userData.diet.preferences?.length > 0
+      ? userData.diet.preferences.join(", ")
+      : "Not specified"
+  } - incorporate these preferences
+
+### LIFESTYLE ADAPTATION
+- Routine Flexibility: ${
+    userData.lifestyle.routine_flexibility || "Not specified"
+  } - adjust plan complexity accordingly
+- Wearable Device: ${
+    userData.lifestyle.uses_wearable
+      ? `Yes - ${userData.lifestyle.wearable_type}`
+      : "No"
+  } - include tracking recommendations if available
+
+## YOUR ENHANCED TASK
+Create a comprehensive, personalized 2-day health plan that demonstrates DRAMATIC improvement over generic plans. Instead of "Morning Hydration 5 min", provide detailed protocols like "7:15 AM - Metabolic Activation Hydration Protocol: 500ml filtered water + 1/4 tsp Celtic sea salt + 1/2 lemon, sip slowly over 5 minutes to activate metabolism and support adrenal function after 8-hour fast."
+
+### PROGRESSIVE HABIT FORMATION
+If user currently wakes up late (after 9 AM), include a realistic progressive wake-up schedule:
+- Week 1-2: 15 minutes earlier
+- Week 3-4: 30 minutes earlier  
+- Week 5-8: 45 minutes earlier
+- Continue until optimal wake time achieved
+
+### CONDITION-SPECIFIC PROTOCOLS
+For each health condition, provide specific interventions:
+- Diabetes: Post-meal walks, specific exercise timing, glucose-friendly foods
+- PCOS: Hormone-balancing foods, stress management, specific exercise types
+- Heart conditions: Safe exercise modifications, heart-healthy nutrition
+- Weight management: Precise calorie calculations, portion control, metabolic optimization
 
 ## RESPONSE FORMAT
 Return ONLY a valid JSON object with this EXACT structure. Do not include any text before or after the JSON:
 
 {
+  "planMetadata": {
+    "totalDuration": "3-6 months for habit formation",
+    "currentWakeTime": "${userData.schedule.wake_up || "Not specified"}",
+    "targetWakeTime": "Optimal time based on work schedule",
+    "progressiveAdjustment": "15-30 minute weekly increments",
+    "primaryGoals": ${JSON.stringify(userData.goals)},
+    "healthConditions": ${JSON.stringify(userData.medical.conditions)},
+    "workSchedule": "${userData.schedule.work_start} to ${
+    userData.schedule.work_end
+  }"
+  },
   "day1": {
     "date": "YYYY-MM-DD",
     "timezone": "User_TZ",
-    "focus": "1-2 line focus tied to goal and constraints",
+    "focus": "Specific focus tied to user's primary health goals and current challenges",
     "movement": {
       "type": "home|gym",
       "duration_min": 50,
@@ -556,15 +677,19 @@ Return ONLY a valid JSON object with this EXACT structure. Do not include any te
       "meals": [
         {
           "name": "Breakfast",
-          "time": "08:00",
+          "time": "Based on user's breakfast time or work schedule",
+          "detailedDescription": "Specific meal designed for user's health conditions and cultural preferences",
           "items": [
-            {"food": "Paneer bhurji", "qty_g": 150, "hand_portion": "1 palm"},
-            {"food": "Millet roti", "qty_g": 80, "hand_portion": "1 cupped hand"}
+            {"food": "Specific food based on diet type and culture", "qty_g": 150, "hand_portion": "1 palm", "preparation": "Cooking method", "reason": "Why this food for this condition"},
+            {"food": "Second food item", "qty_g": 80, "hand_portion": "1 cupped hand", "preparation": "How to prepare", "reason": "Nutritional benefit"}
           ],
           "macros": {"p": 35, "c": 45, "f": 20, "fiber": 8},
-          "order": ["veg", "protein", "carb"],
-          "tips": ["eat slowly", "sip water 30 min before"],
-          "swaps": ["tofu for paneer", "whole wheat roti for millet"]
+          "eatingOrder": ["Start with fiber/vegetables", "Then protein", "Finally carbs"],
+          "eatingInstructions": ["Chew each bite 20-30 times", "Eat slowly over 15-20 minutes", "Stop at 80% fullness"],
+          "timing": "Specific timing relative to work/medication schedule",
+          "culturalAdaptations": ["Regional alternatives", "Traditional cooking methods"],
+          "conditionSpecific": ["How this meal helps their specific health condition"],
+          "alternatives": ["If ingredients unavailable", "Budget-friendly options", "Time-saving versions"]
         }
       ],
       "snacks": ["roasted chana 30g", "apple + 10 almonds", "green tea"],
@@ -574,11 +699,20 @@ Return ONLY a valid JSON object with this EXACT structure. Do not include any te
       "tactics": ["fiber-first salad", "12-min walk after largest carb meal", "carb swaps"]
     },
     "sleep": {
-      "bedtime": "22:00",
-      "wake_time": "06:00",
+      "currentWakeTime": "User's current wake time",
+      "progressiveWakeTime": "This week's target wake time (15-30 min earlier)",
+      "targetWakeTime": "Final optimal wake time",
+      "bedtime": "Calculated based on 7-9 hours before wake time",
       "duration_hours": 8,
-      "wind_down_routine": ["dim lights 90 min before", "no screens 1 hour before", "cool room 18-20°C"],
-      "environment_tips": ["blackout curtains", "white noise if needed", "phone in another room"]
+      "progressiveSchedule": {
+        "week1_2": "Current time - 15 minutes",
+        "week3_4": "Current time - 30 minutes", 
+        "week5_8": "Current time - 45 minutes",
+        "finalTarget": "Optimal time based on work schedule"
+      },
+      "windDownRoutine": ["Specific routine starting 90 min before bed", "Tailored to user's lifestyle", "Consider work schedule"],
+      "environmentOptimization": ["Specific room setup", "Technology adjustments", "Cultural considerations"],
+      "habitFormation": ["Week 1-2 focus", "Week 3-4 additions", "Long-term maintenance"]
     },
     "stress": {
       "practice": "5-min breathing exercise",
@@ -605,11 +739,45 @@ Return ONLY a valid JSON object with this EXACT structure. Do not include any te
   "day2": {
     /* same structure as day1 but with different activities */
   },
+  "progressiveTimeline": {
+    "phase1": {
+      "duration": "Weeks 1-4",
+      "focus": "Foundation building and habit establishment",
+      "wakeTimeAdjustment": "15-30 minutes earlier",
+      "keyHabits": ["Consistent wake time", "Morning hydration", "Basic movement"],
+      "successMetrics": ["Wake up at target time 5/7 days", "Complete morning routine", "Basic activity tracking"]
+    },
+    "phase2": {
+      "duration": "Weeks 5-12", 
+      "focus": "Routine optimization and complexity addition",
+      "wakeTimeAdjustment": "Continue gradual adjustment",
+      "keyHabits": ["Advanced morning routine", "Structured meals", "Regular exercise"],
+      "successMetrics": ["Consistent energy levels", "Improved biomarkers", "Habit automation"]
+    },
+    "phase3": {
+      "duration": "Months 3-6",
+      "focus": "Mastery and fine-tuning",
+      "wakeTimeAdjustment": "Maintain optimal schedule",
+      "keyHabits": ["Optimized protocols", "Advanced tracking", "Lifestyle integration"],
+      "successMetrics": ["Goal achievement", "Sustained improvements", "Independent management"]
+    }
+  },
   "overall_goals": [
-    "Establish consistent morning routine",
-    "Improve daily hydration habits",
-    "Build sustainable exercise routine"
+    "User's specific health goals from onboarding",
+    "Progressive habit formation with realistic timelines", 
+    "Condition-specific health improvements"
   ],
+  "culturalAdaptations": {
+    "dietaryOptions": ["Regional food alternatives", "Traditional cooking methods", "Cultural meal timing"],
+    "exerciseModifications": ["Culturally appropriate activities", "Home vs gym options", "Family involvement"],
+    "lifestyleIntegration": ["Work culture considerations", "Social factors", "Religious/cultural practices"]
+  },
+  "conditionSpecificGuidance": {
+    "primary": "Detailed guidance for user's main health condition",
+    "secondary": "Support for additional conditions",
+    "medicationTiming": "How to coordinate with medication schedule",
+    "monitoringRecommendations": "What to track and when to seek medical advice"
+  },
   "progress_tips": [
     "Track your activities in a journal or app",
     "Celebrate small wins daily",
@@ -628,20 +796,53 @@ Return ONLY a valid JSON object with this EXACT structure. Do not include any te
   ]
 }
 
-## CRITICAL REQUIREMENTS
-- Use the user's actual wake-up time, work schedule, and preferences
-- Create realistic, achievable activities with specific sets/reps/RPE
-- Include proper meal timing based on their schedule with exact quantities
-- Account for any health conditions or dietary restrictions
-- Provide specific, actionable instructions with regional food options
-- Ensure activities are spaced appropriately throughout the day
-- Make Day 2 slightly different from Day 1 for variety
-- Focus on building sustainable habits, not perfection
-- Include safety screening and contraindication awareness
-- Provide culturally appropriate meal suggestions
+## CRITICAL QUALITY REQUIREMENTS
+
+TRANSFORM generic recommendations like:
+❌ "7:00 am Morning Hydration 5 min"
+❌ "7:20 am Healthy Breakfast 15 min"  
+❌ "3:00 pm Morning Workout 30 min"
+
+INTO detailed, personalized protocols like:
+✅ "7:15 AM - Metabolic Activation Hydration Protocol (5 min): 500ml filtered water + 1/4 tsp Celtic sea salt + 1/2 fresh lemon. Sip slowly over 5 minutes to rehydrate after 8-hour fast, activate metabolism, and support adrenal function. Alternative: Add cucumber if lemon unavailable."
+
+✅ "7:45 AM - Diabetes-Friendly Power Breakfast (20 min): Start with 2 boiled eggs (protein first), add 1 slice Ezekiel bread + 1/2 avocado + 10 almonds. Eat in this order: protein → fats → carbs. Chew 20-30x per bite. Follow with 200ml green tea. This sequence prevents blood sugar spikes and provides sustained energy for 4 hours."
+
+✅ "6:30 PM - Post-Work Glucose Management Walk (15 min): Immediately after dinner, walk at moderate pace (able to hold conversation) for exactly 15 minutes. This improves glucose uptake by 30-50% and aids digestion. Indoor alternative: light housework or stair climbing."
+
+## PERSONALIZATION REQUIREMENTS
+- Use the user's actual wake-up time (${
+    userData.schedule.wake_up
+  }), work schedule (${userData.schedule.work_start} to ${
+    userData.schedule.work_end
+  }), and preferences
+- Create realistic, achievable activities with specific sets/reps/RPE based on their fitness level
+- Include proper meal timing based on their schedule with exact quantities for their weight (${
+    userData.demographics.weight
+  })
+- Account for ALL health conditions (${
+    userData.medical.conditions.join(", ") || "general health"
+  }) and dietary restrictions (${userData.diet.allergies?.join(", ") || "none"})
+- Provide specific, actionable instructions with regional food options for their diet type (${
+    userData.diet.type || "balanced"
+  })
+- Ensure activities are spaced appropriately throughout their actual daily schedule
+- Make Day 2 slightly different from Day 1 for variety while maintaining consistency
+- Focus on building sustainable habits through progressive 15-30 minute adjustments
+- Include safety screening and contraindication awareness for their specific conditions
+- Provide culturally appropriate meal suggestions based on their preferences
 - Include health score tracking and adaptive recommendations
 
-Remember: This is their personalized health coaching plan. Make it encouraging, achievable, and tailored to their unique situation while maintaining the highest safety standards.`;
+Every single activity must include:
+- EXACT timing based on user's schedule
+- SPECIFIC quantities and instructions  
+- WHY it helps their specific condition
+- ALTERNATIVES for different situations
+- CULTURAL adaptations when relevant
+- SAFETY considerations
+- PROGRESSIVE adjustments over time
+
+Remember: This is their personalized health coaching plan. Make it encouraging, achievable, and tailored to their unique situation while maintaining the highest safety standards. Demonstrate dramatic improvement over generic AI outputs.`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
