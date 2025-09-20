@@ -81,10 +81,10 @@ const Calendar: React.FC = () => {
     return totalMinutes;
   };
 
-  // Convert plan data to calendar events with dynamic timing
+  // Convert plan data to calendar events with user's actual schedule
   const convertPlanToEvents = useCallback(
     (plan: ComprehensiveHealthPlan): Event[] => {
-      console.log("🔄 CONVERTING PLAN TO EVENTS");
+      console.log("🔄 CONVERTING PLAN TO EVENTS WITH USER SCHEDULE");
       console.log("📋 Plan received for conversion:", {
         planId: plan.id,
         planName: plan.plan_name,
@@ -95,7 +95,47 @@ const Calendar: React.FC = () => {
 
       const events: Event[] = [];
       let eventId = 1;
-      let currentTime = 7 * 60; // Start at 7:00 AM (420 minutes)
+
+      // Helper function to convert time string to minutes
+      const timeToMinutes = (timeStr: string): number => {
+        if (!timeStr) return 0;
+        const [time, period] = timeStr.split(" ");
+        const [hours, minutes] = time.split(":").map(Number);
+        let totalMinutes = hours * 60 + minutes;
+        if (period === "pm" && hours !== 12) totalMinutes += 12 * 60;
+        if (period === "am" && hours === 12) totalMinutes -= 12 * 60;
+        return totalMinutes;
+      };
+
+      // Get user's schedule from plan data or use defaults
+      const userSchedule = {
+        wakeUp: timeToMinutes(
+          plan.plan_data.user_schedule?.wake_up_time || "06:00 am"
+        ),
+        workStart: timeToMinutes(
+          plan.plan_data.user_schedule?.work_start || "09:00 am"
+        ),
+        workEnd: timeToMinutes(
+          plan.plan_data.user_schedule?.work_end || "17:00 pm"
+        ),
+        breakfast: timeToMinutes(
+          plan.plan_data.user_schedule?.breakfast_time || "07:00 am"
+        ),
+        lunch: timeToMinutes(
+          plan.plan_data.user_schedule?.lunch_time || "12:00 pm"
+        ),
+        dinner: timeToMinutes(
+          plan.plan_data.user_schedule?.dinner_time || "19:00 pm"
+        ),
+        workout: timeToMinutes(
+          plan.plan_data.user_schedule?.workout_time || "18:00 pm"
+        ),
+        sleep: timeToMinutes(
+          plan.plan_data.user_schedule?.sleep_time || "22:00 pm"
+        ),
+      };
+
+      console.log("👤 User's actual schedule:", userSchedule);
 
       // Helper function to format time from minutes
       const formatTime = (minutes: number): string => {
@@ -139,42 +179,43 @@ const Calendar: React.FC = () => {
           return events;
         }
 
-        // Process morning routine activities
+        // Process morning routine activities (after wake up)
         if (
           weekdayTemplate.morning_routine &&
           weekdayTemplate.morning_routine.length > 0
         ) {
+          let morningTime = userSchedule.wakeUp;
           weekdayTemplate.morning_routine.forEach((activity: Activity) => {
             events.push({
               id: `morning-${eventId++}`,
               title: activity.title,
               duration: `${activity.duration} min`,
-              time: formatTime(currentTime),
+              time: formatTime(morningTime),
               color: getActivityColor(activity.type),
               type: "activity",
               description: activity.description,
             });
-            currentTime += activity.duration + 15; // Add 15 min buffer between activities
+            morningTime += activity.duration + 15; // Add 15 min buffer between activities
           });
         }
 
-        // Process meals with proper spacing
+        // Process meals with user's actual meal times
         if (weekdayTemplate.meals && weekdayTemplate.meals.length > 0) {
           weekdayTemplate.meals.forEach((meal: MealPlan, index: number) => {
-            // Space meals appropriately throughout the day
-            let mealTime = currentTime;
+            // Use user's actual meal times
+            let mealTime;
             if (index === 0) {
-              // Breakfast - after morning routine
-              mealTime = currentTime;
+              // Breakfast - use user's breakfast time
+              mealTime = userSchedule.breakfast;
             } else if (index === 1) {
-              // Lunch - around 12:00 PM
-              mealTime = 12 * 60; // 12:00 PM
+              // Lunch - use user's lunch time
+              mealTime = userSchedule.lunch;
             } else if (index === 2) {
-              // Dinner - around 6:00 PM
-              mealTime = 18 * 60; // 6:00 PM
+              // Dinner - use user's dinner time
+              mealTime = userSchedule.dinner;
             } else {
               // Additional meals - space them out
-              mealTime = currentTime + index * 4 * 60; // Every 4 hours
+              mealTime = userSchedule.breakfast + index * 4 * 60; // Every 4 hours from breakfast
             }
 
             events.push({
@@ -196,11 +237,19 @@ const Calendar: React.FC = () => {
           });
         }
 
-        // Process workouts
+        // Process workouts - use user's preferred workout time
         if (weekdayTemplate.workouts && weekdayTemplate.workouts.length > 0) {
           weekdayTemplate.workouts.forEach((workout: WorkoutPlan) => {
-            // Schedule workouts in the afternoon/evening
-            let workoutTime = Math.max(currentTime, 15 * 60); // At least 3:00 PM
+            // Use user's actual workout time preference
+            let workoutTime = userSchedule.workout;
+
+            // If workout time is during work hours, adjust to after work
+            if (
+              workoutTime >= userSchedule.workStart &&
+              workoutTime <= userSchedule.workEnd
+            ) {
+              workoutTime = userSchedule.workEnd + 30; // 30 minutes after work ends
+            }
 
             events.push({
               id: `workout-${eventId++}`,
@@ -211,8 +260,6 @@ const Calendar: React.FC = () => {
               type: "workout",
               description: workout.description,
             });
-
-            currentTime = workoutTime + workout.duration + 30; // 30 min buffer
           });
         }
 
@@ -222,25 +269,27 @@ const Calendar: React.FC = () => {
           weekdayTemplate.wellness_activities.length > 0
         ) {
           weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
+            // Schedule wellness activities during work breaks or after work
+            let wellnessTime = userSchedule.workStart + 4 * 60; // 4 hours after work starts (lunch break)
+
             events.push({
               id: `wellness-${eventId++}`,
               title: activity.title,
               duration: `${activity.duration} min`,
-              time: formatTime(currentTime),
+              time: formatTime(wellnessTime),
               color: getActivityColor(activity.type),
               type: "wellness",
               description: activity.description,
             });
-            currentTime += activity.duration + 15; // 15 min buffer
           });
         }
 
-        // Process evening routine
+        // Process evening routine (before sleep)
         if (
           weekdayTemplate.evening_routine &&
           weekdayTemplate.evening_routine.length > 0
         ) {
-          let eveningTime = Math.max(currentTime, 20 * 60); // Start at least at 8:00 PM
+          let eveningTime = userSchedule.sleep - 60; // 1 hour before sleep
           weekdayTemplate.evening_routine.forEach((activity: Activity) => {
             events.push({
               id: `evening-${eventId++}`,
@@ -251,21 +300,19 @@ const Calendar: React.FC = () => {
               type: "wellness",
               description: activity.description,
             });
-            eveningTime += activity.duration + 15; // 15 min buffer
+            eveningTime -= activity.duration + 15; // Move earlier for next activity
           });
-          currentTime = eveningTime; // Update currentTime for sleep scheduling
         }
 
-        // Add sleep time if specified
+        // Add sleep time using user's actual sleep time
         if (weekdayTemplate.sleep_targets) {
-          const sleepTime = 22 * 60; // 10:00 PM
           const sleepDuration =
-            weekdayTemplate.sleep_targets.target_duration || 8; // Default to 8 hours if not specified
+            weekdayTemplate.sleep_targets.target_duration || 8;
           events.push({
             id: `sleep-${eventId++}`,
             title: "Sleep",
             duration: `${sleepDuration * 60} min`,
-            time: formatTime(sleepTime),
+            time: formatTime(userSchedule.sleep),
             color: "text",
             type: "wellness",
             description: `Target: ${sleepDuration} hours of sleep`,
@@ -279,9 +326,12 @@ const Calendar: React.FC = () => {
           return timeA - timeB;
         });
 
-        console.log("✅ Plan conversion completed successfully");
+        console.log(
+          "✅ Plan conversion completed successfully with user schedule"
+        );
         console.log("📅 Final events generated:", {
           totalEvents: sortedEvents.length,
+          userSchedule: userSchedule,
           events: sortedEvents.map((e) => ({
             id: e.id,
             title: e.title,
