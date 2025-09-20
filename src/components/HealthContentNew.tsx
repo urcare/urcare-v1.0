@@ -515,64 +515,6 @@ export const HealthContentNew = () => {
           </div>
         )}
 
-        {/* Test Button - Enhanced with realistic examples */}
-        {!progress.isGenerating &&
-          generatedPlans.length === 0 &&
-          !activePlan && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm text-blue-800 mb-3">
-                🧪 Try these realistic health goals:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {[
-                  {
-                    goal: "I want to lose 10kg safely",
-                    weeks: "12-16 weeks",
-                    type: "Weight Loss",
-                  },
-                  {
-                    goal: "Help me manage my diabetes",
-                    weeks: "24 weeks",
-                    type: "Disease Management",
-                  },
-                  {
-                    goal: "Build muscle and strength",
-                    weeks: "16 weeks",
-                    type: "Fitness",
-                  },
-                  {
-                    goal: "Improve my sleep quality",
-                    weeks: "6 weeks",
-                    type: "Wellness",
-                  },
-                  {
-                    goal: "Reduce stress and anxiety",
-                    weeks: "4 weeks",
-                    type: "Mental Health",
-                  },
-                  {
-                    goal: "Quick energy boost",
-                    weeks: "1 week",
-                    type: "Quick Win",
-                  },
-                ].map((example, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handlePlanGeneration(example.goal)}
-                    className="text-left bg-white border border-blue-200 rounded-lg p-3 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="font-medium text-blue-800 text-sm">
-                      {example.type}
-                    </div>
-                    <div className="text-xs text-blue-600 mb-1">
-                      {example.weeks}
-                    </div>
-                    <div className="text-xs text-gray-600">{example.goal}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
         {/* Health Input Bar - Show when no plans generated or when generating */}
         {(showInputBar || progress.isGenerating) && (
