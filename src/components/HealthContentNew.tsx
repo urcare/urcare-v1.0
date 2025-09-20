@@ -485,8 +485,18 @@ export const HealthContentNew = () => {
               </button>
               <button
                 onClick={() => {
-                  // Navigate to today's plan
-                  console.log("View today's plan");
+                  // Navigate to calendar with active plan
+                  if (activePlan) {
+                    navigate('/calendar', { 
+                      state: { 
+                        planData: activePlan,
+                        planName: activePlan.plan_name 
+                      } 
+                    });
+                  } else {
+                    // If no active plan, navigate to calendar with demo data
+                    navigate('/calendar');
+                  }
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
