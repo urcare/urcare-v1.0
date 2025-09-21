@@ -101,12 +101,12 @@ export const HealthContentNew = () => {
       <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide px-4">
         {/* Achievement Card - Lime Green with margin */}
         <div className="pt-4">
-          <div className="bg-lime-400 rounded-[2rem] p-12">
+          <div className="bg-lime-400 rounded-[2.5rem] p-8 w-full">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
                   <svg
-                    className="w-10 h-10 text-lime-400"
+                    className="w-8 h-8 text-lime-400"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -118,17 +118,17 @@ export const HealthContentNew = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-black font-semibold text-xl">Great Job!</p>
-                  <p className="text-black font-semibold text-xl">
+                  <p className="text-black font-semibold text-lg">Great Job!</p>
+                  <p className="text-black font-semibold text-lg">
                     You have completed
                   </p>
-                  <p className="text-black font-semibold text-xl">
+                  <p className="text-black font-semibold text-lg">
                     the tasks this month.
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-8xl font-bold text-black">31</div>
+                <div className="text-6xl font-bold text-black">31</div>
               </div>
             </div>
           </div>
