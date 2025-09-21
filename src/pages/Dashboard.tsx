@@ -10,8 +10,8 @@ const Dashboard: React.FC = () => {
       <ThemeWrapper>
         <MobileNavigation>
           <div className="p-4 space-y-6">
-            <UpcomingTasksCard />
             <HealthContentNew />
+            <UpcomingTasksCard />
           </div>
         </MobileNavigation>
       </ThemeWrapper>
