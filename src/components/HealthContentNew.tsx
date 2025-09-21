@@ -1,6 +1,7 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { healthPlanSearchService } from "@/services/healthPlanSearchService";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 export const HealthContentNew = () => {
@@ -62,21 +63,21 @@ export const HealthContentNew = () => {
       <div className="bg-white px-6 py-4 rounded-b-3xl w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
+            <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
+              <AvatarImage
+                src={
+                  user?.user_metadata?.avatar_url ||
+                  user?.user_metadata?.picture ||
+                  "/images/profile-placeholder.jpg"
+                }
+                alt={profile?.full_name || user?.email || "User"}
+              />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl font-bold">
+                {(profile?.full_name || user?.email || "U")
+                  .charAt(0)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h2 className="text-2xl font-bold text-black">
                 Hi {getFirstName()}
