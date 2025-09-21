@@ -188,7 +188,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
       <div className="flex flex-col justify-center">
         {/* Input Container - White Glassy Theme */}
 
-        <div className="bg-white/95 backdrop-blur-xl rounded-xl p-2 sm:p-3 shadow-xl border border-gray-100/50">
+        <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] p-2 sm:p-3 shadow-xl border border-gray-100/50">
           <form onSubmit={handleSubmit} className="relative">
             {/* Text Input */}
             <div className="mb-2">
@@ -211,7 +211,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
                   type="button"
                   onClick={handleAttachClick}
                   disabled={isLoading}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 rounded-lg transition-all duration-200 text-xs disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 rounded-xl transition-all duration-200 text-xs disabled:opacity-50"
                 >
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>Attach</span>
@@ -224,7 +224,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
                   type="button"
                   onClick={handleMicClick}
                   disabled={isLoading}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-xs ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all duration-200 text-xs ${
                     isRecording || isListening
                       ? "bg-red-500/80 text-white animate-pulse"
                       : "bg-gray-100/80 hover:bg-gray-200/80 text-gray-700"
@@ -246,7 +246,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all duration-200 ${
                     input.trim() && !isLoading
                       ? "bg-blue-500 hover:bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
