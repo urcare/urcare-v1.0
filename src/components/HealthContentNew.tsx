@@ -101,7 +101,7 @@ export const HealthContentNew = () => {
       <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide">
         {/* Achievement Card - Lime Green with margin */}
         <div className="pt-4">
-          <div className="bg-lime-400 rounded-none p-8 w-full">
+          <div className="bg-lime-400 rounded-b-[2rem] p-8 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
@@ -135,12 +135,12 @@ export const HealthContentNew = () => {
         </div>
 
         {/* Health Goal Input Bar */}
-        <div className="py-2 px-6">
+        <div className="py-2">
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
         {/* Upcoming Tasks Section - White Card */}
-        <div className="pb-24 px-6">
+        <div className="pb-24">
           <div className="bg-white rounded-[2rem] p-6 shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
