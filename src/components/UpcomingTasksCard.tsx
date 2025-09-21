@@ -41,35 +41,35 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
   tasks = defaultTasks
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 w-full">
+    <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-black">Upcoming Tasks</h2>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h2 className="text-2xl font-bold text-black">Upcoming Tasks</h2>
         <div className="flex items-center space-x-1">
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          <Filter className="w-4 h-4 text-gray-400 ml-1" />
+          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+          <Filter className="w-5 h-5 text-gray-400 ml-1" />
         </div>
       </div>
 
       {/* Task List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {tasks.map((task) => (
           <div
             key={task.id}
-            className={`rounded-xl p-4 transition-all duration-200 ${
+            className={`rounded-2xl p-5 transition-all duration-200 ${
               task.isHighlighted
                 ? 'bg-black text-white'
                 : 'bg-gray-50 text-black hover:bg-gray-100'
             }`}
           >
             <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-3 flex-1">
+              <div className="flex items-start space-x-4 flex-1">
                 {/* Icon */}
                 {task.icon && (
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border ${
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold border-2 ${
                       task.isHighlighted
                         ? 'bg-green-500 text-white border-white'
                         : 'bg-green-500 text-white border-green-500'
@@ -81,10 +81,10 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
                 
                 {/* Task Content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm leading-tight mb-1">
+                  <h3 className="font-semibold text-lg leading-tight mb-2">
                     {task.title}
                   </h3>
-                  <p className={`text-xs ${
+                  <p className={`text-sm ${
                     task.isHighlighted ? 'text-gray-300' : 'text-gray-600'
                   }`}>
                     {task.subtasks} subtask{task.subtasks !== 1 ? 's' : ''}
@@ -93,13 +93,13 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
               </div>
 
               {/* Right Side - Arrow and Date */}
-              <div className="flex flex-col items-end space-y-1">
+              <div className="flex flex-col items-end space-y-2">
                 <ArrowUpRight 
-                  className={`w-4 h-4 ${
+                  className={`w-6 h-6 ${
                     task.isHighlighted ? 'text-white' : 'text-black'
                   }`} 
                 />
-                <span className={`text-xs ${
+                <span className={`text-sm font-medium ${
                   task.isHighlighted ? 'text-gray-300' : 'text-gray-600'
                 }`}>
                   {task.dueDate}
