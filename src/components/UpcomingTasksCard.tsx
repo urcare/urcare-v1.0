@@ -41,10 +41,10 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
   tasks = defaultTasks
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm mx-auto">
+    <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-black">Upcoming Tasks</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-white">Upcoming Tasks</h2>
         <div className="flex items-center space-x-1">
           <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
           <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -52,6 +52,9 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
           <Filter className="w-4 h-4 text-gray-400 ml-1" />
         </div>
       </div>
+
+      {/* Card Container */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-full">
 
       {/* Task List */}
       <div className="space-y-3">
@@ -108,6 +111,7 @@ export const UpcomingTasksCard: React.FC<UpcomingTasksCardProps> = ({
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
