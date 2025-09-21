@@ -98,7 +98,7 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Main Content - Dark Background Edge to Edge */}
-      <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide">
+      <div className="bg-gray-900 h-screen overflow-hidden">
         {/* Achievement Card - Lime Green with margin */}
         <div className="py-4">
           <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
@@ -177,8 +177,8 @@ export const HealthContentNew = () => {
         </div>
 
         {/* Upcoming Tasks Section - White Card */}
-        <div className="py-4 pb-24">
-          <div className="bg-white rounded-[3rem] p-4 shadow-lg">
+        <div className="py-4 flex-1 overflow-hidden">
+          <div className="bg-white rounded-[3rem] p-4 shadow-lg h-full flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-black">Upcoming Tasks</h2>
@@ -199,8 +199,8 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Task Cards */}
-            <div className="space-y-4">
+            {/* Task Cards - Scrollable */}
+            <div className="space-y-4 overflow-y-auto flex-1 scrollbar-hide">
               {/* First Task Card - Black (Highlighted) */}
               <div className="bg-black rounded-[3rem] p-4">
                 <div className="flex items-center justify-between">
