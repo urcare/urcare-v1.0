@@ -103,32 +103,69 @@ export const HealthContentNew = () => {
         <div className="py-4">
           <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
+              {/* Left Section - Steps Streak */}
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mb-2 shadow-lg">
                   <svg
-                    className="w-8 h-8 text-lime-400"
+                    className="w-8 h-8 text-white"
                     fill="currentColor"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-black font-semibold text-lg">Great Job!</p>
-                  <p className="text-black font-semibold text-lg">
-                    You have completed
-                  </p>
-                  <p className="text-black font-semibold text-lg">
-                    the tasks this month.
-                  </p>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-black">142</div>
+                  <div className="text-lg font-semibold text-black">
+                    Days streak
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-6xl font-bold text-black">31</div>
+
+              {/* Right Section - Step Progress and Weekly Tracker */}
+              <div className="flex-1 ml-8">
+                {/* Step Count */}
+                <div className="text-xl font-bold text-black mb-2">0 / 100</div>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-300 rounded-full h-3 mb-4">
+                  <div
+                    className="bg-white h-3 rounded-full"
+                    style={{ width: "0%" }}
+                  ></div>
+                </div>
+
+                {/* Weekly Completion Tracker */}
+                <div className="flex items-center justify-between">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day, index) => (
+                      <div key={day} className="flex flex-col items-center">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                            index < 3 ? "bg-orange-500" : "bg-gray-300"
+                          }`}
+                        >
+                          {index < 3 && (
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-black">
+                          {day}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             </div>
           </div>
