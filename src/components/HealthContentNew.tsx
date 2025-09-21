@@ -100,8 +100,8 @@ export const HealthContentNew = () => {
       {/* Main Content - Dark Background Edge to Edge */}
       <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide">
         {/* Achievement Card - Lime Green with margin */}
-        <div className="pt-4 px-6">
-          <div className="bg-lime-400 rounded-[2.5rem] p-8 w-full">
+        <div className="pt-4">
+          <div className="bg-lime-400 rounded-none p-8 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
