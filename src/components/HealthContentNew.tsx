@@ -1,7 +1,7 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { healthPlanSearchService } from "@/services/healthPlanSearchService";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 export const HealthContentNew = () => {
@@ -59,9 +59,8 @@ export const HealthContentNew = () => {
   };
   return (
     <>
-      {/* Header with User Info - Edge to Edge White */}
-      <div className="pt-2 px-6">
-        <div className="bg-white px-6 py-4 rounded-[2rem] w-full">
+      {/* Header with User Info - White Container Stretched to Edges */}
+      <div className="bg-white px-6 py-4 rounded-b-[3rem] shadow-lg w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
@@ -96,14 +95,13 @@ export const HealthContentNew = () => {
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
           </div>
         </div>
-        </div>
       </div>
 
       {/* Main Content - Dark Background Edge to Edge */}
       <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide">
         {/* Achievement Card - Lime Green with margin */}
         <div className="pt-4">
-          <div className="bg-lime-400 rounded-[2rem] p-8 w-full">
+          <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
@@ -137,15 +135,15 @@ export const HealthContentNew = () => {
         </div>
 
         {/* Health Goal Input Bar */}
-        <div className="py-2">
+        <div className="py-4">
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
         {/* Upcoming Tasks Section - White Card */}
         <div className="pb-24">
-          <div className="bg-white rounded-[2rem] p-6 shadow-lg">
+          <div className="bg-white rounded-[3rem] p-4 shadow-lg">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-black">Upcoming Tasks</h2>
               <button className="text-gray-600">
                 <svg
@@ -167,7 +165,7 @@ export const HealthContentNew = () => {
             {/* Task Cards */}
             <div className="space-y-4">
               {/* First Task Card - Black (Highlighted) */}
-              <div className="bg-black rounded-[2rem] p-6">
+              <div className="bg-black rounded-[3rem] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
@@ -200,7 +198,7 @@ export const HealthContentNew = () => {
               </div>
 
               {/* Second Task Card - Light Gray */}
-              <div className="bg-gray-50 rounded-[2rem] p-6">
+              <div className="bg-white rounded-[3rem] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-green-500">
@@ -233,7 +231,7 @@ export const HealthContentNew = () => {
               </div>
 
               {/* Third Task Card - Light Gray */}
-              <div className="bg-gray-50 rounded-[2rem] p-6">
+              <div className="bg-white rounded-[3rem] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-green-500">

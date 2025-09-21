@@ -16,7 +16,7 @@ export const ThemeWrapper: React.FC<ThemeWrapperProps> = ({
     <div
       className={cn(
         "theme-page",
-        forceTheme && "bg-background text-foreground",
+        forceTheme && "bg-gray-900 text-foreground",
         className
       )}
     >

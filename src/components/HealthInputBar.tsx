@@ -188,7 +188,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
       <div className="flex flex-col justify-center">
         {/* Input Container - White Glassy Theme */}
 
-        <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] p-2 sm:p-3 shadow-xl border border-gray-100/50 w-full">
+        <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] p-4 sm:p-6 shadow-xl border border-gray-100/50 w-full">
           <form onSubmit={handleSubmit} className="relative">
             {/* Text Input */}
             <div className="mb-2">
@@ -198,7 +198,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Set your health goals or ask for advice..."
-                className="w-full p-2.5 bg-gray-50/80 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
