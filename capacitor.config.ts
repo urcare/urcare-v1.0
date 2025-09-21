@@ -26,8 +26,8 @@ const config: CapacitorConfig = {
       presentationOptions: ["badge", "sound", "alert"],
     },
     StatusBar: {
-      style: "LIGHT",
-      backgroundColor: "#22c55e",
+      style: "DARK",
+      backgroundColor: "#ffffff",
     },
     App: {
       launchUrl: "com.urcare.app",
