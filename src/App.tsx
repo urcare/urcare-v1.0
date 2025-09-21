@@ -16,6 +16,7 @@ import ProfileManagement from "./pages/ProfileManagement";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
+import TasksDemo from "./pages/TasksDemo";
 import Workout from "./pages/Workout";
 
 import { DevRedirectHandler } from "./components/DevRedirectHandler";
@@ -39,6 +40,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<AuthCallback />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/tasks-demo" element={<TasksDemo />} />
 
           {/* Protected Routes */}
           <Route

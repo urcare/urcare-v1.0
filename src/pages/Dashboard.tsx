@@ -1,6 +1,7 @@
 import { HealthContentNew } from "@/components/HealthContentNew";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { ThemeWrapper } from "@/components/ThemeWrapper";
+import { UpcomingTasksCard } from "@/components/UpcomingTasksCard";
 import React from "react";
 
 const Dashboard: React.FC = () => {
@@ -8,7 +9,10 @@ const Dashboard: React.FC = () => {
     <div className="bg-gray-900 min-h-screen">
       <ThemeWrapper>
         <MobileNavigation>
-          <HealthContentNew />
+          <div className="p-4 space-y-6">
+            <UpcomingTasksCard />
+            <HealthContentNew />
+          </div>
         </MobileNavigation>
       </ThemeWrapper>
     </div>
