@@ -11,9 +11,6 @@ const Dashboard: React.FC = () => {
         <MobileNavigation>
           <div className="space-y-2">
             <HealthContentNew />
-            <div className="px-4">
-              <UpcomingTasksCard />
-            </div>
           </div>
         </MobileNavigation>
       </ThemeWrapper>

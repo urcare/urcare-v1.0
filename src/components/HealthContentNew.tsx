@@ -98,9 +98,9 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Main Content - Dark Background Edge to Edge */}
-      <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide px-4">
+      <div className="bg-gray-900 min-h-screen overflow-y-auto scrollbar-hide">
         {/* Achievement Card - Lime Green with margin */}
-        <div className="pt-4">
+        <div className="pt-4 px-6">
           <div className="bg-lime-400 rounded-[2.5rem] p-8 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -135,12 +135,12 @@ export const HealthContentNew = () => {
         </div>
 
         {/* Health Goal Input Bar */}
-        <div className="py-2">
+        <div className="py-2 px-6">
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
         {/* Upcoming Tasks Section - White Card */}
-        <div className="pb-24">
+        <div className="pb-24 px-6">
           <div className="bg-white rounded-[2rem] p-6 shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
