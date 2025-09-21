@@ -59,6 +59,9 @@
 
 @layer base {
   :root {
+    /* Safari iOS viewport fix */
+    --vh: 1vh;
+    
     /* Light Mode Colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -153,6 +156,29 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Safari iOS specific fixes */
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    /* Fix for Safari mobile viewport */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  html {
+    /* Safari iOS viewport fix */
+    height: -webkit-fill-available;
+  }
+  
+  #root {
+    /* Safari mobile container fix */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
   }
 
   /* Fix for pages with hardcoded backgrounds */
@@ -339,6 +365,32 @@
   /* Mobile optimizations */
   .mobile-touch-target {
     @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+  
+  /* Safari iOS specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .safari-fix {
+      min-height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    /* Fix for Safari bounce scroll */
+    body {
+      position: fixed;
+      overflow: hidden;
+      width: 100%;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    #root {
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    /* Fix loading screens */
+    .mobile-loading-screen {
+      height: calc(var(--vh, 1vh) * 100);
+    }
   }
 
   /* Focus management */

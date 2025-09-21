@@ -1,3 +1,4 @@
+import { MobileLoadingScreen } from "@/components/MobileLoadingScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { authFlowService } from "@/services/authFlowService";
 import { useEffect, useState } from "react";
@@ -103,18 +104,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (loading || !isInitialized || canAccess === null) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground text-sm">
-            {loading
-              ? "Loading..."
-              : retryCount > 0
-              ? `Retrying... (${retryCount}/2)`
-              : "Checking access..."}
-          </p>
-        </div>
-      </div>
+      <MobileLoadingScreen
+        message={
+          loading
+            ? "Loading..."
+            : retryCount > 0
+            ? "Retrying..."
+            : "Checking access..."
+        }
+        submessage={retryCount > 0 ? `Attempt ${retryCount}/2` : "Please wait"}
+      />
     );
   }
 

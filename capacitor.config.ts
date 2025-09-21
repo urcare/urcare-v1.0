@@ -1,16 +1,16 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.urcare.app',
-  appName: 'UrCare',
-  webDir: 'dist',
+  appId: "com.urcare.app",
+  appName: "UrCare",
+  webDir: "dist",
   server: {
-    androidScheme: 'https',
+    androidScheme: "https",
     allowNavigation: [
-      'urcare.vercel.app',
-      'accounts.google.com',
-      'oauth.googleusercontent.com'
-    ]
+      "urcare.vercel.app",
+      "accounts.google.com",
+      "oauth.googleusercontent.com",
+    ],
   },
   plugins: {
     SplashScreen: {
@@ -20,18 +20,18 @@ const config: CapacitorConfig = {
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       splashFullScreen: true,
-      splashImmersive: true
+      splashImmersive: true,
     },
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
+      presentationOptions: ["badge", "sound", "alert"],
     },
     StatusBar: {
-      style: 'LIGHT',
-      backgroundColor: '#000000'
+      style: "LIGHT",
+      backgroundColor: "#22c55e",
     },
     App: {
-      launchUrl: 'com.urcare.app'
-    }
+      launchUrl: "com.urcare.app",
+    },
   },
   android: {
     buildOptions: {
@@ -39,9 +39,9 @@ const config: CapacitorConfig = {
       keystorePassword: undefined,
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
-      signingType: 'jarsigner'
-    }
-  }
+      signingType: "jarsigner",
+    },
+  },
 };
 
-export default config; 
+export default config;

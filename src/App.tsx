@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
 import Calendar from "./pages/Calendar";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
@@ -25,6 +26,9 @@ import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 
 function App() {
+  // Apply Safari mobile fixes
+  useSafariMobileFix();
+
   return (
     <AuthProvider>
       <BrowserRouter>

@@ -1,3 +1,4 @@
+import { MobileLoadingScreen } from "@/components/MobileLoadingScreen";
 import { devUtils, isDevelopment } from "@/config/development";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDevAuthFallback } from "@/hooks/useDevAuthFallback";
@@ -48,7 +49,7 @@ export const AuthCallback: React.FC = () => {
           console.log("AuthCallback: Profile:", profile);
 
           // Add a small delay to ensure auth context is fully settled
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 200));
 
           // Get the appropriate redirect route using the auth flow service
           console.log(
@@ -61,12 +62,13 @@ export const AuthCallback: React.FC = () => {
             description: "Redirecting to your dashboard...",
           });
 
-          navigate(redirectRoute, { replace: true });
+          // Use window.location.href for more reliable mobile navigation
+          window.location.href = redirectRoute;
         } catch (error) {
           console.error("AuthCallback: Error determining redirect:", error);
           console.error("AuthCallback: Error details:", error);
           // Fallback to onboarding if there's an error
-          navigate("/onboarding", { replace: true });
+          window.location.href = "/onboarding";
         }
       }
     };
@@ -76,14 +78,14 @@ export const AuthCallback: React.FC = () => {
       if (!hasRedirected.current && isInitialized && !loading) {
         console.log("AuthCallback: Timeout reached, redirecting to onboarding");
         hasRedirected.current = true;
-        navigate("/onboarding", { replace: true });
+        window.location.href = "/onboarding";
       }
-    }, 5000); // 5 second timeout
+    }, 8000); // Increased timeout for mobile
 
     handleRedirect();
 
     return () => clearTimeout(timeoutId);
-  }, [isInitialized, loading, user, navigate]);
+  }, [isInitialized, loading, user]);
 
   // Reset redirect flag when user changes
   useEffect(() => {
@@ -94,11 +96,9 @@ export const AuthCallback: React.FC = () => {
 
   // Show loading while processing
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing sign in...</p>
-      </div>
-    </div>
+    <MobileLoadingScreen
+      message="Completing sign in..."
+      submessage="Setting up your account"
+    />
   );
 };
