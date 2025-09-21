@@ -60,7 +60,7 @@ export const HealthContentNew = () => {
   return (
     <>
       {/* Header with User Info - Edge to Edge White */}
-      <div className="bg-white px-6 py-4 rounded-b-[2rem] w-full">
+      <div className="bg-white px-6 py-4 rounded-[2rem] w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
