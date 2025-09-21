@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
     <div className="bg-gray-900 min-h-screen">
       <ThemeWrapper>
         <MobileNavigation>
-          <div className="p-4 space-y-6">
+          <div className="p-4 space-y-4">
             <HealthContentNew />
             <UpcomingTasksCard />
           </div>
