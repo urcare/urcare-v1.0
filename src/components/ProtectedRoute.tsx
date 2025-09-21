@@ -18,6 +18,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const [canAccess, setCanAccess] = useState<boolean | null>(null);
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -36,11 +37,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
 
       try {
-        // Add timeout to prevent hanging
+        // Add timeout to prevent hanging - increased to 10 seconds for better reliability
         const timeoutPromise = new Promise<boolean>((_, reject) => {
           setTimeout(
             () => reject(new Error("Route access check timeout")),
-            5000
+            10000
           );
         });
 
@@ -54,15 +55,39 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           setCanAccess(hasAccess);
 
           if (!hasAccess) {
-            const redirect = await authFlowService.getRedirectRoute(user);
-            setRedirectRoute(redirect);
+            try {
+              const redirect = await authFlowService.getRedirectRoute(user);
+              setRedirectRoute(redirect);
+            } catch (redirectError) {
+              console.error("Error getting redirect route:", redirectError);
+              // Fallback to onboarding if redirect fails
+              setRedirectRoute("/onboarding");
+            }
           }
         }
       } catch (error) {
         console.error("Error checking route access:", error);
         if (isMounted) {
-          // Allow access on error to prevent blocking
-          setCanAccess(true);
+          // Retry up to 2 times for transient errors
+          if (
+            retryCount < 2 &&
+            error instanceof Error &&
+            error.message.includes("timeout")
+          ) {
+            console.log(`Retrying access check (attempt ${retryCount + 1}/2)`);
+            setRetryCount((prev) => prev + 1);
+            // Retry after a short delay
+            setTimeout(() => {
+              if (isMounted) {
+                checkAccess();
+              }
+            }, 1000);
+            return;
+          }
+
+          // Treat timeout and other errors as access denial for security
+          setCanAccess(false);
+          setRedirectRoute("/onboarding");
         }
       }
     };
@@ -74,12 +99,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [user, isInitialized, loading, location.pathname]); // Removed profile dependency
+  }, [user, isInitialized, loading, location.pathname]);
 
   if (loading || !isInitialized || canAccess === null) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground text-sm">
+            {loading
+              ? "Loading..."
+              : retryCount > 0
+              ? `Retrying... (${retryCount}/2)`
+              : "Checking access..."}
+          </p>
+        </div>
       </div>
     );
   }

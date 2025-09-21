@@ -38,37 +38,92 @@ class AuthFlowService {
     }
 
     try {
-      // Get user profile to check onboarding status
-      const { data: profile, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("onboarding_completed")
-        .eq("id", user.id)
-        .single();
+      // Run all database queries in parallel with individual timeouts
+      const [
+        profileResult,
+        subscriptionResult,
+        trialResult,
+        healthAssessmentResult,
+      ] = await Promise.allSettled([
+        // Profile check with timeout
+        Promise.race([
+          supabase
+            .from("user_profiles")
+            .select("onboarding_completed")
+            .eq("id", user.id)
+            .single(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Profile check timeout")), 3000)
+          ),
+        ]),
 
-      const isOnboardingComplete = profile?.onboarding_completed ?? false;
+        // Subscription check with timeout
+        Promise.race([
+          subscriptionService.getSubscriptionStatus(user.id),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Subscription check timeout")),
+              3000
+            )
+          ),
+        ]),
 
-      // Get subscription status
-      const subscriptionStatus =
-        await subscriptionService.getSubscriptionStatus(user.id);
-      const hasActiveSubscription = subscriptionStatus.isActive;
+        // Trial check with timeout
+        Promise.race([
+          trialService.getTrialStatus(user.id),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Trial check timeout")), 3000)
+          ),
+        ]),
 
-      // Get trial status with timeout
-      let hasActiveTrial = false;
-      try {
-        // Add timeout to prevent hanging
-        const trialStatusPromise = trialService.getTrialStatus(user.id);
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Trial service timeout")), 5000)
+        // Health assessment check with timeout
+        Promise.race([
+          this.hasCompletedHealthAssessment(user.id),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Health assessment check timeout")),
+              3000
+            )
+          ),
+        ]),
+      ]);
+
+      // Process results with fallbacks
+      const isOnboardingComplete =
+        profileResult.status === "fulfilled"
+          ? (profileResult.value as any)?.data?.onboarding_completed ?? false
+          : false;
+
+      const hasActiveSubscription =
+        subscriptionResult.status === "fulfilled"
+          ? (subscriptionResult.value as any)?.isActive ?? false
+          : false;
+
+      const hasActiveTrial =
+        trialResult.status === "fulfilled"
+          ? (trialResult.value as any)?.isActive ?? false
+          : false;
+
+      const hasCompletedHealthAssessment =
+        healthAssessmentResult.status === "fulfilled"
+          ? (healthAssessmentResult.value as any) ?? false
+          : false;
+
+      // Log any failed checks
+      if (profileResult.status === "rejected") {
+        console.warn("Profile check failed:", profileResult.reason);
+      }
+      if (subscriptionResult.status === "rejected") {
+        console.warn("Subscription check failed:", subscriptionResult.reason);
+      }
+      if (trialResult.status === "rejected") {
+        console.warn("Trial check failed:", trialResult.reason);
+      }
+      if (healthAssessmentResult.status === "rejected") {
+        console.warn(
+          "Health assessment check failed:",
+          healthAssessmentResult.reason
         );
-
-        const trialStatus = (await Promise.race([
-          trialStatusPromise,
-          timeoutPromise,
-        ])) as any;
-        hasActiveTrial = trialStatus.isActive;
-      } catch (trialError) {
-        console.warn("❌ Trial service failed:", trialError);
-        hasActiveTrial = false;
       }
 
       // Determine if user can access dashboard
@@ -81,9 +136,6 @@ class AuthFlowService {
       if (!isOnboardingComplete) {
         nextRoute = "/onboarding";
       } else if (!canAccessDashboard) {
-        // Check if user has completed health assessment
-        const hasCompletedHealthAssessment =
-          await this.hasCompletedHealthAssessment(user.id);
         if (!hasCompletedHealthAssessment) {
           nextRoute = "/health-assessment";
         } else {
@@ -185,18 +237,20 @@ class AuthFlowService {
   private async hasCompletedHealthAssessment(userId: string): Promise<boolean> {
     try {
       // Check if user has a health plan (indicates health assessment completion)
+      // Use a more efficient query with exists check
       const { data, error } = await supabase
         .from("health_plans")
         .select("id")
         .eq("user_id", userId)
-        .limit(1);
+        .limit(1)
+        .maybeSingle(); // Use maybeSingle to handle no results gracefully
 
       if (error) {
         console.error("Error checking health assessment completion:", error);
         return false;
       }
 
-      return !!data && data.length > 0;
+      return !!data;
     } catch (error) {
       console.error("Error in hasCompletedHealthAssessment:", error);
       return false;

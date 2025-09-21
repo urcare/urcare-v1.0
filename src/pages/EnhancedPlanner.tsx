@@ -6,7 +6,6 @@ import {
   HealthPlanRecord,
   healthPlanService,
 } from "@/services/healthPlanService";
-import { debugHealthPlan } from "@/utils/healthPlanDebug";
 import { Calendar, Plus, RefreshCw } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -283,12 +282,6 @@ const EnhancedPlanner: React.FC = () => {
                       <RefreshCw className="h-4 w-4" />
                     )}
                     {generating ? "Generating..." : "New Plan"}
-                  </button>
-                  <button
-                    onClick={debugHealthPlan}
-                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
-                  >
-                    🐛 Debug
                   </button>
                 </div>
               </div>

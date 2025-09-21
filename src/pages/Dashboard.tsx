@@ -5,11 +5,13 @@ import React from "react";
 
 const Dashboard: React.FC = () => {
   return (
-    <ThemeWrapper>
-      <MobileNavigation>
-        <HealthContentNew />
-      </MobileNavigation>
-    </ThemeWrapper>
+    <div className="bg-gray-900 min-h-screen">
+      <ThemeWrapper>
+        <MobileNavigation>
+          <HealthContentNew />
+        </MobileNavigation>
+      </ThemeWrapper>
+    </div>
   );
 };
 

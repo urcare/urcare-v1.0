@@ -44,23 +44,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   // Navigation handlers for bottom navigation only
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative h-screen overflow-hidden bg-gray-900">
       {/* Main Content Area - Clean layout without menu */}
-      <div className="h-full relative z-10">
-        {/* Clean Header - No menu button, notifications, or profile elements */}
-        <div className="px-3 pt-2 pb-2">
-          {/* Empty header space for future components */}
-        </div>
-
-        {/* Content - Scrollable without visible scrollbar */}
-        <div
-          className="px-4 sm:px-6 mt-4 sm:mt-6 pb-24 scrollable-container smooth-scroll"
-          style={{
-            height: "calc(100vh - 120px)", // Account for header and bottom nav
-          }}
-        >
-          {children}
-        </div>
+      <div className="h-full relative z-10 bg-gray-900">
+        {/* Content - Full screen without containers */}
+        <div className="bg-gray-900 min-h-screen pb-24">{children}</div>
 
         {/* Bottom Navigation */}
         <div className="fixed bottom-6 left-4 right-4">

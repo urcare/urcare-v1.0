@@ -31,16 +31,6 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  // Suggested health goals
-  const suggestedInputs = [
-    "I want to lose weight",
-    "I want to build muscle",
-    "I want to improve my sleep",
-    "I want to eat healthier",
-    "I want to reduce stress",
-    "I want to increase energy",
-  ];
-
   // Initialize speech recognition
   const initializeSpeechRecognition = () => {
     if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
@@ -194,24 +184,9 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
   };
 
   return (
-    <div className="bg-transparent px-2 sm:px-3 pb-1 sm:pb-2">
+    <div className="bg-transparent">
       <div className="flex flex-col justify-center">
         {/* Input Container - White Glassy Theme */}
-        {/* Suggested Inputs */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">Try these suggestions:</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedInputs.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => setInput(suggestion)}
-                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-xs transition-colors"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div className="bg-white/95 backdrop-blur-xl rounded-xl p-2 sm:p-3 shadow-xl border border-gray-100/50">
           <form onSubmit={handleSubmit} className="relative">

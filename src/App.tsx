@@ -17,12 +17,10 @@ import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import Workout from "./pages/Workout";
 
-import { DevPanel } from "./components/DevPanel";
 import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { TestComprehensiveHealthPlan } from "./components/TestComprehensiveHealthPlan";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 
@@ -31,7 +29,6 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <DevRedirectHandler />
-        <DevPanel />
         <InitialRouteHandler />
         <Routes>
           {/* Public Routes */}
@@ -219,12 +216,6 @@ function App() {
                 <ProfileManagement />
               </ProtectedRoute>
             }
-          />
-
-          {/* Test Route - Remove in production */}
-          <Route
-            path="/test-comprehensive-health-plan"
-            element={<TestComprehensiveHealthPlan />}
           />
 
           {/* Catch all route */}
