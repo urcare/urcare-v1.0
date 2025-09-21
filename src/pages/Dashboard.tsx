@@ -8,11 +8,9 @@ const Dashboard: React.FC = () => {
   return (
     <div className="bg-gray-900 min-h-screen">
       <ThemeWrapper>
-        <MobileNavigation>
-          <div className="space-y-2">
-            <HealthContentNew />
-          </div>
-        </MobileNavigation>
+        <div className="space-y-2">
+          <HealthContentNew />
+        </div>
       </ThemeWrapper>
     </div>
   );
