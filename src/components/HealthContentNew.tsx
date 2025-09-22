@@ -54,6 +54,7 @@ export const HealthContentNew = () => {
   );
   const [sectionTitle, setSectionTitle] = useState("Health Insights");
   const [loading, setLoading] = useState(false);
+  // No internal scroll or JS-driven resizing needed for sticky-bottom behavior
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -84,7 +85,9 @@ export const HealthContentNew = () => {
           body: { goal: goal }, // Pass the user's goal
           headers: {
             Authorization: `Bearer ${
-              (await supabase.auth.getSession()).data.session?.access_token
+              (
+                await supabase.auth.getSession()
+              ).data.session?.access_token
             }`,
           },
         }
@@ -93,21 +96,24 @@ export const HealthContentNew = () => {
       const result = {
         success: !error && data?.success,
         plan: data?.plan,
-        error: error?.message || data?.error
+        error: error?.message || data?.error,
       };
 
       if (result.success) {
-        toast.success("Health plan generated successfully! Redirecting to your calendar...", {
-          id: "plan-generation",
-        });
-        
+        toast.success(
+          "Health plan generated successfully! Redirecting to your calendar...",
+          {
+            id: "plan-generation",
+          }
+        );
+
         // Navigate to calendar page to show the generated plan
         setTimeout(() => {
-          navigate("/calendar", { 
-            state: { 
+          navigate("/calendar", {
+            state: {
               planData: result.plan,
-              fromGeneration: true 
-            } 
+              fromGeneration: true,
+            },
           });
         }, 1500);
       } else {
@@ -563,7 +569,7 @@ export const HealthContentNew = () => {
 
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
-          <div className="bg-white rounded-[3rem] p-4 shadow-lg min-h-[400px] flex flex-col">
+          <div className="bg-white rounded-[3rem] p-4 shadow-lg flex flex-col sticky bottom-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
@@ -584,8 +590,8 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Scrollable */}
-            <div className="space-y-4 max-h-[300px] overflow-y-auto scrollbar-hide">
+            {/* Dynamic Content - Static (scrolls with page) */}
+            <div className="space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>

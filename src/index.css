@@ -48,9 +48,13 @@
 .scrollable-container {
   overflow-y: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+}
+
+/* Dynamic card with fixed bottom edges */
+.dynamic-card-fixed-bottom {
+  position: relative;
+  transition: height 0.3s ease-in-out, min-height 0.3s ease-in-out;
+  will-change: height, min-height;
 }
 
 .scrollable-container::-webkit-scrollbar {
@@ -61,7 +65,7 @@
   :root {
     /* Safari iOS viewport fix */
     --vh: 1vh;
-    
+
     /* Light Mode Colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -166,12 +170,12 @@
     min-height: 100vh;
     min-height: -webkit-fill-available;
   }
-  
+
   html {
     /* Safari iOS viewport fix */
     height: -webkit-fill-available;
   }
-  
+
   #root {
     /* Safari mobile container fix */
     min-height: 100vh;
@@ -366,13 +370,13 @@
   .mobile-touch-target {
     @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
-  
+
   /* Safari iOS specific fixes */
   @supports (-webkit-touch-callout: none) {
     .safari-fix {
       min-height: calc(var(--vh, 1vh) * 100);
     }
-    
+
     /* Fix for Safari bounce scroll */
     body {
       position: fixed;
@@ -380,13 +384,13 @@
       width: 100%;
       height: calc(var(--vh, 1vh) * 100);
     }
-    
+
     #root {
       overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       height: calc(var(--vh, 1vh) * 100);
     }
-    
+
     /* Fix loading screens */
     .mobile-loading-screen {
       height: calc(var(--vh, 1vh) * 100);
