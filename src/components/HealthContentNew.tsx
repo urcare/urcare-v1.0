@@ -54,7 +54,27 @@ export const HealthContentNew = () => {
   );
   const [sectionTitle, setSectionTitle] = useState("Health Insights");
   const [loading, setLoading] = useState(false);
-  // No internal scroll or JS-driven resizing needed for sticky-bottom behavior
+  const [visibleItems, setVisibleItems] = useState(3); // Show only top 3 items initially
+
+  // Handle scroll to reveal more content from bottom
+  const handleCardScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const scrollTop = target.scrollTop;
+
+    // When user scrolls up (at top), reveal more items
+    if (scrollTop <= 5 && visibleItems < dynamicContent.length) {
+      setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
+      // Scroll back to top to maintain position
+      setTimeout(() => {
+        target.scrollTop = 0;
+      }, 50);
+    }
+  };
+
+  // Reset visible items when content changes
+  useEffect(() => {
+    setVisibleItems(3);
+  }, [dynamicContent]);
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -604,7 +624,12 @@ export const HealthContentNew = () => {
 
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
-          <div className="bg-white rounded-[3rem] p-4 shadow-lg flex flex-col sticky bottom-0">
+          <div
+            className="bg-white rounded-[3rem] p-4 shadow-lg flex flex-col sticky bottom-0 transition-all duration-300 ease-in-out"
+            style={{
+              minHeight: `${Math.max(400, visibleItems * 120 + 100)}px`,
+            }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
@@ -625,22 +650,30 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Static (scrolls with page) */}
-            <div className="space-y-4">
+            {/* Dynamic Content - Scrollable with reveal effect */}
+            <div
+              className="space-y-4 overflow-y-auto scrollbar-hide flex-1"
+              onScroll={handleCardScroll}
+            >
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                 </div>
               ) : (
-                dynamicContent.map((item, index) => (
+                dynamicContent.slice(0, visibleItems).map((item, index) => (
                   <div
                     key={item.id}
                     onClick={() => handleContentClick(item)}
-                    className={`rounded-[3rem] p-4 cursor-pointer transition-all duration-200 ${
+                    className={`rounded-[3rem] p-4 cursor-pointer transition-all duration-500 transform ${
                       item.isHighlighted
                         ? "bg-black text-white"
                         : "bg-white text-black hover:bg-gray-100"
-                    } ${item.completed ? "opacity-60" : ""}`}
+                    } ${item.completed ? "opacity-60" : ""} ${
+                      index >= visibleItems - 1 ? "animate-slide-up" : ""
+                    }`}
+                    style={{
+                      animationDelay: index >= visibleItems - 1 ? "0.2s" : "0s",
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-6">
@@ -701,6 +734,41 @@ export const HealthContentNew = () => {
                     </div>
                   </div>
                 ))
+              )}
+
+              {/* Show more content indicator */}
+              {!loading && visibleItems < dynamicContent.length && (
+                <div className="flex items-center justify-center py-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <svg
+                      className="w-4 h-4 animate-bounce"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                    <span>Scroll up to expand card</span>
+                    <svg
+                      className="w-4 h-4 animate-bounce"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               )}
             </div>
           </div>
