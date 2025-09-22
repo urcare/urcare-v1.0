@@ -42,7 +42,7 @@ interface HealthPlan {
 }
 
 export const HealthContentNew = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   // State management for dynamic content
@@ -64,6 +64,17 @@ export const HealthContentNew = () => {
       return user.email.split("@")[0];
     }
     return "User";
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Failed to log out");
+    }
   };
 
   const handlePlanGenerate = async (goal: string) => {
@@ -475,15 +486,39 @@ export const HealthContentNew = () => {
               </h2>
             </div>
           </div>
-          <div className="relative">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-              <img
-                src="/icons/notification.png"
-                alt="notification"
-                className="w-6 h-6"
-              />
+          <div className="flex items-center gap-3">
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-12 h-12 bg-red-50 hover:bg-red-100 rounded-full flex items-center justify-center transition-colors duration-200 group"
+              title="Logout"
+            >
+              <svg
+                className="w-6 h-6 text-red-500 group-hover:text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
+
+            {/* Notification Icon */}
+            <div className="relative">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                <img
+                  src="/icons/notification.png"
+                  alt="notification"
+                  className="w-6 h-6"
+                />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
           </div>
         </div>
       </div>
