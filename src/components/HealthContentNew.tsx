@@ -1,11 +1,58 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { healthPlanSearchService } from "@/services/healthPlanSearchService";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+
+// Type definitions for dynamic content
+interface DynamicContentItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  time: string;
+  isHighlighted: boolean;
+  completed?: boolean;
+  action?: string;
+  type?: string;
+}
+
+interface HealthGoal {
+  id: string;
+  goal_type: string;
+  title: string;
+  description?: string;
+  status: string;
+}
+
+interface HealthPlan {
+  id: string;
+  day_1_plan?: {
+    activities?: Array<{
+      id?: string;
+      title: string;
+      description: string;
+      type: string;
+      startTime?: string;
+      completed?: boolean;
+    }>;
+  };
+}
 
 export const HealthContentNew = () => {
   const { user, profile } = useAuth();
+
+  // State management for dynamic content
+  const [contentState, setContentState] = useState<
+    "health_tips" | "plan_selection" | "upcoming_tasks"
+  >("health_tips");
+  const [dynamicContent, setDynamicContent] = useState<DynamicContentItem[]>(
+    []
+  );
+  const [sectionTitle, setSectionTitle] = useState("Health Insights");
+  const [loading, setLoading] = useState(false);
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -57,6 +104,326 @@ export const HealthContentNew = () => {
       });
     }
   };
+
+  // Content loading functions
+  const loadPersonalizedTips = useCallback(async () => {
+    const tips = [];
+
+    // Age-specific hydration tip
+    tips.push({
+      id: "1",
+      title: "Start Your Day with Hydration",
+      description: `Based on your ${
+        profile?.age || 30
+      }-year-old profile, drink 16oz of water upon waking to kickstart metabolism`,
+      icon: "💧",
+      time: "Morning",
+      isHighlighted: true,
+    });
+
+    // Schedule-based sleep tip
+    tips.push({
+      id: "2",
+      title: "Optimize Your Sleep Schedule",
+      description: `Your ideal bedtime is ${
+        profile?.sleep_time || "10:00 PM"
+      } for 7-8 hours of quality rest`,
+      icon: "😴",
+      time: "Tonight",
+      isHighlighted: false,
+    });
+
+    // Gender-specific exercise tip
+    tips.push({
+      id: "3",
+      title: "Personalized Movement Plan",
+      description: `${
+        profile?.gender === "female" ? "Women benefit from" : "Men benefit from"
+      } strength training 3x/week for bone health`,
+      icon: "💪",
+      time: "This Week",
+      isHighlighted: false,
+    });
+
+    // Condition-specific tips
+    if (profile?.chronic_conditions && profile.chronic_conditions.length > 0) {
+      tips.push({
+        id: "4",
+        title: "Manage Your Health Conditions",
+        description: `Focus on anti-inflammatory foods for your ${profile.chronic_conditions[0]} management`,
+        icon: "🩺",
+        time: "Daily",
+        isHighlighted: false,
+      });
+    }
+
+    // Diet-specific tip
+    if (profile?.diet_type) {
+      tips.push({
+        id: "5",
+        title: `${profile.diet_type} Diet Optimization`,
+        description: `Meal prep strategies specifically designed for your ${profile.diet_type.toLowerCase()} lifestyle`,
+        icon: "🥗",
+        time: "Meal Times",
+        isHighlighted: false,
+      });
+    }
+
+    setDynamicContent(tips);
+  }, [profile]);
+
+  const loadHealthPlans = useCallback(async (goals: HealthGoal[]) => {
+    const plans = [
+      {
+        id: "1",
+        title: "Comprehensive Health Plan",
+        description: "AI-generated plan based on your specific health goals",
+        icon: "🎯",
+        time: "4-12 weeks",
+        isHighlighted: true,
+        action: "generate_comprehensive",
+      },
+      {
+        id: "2",
+        title: "Quick Start 2-Day Plan",
+        description: "Get started immediately with a focused 2-day health plan",
+        icon: "⚡",
+        time: "2 days",
+        isHighlighted: false,
+        action: "generate_quick",
+      },
+    ];
+
+    // Add goal-specific plans
+    const goalTypes = goals.map((g) => g.goal_type);
+
+    if (goalTypes.includes("weight_loss")) {
+      plans.push({
+        id: "3",
+        title: "Weight Management Plan",
+        description: "Sustainable weight loss through nutrition and exercise",
+        icon: "⚖️",
+        time: "8-16 weeks",
+        isHighlighted: false,
+        action: "generate_weight_loss",
+      });
+    }
+
+    if (goalTypes.includes("fitness")) {
+      plans.push({
+        id: "4",
+        title: "Fitness & Strength Plan",
+        description: "Build muscle and improve cardiovascular health",
+        icon: "🏋️",
+        time: "12 weeks",
+        isHighlighted: false,
+        action: "generate_fitness",
+      });
+    }
+
+    setDynamicContent(plans);
+  }, []);
+
+  const getActivityIcon = (type: string) => {
+    const iconMap: { [key: string]: string } = {
+      workout: "🏋️",
+      meal: "🍽️",
+      hydration: "💧",
+      sleep: "😴",
+      meditation: "🧘",
+      walk: "🚶",
+      morning: "🌅",
+      default: "✅",
+    };
+    return iconMap[type] || iconMap["default"];
+  };
+
+  const loadUpcomingTasks = useCallback(async (activePlan: HealthPlan) => {
+    const tasks = [];
+
+    if (activePlan && activePlan.day_1_plan) {
+      // Extract today's activities from the plan
+      const todaysPlan = activePlan.day_1_plan;
+
+      if (todaysPlan.activities) {
+        todaysPlan.activities.forEach((activity, index: number) => {
+          tasks.push({
+            id: activity.id || `task-${index}`,
+            title: activity.title,
+            description: activity.description,
+            icon: getActivityIcon(activity.type),
+            time: activity.startTime || "Anytime",
+            isHighlighted: index === 0,
+            completed: activity.completed || false,
+            type: activity.type,
+          });
+        });
+      }
+    }
+
+    // Fallback tasks if no plan activities
+    if (tasks.length === 0) {
+      tasks.push(
+        {
+          id: "1",
+          title: "Morning Routine",
+          description: "30-min morning wellness routine",
+          icon: "🌅",
+          time: "07:00 AM",
+          isHighlighted: true,
+          completed: false,
+        },
+        {
+          id: "2",
+          title: "Healthy Breakfast",
+          description: "Protein-rich meal with complex carbs",
+          icon: "🍳",
+          time: "08:00 AM",
+          isHighlighted: false,
+          completed: false,
+        },
+        {
+          id: "3",
+          title: "Midday Movement",
+          description: "15-min walk or light exercise",
+          icon: "🚶",
+          time: "01:30 PM",
+          isHighlighted: false,
+          completed: false,
+        }
+      );
+    }
+
+    setDynamicContent(tasks);
+  }, []);
+
+  const handleContentClick = async (item: DynamicContentItem) => {
+    if (contentState === "plan_selection") {
+      // Handle plan generation
+      setLoading(true);
+      try {
+        if (item.action === "generate_comprehensive") {
+          // Use existing comprehensive health plan service
+          const { ComprehensiveHealthPlanService } = await import(
+            "@/services/comprehensiveHealthPlanService"
+          );
+          const comprehensiveService = new ComprehensiveHealthPlanService();
+          await comprehensiveService.generateComprehensivePlan(
+            "Improve overall health",
+            profile
+          );
+          toast.success("Comprehensive health plan generated!");
+
+          // Refresh to show new tasks
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else if (item.action === "generate_quick") {
+          // Use existing health plan service
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { data, error } = await supabase.functions.invoke(
+            "generate-ai-health-coach-plan",
+            {
+              method: "POST",
+              body: {},
+              headers: {
+                Authorization: `Bearer ${
+                  (
+                    await supabase.auth.getSession()
+                  ).data.session?.access_token
+                }`,
+              },
+            }
+          );
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          if (data.success) {
+            toast.success("Quick start plan generated!");
+            // Refresh to show new tasks
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            throw new Error(data.error || "Failed to generate plan");
+          }
+        }
+      } catch (error) {
+        console.error("Error generating plan:", error);
+        toast.error("Failed to generate plan");
+      } finally {
+        setLoading(false);
+      }
+    } else if (contentState === "upcoming_tasks") {
+      // Handle task completion
+      const updatedContent = dynamicContent.map((task) =>
+        task.id === item.id ? { ...task, completed: !task.completed } : task
+      );
+      setDynamicContent(updatedContent);
+      toast.success(
+        item.completed ? "Task marked incomplete" : "Task completed!"
+      );
+    }
+  };
+
+  // State detection logic
+  useEffect(() => {
+    if (!user || !profile) return;
+
+    const determineUserState = async () => {
+      setLoading(true);
+      try {
+        // Check for active comprehensive health plans
+        const { data: activePlans } = await supabase
+          .from("comprehensive_health_plans")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "active");
+
+        // Check for active 2-day plans as fallback
+        const { data: twoDayPlans } = await supabase
+          .from("two_day_health_plans")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_active", true);
+
+        // Check for user health goals
+        const { data: goals } = await supabase
+          .from("user_health_goals")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "active");
+
+        if (
+          (activePlans && activePlans.length > 0) ||
+          (twoDayPlans && twoDayPlans.length > 0)
+        ) {
+          setContentState("upcoming_tasks");
+          setSectionTitle("Today's Schedule");
+          await loadUpcomingTasks(activePlans?.[0] || twoDayPlans?.[0]);
+        } else if (goals && goals.length > 0) {
+          setContentState("plan_selection");
+          setSectionTitle("Recommended Plans");
+          await loadHealthPlans(goals);
+        } else {
+          setContentState("health_tips");
+          setSectionTitle("Health Insights");
+          await loadPersonalizedTips();
+        }
+      } catch (error) {
+        console.error("Error determining user state:", error);
+        setContentState("health_tips");
+        setSectionTitle("Health Insights");
+        await loadPersonalizedTips();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    determineUserState();
+  }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks]);
   return (
     <>
       {/* Header with User Info - White Container Stretched to Edges */}
@@ -176,12 +543,12 @@ export const HealthContentNew = () => {
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
-        {/* Upcoming Tasks Section - White Card */}
+        {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4 flex-1 overflow-hidden">
           <div className="bg-white rounded-[3rem] p-4 shadow-lg h-full flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-black">Upcoming Tasks</h2>
+              <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
               <button className="text-gray-600">
                 <svg
                   className="w-8 h-8"
@@ -199,106 +566,83 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Task Cards - Scrollable */}
+            {/* Dynamic Content - Scrollable */}
             <div className="space-y-4 overflow-y-auto flex-1 scrollbar-hide">
-              {/* First Task Card - Black (Highlighted) */}
-              <div className="bg-black rounded-[3rem] p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                      <span className="text-white font-bold text-xl">B</span>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-bold text-xl">
-                        Design review
-                      </h3>
-                      <p className="text-gray-300 text-base">20 subtask</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <svg
-                      className="w-8 h-8 text-white mb-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 17l9.2-9.2M17 17V7H7"
-                      />
-                    </svg>
-                    <p className="text-gray-300 text-base">01.07.2023</p>
-                  </div>
+              {loading ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                 </div>
-              </div>
-
-              {/* Second Task Card - Light Gray */}
-              <div className="bg-white rounded-[3rem] p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-green-500">
-                      <span className="text-white font-bold text-xl">F</span>
-                    </div>
-                    <div>
-                      <h3 className="text-black font-bold text-xl">
-                        Finish the Work
-                      </h3>
-                      <p className="text-gray-600 text-base">08 subtask</p>
+              ) : (
+                dynamicContent.map((item, index) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleContentClick(item)}
+                    className={`rounded-[3rem] p-4 cursor-pointer transition-all duration-200 ${
+                      item.isHighlighted
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-gray-100"
+                    } ${item.completed ? "opacity-60" : ""}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div
+                          className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 ${
+                            item.isHighlighted
+                              ? "bg-green-500 border-white"
+                              : "bg-green-500 border-green-500"
+                          }`}
+                        >
+                          {item.icon}
+                        </div>
+                        <div>
+                          <h3
+                            className={`font-bold text-xl mb-1 ${
+                              item.isHighlighted ? "text-white" : "text-black"
+                            } ${item.completed ? "line-through" : ""}`}
+                          >
+                            {item.title}
+                          </h3>
+                          <p
+                            className={`text-sm ${
+                              item.isHighlighted
+                                ? "text-gray-300"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <svg
+                          className={`w-8 h-8 mb-2 ${
+                            item.isHighlighted ? "text-white" : "text-black"
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 17l9.2-9.2M17 17V7H7"
+                          />
+                        </svg>
+                        <p
+                          className={`text-sm ${
+                            item.isHighlighted
+                              ? "text-gray-300"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {item.time}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <svg
-                      className="w-8 h-8 text-black mb-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 17l9.2-9.2M17 17V7H7"
-                      />
-                    </svg>
-                    <p className="text-gray-600 text-base">02.07.2023</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Third Task Card - Light Gray */}
-              <div className="bg-white rounded-[3rem] p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center border-2 border-green-500">
-                      <span className="text-white font-bold text-xl">C</span>
-                    </div>
-                    <div>
-                      <h3 className="text-black font-bold text-xl">
-                        Client Meeting
-                      </h3>
-                      <p className="text-gray-600 text-base">12 subtask</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <svg
-                      className="w-8 h-8 text-black mb-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 17l9.2-9.2M17 17V7H7"
-                      />
-                    </svg>
-                    <p className="text-gray-600 text-base">04.07.2023</p>
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
         </div>
