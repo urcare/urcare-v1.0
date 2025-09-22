@@ -483,7 +483,7 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
-      <div className="flex-1 bg-gray-900 overflow-y-auto pt-24 pb-80 px-4">
+      <div className="flex-1 bg-gray-900 overflow-y-auto pt-24 px-4">
         {/* Achievement Card - Lime Green with margin */}
         <div className="py-4">
           <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
@@ -561,13 +561,13 @@ export const HealthContentNew = () => {
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
-        {/* Dynamic Upcoming Tasks Section - Fixed Bottom Card */}
-        <div className="fixed bottom-0 left-0 right-0 z-40">
+        {/* Dynamic Upcoming Tasks Section - Scrollable with Bottom-Anchored Expansion */}
+        <div className="py-4">
           <div 
-            className="bg-white rounded-t-[3rem] p-4 shadow-lg transition-all duration-300 ease-in-out"
+            className="bg-white rounded-[3rem] p-4 shadow-lg transition-all duration-300 ease-in-out relative"
             style={{
               minHeight: '200px',
-              maxHeight: '80vh',
+              maxHeight: '500px',
               height: '300px'
             }}
             ref={(el) => {
@@ -577,14 +577,17 @@ export const HealthContentNew = () => {
                   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                   const windowHeight = window.innerHeight;
                   const documentHeight = document.documentElement.scrollHeight;
-                  const scrollPercentage = scrollTop / (documentHeight - windowHeight);
+                  const scrollPercentage = Math.min(scrollTop / (documentHeight - windowHeight), 1);
                   
                   // Calculate new height based on scroll percentage
                   const minHeight = 200;
-                  const maxHeight = windowHeight * 0.8; // 80% of viewport height
+                  const maxHeight = 500;
                   const newHeight = minHeight + (scrollPercentage * (maxHeight - minHeight));
                   
-                  el.style.height = `${Math.min(newHeight, maxHeight)}px`;
+                  // Apply transform to expand from bottom while keeping bottom fixed
+                  const heightDifference = newHeight - 300;
+                  el.style.transform = `translateY(-${heightDifference}px)`;
+                  el.style.height = `${newHeight}px`;
                 };
                 
                 // Add scroll listener
