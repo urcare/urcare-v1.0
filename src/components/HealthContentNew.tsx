@@ -563,9 +563,9 @@ export const HealthContentNew = () => {
 
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
-          <div className="bg-white rounded-[3rem] p-4 shadow-lg min-h-[400px] flex flex-col">
+          <div className="bg-white rounded-[3rem] p-4 shadow-lg min-h-[400px] flex flex-col relative overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
               <button className="text-gray-600">
                 <svg
@@ -584,8 +584,30 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Scrollable */}
-            <div className="space-y-4 max-h-[300px] overflow-y-auto scrollbar-hide">
+            {/* Dynamic Content - Scrollable with bottom-anchored expansion */}
+            <div 
+              className="space-y-4 overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out relative"
+              style={{
+                minHeight: '200px',
+                maxHeight: '500px',
+                height: '300px'
+              }}
+              onScroll={(e) => {
+                const scrollTop = e.currentTarget.scrollTop;
+                const maxScroll = e.currentTarget.scrollHeight - e.currentTarget.clientHeight;
+                const scrollPercentage = Math.min(scrollTop / (maxScroll || 1), 1);
+                
+                // Calculate dynamic height based on scroll position
+                const minHeight = 200;
+                const maxHeight = 500;
+                const newHeight = minHeight + (scrollPercentage * (maxHeight - minHeight));
+                
+                // Apply transform to expand from bottom while keeping bottom fixed
+                const heightDifference = newHeight - 300;
+                e.currentTarget.style.transform = `translateY(-${heightDifference}px)`;
+                e.currentTarget.style.height = `${newHeight}px`;
+              }}
+            >
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
