@@ -171,6 +171,10 @@ serve(async (req) => {
   }
 
   try {
+    // Parse request body to get user goal if provided
+    const requestBody = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    const userGoal = requestBody.goal || "Improve overall health and wellness";
+
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -268,7 +272,8 @@ serve(async (req) => {
     // Generate AI Health Coach plan
     const healthPlan = await generateAIHealthCoachPlan(
       profile,
-      onboarding?.details
+      onboarding?.details,
+      userGoal
     );
 
     // Calculate plan dates (next 2 days)
@@ -331,7 +336,8 @@ serve(async (req) => {
 
 async function generateAIHealthCoachPlan(
   profile: UserProfile,
-  onboardingDetails?: any
+  onboardingDetails?: any,
+  userGoal?: string
 ): Promise<AIHealthCoachPlan> {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
@@ -542,7 +548,10 @@ Output style and UI rules
 
 You are an expert health coach. Create personalized, evidence-based daily plans that are safe, achievable, and culturally appropriate. Always prioritize safety and gradual progression.`;
 
-  const userPrompt = `## COMPREHENSIVE USER PROFILE ANALYSIS
+  const userPrompt = `## USER'S SPECIFIC HEALTH GOAL
+"${userGoal || 'Improve overall health and wellness'}"
+
+## COMPREHENSIVE USER PROFILE ANALYSIS
 ${JSON.stringify(userData, null, 2)}
 
 ## CRITICAL PERSONALIZATION REQUIREMENTS

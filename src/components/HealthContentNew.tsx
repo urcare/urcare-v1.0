@@ -2,8 +2,8 @@ import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { healthPlanSearchService } from "@/services/healthPlanSearchService";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Type definitions for dynamic content
@@ -43,6 +43,7 @@ interface HealthPlan {
 
 export const HealthContentNew = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   // State management for dynamic content
   const [contentState, setContentState] = useState<
@@ -75,23 +76,40 @@ export const HealthContentNew = () => {
         id: "plan-generation",
       });
 
-      const result = await healthPlanSearchService.generateHealthPlanFromQuery(
+      // Use the enhanced AI health coach plan generation instead
+      const { data, error } = await supabase.functions.invoke(
+        "generate-ai-health-coach-plan",
         {
-          query: goal,
-          userProfile: profile,
-          maxTokens: 4000,
-          includeFileContext: false,
-          fileContent: "",
-        },
-        user.id
+          method: "POST",
+          body: { goal: goal }, // Pass the user's goal
+          headers: {
+            Authorization: `Bearer ${
+              (await supabase.auth.getSession()).data.session?.access_token
+            }`,
+          },
+        }
       );
 
+      const result = {
+        success: !error && data?.success,
+        plan: data?.plan,
+        error: error?.message || data?.error
+      };
+
       if (result.success) {
-        toast.success("Health plan generated successfully!", {
+        toast.success("Health plan generated successfully! Redirecting to your calendar...", {
           id: "plan-generation",
         });
-        // Optionally navigate to the health plan page or show the plan
-        // You can add navigation logic here if needed
+        
+        // Navigate to calendar page to show the generated plan
+        setTimeout(() => {
+          navigate("/calendar", { 
+            state: { 
+              planData: result.plan,
+              fromGeneration: true 
+            } 
+          });
+        }, 1500);
       } else {
         toast.error(result.error || "Failed to generate health plan", {
           id: "plan-generation",

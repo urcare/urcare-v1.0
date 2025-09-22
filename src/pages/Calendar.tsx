@@ -103,6 +103,140 @@ const Calendar: React.FC = () => {
     return totalMinutes;
   };
 
+  // Convert AI Health Coach Plan to Calendar Events
+  const convertAIHealthCoachPlanToEvents = (aiPlan: any): Event[] => {
+    console.log("🔄 Converting AI Health Coach Plan to events");
+    const events: Event[] = [];
+    let eventId = 1;
+
+    // Helper function to get activity color
+    const getActivityColor = (type: string): "green" | "lime" | "beige" | "text" => {
+      switch (type.toLowerCase()) {
+        case "meal":
+        case "nutrition":
+          return "beige";
+        case "exercise":
+        case "workout":
+        case "movement":
+          return "green";
+        case "wellness":
+        case "mindfulness":
+        case "breathing":
+          return "lime";
+        default:
+          return "text";
+      }
+    };
+
+    // Process Day 1 activities
+    if (aiPlan.day1 && aiPlan.day1.activities) {
+      aiPlan.day1.activities.forEach((activity: any) => {
+        events.push({
+          id: `day1-${eventId++}`,
+          title: activity.title || activity.name || "Activity",
+          duration: `${activity.duration || 30} min`,
+          time: activity.startTime || "9:00 am",
+          color: getActivityColor(activity.type || "wellness"),
+          type: activity.type || "activity",
+          description: activity.description || "",
+          details: {
+            description: activity.description || "",
+            instructions: activity.instructions || [],
+            tips: activity.tips || [],
+          }
+        });
+      });
+    }
+
+    // If no activities found, create some from the plan structure
+    if (events.length === 0 && aiPlan.day1) {
+      const day1 = aiPlan.day1;
+      let currentTime = "7:00 am";
+
+      // Morning routine
+      if (day1.focus) {
+        events.push({
+          id: `focus-${eventId++}`,
+          title: "Daily Focus",
+          duration: "15 min",
+          time: currentTime,
+          color: "lime",
+          type: "wellness",
+          description: day1.focus,
+          details: {
+            description: day1.focus,
+            tips: ["Start your day with intention", "Focus on your main goal"]
+          }
+        });
+      }
+
+      // Movement
+      if (day1.movement) {
+        events.push({
+          id: `movement-${eventId++}`,
+          title: day1.movement.type === "home" ? "Home Workout" : "Gym Session",
+          duration: `${day1.movement.duration_min || 45} min`,
+          time: "8:00 am",
+          color: "green",
+          type: "workout",
+          description: `${day1.movement.duration_min || 45} minute ${day1.movement.type} workout`,
+          details: {
+            description: `${day1.movement.duration_min || 45} minute ${day1.movement.type} workout`,
+            exercises: day1.movement.exercises || [],
+            tips: day1.movement.warmup || []
+          }
+        });
+      }
+
+      // Nutrition/Meals
+      if (day1.nutrition && day1.nutrition.meals) {
+        day1.nutrition.meals.forEach((meal: any, index: number) => {
+          const mealTimes = ["8:30 am", "12:30 pm", "7:00 pm"];
+          events.push({
+            id: `meal-${eventId++}`,
+            title: meal.name || `Meal ${index + 1}`,
+            duration: "30 min",
+            time: mealTimes[index] || "12:00 pm",
+            color: "beige",
+            type: "meal",
+            description: meal.detailedDescription || "Healthy meal",
+            details: {
+              description: meal.detailedDescription || "Healthy meal",
+              nutrition: meal.macros ? {
+                calories: meal.macros.p + meal.macros.c + meal.macros.f,
+                protein: `${meal.macros.p}g`,
+                carbs: `${meal.macros.c}g`,
+                fats: `${meal.macros.f}g`,
+                foods: meal.items?.map((item: any) => item.food) || []
+              } : undefined,
+              tips: meal.eatingInstructions || []
+            }
+          });
+        });
+      }
+
+      // Stress management
+      if (day1.stress) {
+        events.push({
+          id: `stress-${eventId++}`,
+          title: day1.stress.practice || "Stress Management",
+          duration: `${day1.stress.duration_min || 10} min`,
+          time: "6:00 pm",
+          color: "lime",
+          type: "wellness",
+          description: day1.stress.reflection_prompt || "Mindfulness practice",
+          details: {
+            description: day1.stress.reflection_prompt || "Mindfulness practice",
+            tips: ["Take deep breaths", "Focus on the present moment"]
+          }
+        });
+      }
+    }
+
+    console.log(`✅ Converted AI plan to ${events.length} events`);
+    return events;
+  };
+
   // Convert plan data to calendar events with user's actual schedule
   const convertPlanToEvents = useCallback(
     (plan: ComprehensiveHealthPlan): Event[] => {
@@ -480,21 +614,21 @@ const Calendar: React.FC = () => {
 
         if (location.state?.planData) {
           console.log("✅ Plan data found in location state");
-          console.log("📋 Plan data details:", {
-            planId: location.state.planData.id,
-            planName: location.state.planData.plan_name,
-            planType: location.state.planData.plan_type,
-            startDate: location.state.planData.start_date,
-            durationWeeks: location.state.planData.duration_weeks,
-            status: location.state.planData.status,
-            hasPlanData: !!location.state.planData.plan_data,
-            planDataKeys: location.state.planData.plan_data
-              ? Object.keys(location.state.planData.plan_data)
-              : null,
-            fullPlanData: location.state.planData,
-          });
+          console.log("📋 Plan data details:", location.state.planData);
 
-          // Validate plan data structure with more robust checks
+          // Handle AI Health Coach plans (from input bar generation)
+          if (location.state.planData.day1 && location.state.planData.day2) {
+            console.log("🤖 AI Health Coach Plan detected");
+            const aiPlan = location.state.planData;
+            
+            // Convert AI plan activities to events
+            const aiEvents = convertAIHealthCoachPlanToEvents(aiPlan);
+            setEvents(aiEvents);
+            setIsLoading(false);
+            return;
+          }
+
+          // Handle Comprehensive Health Plans (from plan generation buttons)
           const planData = location.state.planData;
           if (!planData || typeof planData !== "object") {
             console.warn(
