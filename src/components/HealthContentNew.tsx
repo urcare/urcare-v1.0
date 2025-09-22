@@ -61,6 +61,8 @@ export const HealthContentNew = () => {
 
   // Window scroll handling to toggle sticky mode and reveal items
   useEffect(() => {
+    let lastScrollTime = 0;
+
     const onScroll = () => {
       const card = insightsCardRef.current;
       if (!card) return;
@@ -74,25 +76,48 @@ export const HealthContentNew = () => {
 
       const currentY = window.scrollY;
       const isScrollingUp = currentY < lastScrollYRef.current;
-      lastScrollYRef.current = currentY;
+      const scrollDelta = Math.abs(currentY - lastScrollYRef.current);
+
+      // Throttle scroll events to prevent too many updates
+      const now = Date.now();
+      if (now - lastScrollTime < 100) return; // Throttle to 100ms
+      lastScrollTime = now;
 
       // While sticky and scrolling up, reveal more items
       if (
         shouldStick &&
         isScrollingUp &&
+        scrollDelta > 10 &&
         visibleItems < dynamicContent.length
       ) {
+        setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
+      }
+
+      lastScrollYRef.current = currentY;
+    };
+
+    // Handle wheel events for more responsive scrolling
+    const onWheel = (e: WheelEvent) => {
+      if (!isStickyBottom) return;
+
+      const card = insightsCardRef.current;
+      if (!card) return;
+
+      // If scrolling up (negative deltaY) and card is sticky, reveal more items
+      if (e.deltaY < 0 && visibleItems < dynamicContent.length) {
         setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
       }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener("wheel", onWheel, { passive: true });
     // initial compute
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("wheel", onWheel);
     };
   }, [dynamicContent.length, visibleItems]);
 
@@ -656,7 +681,10 @@ export const HealthContentNew = () => {
               isStickyBottom ? "sticky bottom-0" : ""
             }`}
             style={{
-              minHeight: `${Math.max(400, visibleItems * 120 + 100)}px`,
+              minHeight: `${Math.max(400, visibleItems * 140 + 120)}px`,
+              height: isStickyBottom
+                ? `${Math.max(400, visibleItems * 140 + 120)}px`
+                : "auto",
             }}
           >
             {/* Header */}
@@ -680,7 +708,7 @@ export const HealthContentNew = () => {
             </div>
 
             {/* Dynamic Content - Reveal on page scroll (no internal scroll) */}
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1">
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -760,41 +788,6 @@ export const HealthContentNew = () => {
                     </div>
                   </div>
                 ))
-              )}
-
-              {/* Show more content indicator */}
-              {!loading && visibleItems < dynamicContent.length && (
-                <div className="flex items-center justify-center py-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <svg
-                      className="w-4 h-4 animate-bounce"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 15l7-7 7 7"
-                      />
-                    </svg>
-                    <span>Scroll up to expand card</span>
-                    <svg
-                      className="w-4 h-4 animate-bounce"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 15l7-7 7 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
               )}
             </div>
           </div>
