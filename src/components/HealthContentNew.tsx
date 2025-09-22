@@ -425,9 +425,9 @@ export const HealthContentNew = () => {
     determineUserState();
   }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks]);
   return (
-    <>
-      {/* Header with User Info - White Container Stretched to Edges */}
-      <div className="bg-white px-6 py-4 rounded-b-[3rem] shadow-lg w-full">
+    <div className="h-screen flex flex-col">
+      {/* Fixed Header with User Info - White Container */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white px-6 py-4 rounded-b-[3rem] shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
@@ -464,8 +464,8 @@ export const HealthContentNew = () => {
         </div>
       </div>
 
-      {/* Main Content - Dark Background Edge to Edge */}
-      <div className="bg-gray-900 h-screen overflow-hidden">
+      {/* Scrollable Content Area - with top padding to account for fixed header */}
+      <div className="flex-1 bg-gray-900 overflow-y-auto pt-24 px-4">
         {/* Achievement Card - Lime Green with margin */}
         <div className="py-4">
           <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
@@ -544,8 +544,8 @@ export const HealthContentNew = () => {
         </div>
 
         {/* Dynamic Upcoming Tasks Section - White Card */}
-        <div className="py-4 flex-1 overflow-hidden">
-          <div className="bg-white rounded-[3rem] p-4 shadow-lg h-full flex flex-col">
+        <div className="py-4">
+          <div className="bg-white rounded-[3rem] p-4 shadow-lg min-h-[400px] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
@@ -567,7 +567,7 @@ export const HealthContentNew = () => {
             </div>
 
             {/* Dynamic Content - Scrollable */}
-            <div className="space-y-4 overflow-y-auto flex-1 scrollbar-hide">
+            <div className="space-y-4 max-h-[300px] overflow-y-auto scrollbar-hide">
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -647,6 +647,6 @@ export const HealthContentNew = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
