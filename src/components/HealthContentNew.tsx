@@ -2,7 +2,7 @@ import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ interface HealthPlan {
 export const HealthContentNew = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const insightsCardRef = useRef<HTMLDivElement | null>(null);
 
   // State management for dynamic content
   const [contentState, setContentState] = useState<
@@ -55,21 +56,45 @@ export const HealthContentNew = () => {
   const [sectionTitle, setSectionTitle] = useState("Health Insights");
   const [loading, setLoading] = useState(false);
   const [visibleItems, setVisibleItems] = useState(3); // Show only top 3 items initially
+  const [isStickyBottom, setIsStickyBottom] = useState(false);
+  const lastScrollYRef = useRef<number>(window.scrollY);
 
-  // Handle scroll to reveal more content from bottom
-  const handleCardScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const scrollTop = target.scrollTop;
+  // Window scroll handling to toggle sticky mode and reveal items
+  useEffect(() => {
+    const onScroll = () => {
+      const card = insightsCardRef.current;
+      if (!card) return;
 
-    // When user scrolls up (at top), reveal more items
-    if (scrollTop <= 5 && visibleItems < dynamicContent.length) {
-      setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
-      // Scroll back to top to maintain position
-      setTimeout(() => {
-        target.scrollTop = 0;
-      }, 50);
-    }
-  };
+      const rect = card.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      // Stick the card when its bottom reaches the viewport bottom
+      const shouldStick = rect.bottom <= viewportHeight - 8;
+      setIsStickyBottom(shouldStick);
+
+      const currentY = window.scrollY;
+      const isScrollingUp = currentY < lastScrollYRef.current;
+      lastScrollYRef.current = currentY;
+
+      // While sticky and scrolling up, reveal more items
+      if (
+        shouldStick &&
+        isScrollingUp &&
+        visibleItems < dynamicContent.length
+      ) {
+        setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    // initial compute
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [dynamicContent.length, visibleItems]);
 
   // Reset visible items when content changes
   useEffect(() => {
@@ -479,6 +504,7 @@ export const HealthContentNew = () => {
 
     determineUserState();
   }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks]);
+
   return (
     <div className="h-screen flex flex-col">
       {/* Fixed Header with User Info - White Container */}
@@ -625,7 +651,10 @@ export const HealthContentNew = () => {
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
           <div
-            className="bg-white rounded-[3rem] p-4 shadow-lg flex flex-col sticky bottom-0 transition-all duration-300 ease-in-out"
+            ref={insightsCardRef}
+            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col transition-all duration-300 ease-in-out ${
+              isStickyBottom ? "sticky bottom-0" : ""
+            }`}
             style={{
               minHeight: `${Math.max(400, visibleItems * 120 + 100)}px`,
             }}
@@ -650,11 +679,8 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Scrollable with reveal effect */}
-            <div
-              className="space-y-4 overflow-y-auto scrollbar-hide flex-1"
-              onScroll={handleCardScroll}
-            >
+            {/* Dynamic Content - Reveal on page scroll (no internal scroll) */}
+            <div className="space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
