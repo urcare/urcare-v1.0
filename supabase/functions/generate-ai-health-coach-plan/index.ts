@@ -814,6 +814,39 @@ INTO detailed, personalized protocols like:
 
 ✅ "6:30 PM - Post-Work Glucose Management Walk (15 min): Immediately after dinner, walk at moderate pace (able to hold conversation) for exactly 15 minutes. This improves glucose uptake by 30-50% and aids digestion. Indoor alternative: light housework or stair climbing."
 
+## DETAILED HOURLY SCHEDULE REQUIREMENTS
+
+CREATE A COMPREHENSIVE HOURLY SCHEDULE FROM WAKE UP TO SLEEP INCLUDING:
+
+**WORK DAY STRUCTURE (9-5 Workers):**
+- 7:00 AM - Wake up routine with specific activities
+- 7:30 AM - Detailed breakfast protocol  
+- 8:30 AM - Commute/preparation activities
+- 9:00 AM - Work session 1 with micro-breaks every hour
+- 10:00 AM - 5-minute desk stretches or breathing exercise
+- 11:00 AM - Hydration reminder + posture check
+- 12:00 PM - Lunch with specific meal timing
+- 12:30 PM - Post-meal 10-minute walk
+- 1:00 PM - Work session 2 with movement breaks
+- 2:00 PM - Deep breathing exercise (3-5 minutes)
+- 3:00 PM - Healthy snack + hydration
+- 4:00 PM - Desk yoga or stretches
+- 5:00 PM - Work wrap-up and transition
+- 6:00 PM - Exercise/movement session
+- 7:00 PM - Dinner preparation and eating
+- 8:00 PM - Evening wind-down activities
+- 9:00 PM - Sleep preparation routine
+- 10:00 PM - Sleep time
+
+**MICRO-ACTIVITIES FOR OFFICE WORKERS:**
+- Desk stretches: neck rolls, shoulder shrugs, wrist circles
+- Breathing exercises: 4-7-8 breathing, box breathing
+- Movement breaks: calf raises, seated spinal twists, ankle pumps  
+- Posture resets: shoulder blade squeezes, chin tucks
+- Eye exercises: 20-20-20 rule, eye circles
+- Hydration reminders with specific amounts
+- Mental breaks: 2-minute mindfulness, gratitude practice
+
 ## PERSONALIZATION REQUIREMENTS
 - Use the user's actual wake-up time (${
     userData.schedule.wake_up
@@ -1112,34 +1145,146 @@ function getDetailedActivities(
   });
   currentTime = addMinutes(currentTime, 45);
 
-  // Work Session 1 (3 hours)
+  // Work Session 1 with hourly micro-breaks
+  const workStartTime = currentTime;
+
+  // 9:00 AM - Work Session 1 (Hour 1)
   activities.push({
-    id: `work-session-1-${Date.now()}`,
+    id: `work-hour-1-${Date.now()}`,
     type: "work",
-    title: "Focused Work Session",
-    description: "Productive work time with breaks",
+    title: "Focused Work Session - Hour 1",
+    description: "Deep focus work with productivity techniques",
     startTime: currentTime,
-    endTime: addMinutes(currentTime, 180),
-    duration: 180,
+    endTime: addMinutes(currentTime, 50),
+    duration: 50,
     priority: "high",
     category: "productivity",
     instructions: [
-      "Work in 25-minute focused sessions (Pomodoro technique)",
-      "Take 5-minute breaks between sessions",
-      "Take a 15-minute break after every 4 sessions",
-      "Stay hydrated and maintain good posture",
+      "Start with most important task (eat the frog principle)",
+      "Use Pomodoro: 25 min focus + 5 min break + 25 min focus",
+      "Maintain proper ergonomic posture",
+      "Keep water bottle at desk for hydration",
     ],
     tips: [
-      "Use a timer to maintain focus",
-      "Stand up and move during breaks",
-      "Avoid multitasking",
+      "Turn off non-essential notifications",
+      "Use natural lighting when possible",
+      "Keep workspace organized",
     ],
-    benefits:
-      "Improves focus, reduces mental fatigue, and increases productivity",
-    scientificEvidence:
-      "The Pomodoro technique has been proven to enhance concentration",
+    benefits: "Peak morning cognitive performance, high energy levels",
+    scientificEvidence: "Morning hours show 15% higher cognitive performance",
   });
-  currentTime = addMinutes(currentTime, 180);
+  currentTime = addMinutes(currentTime, 50);
+
+  // 10:00 AM - Movement Break
+  activities.push({
+    id: `movement-break-1-${Date.now()}`,
+    type: "exercise",
+    title: "Desk Stretches & Movement",
+    description: "Combat sitting posture and boost circulation",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 10),
+    duration: 10,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Neck rolls: 5 each direction",
+      "Shoulder shrugs: 10 repetitions",
+      "Seated spinal twist: 30 seconds each side",
+      "Calf raises: 15 repetitions",
+      "Deep breathing: 4-7-8 pattern x 3",
+    ],
+    tips: [
+      "Stand up and walk around briefly",
+      "Look away from screen (20-20-20 rule)",
+      "Hydrate with 200ml water",
+    ],
+    benefits: "Reduces muscle tension, improves circulation, prevents fatigue",
+    scientificEvidence:
+      "Regular movement breaks reduce musculoskeletal disorders by 40%",
+  });
+  currentTime = addMinutes(currentTime, 10);
+
+  // 10:10 AM - Work Session 2 (Hour 2)
+  activities.push({
+    id: `work-hour-2-${Date.now()}`,
+    type: "work",
+    title: "Focused Work Session - Hour 2",
+    description: "Continued productivity with energy maintenance",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 50),
+    duration: 50,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Continue with secondary priority tasks",
+      "Maintain Pomodoro technique",
+      "Check posture every 15 minutes",
+      "Use standing desk if available",
+    ],
+    tips: [
+      "Alternate between sitting and standing",
+      "Keep feet flat on floor",
+      "Take micro-breaks for eye movement",
+    ],
+    benefits: "Sustained focus, prevents afternoon energy crash",
+    scientificEvidence: "Alternating postures improves productivity by 10-15%",
+  });
+  currentTime = addMinutes(currentTime, 50);
+
+  // 11:00 AM - Hydration & Posture Reset
+  activities.push({
+    id: `hydration-break-${Date.now()}`,
+    type: "wellness",
+    title: "Hydration & Posture Check",
+    description: "Reset body alignment and maintain hydration",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 5),
+    duration: 5,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Drink 250ml water slowly",
+      "Shoulder blade squeezes: 10 repetitions",
+      "Chin tucks: 10 repetitions",
+      "Check monitor height and distance",
+      "Adjust chair if needed",
+    ],
+    tips: [
+      "Set hourly hydration reminders",
+      "Keep water bottle visible",
+      "Notice any tension areas",
+    ],
+    benefits: "Maintains hydration, prevents postural dysfunction",
+    scientificEvidence: "Proper hydration improves cognitive function by 12%",
+  });
+  currentTime = addMinutes(currentTime, 5);
+
+  // 11:05 AM - Work Session 3 (Final morning hour)
+  activities.push({
+    id: `work-hour-3-${Date.now()}`,
+    type: "work",
+    title: "Pre-Lunch Work Session",
+    description: "Complete morning tasks before lunch break",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 55),
+    duration: 55,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Finish current task or reach good stopping point",
+      "Organize desk and digital workspace",
+      "Review morning accomplishments",
+      "Plan afternoon priorities",
+    ],
+    tips: [
+      "Don't start complex tasks close to lunch",
+      "Save work frequently",
+      "Prepare for healthy lunch break",
+    ],
+    benefits: "Task completion, mental preparation for break",
+    scientificEvidence: "Organized transitions improve afternoon productivity",
+  });
+  currentTime = addMinutes(currentTime, 55);
 
   // Lunch (45 minutes)
   const lunchMeal = getPersonalizedMeal("lunch", profile, planType);
@@ -1190,33 +1335,208 @@ function getDetailedActivities(
   });
   currentTime = addMinutes(currentTime, 15);
 
-  // Work Session 2 (3 hours)
+  // Afternoon Work Sessions with detailed breaks
+
+  // 1:00 PM - Work Session 4 (Post-lunch hour)
   activities.push({
-    id: `work-session-2-${Date.now()}`,
+    id: `work-hour-4-${Date.now()}`,
     type: "work",
-    title: "Continued Work Session",
-    description: "Continued productive work with movement breaks",
+    title: "Post-Lunch Work Session",
+    description: "Combat afternoon energy dip with strategic work",
     startTime: currentTime,
-    endTime: addMinutes(currentTime, 180),
-    duration: 180,
+    endTime: addMinutes(currentTime, 50),
+    duration: 50,
     priority: "high",
     category: "productivity",
     instructions: [
-      "Continue focused work with Pomodoro technique",
-      "Take movement breaks every hour",
-      "Stay hydrated and maintain good posture",
-      "Use standing desk if available",
+      "Start with lighter tasks to ease back into work",
+      "Use Pomodoro technique to maintain focus",
+      "Combat post-meal drowsiness with good posture",
+      "Consider background music for energy",
     ],
     tips: [
-      "Set reminders for breaks",
-      "Do light stretching during breaks",
-      "Keep workspace organized",
+      "Avoid heavy carb meals that cause crashes",
+      "Open windows for fresh air if possible",
+      "Use natural light to stay alert",
     ],
-    benefits: "Maintains productivity while preventing fatigue and strain",
+    benefits: "Overcomes post-lunch dip, maintains afternoon productivity",
     scientificEvidence:
-      "Regular breaks improve focus and reduce repetitive strain injuries",
+      "Strategic task timing improves afternoon performance by 20%",
   });
-  currentTime = addMinutes(currentTime, 180);
+  currentTime = addMinutes(currentTime, 50);
+
+  // 2:00 PM - Deep Breathing & Energy Reset
+  activities.push({
+    id: `breathing-break-${Date.now()}`,
+    type: "wellness",
+    title: "Deep Breathing & Energy Reset",
+    description: "Combat afternoon fatigue with breathing techniques",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 5),
+    duration: 5,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Box breathing: 4 counts in, hold 4, out 4, hold 4",
+      "Repeat for 8-10 cycles",
+      "Shoulder rolls: 5 forward, 5 backward",
+      "Quick posture check and adjustment",
+      "Drink 200ml water",
+    ],
+    tips: [
+      "Close eyes during breathing if possible",
+      "Focus on belly breathing, not chest",
+      "Use this as mental reset time",
+    ],
+    benefits: "Reduces stress, increases oxygen flow, boosts alertness",
+    scientificEvidence:
+      "Deep breathing increases focus and reduces cortisol by 25%",
+  });
+  currentTime = addMinutes(currentTime, 5);
+
+  // 2:05 PM - Work Session 5 (Hour 5)
+  activities.push({
+    id: `work-hour-5-${Date.now()}`,
+    type: "work",
+    title: "Afternoon Focus Session",
+    description: "Tackle complex tasks with renewed energy",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 55),
+    duration: 55,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Focus on analytical or creative tasks",
+      "Use standing desk for 15-20 minutes if available",
+      "Take micro-breaks for eye movement",
+      "Stay hydrated throughout",
+    ],
+    tips: [
+      "This is often a good time for problem-solving",
+      "Use natural afternoon light",
+      "Keep healthy snacks nearby",
+    ],
+    benefits: "Peak afternoon cognitive performance, task completion",
+    scientificEvidence:
+      "Mid-afternoon shows renewed cognitive capacity after post-lunch dip",
+  });
+  currentTime = addMinutes(currentTime, 55);
+
+  // 3:00 PM - Healthy Snack & Movement
+  activities.push({
+    id: `snack-movement-${Date.now()}`,
+    type: "nutrition",
+    title: "Healthy Snack & Movement Break",
+    description: "Fuel body and mind for final work hours",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 15),
+    duration: 15,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Eat healthy snack: nuts, fruit, or yogurt",
+      "Walk around office or do desk exercises",
+      "Ankle pumps: 20 repetitions each foot",
+      "Wrist circles: 10 each direction",
+      "Hydrate with 250ml water",
+    ],
+    tips: [
+      "Avoid sugary snacks that cause crashes",
+      "Combine protein with healthy carbs",
+      "Use stairs if available",
+    ],
+    benefits:
+      "Sustained energy, prevents late-day fatigue, improves circulation",
+    scientificEvidence:
+      "Protein snacks maintain energy levels 40% longer than sugary options",
+  });
+  currentTime = addMinutes(currentTime, 15);
+
+  // 3:15 PM - Work Session 6 (Hour 6)
+  activities.push({
+    id: `work-hour-6-${Date.now()}`,
+    type: "work",
+    title: "Late Afternoon Work Session",
+    description: "Maintain productivity through final work hours",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 50),
+    duration: 50,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Focus on completion tasks and organization",
+      "Prepare for end-of-day wrap-up",
+      "Maintain good posture despite fatigue",
+      "Use timer for focused 25-minute sessions",
+    ],
+    tips: [
+      "Save complex new tasks for tomorrow",
+      "Organize workspace for next day",
+      "Stay positive about accomplishments",
+    ],
+    benefits: "Strong finish to workday, preparation for evening transition",
+    scientificEvidence:
+      "Organized endings improve next-day productivity by 15%",
+  });
+  currentTime = addMinutes(currentTime, 50);
+
+  // 4:00 PM - Desk Yoga & Stretches
+  activities.push({
+    id: `desk-yoga-${Date.now()}`,
+    type: "exercise",
+    title: "Desk Yoga & Stretches",
+    description: "Release tension and prepare for day's end",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 10),
+    duration: 10,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Seated cat-cow stretches: 10 repetitions",
+      "Neck side stretches: 30 seconds each side",
+      "Seated figure-4 hip stretch: 30 seconds each leg",
+      "Seated forward fold: 30 seconds",
+      "Deep breathing: 4-7-8 pattern x 3",
+    ],
+    tips: [
+      "Move slowly and mindfully",
+      "Don't force any stretches",
+      "Focus on areas that feel tight",
+    ],
+    benefits: "Releases muscle tension, improves flexibility, reduces stress",
+    scientificEvidence:
+      "Regular stretching reduces workplace injury risk by 30%",
+  });
+  currentTime = addMinutes(currentTime, 10);
+
+  // 4:10 PM - Final Work Session
+  activities.push({
+    id: `work-final-${Date.now()}`,
+    type: "work",
+    title: "Work Wrap-up Session",
+    description: "Complete day's tasks and prepare for transition",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 50),
+    duration: 50,
+    priority: "high",
+    category: "productivity",
+    instructions: [
+      "Complete current tasks or reach good stopping point",
+      "Review day's accomplishments",
+      "Plan tomorrow's priorities",
+      "Clean and organize workspace",
+      "Send any necessary end-of-day communications",
+    ],
+    tips: [
+      "Write down tomorrow's top 3 priorities",
+      "Save all work and backup important files",
+      "Mentally transition from work mode",
+    ],
+    benefits: "Sense of completion, preparation for personal time",
+    scientificEvidence:
+      "Proper work transitions improve work-life balance satisfaction",
+  });
+  currentTime = addMinutes(currentTime, 50);
 
   // Workout (if workout day) or Light Activity
   if (isWorkoutDay) {
@@ -1301,34 +1621,126 @@ function getDetailedActivities(
   });
   currentTime = addMinutes(currentTime, 45);
 
-  // Evening Wind-down (60 minutes)
+  // Evening Wind-down Activities (Detailed 90-minute routine)
+
+  // 8:00 PM - Digital Sunset & Meal Prep
   activities.push({
-    id: `evening-wind-down-${Date.now()}`,
-    type: "evening",
-    title: "Evening Wind-Down",
-    description: "Relaxing routine to prepare for sleep",
+    id: `digital-sunset-${Date.now()}`,
+    type: "wellness",
+    title: "Digital Sunset & Evening Prep",
+    description: "Begin evening transition with digital boundaries",
     startTime: currentTime,
-    endTime: addMinutes(currentTime, 60),
-    duration: 60,
+    endTime: addMinutes(currentTime, 30),
+    duration: 30,
     priority: "high",
     category: "wellness",
     instructions: [
-      "Dim the lights in your environment",
-      "Practice gentle stretching or yoga",
-      "Read a book or listen to calming music",
-      "Avoid screens and stimulating activities",
-      "Practice gratitude reflection",
+      "Turn off work devices and notifications",
+      "Dim all lights to 50% or use warm lighting",
+      "Prepare tomorrow's meals or snacks",
+      "Tidy up living spaces for peaceful environment",
+      "Set out clothes for tomorrow",
     ],
     tips: [
-      "Create a consistent bedtime routine",
-      "Keep your bedroom cool and dark",
-      "Use relaxation techniques",
+      "Use blue light filters on remaining devices",
+      "Create a 'shutdown ritual' for work mode",
+      "Focus on tomorrow's preparation",
     ],
-    benefits: "Improves sleep quality, reduces stress, and promotes relaxation",
+    benefits:
+      "Reduces stress, improves sleep preparation, creates calm environment",
     scientificEvidence:
-      "Consistent evening routines improve sleep onset and quality",
+      "Blue light reduction 2 hours before bed improves sleep quality by 23%",
   });
-  currentTime = addMinutes(currentTime, 60);
+  currentTime = addMinutes(currentTime, 30);
+
+  // 8:30 PM - Gentle Movement & Stretching
+  activities.push({
+    id: `evening-stretching-${Date.now()}`,
+    type: "exercise",
+    title: "Gentle Evening Stretches",
+    description: "Release daily tension with restorative movement",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 20),
+    duration: 20,
+    priority: "medium",
+    category: "wellness",
+    instructions: [
+      "Child's pose: 1 minute",
+      "Gentle spinal twists: 30 seconds each side",
+      "Legs up the wall pose: 2 minutes",
+      "Neck and shoulder rolls: 1 minute",
+      "Deep breathing with gentle movement: 5 minutes",
+    ],
+    tips: [
+      "Use soft music or nature sounds",
+      "Focus on releasing, not stretching deeply",
+      "Breathe slowly and mindfully",
+    ],
+    benefits:
+      "Releases muscle tension, activates parasympathetic nervous system",
+    scientificEvidence: "Evening stretching reduces sleep onset time by 37%",
+  });
+  currentTime = addMinutes(currentTime, 20);
+
+  // 8:50 PM - Mindfulness & Gratitude Practice
+  activities.push({
+    id: `mindfulness-gratitude-${Date.now()}`,
+    type: "wellness",
+    title: "Mindfulness & Gratitude Practice",
+    description: "Mental preparation for restful sleep",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 15),
+    duration: 15,
+    priority: "high",
+    category: "wellness",
+    instructions: [
+      "Find comfortable seated or lying position",
+      "Practice 4-7-8 breathing for 5 minutes",
+      "Reflect on 3 things you're grateful for today",
+      "Set positive intention for tomorrow",
+      "Body scan: notice and release any remaining tension",
+    ],
+    tips: [
+      "Keep a gratitude journal by bedside",
+      "Focus on small, specific moments",
+      "Don't judge thoughts, just observe",
+    ],
+    benefits:
+      "Reduces anxiety, promotes positive mindset, improves sleep quality",
+    scientificEvidence:
+      "Gratitude practice increases sleep quality scores by 25%",
+  });
+  currentTime = addMinutes(currentTime, 15);
+
+  // 9:05 PM - Sleep Preparation Routine
+  activities.push({
+    id: `sleep-prep-${Date.now()}`,
+    type: "wellness",
+    title: "Sleep Preparation Routine",
+    description: "Final steps for optimal sleep environment",
+    startTime: currentTime,
+    endTime: addMinutes(currentTime, 25),
+    duration: 25,
+    priority: "high",
+    category: "wellness",
+    instructions: [
+      "Complete evening hygiene routine",
+      "Set bedroom temperature to 65-68°F (18-20°C)",
+      "Ensure blackout curtains are closed",
+      "Remove electronic devices from bedroom",
+      "Use essential oils or calming scents if desired",
+      "Set consistent wake-up time for tomorrow",
+    ],
+    tips: [
+      "Keep bedroom for sleep and intimacy only",
+      "Use comfortable, breathable sleepwear",
+      "Consider white noise or earplugs if needed",
+    ],
+    benefits: "Creates optimal sleep environment, establishes sleep cues",
+    scientificEvidence:
+      "Consistent sleep environment improves deep sleep by 40%",
+  });
+  currentTime = addMinutes(currentTime, 25);
 
   // Sleep (8 hours)
   activities.push({
