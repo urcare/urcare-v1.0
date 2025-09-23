@@ -732,7 +732,7 @@ export const HealthContentNew = () => {
               </div>
               
               {/* Icons Row - Health Score and Activity Icons */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-8">
                 {/* Health Score Icon */}
                 <div className="relative w-16 h-16">
                   {healthLoading ? (
@@ -986,20 +986,23 @@ export const HealthContentNew = () => {
                 </div>
               </div>
               
-              {/* Streak Counter */}
-              <div className="flex items-center gap-1 mt-3 ml-4">
-                <span className="text-xl">🔥</span>
-                <span className="text-white text-sm font-medium">
-                  {healthData?.streak_days || 0} Days
-                </span>
-              </div>
-              
-              {/* Score Boost */}
-              <div className="flex items-center gap-1 mt-2 ml-4">
-                <span className="text-xl">🔥</span>
-                <span className="text-white text-sm font-medium">
-                  {getStreakBonusText(healthData?.streak_bonus || 1.0)}
-                </span>
+              {/* Bottom Row - Streak Counter and Score Boost */}
+              <div className="flex items-center gap-6 mt-3 ml-4">
+                {/* Streak Counter */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-white text-sm font-medium">
+                    {healthData?.streak_days || 0} Days
+                  </span>
+                </div>
+                
+                {/* Score Boost */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-white text-sm font-medium">
+                    {getStreakBonusText(healthData?.streak_bonus || 1.0)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
