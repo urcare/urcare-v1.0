@@ -5,7 +5,7 @@ import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 // Type definitions for dynamic content
@@ -50,6 +50,7 @@ interface HealthPlan {
 export const HealthContentNew = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const insightsCardRef = useRef<HTMLDivElement | null>(null);
 
   // State management for dynamic content
@@ -574,6 +575,35 @@ export const HealthContentNew = () => {
     const determineUserState = async () => {
       setLoading(true);
       try {
+        // Check if we're coming from a saved plan
+        if (location.state?.planSaved) {
+          setContentState("upcoming_tasks");
+          setSectionTitle("Your Health Schedule");
+          // Load the most recent active plan
+          const { data: activePlan } = await supabase
+            .from("two_day_health_plans")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (activePlan) {
+            await loadUpcomingTasks(activePlan);
+          }
+          // Show success message
+          toast.success("Plan saved successfully! Your schedule is now active.");
+          return;
+        }
+
+        // Check if we should show insights
+        if (location.state?.showInsights) {
+          setContentState("health_tips");
+          setSectionTitle("Health Insights");
+          await loadPersonalizedTips();
+          return;
+        }
         // Check for active comprehensive health plans
         const { data: activePlans } = await supabase
           .from("comprehensive_health_plans")
@@ -638,7 +668,7 @@ export const HealthContentNew = () => {
     };
 
     determineUserState();
-  }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks]);
+  }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks, location.state]);
 
   const {
     cardRef: stickyRef,

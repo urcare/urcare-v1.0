@@ -933,6 +933,16 @@ const Calendar: React.FC = () => {
 
       setIsPreview(false);
       toast.success("Plan set as default!", { id: "save-plan" });
+      
+      // Navigate to health insights to show the plan is active
+      setTimeout(() => {
+        navigate("/health-plan", { 
+          state: { 
+            showInsights: true,
+            planSaved: true 
+          } 
+        });
+      }, 1000);
     } catch (e) {
       console.error("Failed to set default plan", e);
       toast.error(e?.message || "Failed to set default plan", {
@@ -1194,7 +1204,14 @@ const Calendar: React.FC = () => {
                     : "bg-amber-500 hover:bg-amber-600"
                 }`}
               >
-                {savingDefault ? "Saving..." : "Set as default plan"}
+                {savingDefault ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  "Set as default plan"
+                )}
               </button>
             )}
             {/* Settings menu trigger */}
