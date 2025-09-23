@@ -725,16 +725,16 @@ export const HealthContentNew = () => {
         {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
           <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
-            <div className="flex items-start justify-between">
-              {/* Left Section - Health Score */}
-              <div className="flex flex-col items-center">
-                {/* Health Score Text */}
-                <div className="text-white text-sm font-medium mb-3">
-                  HEALTH SCORE
-                </div>
-                
-                {/* Circular Progress */}
-                <div className="relative w-16 h-16 mb-3">
+            <div className="flex flex-col">
+              {/* Health Score Text */}
+              <div className="text-white text-sm font-medium mb-3 ml-4">
+                HEALTH SCORE
+              </div>
+              
+              {/* Icons Row - Health Score and Activity Icons */}
+              <div className="flex items-center gap-4">
+                {/* Health Score Icon */}
+                <div className="relative w-16 h-16">
                   {healthLoading ? (
                     <div className="w-16 h-16 flex items-center justify-center">
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -782,23 +782,8 @@ export const HealthContentNew = () => {
                   </div>
                 </div>
 
-                {/* Streak Counter */}
-                <div className="flex items-center gap-1">
-                  <span className="text-xl">🔥</span>
-                  <span className="text-white text-sm font-medium">
-                    {healthData?.streak_days || 0} Days
-                  </span>
-                </div>
-              </div>
-
-              {/* Right Section - Weekly View */}
-              <div className="flex-1 ml-6">
-                <div className="text-white text-sm font-medium mb-3">
-                  WEEKLY VIEW
-                </div>
-
                 {/* Activity Icons */}
-                <div className="flex items-center gap-1 mb-3 justify-center">
+                <div className="flex items-center gap-3">
                   {/* Running Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
@@ -999,14 +984,22 @@ export const HealthContentNew = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Score Boost */}
-                <div className="flex items-center gap-1 mt-2">
-                  <span className="text-xl">🔥</span>
-                  <span className="text-white text-sm font-medium">
-                    {getStreakBonusText(healthData?.streak_bonus || 1.0)}
-                  </span>
-                </div>
+              </div>
+              
+              {/* Streak Counter */}
+              <div className="flex items-center gap-1 mt-3 ml-4">
+                <span className="text-xl">🔥</span>
+                <span className="text-white text-sm font-medium">
+                  {healthData?.streak_days || 0} Days
+                </span>
+              </div>
+              
+              {/* Score Boost */}
+              <div className="flex items-center gap-1 mt-2 ml-4">
+                <span className="text-xl">🔥</span>
+                <span className="text-white text-sm font-medium">
+                  {getStreakBonusText(healthData?.streak_bonus || 1.0)}
+                </span>
               </div>
             </div>
           </div>
