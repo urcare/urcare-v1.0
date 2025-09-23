@@ -57,12 +57,13 @@ export const HealthContentNew = () => {
   const [loading, setLoading] = useState(false);
   const [visibleItems, setVisibleItems] = useState(3); // Show only top 3 items initially
   const [isStickyBottom, setIsStickyBottom] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set()); // Track which items are expanded
+  const [cardHeight, setCardHeight] = useState(0);
+  const [isCardInViewport, setIsCardInViewport] = useState(false);
   const lastScrollYRef = useRef<number>(window.scrollY);
 
-  // Window scroll handling to toggle sticky mode and reveal items
+  // Special scroll behavior for the Health Insights card
   useEffect(() => {
-    let lastScrollTime = 0;
-
     const onScroll = () => {
       const card = insightsCardRef.current;
       if (!card) return;
@@ -70,41 +71,55 @@ export const HealthContentNew = () => {
       const rect = card.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
 
-      // Stick the card when its bottom reaches the viewport bottom
-      const shouldStick = rect.bottom <= viewportHeight - 8;
-      setIsStickyBottom(shouldStick);
+      // Check if card is entering viewport
+      const isInViewport = rect.top <= viewportHeight && rect.bottom > 0;
+      setIsCardInViewport(isInViewport);
 
-      const currentY = window.scrollY;
-      const isScrollingUp = currentY < lastScrollYRef.current;
-      const scrollDelta = Math.abs(currentY - lastScrollYRef.current);
+      if (isInViewport) {
+        // When card enters viewport, start tracking for sticky behavior
+        const cardBottom = rect.bottom;
+        const shouldStick = cardBottom <= viewportHeight;
 
-      // Throttle scroll events to prevent too many updates
-      const now = Date.now();
-      if (now - lastScrollTime < 100) return; // Throttle to 100ms
-      lastScrollTime = now;
+        if (shouldStick && !isStickyBottom) {
+          setIsStickyBottom(true);
+          setCardHeight(rect.height);
+        } else if (!shouldStick && isStickyBottom) {
+          setIsStickyBottom(false);
+          setVisibleItems(3);
+        }
 
-      // While sticky and scrolling up, reveal more items
-      if (
-        shouldStick &&
-        isScrollingUp &&
-        scrollDelta > 10 &&
-        visibleItems < dynamicContent.length
-      ) {
-        setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
+        // If sticky, calculate how much content to reveal based on scroll
+        if (isStickyBottom) {
+          // Calculate scroll progress based on how much we've scrolled past the card
+          const scrollY = window.scrollY;
+          const cardTop = scrollY + rect.top;
+          const scrollProgress = Math.max(
+            0,
+            Math.min(
+              1,
+              (scrollY - cardTop + viewportHeight) / (viewportHeight * 0.5)
+            )
+          );
+
+          const maxItems = Math.min(dynamicContent.length, 8);
+          const newVisibleItems = Math.max(
+            3,
+            Math.floor(3 + scrollProgress * (maxItems - 3))
+          );
+          setVisibleItems(newVisibleItems);
+        }
+      } else {
+        // Reset when card is out of viewport
+        setIsStickyBottom(false);
+        setVisibleItems(3);
       }
-
-      lastScrollYRef.current = currentY;
     };
 
-    // Handle wheel events for more responsive scrolling
     const onWheel = (e: WheelEvent) => {
       if (!isStickyBottom) return;
 
-      const card = insightsCardRef.current;
-      if (!card) return;
-
-      // If scrolling up (negative deltaY) and card is sticky, reveal more items
-      if (e.deltaY < 0 && visibleItems < dynamicContent.length) {
+      // If scrolling down (positive deltaY) and card is sticky, reveal more content
+      if (e.deltaY > 0 && visibleItems < dynamicContent.length) {
         setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
       }
     };
@@ -119,7 +134,7 @@ export const HealthContentNew = () => {
       window.removeEventListener("resize", onScroll);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [dynamicContent.length, visibleItems]);
+  }, [dynamicContent.length, isStickyBottom]);
 
   // Reset visible items when content changes
   useEffect(() => {
@@ -134,6 +149,18 @@ export const HealthContentNew = () => {
       return user.email.split("@")[0];
     }
     return "User";
+  };
+
+  const toggleItemExpansion = (index: number) => {
+    setExpandedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const handleLogout = async () => {
@@ -677,19 +704,33 @@ export const HealthContentNew = () => {
         <div className="py-4">
           <div
             ref={insightsCardRef}
-            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col transition-all duration-300 ease-in-out ${
-              isStickyBottom ? "sticky bottom-0" : ""
+            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col transition-all duration-500 ease-out ${
+              isStickyBottom ? "fixed bottom-0 left-0 right-0 mx-4" : ""
             }`}
             style={{
-              minHeight: `${Math.max(400, visibleItems * 140 + 120)}px`,
-              height: isStickyBottom
-                ? `${Math.max(400, visibleItems * 140 + 120)}px`
+              minHeight: isStickyBottom
+                ? `${Math.max(400, visibleItems * 160 + 200)}px`
                 : "auto",
+              height: isStickyBottom
+                ? `${Math.max(400, visibleItems * 160 + 200)}px`
+                : "auto",
+              transform: isStickyBottom
+                ? `translateY(${isCardInViewport ? "0" : "100%"})`
+                : "translateY(0)",
             }}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-black">
+                  {sectionTitle}
+                </h2>
+                {isStickyBottom && (
+                  <span className="text-sm text-gray-500">
+                    {visibleItems}/{dynamicContent.length} items
+                  </span>
+                )}
+              </div>
               <button className="text-gray-600">
                 <svg
                   className="w-8 h-8"
@@ -707,87 +748,97 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Reveal on page scroll (no internal scroll) */}
-            <div className="space-y-4 flex-1">
+            {/* Dynamic Content - Fixed to top, reveals from bottom */}
+            <div
+              className={`space-y-4 flex-1 ${
+                isStickyBottom ? "overflow-hidden" : ""
+              }`}
+            >
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                 </div>
               ) : (
-                dynamicContent.slice(0, visibleItems).map((item, index) => (
-                  <div
-                    key={item.id}
-                    onClick={() => handleContentClick(item)}
-                    className={`rounded-[3rem] p-4 cursor-pointer transition-all duration-500 transform ${
-                      item.isHighlighted
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-gray-100"
-                    } ${item.completed ? "opacity-60" : ""} ${
-                      index >= visibleItems - 1 ? "animate-slide-up" : ""
-                    }`}
-                    style={{
-                      animationDelay: index >= visibleItems - 1 ? "0.2s" : "0s",
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <div
-                          className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 ${
-                            item.isHighlighted
-                              ? "bg-green-500 border-white"
-                              : "bg-green-500 border-green-500"
-                          }`}
-                        >
-                          {item.icon}
+                dynamicContent.slice(0, visibleItems).map((item, index) => {
+                  const isExpanded = expandedItems.has(index);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`rounded-[3rem] transition-all duration-500 transform bg-white text-black hover:bg-gray-100 ${
+                        item.completed ? "opacity-60" : ""
+                      } ${index >= visibleItems - 1 ? "animate-slide-up" : ""}`}
+                      style={{
+                        animationDelay:
+                          index >= visibleItems - 1 ? "0.2s" : "0s",
+                      }}
+                    >
+                      {/* Header - Always visible */}
+                      <div
+                        className="flex items-center justify-between p-4 cursor-pointer"
+                        onClick={() => toggleItemExpansion(index)}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 bg-green-500 border-green-500">
+                            {item.icon}
+                          </div>
+                          <div>
+                            <h3
+                              className={`font-bold text-xl text-black ${
+                                item.completed ? "line-through" : ""
+                              }`}
+                            >
+                              {item.title}
+                            </h3>
+                          </div>
                         </div>
-                        <div>
-                          <h3
-                            className={`font-bold text-xl mb-1 ${
-                              item.isHighlighted ? "text-white" : "text-black"
-                            } ${item.completed ? "line-through" : ""}`}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">{item.time}</p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleItemExpansion(index);
+                            }}
+                            className="transition-transform duration-200 text-gray-600"
                           >
-                            {item.title}
-                          </h3>
-                          <p
-                            className={`text-sm ${
-                              item.isHighlighted
-                                ? "text-gray-300"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {item.description}
-                          </p>
+                            <svg
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              style={{
+                                transform: isExpanded
+                                  ? "rotate(180deg)"
+                                  : "rotate(0deg)",
+                              }}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <svg
-                          className={`w-8 h-8 mb-2 ${
-                            item.isHighlighted ? "text-white" : "text-black"
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 17l9.2-9.2M17 17V7H7"
-                          />
-                        </svg>
-                        <p
-                          className={`text-sm ${
-                            item.isHighlighted
-                              ? "text-gray-300"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {item.time}
-                        </p>
-                      </div>
+
+                      {/* Expandable Content */}
+                      {isExpanded && (
+                        <div className="px-4 pb-4 border-t border-gray-200">
+                          <div className="pt-4">
+                            <div className="space-y-3 text-gray-700">
+                              <p className="text-sm leading-relaxed">
+                                {item.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
