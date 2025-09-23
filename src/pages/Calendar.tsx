@@ -398,6 +398,7 @@ const Calendar: React.FC = () => {
               description: activity.description,
               details: {
                 description: activity.description,
+                detailedInstructions: activity.detailedInstructions,
                 instructions: activity.instructions || [
                   "Follow the activity instructions carefully",
                   "Take breaks as needed",
@@ -408,6 +409,15 @@ const Calendar: React.FC = () => {
                   "Listen to your body",
                   "Maintain proper form",
                 ],
+                benefits: activity.benefits,
+                scientificEvidence: activity.scientificEvidence,
+                nutritionalDetails: activity.nutritionalDetails,
+                officeOptimizations: activity.officeOptimizations,
+                officeSpecific: activity.officeSpecific,
+                workoutDetails: activity.workoutDetails,
+                exerciseBreakdown: activity.exerciseBreakdown,
+                exercises: activity.exercises,
+                nutrition: activity.nutrition,
               },
             });
             morningTime += activity.duration + 15; // Add 15 min buffer between activities
@@ -443,6 +453,7 @@ const Calendar: React.FC = () => {
               description: meal.description,
               details: {
                 description: meal.description,
+                detailedInstructions: meal.detailedInstructions,
                 nutrition: {
                   calories: meal.nutrition?.calories || 400,
                   protein: `${meal.nutrition?.protein || 25}g`,
@@ -452,11 +463,20 @@ const Calendar: React.FC = () => {
                     (ing) => `${ing.quantity} ${ing.unit} ${ing.name}`
                   ) || ["Sample ingredient 1", "Sample ingredient 2"],
                 },
+                nutritionalDetails: meal.nutritionalDetails,
                 instructions: meal.instructions || [
                   "Prepare all ingredients",
                   "Follow cooking instructions",
                   "Serve and enjoy your meal",
                 ],
+                tips: meal.tips || [
+                  "Use fresh ingredients when possible",
+                  "Season to taste",
+                  "Store leftovers properly",
+                ],
+                benefits: meal.benefits,
+                scientificEvidence: meal.scientificEvidence,
+                mealDetails: meal.mealDetails,
               },
             });
           });
@@ -486,6 +506,7 @@ const Calendar: React.FC = () => {
               description: workout.description,
               details: {
                 description: workout.description,
+                detailedInstructions: workout.detailedInstructions,
                 exercises: workout.exercises?.map((exercise) => ({
                   name: exercise.name,
                   sets: exercise.sets || 3,
@@ -496,12 +517,21 @@ const Calendar: React.FC = () => {
                   { name: "Sample Exercise 2", sets: 3, reps: 15, rest: "60s" },
                   { name: "Sample Exercise 3", sets: 3, reps: 10, rest: "90s" },
                 ],
-                instructions: [
+                exerciseBreakdown: workout.exerciseBreakdown,
+                workoutDetails: workout.workoutDetails,
+                instructions: workout.instructions || [
                   "Warm up for 5-10 minutes",
                   "Focus on proper form",
                   "Take rest between sets",
                   "Cool down with stretching",
                 ],
+                tips: workout.tips || [
+                  "Listen to your body",
+                  "Maintain proper form",
+                  "Stay hydrated",
+                ],
+                benefits: workout.benefits,
+                scientificEvidence: workout.scientificEvidence,
               },
             });
           });
@@ -1345,18 +1375,34 @@ const Calendar: React.FC = () => {
 
                         {/* Expanded Details */}
                         {isExpanded && event.details && (
-                          <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-3">
+                          <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-4">
                             {event.details.description && (
                               <p className="text-gray-700 text-sm font-medium">
                                 {event.details.description}
                               </p>
                             )}
 
+                            {/* Detailed Instructions */}
+                            {event.details.detailedInstructions && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  📋 Detailed Instructions
+                                </h4>
+                                <div className="bg-white p-3 rounded-lg">
+                                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                                    {event.details.detailedInstructions.join(
+                                      "\n"
+                                    )}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Workout Details */}
                             {event.details.exercises && (
                               <div>
                                 <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  Exercises
+                                  💪 Exercises
                                 </h4>
                                 <div className="space-y-2">
                                   {event.details.exercises.map(
@@ -1379,11 +1425,98 @@ const Calendar: React.FC = () => {
                               </div>
                             )}
 
+                            {/* Exercise Breakdown */}
+                            {event.details.exerciseBreakdown && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  🏋️ Exercise Breakdown
+                                </h4>
+                                <div className="space-y-3">
+                                  {event.details.exerciseBreakdown.map(
+                                    (exercise, exerciseIndex) => (
+                                      <div
+                                        key={exerciseIndex}
+                                        className="bg-white p-3 rounded-lg border"
+                                      >
+                                        <div className="flex justify-between items-start mb-2">
+                                          <h5 className="font-semibold text-sm">
+                                            {exercise.name}
+                                          </h5>
+                                          <span className="text-xs text-gray-500">
+                                            {exercise.sets} sets ×{" "}
+                                            {exercise.reps} reps
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
+                                          {exercise.rpe && (
+                                            <div>RPE: {exercise.rpe}</div>
+                                          )}
+                                          {exercise.rest && (
+                                            <div>Rest: {exercise.rest}</div>
+                                          )}
+                                          {exercise.workTime && (
+                                            <div>Work: {exercise.workTime}</div>
+                                          )}
+                                          {exercise.restTime && (
+                                            <div>Rest: {exercise.restTime}</div>
+                                          )}
+                                        </div>
+                                        <div className="text-xs text-gray-700 mb-2">
+                                          <strong>Form:</strong> {exercise.form}
+                                        </div>
+                                        {exercise.alternatives && (
+                                          <div className="text-xs text-gray-600">
+                                            <strong>Alternatives:</strong>{" "}
+                                            {exercise.alternatives.join(", ")}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Workout Details Summary */}
+                            {event.details.workoutDetails && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  🏃 Workout Summary
+                                </h4>
+                                <div className="bg-white p-3 rounded-lg grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <strong>Warm-up:</strong>{" "}
+                                    {event.details.workoutDetails.warmup}
+                                  </div>
+                                  <div>
+                                    <strong>Main Workout:</strong>{" "}
+                                    {event.details.workoutDetails.mainWorkout}
+                                  </div>
+                                  <div>
+                                    <strong>Cool-down:</strong>{" "}
+                                    {event.details.workoutDetails.cooldown}
+                                  </div>
+                                  <div>
+                                    <strong>Total Time:</strong>{" "}
+                                    {event.details.workoutDetails.totalTime}
+                                  </div>
+                                  <div>
+                                    <strong>Intensity:</strong>{" "}
+                                    {event.details.workoutDetails.intensity}
+                                  </div>
+                                  <div>
+                                    <strong>Equipment:</strong>{" "}
+                                    {event.details.workoutDetails.equipment}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Nutrition Details */}
                             {event.details.nutrition && (
                               <div>
                                 <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  Nutrition Info
+                                  🍎 Nutrition Info
                                 </h4>
                                 <div className="grid grid-cols-2 gap-2 mb-3">
                                   <div className="p-2 bg-white rounded text-center">
@@ -1421,11 +1554,117 @@ const Calendar: React.FC = () => {
                               </div>
                             )}
 
+                            {/* Nutritional Details */}
+                            {event.details.nutritionalDetails && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  🥗 Nutritional Breakdown
+                                </h4>
+                                <div className="bg-white p-3 rounded-lg grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <strong>Calories:</strong>{" "}
+                                    {event.details.nutritionalDetails.calories}
+                                  </div>
+                                  <div>
+                                    <strong>Protein:</strong>{" "}
+                                    {event.details.nutritionalDetails.protein}
+                                  </div>
+                                  <div>
+                                    <strong>Carbs:</strong>{" "}
+                                    {event.details.nutritionalDetails.carbs}
+                                  </div>
+                                  <div>
+                                    <strong>Fats:</strong>{" "}
+                                    {event.details.nutritionalDetails.fats}
+                                  </div>
+                                  <div>
+                                    <strong>Fiber:</strong>{" "}
+                                    {event.details.nutritionalDetails.fiber}
+                                  </div>
+                                  <div>
+                                    <strong>Timing:</strong>{" "}
+                                    {event.details.nutritionalDetails.timing}
+                                  </div>
+                                  <div>
+                                    <strong>Eating Order:</strong>{" "}
+                                    {
+                                      event.details.nutritionalDetails
+                                        .eatingOrder
+                                    }
+                                  </div>
+                                  <div>
+                                    <strong>Chewing:</strong>{" "}
+                                    {event.details.nutritionalDetails.chewing}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Office Optimizations */}
+                            {event.details.officeOptimizations && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  🏢 Office Optimizations
+                                </h4>
+                                <div className="bg-white p-3 rounded-lg grid grid-cols-1 gap-2 text-xs">
+                                  <div>
+                                    <strong>Ergonomics:</strong>{" "}
+                                    {
+                                      event.details.officeOptimizations
+                                        .ergonomics
+                                    }
+                                  </div>
+                                  <div>
+                                    <strong>Lighting:</strong>{" "}
+                                    {event.details.officeOptimizations.lighting}
+                                  </div>
+                                  <div>
+                                    <strong>Breaks:</strong>{" "}
+                                    {event.details.officeOptimizations.breaks}
+                                  </div>
+                                  <div>
+                                    <strong>Hydration:</strong>{" "}
+                                    {
+                                      event.details.officeOptimizations
+                                        .hydration
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Office Specific Details */}
+                            {event.details.officeSpecific && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  💼 Office-Specific Activities
+                                </h4>
+                                <div className="bg-white p-3 rounded-lg grid grid-cols-1 gap-2 text-xs">
+                                  <div>
+                                    <strong>Desk Stretches:</strong>{" "}
+                                    {event.details.officeSpecific.deskStretches}
+                                  </div>
+                                  <div>
+                                    <strong>Standing:</strong>{" "}
+                                    {event.details.officeSpecific.standing}
+                                  </div>
+                                  <div>
+                                    <strong>Eye Care:</strong>{" "}
+                                    {event.details.officeSpecific.eyeCare}
+                                  </div>
+                                  <div>
+                                    <strong>Circulation:</strong>{" "}
+                                    {event.details.officeSpecific.circulation}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Instructions */}
                             {event.details.instructions && (
                               <div>
                                 <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  Instructions
+                                  📝 Instructions
                                 </h4>
                                 <ol className="text-xs text-gray-700 space-y-1">
                                   {event.details.instructions.map(
@@ -1459,6 +1698,30 @@ const Calendar: React.FC = () => {
                                     </li>
                                   ))}
                                 </ul>
+                              </div>
+                            )}
+
+                            {/* Benefits */}
+                            {event.details.benefits && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  ✅ Benefits
+                                </h4>
+                                <p className="text-xs text-gray-700">
+                                  {event.details.benefits}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Scientific Evidence */}
+                            {event.details.scientificEvidence && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  🔬 Scientific Evidence
+                                </h4>
+                                <p className="text-xs text-gray-700 italic">
+                                  {event.details.scientificEvidence}
+                                </p>
                               </div>
                             )}
                           </div>

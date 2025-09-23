@@ -82,12 +82,15 @@ export class HealthScoreService {
         streak_bonus: streakBonus,
       };
     } catch (error: any) {
-      // Gracefully handle missing table
+      // Gracefully handle missing table or 404 errors
       if (
         error?.code === "42P01" ||
+        error?.code === "PGRST116" ||
+        error?.status === 404 ||
         error?.message?.includes(
           'relation "public.health_scores" does not exist'
-        )
+        ) ||
+        error?.message?.includes("Not Found")
       ) {
         console.warn(
           "health_scores table missing; returning default health score"
@@ -95,6 +98,7 @@ export class HealthScoreService {
         return {
           score: 0,
           streak_days: 0,
+          weekly_view: [],
           streak_bonus: 1.0,
         } as any;
       }
@@ -131,7 +135,38 @@ export class HealthScoreService {
       await this.updateHealthScore(userId);
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      // Gracefully handle missing table
+      if (
+        error?.code === "42P01" ||
+        error?.code === "PGRST116" ||
+        error?.status === 404 ||
+        error?.message?.includes(
+          'relation "public.daily_activities" does not exist'
+        ) ||
+        error?.message?.includes("Not Found")
+      ) {
+        console.warn(
+          "daily_activities table missing; skipping activity update"
+        );
+        // Return a mock activity object
+        return {
+          id: "mock-id",
+          user_id: userId,
+          activity_date: activityDate,
+          exercise_completed: false,
+          nutrition_completed: false,
+          hydration_completed: false,
+          meals_completed: false,
+          sleep_completed: false,
+          exercise_duration: 0,
+          water_intake: 0,
+          calories_consumed: 0,
+          sleep_hours: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      }
       console.error("Error updating daily activity:", error);
       throw error;
     }
@@ -151,7 +186,25 @@ export class HealthScoreService {
       }
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      // Gracefully handle missing table or function
+      if (
+        error?.code === "42P01" ||
+        error?.code === "PGRST116" ||
+        error?.status === 404 ||
+        error?.message?.includes(
+          'relation "public.health_scores" does not exist'
+        ) ||
+        error?.message?.includes(
+          'function "update_health_score" does not exist'
+        ) ||
+        error?.message?.includes("Not Found")
+      ) {
+        console.warn(
+          "health_scores table or update function missing; returning default score"
+        );
+        return 0;
+      }
       console.error("Error updating health score:", error);
       throw error;
     }
