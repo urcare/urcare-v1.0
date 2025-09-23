@@ -841,16 +841,13 @@ export const HealthContentNew = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-green-400 drop-shadow-lg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M13.5 5.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
-                        </svg>
+                        <img
+                          src="/icons/run.png"
+                          alt="Run"
+                          className="w-4 h-4 drop-shadow-lg"
+                        />
                       </div>
                     </div>
-                    <div className="text-xs text-white opacity-80">Run</div>
                   </div>
 
                   {/* Leaf Icon */}
@@ -884,16 +881,13 @@ export const HealthContentNew = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-yellow-400 drop-shadow-lg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75S7 8 17 8z" />
-                        </svg>
+                        <img
+                          src="/icons/healthy-icon.svg"
+                          alt="Healthy"
+                          className="w-4 h-4 drop-shadow-lg"
+                        />
                       </div>
                     </div>
-                    <div className="text-xs text-white opacity-80">Leaf</div>
                   </div>
 
                   {/* Drop Icon */}
@@ -927,16 +921,13 @@ export const HealthContentNew = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-green-400 drop-shadow-lg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-5.39C20.26 15.07 21 13.12 21 11c0-4.97-4.03-9-9-9zm-1 16l-4.5-4.5 1.41-1.41L11 15.17l6.09-6.09 1.41 1.41L11 18z" />
-                        </svg>
+                        <img
+                          src="/icons/water.png"
+                          alt="Water"
+                          className="w-4 h-4 drop-shadow-lg"
+                        />
                       </div>
                     </div>
-                    <div className="text-xs text-white opacity-80">Drop</div>
                   </div>
 
                   {/* Diet Icon */}
@@ -970,16 +961,13 @@ export const HealthContentNew = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-green-400 drop-shadow-lg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z" />
-                        </svg>
+                        <img
+                          src="/icons/knife.png"
+                          alt="Diet"
+                          className="w-4 h-4 drop-shadow-lg"
+                        />
                       </div>
                     </div>
-                    <div className="text-xs text-white opacity-80">Diet</div>
                   </div>
 
                   {/* Calories Icon */}
@@ -1013,16 +1001,13 @@ export const HealthContentNew = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-gray-400 drop-shadow-lg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M13.5 5.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
-                        </svg>
+                        <img
+                          src="/icons/cal.png"
+                          alt="Calories"
+                          className="w-4 h-4 drop-shadow-lg"
+                        />
                       </div>
                     </div>
-                    <div className="text-xs text-white opacity-80">Cal</div>
                   </div>
                 </div>
 
