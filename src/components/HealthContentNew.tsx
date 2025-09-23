@@ -1,6 +1,7 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -55,91 +56,7 @@ export const HealthContentNew = () => {
   );
   const [sectionTitle, setSectionTitle] = useState("Health Insights");
   const [loading, setLoading] = useState(false);
-  const [visibleItems, setVisibleItems] = useState(3); // Show only top 3 items initially
-  const [isStickyBottom, setIsStickyBottom] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set()); // Track which items are expanded
-  const [cardHeight, setCardHeight] = useState(0);
-  const [isCardInViewport, setIsCardInViewport] = useState(false);
-  const lastScrollYRef = useRef<number>(window.scrollY);
-
-  // Special scroll behavior for the Health Insights card
-  useEffect(() => {
-    const onScroll = () => {
-      const card = insightsCardRef.current;
-      if (!card) return;
-
-      const rect = card.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      // Check if card is entering viewport
-      const isInViewport = rect.top <= viewportHeight && rect.bottom > 0;
-      setIsCardInViewport(isInViewport);
-
-      if (isInViewport) {
-        // When card enters viewport, start tracking for sticky behavior
-        const cardBottom = rect.bottom;
-        const shouldStick = cardBottom <= viewportHeight;
-
-        if (shouldStick && !isStickyBottom) {
-          setIsStickyBottom(true);
-          setCardHeight(rect.height);
-        } else if (!shouldStick && isStickyBottom) {
-          setIsStickyBottom(false);
-          setVisibleItems(3);
-        }
-
-        // If sticky, calculate how much content to reveal based on scroll
-        if (isStickyBottom) {
-          // Calculate scroll progress based on how much we've scrolled past the card
-          const scrollY = window.scrollY;
-          const cardTop = scrollY + rect.top;
-          const scrollProgress = Math.max(
-            0,
-            Math.min(
-              1,
-              (scrollY - cardTop + viewportHeight) / (viewportHeight * 0.5)
-            )
-          );
-
-          const maxItems = Math.min(dynamicContent.length, 8);
-          const newVisibleItems = Math.max(
-            3,
-            Math.floor(3 + scrollProgress * (maxItems - 3))
-          );
-          setVisibleItems(newVisibleItems);
-        }
-      } else {
-        // Reset when card is out of viewport
-        setIsStickyBottom(false);
-        setVisibleItems(3);
-      }
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      if (!isStickyBottom) return;
-
-      // If scrolling down (positive deltaY) and card is sticky, reveal more content
-      if (e.deltaY > 0 && visibleItems < dynamicContent.length) {
-        setVisibleItems((prev) => Math.min(prev + 1, dynamicContent.length));
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    window.addEventListener("wheel", onWheel, { passive: true });
-    // initial compute
-    onScroll();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.removeEventListener("wheel", onWheel);
-    };
-  }, [dynamicContent.length, isStickyBottom]);
-
-  // Reset visible items when content changes
-  useEffect(() => {
-    setVisibleItems(3);
-  }, [dynamicContent]);
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -557,6 +474,12 @@ export const HealthContentNew = () => {
     determineUserState();
   }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks]);
 
+  const {
+    cardRef: stickyRef,
+    visibleItems,
+    isSticky,
+  } = useStickyBottomScroll();
+
   return (
     <div className="h-screen flex flex-col">
       {/* Fixed Header with User Info - White Container */}
@@ -703,34 +626,14 @@ export const HealthContentNew = () => {
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
           <div
-            ref={insightsCardRef}
-            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col transition-all duration-500 ease-out ${
-              isStickyBottom ? "fixed bottom-0 left-0 right-0 mx-4" : ""
+            ref={stickyRef}
+            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col ${
+              isSticky ? "sticky-bottom" : ""
             }`}
-            style={{
-              minHeight: isStickyBottom
-                ? `${Math.max(400, visibleItems * 160 + 200)}px`
-                : "auto",
-              height: isStickyBottom
-                ? `${Math.max(400, visibleItems * 160 + 200)}px`
-                : "auto",
-              transform: isStickyBottom
-                ? `translateY(${isCardInViewport ? "0" : "100%"})`
-                : "translateY(0)",
-            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-black">
-                  {sectionTitle}
-                </h2>
-                {isStickyBottom && (
-                  <span className="text-sm text-gray-500">
-                    {visibleItems}/{dynamicContent.length} items
-                  </span>
-                )}
-              </div>
+              <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
               <button className="text-gray-600">
                 <svg
                   className="w-8 h-8"
@@ -748,12 +651,8 @@ export const HealthContentNew = () => {
               </button>
             </div>
 
-            {/* Dynamic Content - Fixed to top, reveals from bottom */}
-            <div
-              className={`space-y-4 flex-1 ${
-                isStickyBottom ? "overflow-hidden" : ""
-              }`}
-            >
+            {/* Dynamic Content */}
+            <div className="space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -761,16 +660,13 @@ export const HealthContentNew = () => {
               ) : (
                 dynamicContent.slice(0, visibleItems).map((item, index) => {
                   const isExpanded = expandedItems.has(index);
+                  const isNewItem = index >= 2;
                   return (
                     <div
                       key={item.id}
-                      className={`rounded-[3rem] transition-all duration-500 transform bg-white text-black hover:bg-gray-100 ${
+                      className={`rounded-[3rem] bg-white text-black hover:bg-gray-100 ${
                         item.completed ? "opacity-60" : ""
-                      } ${index >= visibleItems - 1 ? "animate-slide-up" : ""}`}
-                      style={{
-                        animationDelay:
-                          index >= visibleItems - 1 ? "0.2s" : "0s",
-                      }}
+                      } ${isNewItem ? "fade-in-up" : ""}`}
                     >
                       {/* Header - Always visible */}
                       <div
