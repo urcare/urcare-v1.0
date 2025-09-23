@@ -259,16 +259,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const {
           data: { user },
+          error,
         } = await supabase.auth.getUser();
+
+        // Handle 403/401 auth errors by clearing session
+        if (
+          error &&
+          (error.message?.includes("403") || error.message?.includes("401") || error.message?.includes("Forbidden"))
+        ) {
+          console.warn("Auth session expired, clearing session");
+          await supabase.auth.signOut();
+          if (mounted) {
+            setUser(null);
+            setProfile(null);
+            profileCache.clear();
+          }
+          return;
+        }
 
         if (mounted) {
           await handleUserAuth(user);
         }
       } catch (error) {
         console.warn("❌ Auth initialization failed:", error);
+        // Clear session on any auth errors
+        await supabase.auth.signOut();
         if (mounted) {
           setUser(null);
           setProfile(null);
+          profileCache.clear();
         }
       } finally {
         if (mounted) {

@@ -19,7 +19,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const [canAccess, setCanAccess] = useState<boolean | null>(null);
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -69,23 +68,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       } catch (error) {
         console.error("Error checking route access:", error);
         if (isMounted) {
-          // Retry up to 2 times for transient errors
-          if (
-            retryCount < 2 &&
-            error instanceof Error &&
-            error.message.includes("timeout")
-          ) {
-            console.log(`Retrying access check (attempt ${retryCount + 1}/2)`);
-            setRetryCount((prev) => prev + 1);
-            // Retry after a short delay
-            setTimeout(() => {
-              if (isMounted) {
-                checkAccess();
-              }
-            }, 1000);
-            return;
-          }
-
           // Treat timeout and other errors as access denial for security
           setCanAccess(false);
           setRedirectRoute("/onboarding");
@@ -108,11 +90,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         message={
           loading
             ? "Loading..."
-            : retryCount > 0
-            ? "Retrying..."
             : "Checking access..."
         }
-        submessage={retryCount > 0 ? `Attempt ${retryCount}/2` : "Please wait"}
+        submessage="Please wait"
       />
     );
   }
