@@ -728,58 +728,57 @@ export const HealthContentNew = () => {
             <div className="flex items-start justify-between">
               {/* Left Section - Health Score */}
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="text-white text-sm font-medium">
-                    HEALTH SCORE
-                  </div>
-                  
-                  {/* Circular Progress */}
-                  <div className="relative w-16 h-16">
-                    {healthLoading ? (
-                      <div className="w-16 h-16 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    ) : (
-                      <svg
-                        className="w-16 h-16 transform -rotate-90"
-                        viewBox="0 0 100 100"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          stroke="rgba(255,255,255,0.3)"
-                          strokeWidth="8"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          stroke="#F59E0B"
-                          strokeWidth="8"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${
-                            2 *
-                            Math.PI *
-                            40 *
-                            (1 - (healthData?.score || 0) / 100)
-                          }`}
-                          className="transition-all duration-1000"
-                        />
-                      </svg>
-                    )}
-
-                    {/* Center Score */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-white text-lg font-bold">
-                        {healthData?.score || 0}
-                      </span>
+                {/* Health Score Text */}
+                <div className="text-white text-sm font-medium mb-3">
+                  HEALTH SCORE
+                </div>
+                
+                {/* Circular Progress */}
+                <div className="relative w-16 h-16 mb-3">
+                  {healthLoading ? (
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     </div>
+                  ) : (
+                    <svg
+                      className="w-16 h-16 transform -rotate-90"
+                      viewBox="0 0 100 100"
+                    >
+                      {/* Background Circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="rgba(255,255,255,0.3)"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      {/* Progress Circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="#F59E0B"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 40}`}
+                        strokeDashoffset={`${
+                          2 *
+                          Math.PI *
+                          40 *
+                          (1 - (healthData?.score || 0) / 100)
+                        }`}
+                        className="transition-all duration-1000"
+                      />
+                    </svg>
+                  )}
+
+                  {/* Center Score */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">
+                      {healthData?.score || 0}
+                    </span>
                   </div>
                 </div>
 
@@ -802,9 +801,9 @@ export const HealthContentNew = () => {
                 <div className="flex items-center gap-1 mb-3 justify-center">
                   {/* Running Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -842,9 +841,9 @@ export const HealthContentNew = () => {
 
                   {/* Leaf Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -882,9 +881,9 @@ export const HealthContentNew = () => {
 
                   {/* Drop Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -922,9 +921,9 @@ export const HealthContentNew = () => {
 
                   {/* Diet Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -962,9 +961,9 @@ export const HealthContentNew = () => {
 
                   {/* Calories Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
