@@ -812,9 +812,9 @@ export const HealthContentNew = () => {
                 <div className="flex items-center gap-3 mb-3">
                   {/* Running Icon */}
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -852,9 +852,9 @@ export const HealthContentNew = () => {
 
                   {/* Leaf Icon */}
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -892,9 +892,9 @@ export const HealthContentNew = () => {
 
                   {/* Drop Icon */}
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -932,9 +932,9 @@ export const HealthContentNew = () => {
 
                   {/* Diet Icon */}
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -972,9 +972,9 @@ export const HealthContentNew = () => {
 
                   {/* Calories Icon */}
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-12 h-12">
                       <svg
-                        className="w-10 h-10 transform -rotate-90"
+                        className="w-12 h-12 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
