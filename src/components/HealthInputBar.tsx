@@ -194,7 +194,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
       <div className="flex flex-col justify-center">
         {/* Input Container - White Glassy Theme */}
 
-        <div className="bg-card-bg/95 backdrop-blur-xl rounded-[2rem] p-4 sm:p-6 shadow-xl border border-border-accent/50 w-full">
+        <div className="glass-top-card rounded-[2rem] p-4 sm:p-6 shadow-2xl w-full">
           <form onSubmit={handleSubmit} className="relative">
             {/* Text Input */}
             <div className="mb-2">

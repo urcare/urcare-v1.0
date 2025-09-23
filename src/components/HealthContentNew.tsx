@@ -813,9 +813,9 @@ export const HealthContentNew = () => {
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
       <div className="flex-1 bg-app-bg overflow-y-auto pt-24 px-4">
-        {/* Health Dashboard Card - Deep Emerald Green with Health Score & Weekly View */}
+        {/* Health Dashboard Card - Glassmorphism with Health Score & Weekly View */}
         <div className="py-4">
-          <div className="bg-card-bg rounded-[3rem] p-8 w-full">
+          <div className="glass-top-card rounded-[3rem] p-8 w-full">
             <div className="flex flex-col">
               {/* Headers Row - HEALTH SCORE and WEEKLY VIEW */}
               <div className="flex items-center gap-8 mb-3">
@@ -1109,11 +1109,11 @@ export const HealthContentNew = () => {
           <HealthInputBar onPlanGenerate={handlePlanGenerate} />
         </div>
 
-        {/* Dynamic Upcoming Tasks Section - White Card */}
+        {/* Dynamic Upcoming Tasks Section - Glassmorphism Card */}
         <div className="py-4">
           <div
             ref={stickyRef}
-            className={`bg-card-bg rounded-[3rem] p-4 shadow-lg flex flex-col overflow-hidden ${
+            className={`glass-schedule-card rounded-[3rem] p-4 shadow-2xl flex flex-col overflow-hidden ${
               isSticky ? "sticky-bottom" : ""
             }`}
             style={{ maxHeight: "75vh" }}
