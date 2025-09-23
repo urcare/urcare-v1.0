@@ -33,7 +33,7 @@ export const DashboardHeaderNew: React.FC = () => {
   }
 
   return (
-    <div className="bg-black px-4 py-3">
+    <div className="bg-card-bg px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Left side - Profile info */}
         <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export const DashboardHeaderNew: React.FC = () => {
               }
               alt={profile?.full_name || "User"}
             />
-            <AvatarFallback className="bg-gray-800 text-white text-sm font-bold">
+            <AvatarFallback className="bg-card-secondary text-logo-text text-sm font-bold">
               {(profile?.full_name || user?.email || "U")
                 .charAt(0)
                 .toUpperCase()}
@@ -56,7 +56,7 @@ export const DashboardHeaderNew: React.FC = () => {
 
           {/* User Name */}
           <div>
-            <h2 className="text-lg font-bold text-white">{getFullName()}</h2>
+            <h2 className="text-lg font-bold text-logo-text">{getFullName()}</h2>
           </div>
         </div>
 
@@ -64,11 +64,11 @@ export const DashboardHeaderNew: React.FC = () => {
         <div className="flex items-center">
           {/* Notifications icon with green dot */}
           <div className="relative">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-              <Bell className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-app-bg rounded-full flex items-center justify-center shadow-sm">
+              <Bell className="w-5 h-5 text-text-secondary" />
             </div>
             {/* Notification dot */}
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-progress-fill rounded-full"></div>
           </div>
         </div>
       </div>

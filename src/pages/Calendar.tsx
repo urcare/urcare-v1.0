@@ -1081,7 +1081,7 @@ const Calendar: React.FC = () => {
   const getEventColorClass = (color: Event["color"]) => {
     switch (color) {
       case "green":
-        return "bg-green-500 text-white";
+        return "bg-progress-fill text-logo-text";
       case "lime":
         return "bg-lime-300 text-black";
       case "beige":
@@ -1258,15 +1258,15 @@ const Calendar: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-t-3xl -mt-4 relative z-10 min-h-screen">
+      <div className="bg-app-bg rounded-t-3xl -mt-4 relative z-10 min-h-screen">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          <div className="w-12 h-1 bg-border-accent rounded-full"></div>
         </div>
 
         <div className="px-6">
           {/* Date Header */}
-          <h2 className="text-2xl font-bold text-black mb-6">{selectedDate}</h2>
+          <h2 className="text-2xl font-bold text-text-primary mb-6">{selectedDate}</h2>
           {isPreview && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
               Preview mode — set this plan as default to keep the schedule.

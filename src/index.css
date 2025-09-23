@@ -105,85 +105,85 @@
     /* Safari iOS viewport fix */
     --vh: 1vh;
 
-    /* Light Mode Colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* New Color Scheme - Light Mode */
+    --background: 248 249 250; /* #F8F9FA - White smoke */
+    --foreground: 0 0 0; /* #000000 - Black text */
+    --card: 0 94 61; /* #005E3D - Deep emerald green */
+    --card-foreground: 255 215 0; /* #FFD700 - Gold text on cards */
+    --popover: 248 249 250; /* #F8F9FA - White smoke */
+    --popover-foreground: 0 0 0; /* #000000 - Black text */
 
     /* Primary Colors */
-    --primary: 219 78% 46%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 168 76% 36%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    --primary: 0 94 61; /* #005E3D - Deep emerald green */
+    --primary-foreground: 255 215 0; /* #FFD700 - Gold text on primary */
+    --secondary: 30 42 75; /* #1E2A4B - Very dark blue */
+    --secondary-foreground: 255 215 0; /* #FFD700 - Gold text on secondary */
+    --accent: 255 215 0; /* #FFD700 - Gold accents */
+    --accent-foreground: 0 0 0; /* #000000 - Black text on accent */
 
     /* Status Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --success: 0 94 61; /* #005E3D - Deep emerald green */
+    --success-foreground: 255 215 0; /* #FFD700 - Gold text on success */
+    --warning: 255 215 0; /* #FFD700 - Gold warning */
+    --warning-foreground: 0 0 0; /* #000000 - Black text on warning */
+    --destructive: 220 38 38; /* #DC2626 - Red for destructive */
+    --destructive-foreground: 255 255 255; /* #FFFFFF - White text on destructive */
 
     /* Neutral Colors */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 219 78% 46%;
+    --muted: 108 117 125; /* #6C757D - Davy's gray */
+    --muted-foreground: 0 0 0; /* #000000 - Black text on muted */
+    --border: 255 215 0; /* #FFD700 - Gold borders */
+    --input: 248 249 250; /* #F8F9FA - White smoke background */
+    --ring: 255 215 0; /* #FFD700 - Gold focus rings */
 
     /* Background Variations */
-    --background-secondary: 210 40% 97%;
-    --background-tertiary: 210 40% 94%;
-    --text-secondary: 215.4 16.3% 46.9%;
-    --text-tertiary: 215.4 16.3% 65.1%;
-    --border-medium: 215.4 16.3% 82.1%;
+    --background-secondary: 248 249 250; /* #F8F9FA - White smoke */
+    --background-tertiary: 248 249 250; /* #F8F9FA - White smoke */
+    --text-secondary: 108 117 125; /* #6C757D - Davy's gray */
+    --text-tertiary: 108 117 125; /* #6C757D - Davy's gray */
+    --border-medium: 255 215 0; /* #FFD700 - Gold borders */
 
     --radius: 1rem;
   }
 
   .dark {
-    /* Dark Mode Colors */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 6.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Dark Mode Colors - Adjusted for new scheme */
+    --background: 30 42 75; /* #1E2A4B - Very dark blue */
+    --foreground: 255 215 0; /* #FFD700 - Gold text */
+    --card: 0 94 61; /* #005E3D - Deep emerald green */
+    --card-foreground: 255 215 0; /* #FFD700 - Gold text on cards */
+    --popover: 30 42 75; /* #1E2A4B - Very dark blue */
+    --popover-foreground: 255 215 0; /* #FFD700 - Gold text */
 
-    /* Primary Colors - Adjusted for dark mode */
-    --primary: 217.2 91.2% 69.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 170 76% 46%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 142 76% 46%;
-    --accent-foreground: 0 0% 100%;
+    /* Primary Colors - Dark mode adjusted */
+    --primary: 0 94 61; /* #005E3D - Deep emerald green */
+    --primary-foreground: 255 215 0; /* #FFD700 - Gold text on primary */
+    --secondary: 30 42 75; /* #1E2A4B - Very dark blue */
+    --secondary-foreground: 255 215 0; /* #FFD700 - Gold text on secondary */
+    --accent: 255 215 0; /* #FFD700 - Gold accents */
+    --accent-foreground: 0 0 0; /* #000000 - Black text on accent */
 
-    /* Status Colors - Enhanced for dark mode */
-    --success: 142 76% 46%;
-    --success-foreground: 0 0% 100%;
-    --warning: 45 93% 57%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 70%;
-    --destructive-foreground: 222.2 84% 4.9%;
+    /* Status Colors - Dark mode enhanced */
+    --success: 0 94 61; /* #005E3D - Deep emerald green */
+    --success-foreground: 255 215 0; /* #FFD700 - Gold text on success */
+    --warning: 255 215 0; /* #FFD700 - Gold warning */
+    --warning-foreground: 0 0 0; /* #000000 - Black text on warning */
+    --destructive: 220 38 38; /* #DC2626 - Red for destructive */
+    --destructive-foreground: 255 255 255; /* #FFFFFF - White text on destructive */
 
     /* Neutral Colors */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 91.2% 69.8%;
+    --muted: 43 58 96; /* #2B3A60 - Dark sapphire blue */
+    --muted-foreground: 255 215 0; /* #FFD700 - Gold text on muted */
+    --border: 255 215 0; /* #FFD700 - Gold borders */
+    --input: 30 42 75; /* #1E2A4B - Very dark blue */
+    --ring: 255 215 0; /* #FFD700 - Gold focus rings */
 
     /* Background Variations */
-    --background-secondary: 217.2 32.6% 11.5%;
-    --background-tertiary: 217.2 32.6% 20.5%;
-    --text-secondary: 215 20.2% 65.1%;
-    --text-tertiary: 217.2 32.6% 50.1%;
-    --border-medium: 217.2 32.6% 27.5%;
+    --background-secondary: 30 42 75; /* #1E2A4B - Very dark blue */
+    --background-tertiary: 43 58 96; /* #2B3A60 - Dark sapphire blue */
+    --text-secondary: 255 215 0; /* #FFD700 - Gold text */
+    --text-tertiary: 255 215 0; /* #FFD700 - Gold text */
+    --border-medium: 255 215 0; /* #FFD700 - Gold borders */
   }
 }
 
@@ -203,6 +203,7 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
+    user-select: none;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     /* Fix for Safari mobile viewport */

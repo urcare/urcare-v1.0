@@ -46,47 +46,59 @@ export default {
         caption: ["0.75rem", { lineHeight: "1.4", fontWeight: "500" }],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // New color scheme based on specifications
+        border: "#FFD700", // Gold borders
+        input: "#F8F9FA", // White smoke background
+        ring: "#FFD700", // Gold focus rings
+        background: "#F8F9FA", // White smoke background
+        foreground: "#000000", // Black text
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#005E3D", // Deep emerald green
+          foreground: "#FFD700", // Gold text on primary
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#1E2A4B", // Very dark blue
+          foreground: "#FFD700", // Gold text on secondary
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#FFD700", // Gold accents
+          foreground: "#000000", // Black text on accent
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+          DEFAULT: "#005E3D", // Deep emerald green
+          foreground: "#FFD700", // Gold text on success
         },
         warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+          DEFAULT: "#FFD700", // Gold warning
+          foreground: "#000000", // Black text on warning
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#DC2626", // Red for destructive
+          foreground: "#FFFFFF", // White text on destructive
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#6C757D", // Davy's gray
+          foreground: "#000000", // Black text on muted
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#F8F9FA", // White smoke background
+          foreground: "#000000", // Black text
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#005E3D", // Deep emerald green cards
+          foreground: "#FFD700", // Gold text on cards
         },
+        // Custom app colors
+        "app-bg": "#F8F9FA", // White smoke background
+        "card-bg": "#005E3D", // Deep emerald green
+        "card-secondary": "#1E2A4B", // Very dark blue
+        "border-accent": "#FFD700", // Gold borders
+        "text-primary": "#000000", // Black text
+        "text-secondary": "#6C757D", // Davy's gray
+        "logo-text": "#FFD700", // Gold logo text
+        "nav-active": "#FFD700", // Gold active nav
+        "progress-fill": "#005E3D", // Deep emerald green
+        "progress-track": "#2B3A60", // Dark sapphire blue
         // Custom medical colors
         "medical-blue": {
           50: "#eff6ff",

@@ -693,9 +693,9 @@ export const HealthContentNew = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
-                  className="w-8 h-8 text-blue-600 animate-spin"
+                  className="w-8 h-8 text-logo-text animate-spin"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -728,7 +728,7 @@ export const HealthContentNew = () => {
               {/* Progress Steps */}
               <div className="space-y-3 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-progress-fill rounded-full"></div>
                   <span>Analyzing your profile...</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -805,28 +805,28 @@ export const HealthContentNew = () => {
                   className="w-6 h-6"
                 />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-progress-fill rounded-full"></div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
-      <div className="flex-1 bg-teal-800 overflow-y-auto pt-24 px-4">
-        {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
+      <div className="flex-1 bg-app-bg overflow-y-auto pt-24 px-4">
+        {/* Health Dashboard Card - Deep Emerald Green with Health Score & Weekly View */}
         <div className="py-4">
-          <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
+          <div className="bg-card-bg rounded-[3rem] p-8 w-full">
             <div className="flex flex-col">
               {/* Headers Row - HEALTH SCORE and WEEKLY VIEW */}
               <div className="flex items-center gap-8 mb-3">
-                <div className="text-white text-sm font-medium ml-2">
+                <div className="text-logo-text text-sm font-medium ml-2">
                   HEALTH SCORE
                 </div>
-                <div className="text-white text-sm font-medium">
+                <div className="text-logo-text text-sm font-medium">
                   WEEKLY VIEW
                 </div>
               </div>
-
+              
               {/* Icons Row - Health Score and Activity Icons */}
               <div className="flex items-center justify-between">
                 {/* Health Score Icon */}
@@ -880,202 +880,202 @@ export const HealthContentNew = () => {
 
                 {/* Activity Icons */}
                 <div className="flex items-center gap-1 mr-2">
-                  {/* Running Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/run.png"
-                          alt="Run"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                    {/* Running Icon */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <svg
+                          className="w-12 h-12 transform -rotate-90"
+                          viewBox="0 0 32 32"
+                        >
+                          {/* Background Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          {/* Progress Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="#F59E0B"
+                            strokeWidth="3"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 12}`}
+                            strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
+                            className="drop-shadow-lg"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src="/icons/run.png"
+                            alt="Run"
+                            className="w-8 h-8 drop-shadow-lg"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Leaf Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/icons8-healthy-100.png"
-                          alt="Healthy"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                    {/* Leaf Icon */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <svg
+                          className="w-12 h-12 transform -rotate-90"
+                          viewBox="0 0 32 32"
+                        >
+                          {/* Background Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          {/* Progress Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="#F59E0B"
+                            strokeWidth="3"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 12}`}
+                            strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
+                            className="drop-shadow-lg"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src="/icons/icons8-healthy-100.png"
+                            alt="Healthy"
+                            className="w-8 h-8 drop-shadow-lg"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Drop Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/water.png"
-                          alt="Water"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                    {/* Drop Icon */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <svg
+                          className="w-12 h-12 transform -rotate-90"
+                          viewBox="0 0 32 32"
+                        >
+                          {/* Background Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          {/* Progress Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="#F59E0B"
+                            strokeWidth="3"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 12}`}
+                            strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
+                            className="drop-shadow-lg"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src="/icons/water.png"
+                            alt="Water"
+                            className="w-8 h-8 drop-shadow-lg"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Diet Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/knife.png"
-                          alt="Diet"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                    {/* Diet Icon */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <svg
+                          className="w-12 h-12 transform -rotate-90"
+                          viewBox="0 0 32 32"
+                        >
+                          {/* Background Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          {/* Progress Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="#F59E0B"
+                            strokeWidth="3"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 12}`}
+                            strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
+                            className="drop-shadow-lg"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src="/icons/knife.png"
+                            alt="Diet"
+                            className="w-8 h-8 drop-shadow-lg"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Calories Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/cal.png"
-                          alt="Calories"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                    {/* Calories Icon */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <svg
+                          className="w-12 h-12 transform -rotate-90"
+                          viewBox="0 0 32 32"
+                        >
+                          {/* Background Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          {/* Progress Circle */}
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            stroke="#F59E0B"
+                            strokeWidth="3"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 12}`}
+                            strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
+                            className="drop-shadow-lg"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src="/icons/cal.png"
+                            alt="Calories"
+                            className="w-8 h-8 drop-shadow-lg"
+                          />
                       </div>
                     </div>
                   </div>
