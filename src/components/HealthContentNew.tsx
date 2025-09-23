@@ -725,71 +725,62 @@ export const HealthContentNew = () => {
         {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
           <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
-            <div className="flex items-start justify-between">
-              {/* Left Section - Health Score */}
-              <div className="flex flex-col items-center">
-                <div className="text-white text-sm font-medium mb-3">
-                  HEALTH SCORE
-                </div>
+            <div className="flex items-center justify-between">
+              {/* Left Section - Health Score with Icons */}
+              <div className="flex items-center gap-4">
+                {/* Health Score Section */}
+                <div className="flex items-center gap-3">
+                  <div className="text-white text-sm font-medium">
+                    HEALTH SCORE
+                  </div>
+                  
+                  {/* Circular Progress */}
+                  <div className="relative w-16 h-16">
+                    {healthLoading ? (
+                      <div className="w-16 h-16 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    ) : (
+                      <svg
+                        className="w-16 h-16 transform -rotate-90"
+                        viewBox="0 0 100 100"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          stroke="rgba(255,255,255,0.3)"
+                          strokeWidth="8"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          stroke="#F59E0B"
+                          strokeWidth="8"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 40}`}
+                          strokeDashoffset={`${
+                            2 *
+                            Math.PI *
+                            40 *
+                            (1 - (healthData?.score || 0) / 100)
+                          }`}
+                          className="transition-all duration-1000"
+                        />
+                      </svg>
+                    )}
 
-                {/* Circular Progress */}
-                <div className="relative w-20 h-20 mb-3">
-                  {healthLoading ? (
-                    <div className="w-20 h-20 flex items-center justify-center">
-                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    {/* Center Score */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">
+                        {healthData?.score || 0}
+                      </span>
                     </div>
-                  ) : (
-                    <svg
-                      className="w-20 h-20 transform -rotate-90"
-                      viewBox="0 0 100 100"
-                    >
-                      {/* Background Circle */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        stroke="rgba(255,255,255,0.3)"
-                        strokeWidth="8"
-                        fill="none"
-                      />
-                      {/* Progress Circle */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        stroke="#F59E0B"
-                        strokeWidth="8"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 40}`}
-                        strokeDashoffset={`${
-                          2 *
-                          Math.PI *
-                          40 *
-                          (1 - (healthData?.score || 0) / 100)
-                        }`}
-                        className="transition-all duration-1000"
-                      />
-                      <defs>
-                        <linearGradient
-                          id="gradient"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="0%"
-                        >
-                          <stop offset="0%" stopColor="#14B8A6" />
-                          <stop offset="100%" stopColor="#F59E0B" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  )}
-
-                  {/* Center Score */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">
-                      {healthData?.score || 0}
-                    </span>
                   </div>
                 </div>
 
@@ -836,7 +827,7 @@ export const HealthContentNew = () => {
                           fill="none"
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.85)}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
                           className="drop-shadow-lg"
                         />
                       </svg>
@@ -876,7 +867,7 @@ export const HealthContentNew = () => {
                           fill="none"
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.75)}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
                           className="drop-shadow-lg"
                         />
                       </svg>
@@ -916,7 +907,7 @@ export const HealthContentNew = () => {
                           fill="none"
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.8)}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
                           className="drop-shadow-lg"
                         />
                       </svg>
@@ -956,7 +947,7 @@ export const HealthContentNew = () => {
                           fill="none"
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 1.0)}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
                           className="drop-shadow-lg"
                         />
                       </svg>
@@ -996,7 +987,7 @@ export const HealthContentNew = () => {
                           fill="none"
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.3)}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
                           className="drop-shadow-lg"
                         />
                       </svg>
