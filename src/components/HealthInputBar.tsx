@@ -204,7 +204,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Set your health goals or ask for advice..."
-                className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                className="w-full p-4 glass-input rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>

@@ -1118,7 +1118,7 @@ const Calendar: React.FC = () => {
           <div className="space-x-4">
             <button
               onClick={handleRetry}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="glass-blue-transparent hover:bg-blue-600/20 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Try Again
             </button>

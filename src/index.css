@@ -311,6 +311,26 @@
     @apply bg-card/80 dark:bg-card/80 backdrop-blur-xl border border-border shadow-lg;
   }
 
+  .glass-profile-card {
+    background: rgba(0, 94, 61, 0.3);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-blue-transparent {
+    background: rgba(30, 42, 75, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+  }
+
   /* Enhanced card styles */
   .medical-card {
     @apply bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1;

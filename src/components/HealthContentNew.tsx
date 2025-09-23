@@ -752,8 +752,8 @@ export const HealthContentNew = () => {
       {/* Fixed Header with User Info - Deep Emerald Green Container */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-card-bg px-6 py-4 rounded-b-[3rem] shadow-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
+        <div className="glass-profile-card rounded-2xl p-4 flex items-center gap-4">
+          <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
               <AvatarImage
                 src={
                   user?.user_metadata?.avatar_url ||
