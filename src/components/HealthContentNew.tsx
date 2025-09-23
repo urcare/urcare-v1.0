@@ -1,6 +1,7 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -480,6 +481,16 @@ export const HealthContentNew = () => {
     isSticky,
   } = useStickyBottomScroll();
 
+  // Health score data
+  const {
+    healthData,
+    loading: healthLoading,
+    markActivityCompleted,
+    getActivityIconData,
+    getStreakBonusText,
+    initializeHealthScore,
+  } = useHealthScore();
+
   return (
     <div className="h-screen flex flex-col">
       {/* Fixed Header with User Info - White Container */}
@@ -545,73 +556,317 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
-      <div className="flex-1 bg-gray-900 overflow-y-auto pt-24 px-4">
-        {/* Achievement Card - Lime Green with margin */}
+      <div className="flex-1 bg-teal-800 overflow-y-auto pt-24 px-4">
+        {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
-          <div className="bg-lime-400 rounded-[3rem] p-8 w-full">
+          <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
             <div className="flex items-center justify-between">
-              {/* Left Section - Steps Streak */}
+              {/* Left Section - Health Score */}
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mb-2 shadow-lg">
-                  <svg
-                    className="w-8 h-8 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
+                <div className="text-white text-sm font-medium mb-3">
+                  Health Score
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-black">142</div>
-                  <div className="text-lg font-semibold text-black">
-                    Days streak
+
+                {/* Circular Progress */}
+                <div className="relative w-20 h-20 mb-3">
+                  {healthLoading ? (
+                    <div className="w-20 h-20 flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : (
+                    <svg
+                      className="w-20 h-20 transform -rotate-90"
+                      viewBox="0 0 100 100"
+                    >
+                      {/* Background Circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="rgba(255,255,255,0.3)"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      {/* Progress Circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="#F59E0B"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 40}`}
+                        strokeDashoffset={`${
+                          2 *
+                          Math.PI *
+                          40 *
+                          (1 - (healthData?.score || 0) / 100)
+                        }`}
+                        className="transition-all duration-1000"
+                      />
+                      <defs>
+                        <linearGradient
+                          id="gradient"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="0%"
+                        >
+                          <stop offset="0%" stopColor="#14B8A6" />
+                          <stop offset="100%" stopColor="#F59E0B" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  )}
+
+                  {/* Center Score */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">
+                      {healthData?.score || 0}
+                    </span>
                   </div>
+                </div>
+
+                {/* Streak Counter */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-white text-sm font-medium">
+                    {healthData?.streak_days || 0} Days
+                  </span>
                 </div>
               </div>
 
-              {/* Right Section - Step Progress and Weekly Tracker */}
+              {/* Right Section - Weekly View */}
               <div className="flex-1 ml-8">
-                {/* Step Count */}
-                <div className="text-xl font-bold text-black mb-2">0 / 100</div>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-300 rounded-full h-3 mb-4">
-                  <div
-                    className="bg-white h-3 rounded-full"
-                    style={{ width: "0%" }}
-                  ></div>
+                <div className="text-white text-sm font-medium mb-3">
+                  WEEKLY VIEW
                 </div>
 
-                {/* Weekly Completion Tracker */}
-                <div className="flex items-center justify-between">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                    (day, index) => (
-                      <div key={day} className="flex flex-col items-center">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
-                            index < 3 ? "bg-orange-500" : "bg-gray-300"
-                          }`}
+                {/* Activity Icons */}
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Running Icon */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-8 h-8">
+                      <svg
+                        className="w-8 h-8 transform -rotate-90"
+                        viewBox="0 0 32 32"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="3"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="#F59E0B"
+                          strokeWidth="3"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 12}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.85)}`}
+                          className="drop-shadow-lg"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-green-400 drop-shadow-lg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          {index < 3 && (
-                            <svg
-                              className="w-4 h-4 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm font-medium text-black">
-                          {day}
-                        </span>
+                          <path d="M13.5 5.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
+                        </svg>
                       </div>
-                    )
-                  )}
+                    </div>
+                    <div className="text-xs text-white opacity-80">Run</div>
+                  </div>
+
+                  {/* Leaf Icon */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-8 h-8">
+                      <svg
+                        className="w-8 h-8 transform -rotate-90"
+                        viewBox="0 0 32 32"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="3"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="#F59E0B"
+                          strokeWidth="3"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 12}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.75)}`}
+                          className="drop-shadow-lg"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-yellow-400 drop-shadow-lg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75S7 8 17 8z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-xs text-white opacity-80">Leaf</div>
+                  </div>
+
+                  {/* Drop Icon */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-8 h-8">
+                      <svg
+                        className="w-8 h-8 transform -rotate-90"
+                        viewBox="0 0 32 32"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="3"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="#F59E0B"
+                          strokeWidth="3"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 12}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.8)}`}
+                          className="drop-shadow-lg"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-green-400 drop-shadow-lg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 2c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-5.39C20.26 15.07 21 13.12 21 11c0-4.97-4.03-9-9-9zm-1 16l-4.5-4.5 1.41-1.41L11 15.17l6.09-6.09 1.41 1.41L11 18z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-xs text-white opacity-80">Drop</div>
+                  </div>
+
+                  {/* Diet Icon */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-8 h-8">
+                      <svg
+                        className="w-8 h-8 transform -rotate-90"
+                        viewBox="0 0 32 32"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="3"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="#F59E0B"
+                          strokeWidth="3"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 12}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 1.0)}`}
+                          className="drop-shadow-lg"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-green-400 drop-shadow-lg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-xs text-white opacity-80">Diet</div>
+                  </div>
+
+                  {/* Calories Icon */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-8 h-8">
+                      <svg
+                        className="w-8 h-8 transform -rotate-90"
+                        viewBox="0 0 32 32"
+                      >
+                        {/* Background Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="3"
+                          fill="none"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="16"
+                          cy="16"
+                          r="12"
+                          stroke="#F59E0B"
+                          strokeWidth="3"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 12}`}
+                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0.3)}`}
+                          className="drop-shadow-lg"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-gray-400 drop-shadow-lg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M13.5 5.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-3.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-xs text-white opacity-80">Cal</div>
+                  </div>
+                </div>
+
+                {/* Score Boost */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-white text-sm font-medium">
+                    {getStreakBonusText(healthData?.streak_bonus || 1.0)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -674,7 +929,7 @@ export const HealthContentNew = () => {
                         onClick={() => toggleItemExpansion(index)}
                       >
                         <div className="flex items-center gap-6">
-                          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 bg-green-500 border-green-500">
+                          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 bg-teal-500 border-teal-500">
                             {item.icon}
                           </div>
                           <div>
