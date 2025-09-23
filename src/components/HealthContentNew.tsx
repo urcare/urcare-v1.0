@@ -725,11 +725,10 @@ export const HealthContentNew = () => {
         {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
           <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
-            <div className="flex items-center justify-between">
-              {/* Left Section - Health Score with Icons */}
-              <div className="flex items-center gap-4">
-                {/* Health Score Section */}
-                <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between">
+              {/* Left Section - Health Score */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-3 mb-3">
                   <div className="text-white text-sm font-medium">
                     HEALTH SCORE
                   </div>
@@ -800,12 +799,12 @@ export const HealthContentNew = () => {
                 </div>
 
                 {/* Activity Icons */}
-                <div className="flex items-center gap-2 mb-3 justify-between">
+                <div className="flex items-center gap-1 mb-3 justify-center">
                   {/* Running Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-10 h-10">
                       <svg
-                        className="w-12 h-12 transform -rotate-90"
+                        className="w-10 h-10 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -843,9 +842,9 @@ export const HealthContentNew = () => {
 
                   {/* Leaf Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-10 h-10">
                       <svg
-                        className="w-12 h-12 transform -rotate-90"
+                        className="w-10 h-10 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -883,9 +882,9 @@ export const HealthContentNew = () => {
 
                   {/* Drop Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-10 h-10">
                       <svg
-                        className="w-12 h-12 transform -rotate-90"
+                        className="w-10 h-10 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -923,9 +922,9 @@ export const HealthContentNew = () => {
 
                   {/* Diet Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-10 h-10">
                       <svg
-                        className="w-12 h-12 transform -rotate-90"
+                        className="w-10 h-10 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
@@ -963,9 +962,9 @@ export const HealthContentNew = () => {
 
                   {/* Calories Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-10 h-10">
                       <svg
-                        className="w-12 h-12 transform -rotate-90"
+                        className="w-10 h-10 transform -rotate-90"
                         viewBox="0 0 32 32"
                       >
                         {/* Background Circle */}
