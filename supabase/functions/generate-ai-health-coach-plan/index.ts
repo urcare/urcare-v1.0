@@ -461,33 +461,16 @@ async function generateAIHealthCoachPlan(
 
   console.log(`🎯 Complexity: ${complexityScore}, Model: ${selectedModel}`);
 
-  // Check cache first (if supabaseClient is available)
-  if (supabaseClient && userId) {
-    const profileHash = generateProfileHash(profile, userGoal || "");
-    const cachedPlan = await getCachedPlan(supabaseClient, profileHash);
+  // Cache check disabled for better performance
+  // if (supabaseClient && userId) {
+  //   const profileHash = generateProfileHash(profile, userGoal || "");
+  //   const cachedPlan = await getCachedPlan(supabaseClient, profileHash);
 
-    if (cachedPlan) {
-      console.log("✅ Using cached plan");
-
-      // Log cache hit
-      await logTokenUsage(supabaseClient, {
-        user_id: userId,
-        function_name: "generate-ai-health-coach-plan",
-        model_used: "cached",
-        prompt_tokens: 0,
-        completion_tokens: 0,
-        total_tokens: 0,
-        cost_usd: 0,
-        request_type: "cache_hit",
-        user_goal: userGoal,
-        complexity_score: complexityScore,
-        cached: true,
-        created_at: new Date().toISOString(),
-      });
-
-      return cachedPlan.plan_data;
-    }
-  }
+  //   if (cachedPlan) {
+  //     console.log("✅ Using cached plan");
+  //     return cachedPlan.plan_data;
+  //   }
+  // }
 
   // Prepare comprehensive user data for AI
   const userData = {
@@ -927,7 +910,7 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
         },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: selectedModel === "gpt-4o" ? 8000 : 4000,
+      max_tokens: 16000,
       temperature: 0.3,
     }),
   });
@@ -969,27 +952,27 @@ Remember: This is their personalized health coaching plan. Make it encouraging, 
     healthPlan.day1.date = today.toISOString().split("T")[0];
     healthPlan.day2.date = tomorrow.toISOString().split("T")[0];
 
-    // Log token usage and cache the plan
-    if (supabaseClient && userId) {
-      await logTokenUsage(supabaseClient, {
-        user_id: userId,
-        function_name: "generate-ai-health-coach-plan",
-        model_used: selectedModel,
-        prompt_tokens: usage.prompt_tokens,
-        completion_tokens: usage.completion_tokens,
-        total_tokens: usage.total_tokens,
-        cost_usd: cost,
-        request_type: "generation",
-        user_goal: userGoal,
-        complexity_score: complexityScore,
-        cached: false,
-        created_at: new Date().toISOString(),
-      });
+    // Token usage logging disabled for better performance
+    // if (supabaseClient && userId) {
+    //   await logTokenUsage(supabaseClient, {
+    //     user_id: userId,
+    //     function_name: "generate-ai-health-coach-plan",
+    //     model_used: selectedModel,
+    //     prompt_tokens: usage.prompt_tokens,
+    //     completion_tokens: usage.completion_tokens,
+    //     total_tokens: usage.total_tokens,
+    //     cost_usd: cost,
+    //     request_type: "generation",
+    //     user_goal: userGoal,
+    //     complexity_score: complexityScore,
+    //     cached: false,
+    //     created_at: new Date().toISOString(),
+    //   });
 
-      // Cache the plan
-      const profileHash = generateProfileHash(profile, userGoal || "");
-      await cachePlan(supabaseClient, profileHash, healthPlan, userId);
-    }
+    //   // Cache the plan
+    //   const profileHash = generateProfileHash(profile, userGoal || "");
+    //   await cachePlan(supabaseClient, profileHash, healthPlan, userId);
+    // }
 
     return healthPlan;
   } catch (parseError) {

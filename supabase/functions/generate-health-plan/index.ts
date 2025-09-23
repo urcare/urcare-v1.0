@@ -381,7 +381,7 @@ Return comprehensive plan in this JSON structure:
 
   // Add timeout to OpenAI API call
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -398,7 +398,7 @@ Return comprehensive plan in this JSON structure:
         },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 2000, // Further reduced for faster response
+      max_tokens: 16000, // Increased for comprehensive plans
       temperature: 0.3,
     }),
     signal: controller.signal,

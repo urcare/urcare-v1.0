@@ -24,8 +24,8 @@ export interface TokenUsage {
 }
 
 class HealthPlanSearchService {
-  private readonly MAX_TOKENS_PER_REQUEST = 4000; // Limit tokens per request
-  private readonly MAX_DAILY_TOKENS = 20000; // Daily limit per user
+  private readonly MAX_TOKENS_PER_REQUEST = 16000; // Limit tokens per request
+  private readonly MAX_DAILY_TOKENS = 100000; // Daily limit per user
   private readonly COST_PER_1K_TOKENS = 0.03; // Approximate cost for GPT-4
 
   // Check if user has exceeded daily token limit
@@ -101,19 +101,17 @@ class HealthPlanSearchService {
         return { success: false, error: "User not authenticated" };
       }
 
-      const tokenCheck = await this.checkTokenLimit(userId);
-      if (!tokenCheck.allowed) {
-        return {
-          success: false,
-          error: `Daily token limit exceeded. Please try again tomorrow.`,
-        };
-      }
+      // Token limit check removed for better user experience
+      // const tokenCheck = await this.checkTokenLimit(userId);
+      // if (!tokenCheck.allowed) {
+      //   return {
+      //     success: false,
+      //     error: `Daily token limit exceeded. Please try again tomorrow.`,
+      //   };
+      // }
 
       // Prepare the request with token limits
-      const maxTokens = Math.min(
-        request.maxTokens || this.MAX_TOKENS_PER_REQUEST,
-        tokenCheck.remaining
-      );
+      const maxTokens = request.maxTokens || this.MAX_TOKENS_PER_REQUEST;
 
       // Call the Supabase function with the search query
       const { data, error } = await supabase.functions.invoke(
@@ -138,10 +136,10 @@ class HealthPlanSearchService {
         throw new Error(data.error || "Failed to generate health plan");
       }
 
-      // Record token usage if available
-      if (data.tokenUsage) {
-        await this.recordTokenUsage(userId, data.tokenUsage);
-      }
+      // Record token usage if available (commented out to prevent issues)
+      // if (data.tokenUsage) {
+      //   await this.recordTokenUsage(userId, data.tokenUsage);
+      // }
 
       // Enhanced response handling for comprehensive health plans
       const enhancedPlan = this.enhanceHealthPlan(

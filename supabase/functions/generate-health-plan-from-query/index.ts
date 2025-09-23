@@ -222,7 +222,7 @@ Please create a personalized health plan based on the above query and user infor
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: maxTokens,
+        max_tokens: 16000,
         temperature: 0.3,
       }),
     });
