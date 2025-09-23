@@ -47,7 +47,7 @@ export class HealthScoreService {
   /**
    * Get current health score and weekly data for a user
    */
-  async getHealthScoreData(userId: string): Promise<HealthScoreData> {
+  async getHealthScoreData(userId: string): Promise<HealthScoreData | null> {
     try {
       // Get current health score
       const { data: healthScore, error: scoreError } = await supabase
@@ -81,7 +81,23 @@ export class HealthScoreService {
         weekly_view: weeklyData || [],
         streak_bonus: streakBonus,
       };
-    } catch (error) {
+    } catch (error: any) {
+      // Gracefully handle missing table
+      if (
+        error?.code === "42P01" ||
+        error?.message?.includes(
+          'relation "public.health_scores" does not exist'
+        )
+      ) {
+        console.warn(
+          "health_scores table missing; returning default health score"
+        );
+        return {
+          score: 0,
+          streak_days: 0,
+          streak_bonus: 1.0,
+        } as any;
+      }
       console.error("Error getting health score data:", error);
       throw error;
     }

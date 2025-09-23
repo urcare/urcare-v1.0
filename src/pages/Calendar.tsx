@@ -1,6 +1,8 @@
+import { supabase } from "@/integrations/supabase/client";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 import {
   Activity,
   ComprehensiveHealthPlan,
@@ -40,8 +42,8 @@ interface Event {
 const Calendar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState("22 October");
-  const [selectedDay, setSelectedDay] = useState(22);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const [planData, setPlanData] = useState<ComprehensiveHealthPlan | null>(
     null
   );
@@ -50,16 +52,51 @@ const Calendar: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   // Add state for expanded events
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [isPreview, setIsPreview] = useState<boolean>(false);
+  const [savingDefault, setSavingDefault] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [editOpen, setEditOpen] = useState<boolean>(false);
+  const [editDifficulty, setEditDifficulty] = useState<string>("");
+  const [editDurationWeeks, setEditDurationWeeks] = useState<number>(0);
+  const [savingEdit, setSavingEdit] = useState<boolean>(false);
 
-  const weekDays = [
-    { day: "S", date: 18 },
-    { day: "M", date: 19 },
-    { day: "T", date: 20 },
-    { day: "W", date: 21 },
-    { day: "T", date: 22 },
-    { day: "F", date: 23 },
-    { day: "S", date: 24 },
-  ];
+  // Dynamic week based on today
+  const [weekDays, setWeekDays] = useState<
+    Array<{ day: string; date: number; fullDate: string }>
+  >([]);
+
+  // Keep a copy of mapped AI dates for simple filtering
+  const [aiDay1Date, setAiDay1Date] = useState<string | null>(null);
+  const [aiDay2Date, setAiDay2Date] = useState<string | null>(null);
+
+  const formatHeaderDate = (d: Date) =>
+    d.toLocaleDateString(undefined, { day: "numeric", month: "long" });
+
+  const generateCurrentWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Sun ... 6=Sat
+    const start = new Date(today);
+    start.setDate(today.getDate() - dayOfWeek);
+
+    const dayMap = ["S", "M", "T", "W", "T", "F", "S"];
+    const result: Array<{ day: string; date: number; fullDate: string }> = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      result.push({
+        day: dayMap[i],
+        date: d.getDate(),
+        fullDate: d.toISOString().split("T")[0],
+      });
+    }
+    return result;
+  };
+
+  useEffect(() => {
+    const week = generateCurrentWeek();
+    setWeekDays(week);
+    setSelectedDate(formatHeaderDate(new Date()));
+  }, []);
 
   // Default events for demo
   const defaultEvents: Event[] = [
@@ -110,7 +147,9 @@ const Calendar: React.FC = () => {
     let eventId = 1;
 
     // Helper function to get activity color
-    const getActivityColor = (type: string): "green" | "lime" | "beige" | "text" => {
+    const getActivityColor = (
+      type: string
+    ): "green" | "lime" | "beige" | "text" => {
       switch (type.toLowerCase()) {
         case "meal":
         case "nutrition":
@@ -143,7 +182,7 @@ const Calendar: React.FC = () => {
             description: activity.description || "",
             instructions: activity.instructions || [],
             tips: activity.tips || [],
-          }
+          },
         });
       });
     }
@@ -165,8 +204,8 @@ const Calendar: React.FC = () => {
           description: day1.focus,
           details: {
             description: day1.focus,
-            tips: ["Start your day with intention", "Focus on your main goal"]
-          }
+            tips: ["Start your day with intention", "Focus on your main goal"],
+          },
         });
       }
 
@@ -179,12 +218,16 @@ const Calendar: React.FC = () => {
           time: "8:00 am",
           color: "green",
           type: "workout",
-          description: `${day1.movement.duration_min || 45} minute ${day1.movement.type} workout`,
+          description: `${day1.movement.duration_min || 45} minute ${
+            day1.movement.type
+          } workout`,
           details: {
-            description: `${day1.movement.duration_min || 45} minute ${day1.movement.type} workout`,
+            description: `${day1.movement.duration_min || 45} minute ${
+              day1.movement.type
+            } workout`,
             exercises: day1.movement.exercises || [],
-            tips: day1.movement.warmup || []
-          }
+            tips: day1.movement.warmup || [],
+          },
         });
       }
 
@@ -202,15 +245,17 @@ const Calendar: React.FC = () => {
             description: meal.detailedDescription || "Healthy meal",
             details: {
               description: meal.detailedDescription || "Healthy meal",
-              nutrition: meal.macros ? {
-                calories: meal.macros.p + meal.macros.c + meal.macros.f,
-                protein: `${meal.macros.p}g`,
-                carbs: `${meal.macros.c}g`,
-                fats: `${meal.macros.f}g`,
-                foods: meal.items?.map((item: any) => item.food) || []
-              } : undefined,
-              tips: meal.eatingInstructions || []
-            }
+              nutrition: meal.macros
+                ? {
+                    calories: meal.macros.p + meal.macros.c + meal.macros.f,
+                    protein: `${meal.macros.p}g`,
+                    carbs: `${meal.macros.c}g`,
+                    fats: `${meal.macros.f}g`,
+                    foods: meal.items?.map((item: any) => item.food) || [],
+                  }
+                : undefined,
+              tips: meal.eatingInstructions || [],
+            },
           });
         });
       }
@@ -226,9 +271,10 @@ const Calendar: React.FC = () => {
           type: "wellness",
           description: day1.stress.reflection_prompt || "Mindfulness practice",
           details: {
-            description: day1.stress.reflection_prompt || "Mindfulness practice",
-            tips: ["Take deep breaths", "Focus on the present moment"]
-          }
+            description:
+              day1.stress.reflection_prompt || "Mindfulness practice",
+            tips: ["Take deep breaths", "Focus on the present moment"],
+          },
         });
       }
     }
@@ -355,14 +401,14 @@ const Calendar: React.FC = () => {
                 instructions: activity.instructions || [
                   "Follow the activity instructions carefully",
                   "Take breaks as needed",
-                  "Stay hydrated throughout"
+                  "Stay hydrated throughout",
                 ],
                 tips: activity.tips || [
                   "Start slowly and build up intensity",
                   "Listen to your body",
-                  "Maintain proper form"
-                ]
-              }
+                  "Maintain proper form",
+                ],
+              },
             });
             morningTime += activity.duration + 15; // Add 15 min buffer between activities
           });
@@ -402,14 +448,16 @@ const Calendar: React.FC = () => {
                   protein: `${meal.nutrition?.protein || 25}g`,
                   carbs: `${meal.nutrition?.carbohydrates || 35}g`,
                   fats: `${meal.nutrition?.fat || 15}g`,
-                  foods: meal.ingredients?.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`) || ["Sample ingredient 1", "Sample ingredient 2"]
+                  foods: meal.ingredients?.map(
+                    (ing) => `${ing.quantity} ${ing.unit} ${ing.name}`
+                  ) || ["Sample ingredient 1", "Sample ingredient 2"],
                 },
                 instructions: meal.instructions || [
                   "Prepare all ingredients",
                   "Follow cooking instructions",
-                  "Serve and enjoy your meal"
-                ]
-              }
+                  "Serve and enjoy your meal",
+                ],
+              },
             });
           });
         }
@@ -438,23 +486,23 @@ const Calendar: React.FC = () => {
               description: workout.description,
               details: {
                 description: workout.description,
-                exercises: workout.exercises?.map(exercise => ({
+                exercises: workout.exercises?.map((exercise) => ({
                   name: exercise.name,
                   sets: exercise.sets || 3,
                   reps: exercise.reps || 12,
-                  rest: `${exercise.rest_between_sets || 60}s`
+                  rest: `${exercise.rest_between_sets || 60}s`,
                 })) || [
                   { name: "Sample Exercise 1", sets: 3, reps: 12, rest: "60s" },
                   { name: "Sample Exercise 2", sets: 3, reps: 15, rest: "60s" },
-                  { name: "Sample Exercise 3", sets: 3, reps: 10, rest: "90s" }
+                  { name: "Sample Exercise 3", sets: 3, reps: 10, rest: "90s" },
                 ],
                 instructions: [
                   "Warm up for 5-10 minutes",
                   "Focus on proper form",
                   "Take rest between sets",
-                  "Cool down with stretching"
-                ]
-              }
+                  "Cool down with stretching",
+                ],
+              },
             });
           });
         }
@@ -482,14 +530,14 @@ const Calendar: React.FC = () => {
                   "Find a quiet, comfortable space",
                   "Focus on your breathing",
                   "Practice mindfulness",
-                  "Take your time with the activity"
+                  "Take your time with the activity",
                 ],
                 tips: activity.tips || [
                   "Start with short sessions",
                   "Be patient with yourself",
-                  "Consistency is key"
-                ]
-              }
+                  "Consistency is key",
+                ],
+              },
             });
           });
         }
@@ -515,14 +563,14 @@ const Calendar: React.FC = () => {
                   "Prepare for evening routine",
                   "Follow activity instructions",
                   "Relax and unwind",
-                  "Prepare for sleep"
+                  "Prepare for sleep",
                 ],
                 tips: activity.tips || [
                   "Create a calm environment",
                   "Avoid screens before bed",
-                  "Practice relaxation techniques"
-                ]
-              }
+                  "Practice relaxation techniques",
+                ],
+              },
             });
             eveningTime -= activity.duration + 15; // Move earlier for next activity
           });
@@ -546,15 +594,15 @@ const Calendar: React.FC = () => {
                 "Turn off all screens 1 hour before bed",
                 "Create a cool, dark sleeping environment",
                 "Practice relaxation techniques",
-                "Aim for consistent sleep schedule"
+                "Aim for consistent sleep schedule",
               ],
               tips: [
                 "Keep bedroom temperature cool (65-68°F)",
                 "Use blackout curtains or eye mask",
                 "Avoid caffeine after 2 PM",
-                "Establish a bedtime routine"
-              ]
-            }
+                "Establish a bedtime routine",
+              ],
+            },
           });
         }
 
@@ -603,6 +651,7 @@ const Calendar: React.FC = () => {
         hasLocationState: !!location.state,
         hasPlanData: !!location.state?.planData,
         hasPlanName: !!location.state?.planName,
+        preview: !!location.state?.preview,
         locationStateKeys: location.state ? Object.keys(location.state) : null,
         currentPath: window.location.pathname,
         timestamp: new Date().toISOString(),
@@ -615,14 +664,98 @@ const Calendar: React.FC = () => {
         if (location.state?.planData) {
           console.log("✅ Plan data found in location state");
           console.log("📋 Plan data details:", location.state.planData);
+          setIsPreview(!!location.state.preview);
 
           // Handle AI Health Coach plans (from input bar generation)
           if (location.state.planData.day1 && location.state.planData.day2) {
             console.log("🤖 AI Health Coach Plan detected");
             const aiPlan = location.state.planData;
-            
+
             // Convert AI plan activities to events
             const aiEvents = convertAIHealthCoachPlanToEvents(aiPlan);
+            setEvents(aiEvents);
+            setIsLoading(false);
+            return;
+          }
+
+          // Handle Two-Day plan shape (day_1_plan/day_2_plan) by mapping to AI shape
+          if (
+            location.state.planData.day_1_plan &&
+            location.state.planData.day_2_plan
+          ) {
+            console.log(
+              "🗓️ Two-day plan shape detected; mapping to AI plan format"
+            );
+            const mapped = {
+              day1: {
+                ...location.state.planData.day_1_plan,
+                activities: location.state.planData.day_1_plan.activities || [],
+                focus: location.state.planData.day_1_plan.focus || "",
+                movement:
+                  location.state.planData.day_1_plan.movement || undefined,
+                nutrition:
+                  location.state.planData.day_1_plan.nutrition || undefined,
+                stress: location.state.planData.day_1_plan.stress || undefined,
+                sleep: location.state.planData.day_1_plan.sleep || undefined,
+                recovery:
+                  location.state.planData.day_1_plan.recovery || undefined,
+                education: location.state.planData.day_1_plan.education || "",
+                health_score: location.state.planData.day_1_plan
+                  .health_score || {
+                  total: 0,
+                  delta: 0,
+                  subscores: {
+                    metabolic: 0,
+                    fitness: 0,
+                    sleep: 0,
+                    nutrition: 0,
+                  },
+                },
+                timezone: location.state.planData.day_1_plan.timezone || "UTC",
+                date:
+                  location.state.planData.plan_start_date ||
+                  new Date().toISOString().split("T")[0],
+              },
+              day2: {
+                ...location.state.planData.day_2_plan,
+                activities: location.state.planData.day_2_plan.activities || [],
+                focus: location.state.planData.day_2_plan.focus || "",
+                movement:
+                  location.state.planData.day_2_plan.movement || undefined,
+                nutrition:
+                  location.state.planData.day_2_plan.nutrition || undefined,
+                stress: location.state.planData.day_2_plan.stress || undefined,
+                sleep: location.state.planData.day_2_plan.sleep || undefined,
+                recovery:
+                  location.state.planData.day_2_plan.recovery || undefined,
+                education: location.state.planData.day_2_plan.education || "",
+                health_score: location.state.planData.day_2_plan
+                  .health_score || {
+                  total: 0,
+                  delta: 0,
+                  subscores: {
+                    metabolic: 0,
+                    fitness: 0,
+                    sleep: 0,
+                    nutrition: 0,
+                  },
+                },
+                timezone: location.state.planData.day_2_plan.timezone || "UTC",
+                date:
+                  location.state.planData.plan_end_date ||
+                  new Date().toISOString().split("T")[0],
+              },
+              overall_goals: location.state.planData.overall_goals || [],
+              progress_tips: location.state.planData.progress_tips || [],
+              safety_notes: location.state.planData.safety_notes || [],
+              cultural_adaptations:
+                location.state.planData.cultural_adaptations || [],
+            } as any;
+
+            setAiDay1Date(mapped.day1.date);
+            setAiDay2Date(mapped.day2.date);
+
+            const aiEvents = convertAIHealthCoachPlanToEvents(mapped);
             setEvents(aiEvents);
             setIsLoading(false);
             return;
@@ -724,6 +857,186 @@ const Calendar: React.FC = () => {
     // Trigger re-load
     window.location.reload();
   }, []);
+
+  const handleSetAsDefault = useCallback(async () => {
+    try {
+      if (!location.state?.planData) {
+        toast.error("No plan to save");
+        return;
+      }
+      setSavingDefault(true);
+      toast.loading("Saving as your default plan...", { id: "save-plan" });
+
+      const base: any = location.state.planData;
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        toast.error("Not authenticated", { id: "save-plan" });
+        setSavingDefault(false);
+        return;
+      }
+
+      const insertRow: any = {
+        user_id: user.id,
+        is_active: true,
+        plan_start_date:
+          base.plan_start_date || new Date().toISOString().split("T")[0],
+        plan_end_date:
+          base.plan_end_date ||
+          new Date(Date.now() + 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
+        day_1_plan: base.day_1_plan || {},
+        day_2_plan: base.day_2_plan || {},
+        overall_goals: base.overall_goals || [],
+        progress_tips: base.progress_tips || [],
+        safety_notes: base.safety_notes || [],
+        cultural_adaptations: base.cultural_adaptations || [],
+      };
+
+      const { data, error } = await supabase
+        .from("two_day_health_plans")
+        .insert(insertRow)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setIsPreview(false);
+      toast.success("Plan set as default!", { id: "save-plan" });
+    } catch (e) {
+      console.error("Failed to set default plan", e);
+      toast.error(e?.message || "Failed to set default plan", {
+        id: "save-plan",
+      });
+    } finally {
+      setSavingDefault(false);
+    }
+  }, [location.state?.planData]);
+
+  const handleRemovePlan = useCallback(async () => {
+    try {
+      setMenuOpen(false);
+      if (isPreview) {
+        toast.success("Preview closed");
+        navigate("/dashboard");
+        return;
+      }
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        toast.error("Not authenticated");
+        return;
+      }
+      toast.loading("Removing your active plan...", { id: "remove-plan" });
+      const { error } = await supabase
+        .from("two_day_health_plans")
+        .update({ is_active: false })
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+      if (error) throw error;
+      toast.success("Plan removed", { id: "remove-plan" });
+      navigate("/dashboard");
+    } catch (e) {
+      console.error("Remove plan failed", e);
+      toast.error("Failed to remove plan", { id: "remove-plan" });
+    }
+  }, [isPreview, navigate]);
+
+  const handleChangePlan = useCallback(() => {
+    setMenuOpen(false);
+    navigate("/dashboard");
+  }, [navigate]);
+
+  const openEdit = useCallback(() => {
+    setMenuOpen(false);
+    // Seed edit values from planData or defaults
+    const pd: any = location.state?.planData || planData || {};
+    setEditDifficulty(pd.difficulty || "moderate");
+    setEditDurationWeeks(pd.duration_weeks || 12);
+    setEditOpen(true);
+  }, [location.state?.planData, planData]);
+
+  const handleSaveEdit = useCallback(async () => {
+    try {
+      setSavingEdit(true);
+      const original: any = location.state?.planData || planData || {};
+      // update difficulty/duration meta on the local shape
+      const updated = {
+        ...original,
+        difficulty: editDifficulty,
+        duration_weeks: editDurationWeeks,
+      } as any;
+
+      if (isPreview) {
+        // Update local preview only and refresh events
+        navigate("/calendar", {
+          state: { ...location.state, planData: updated, preview: true },
+          replace: true,
+        });
+        toast.success("Preview updated");
+      } else {
+        // Persist to active plan using two_day_health_plans columns
+        const user = (await supabase.auth.getUser()).data.user;
+        if (!user) {
+          toast.error("Not authenticated");
+          setSavingEdit(false);
+          return;
+        }
+        toast.loading("Updating your plan...", { id: "edit-plan" });
+
+        // Merge meta into day_1_plan/day_2_plan JSON so it is carried in DB
+        const day1 = {
+          ...(original.day_1_plan || {}),
+          difficulty: editDifficulty,
+          duration_weeks: editDurationWeeks,
+        };
+        const day2 = {
+          ...(original.day_2_plan || {}),
+          difficulty: editDifficulty,
+          duration_weeks: editDurationWeeks,
+        };
+
+        const { data, error } = await supabase
+          .from("two_day_health_plans")
+          .update({
+            day_1_plan: day1,
+            day_2_plan: day2,
+            plan_start_date:
+              original.plan_start_date ||
+              new Date().toISOString().split("T")[0],
+            plan_end_date:
+              original.plan_end_date ||
+              new Date(Date.now() + 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+          })
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .select();
+        if (error) throw error;
+        toast.success("Plan updated", { id: "edit-plan" });
+        navigate("/calendar", {
+          state: {
+            planData: { ...updated, day_1_plan: day1, day_2_plan: day2 },
+            preview: false,
+          },
+          replace: true,
+        });
+      }
+    } catch (e) {
+      console.error("Edit save failed", e);
+      toast.error("Failed to save changes", { id: "edit-plan" });
+    } finally {
+      setSavingEdit(false);
+      setEditOpen(false);
+    }
+  }, [
+    isPreview,
+    editDifficulty,
+    editDurationWeeks,
+    location.state,
+    planData,
+    navigate,
+  ]);
 
   const getEventColorClass = (color: Event["color"]) => {
     switch (color) {
@@ -841,9 +1154,58 @@ const Calendar: React.FC = () => {
             </div>
           </div>
           <div className="text-white">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-            </svg>
+            {isPreview && (
+              <button
+                onClick={handleSetAsDefault}
+                disabled={savingDefault}
+                className={`px-4 py-2 rounded-lg ${
+                  savingDefault
+                    ? "bg-gray-500"
+                    : "bg-amber-500 hover:bg-amber-600"
+                }`}
+              >
+                {savingDefault ? "Saving..." : "Set as default plan"}
+              </button>
+            )}
+            {/* Settings menu trigger */}
+            <div className="inline-block ml-3 relative">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+                aria-haspopup="true"
+                aria-expanded={menuOpen}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-20">
+                  <button
+                    onClick={openEdit}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
+                  >
+                    Edit plan
+                  </button>
+                  <button
+                    onClick={handleChangePlan}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Change plan
+                  </button>
+                  <button
+                    onClick={handleRemovePlan}
+                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
+                  >
+                    Remove plan
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -858,6 +1220,11 @@ const Calendar: React.FC = () => {
         <div className="px-6">
           {/* Date Header */}
           <h2 className="text-2xl font-bold text-black mb-6">{selectedDate}</h2>
+          {isPreview && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+              Preview mode — set this plan as default to keep the schedule.
+            </div>
+          )}
 
           {/* Week Calendar */}
           <div className="flex justify-between mb-8">
@@ -867,7 +1234,17 @@ const Calendar: React.FC = () => {
                 className={`flex flex-col items-center py-2 px-3 rounded-xl cursor-pointer transition-colors ${
                   day.date === selectedDay ? "bg-amber-50" : "hover:bg-gray-50"
                 }`}
-                onClick={() => setSelectedDay(day.date)}
+                onClick={() => {
+                  setSelectedDay(day.date);
+                  // Update header to reflect chosen date
+                  const parts = day.fullDate.split("-");
+                  const d = new Date(
+                    Number(parts[0]),
+                    Number(parts[1]) - 1,
+                    Number(parts[2])
+                  );
+                  setSelectedDate(formatHeaderDate(d));
+                }}
               >
                 <span className="text-sm text-gray-600 mb-1">{day.day}</span>
                 <span className="text-lg font-medium text-black">
@@ -880,168 +1257,216 @@ const Calendar: React.FC = () => {
           {/* Timeline */}
           <div className="space-y-6">
             {events && events.length > 0 ? (
-              events.map((event, index) => {
-                const isExpanded = expandedEvent === event.id;
-                
-                return (
-                  <div key={event.id} className="flex items-start space-x-4">
-                    {/* Time Label */}
-                    <div className="w-16 text-sm text-gray-600 mt-1">
-                      {event.time}
-                    </div>
+              events
+                .filter((event) => {
+                  // If we know mapped day dates, keep all (times are same-day only UI)
+                  // This stub keeps all events; hook real filtering when event carries date.
+                  return true;
+                })
+                .map((event, index) => {
+                  const isExpanded = expandedEvent === event.id;
 
-                    {/* Event Card */}
-                    <div className="flex-1">
-                      {event.color === "text" ? (
-                        <div className="py-2">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="text-black font-medium">
-                                {event.title}
-                              </h3>
-                              {event.duration && (
-                                <p className="text-sm text-gray-600">
-                                  {event.duration}
-                                </p>
-                              )}
-                            </div>
-                            {/* Expand/Collapse Button */}
-                            {event.details && (
-                              <button
-                                onClick={() => 
-                                  setExpandedEvent(isExpanded ? null : event.id)
-                                }
-                                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          className={`rounded-xl p-4 ${getEventColorClass(
-                            event.color
-                          )}`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">{event.title}</h3>
-                              {event.duration && (
-                                <p className="text-sm opacity-80 mt-1">
-                                  {event.duration}
-                                </p>
-                              )}
-                            </div>
-                            {/* Expand/Collapse Button */}
-                            {event.details && (
-                              <button
-                                onClick={() => 
-                                  setExpandedEvent(isExpanded ? null : event.id)
-                                }
-                                className="p-1 rounded-full hover:bg-white/20 transition-colors"
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                  return (
+                    <div key={event.id} className="flex items-start space-x-4">
+                      {/* Time Label */}
+                      <div className="w-16 text-sm text-gray-600 mt-1">
+                        {event.time}
+                      </div>
 
-                      {/* Expanded Details */}
-                      {isExpanded && event.details && (
-                        <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-3">
-                          {event.details.description && (
-                            <p className="text-gray-700 text-sm font-medium">{event.details.description}</p>
-                          )}
-                          
-                          {/* Workout Details */}
-                          {event.details.exercises && (
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Exercises</h4>
-                              <div className="space-y-2">
-                                {event.details.exercises.map((exercise, exerciseIndex) => (
-                                  <div key={exerciseIndex} className="flex justify-between items-center p-2 bg-white rounded text-sm">
-                                    <span className="font-medium">{exercise.name}</span>
-                                    <span className="text-gray-600">
-                                      {exercise.sets} sets × {exercise.reps} reps • Rest: {exercise.rest}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Nutrition Details */}
-                          {event.details.nutrition && (
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Nutrition Info</h4>
-                              <div className="grid grid-cols-2 gap-2 mb-3">
-                                <div className="p-2 bg-white rounded text-center">
-                                  <div className="font-bold text-lg">{event.details.nutrition.calories}</div>
-                                  <div className="text-xs text-gray-600">Calories</div>
-                                </div>
-                                <div className="space-y-1 text-xs">
-                                  <div>Protein: {event.details.nutrition.protein}</div>
-                                  <div>Carbs: {event.details.nutrition.carbs}</div>
-                                  <div>Fats: {event.details.nutrition.fats}</div>
-                                </div>
-                              </div>
+                      {/* Event Card */}
+                      <div className="flex-1">
+                        {event.color === "text" ? (
+                          <div className="py-2">
+                            <div className="flex items-center justify-between">
                               <div>
-                                <h5 className="font-medium mb-1 text-sm">Foods:</h5>
-                                <ul className="text-xs text-gray-600 space-y-1">
-                                  {event.details.nutrition.foods.map((food, foodIndex) => (
-                                    <li key={foodIndex}>• {food}</li>
+                                <h3 className="text-black font-medium">
+                                  {event.title}
+                                </h3>
+                                {event.duration && (
+                                  <p className="text-sm text-gray-600">
+                                    {event.duration}
+                                  </p>
+                                )}
+                              </div>
+                              {/* Expand/Collapse Button */}
+                              {event.details && (
+                                <button
+                                  onClick={() =>
+                                    setExpandedEvent(
+                                      isExpanded ? null : event.id
+                                    )
+                                  }
+                                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp className="w-4 h-4" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`rounded-xl p-4 ${getEventColorClass(
+                              event.color
+                            )}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-medium">{event.title}</h3>
+                                {event.duration && (
+                                  <p className="text-sm opacity-80 mt-1">
+                                    {event.duration}
+                                  </p>
+                                )}
+                              </div>
+                              {/* Expand/Collapse Button */}
+                              {event.details && (
+                                <button
+                                  onClick={() =>
+                                    setExpandedEvent(
+                                      isExpanded ? null : event.id
+                                    )
+                                  }
+                                  className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp className="w-4 h-4" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Expanded Details */}
+                        {isExpanded && event.details && (
+                          <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-3">
+                            {event.details.description && (
+                              <p className="text-gray-700 text-sm font-medium">
+                                {event.details.description}
+                              </p>
+                            )}
+
+                            {/* Workout Details */}
+                            {event.details.exercises && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  Exercises
+                                </h4>
+                                <div className="space-y-2">
+                                  {event.details.exercises.map(
+                                    (exercise, exerciseIndex) => (
+                                      <div
+                                        key={exerciseIndex}
+                                        className="flex justify-between items-center p-2 bg-white rounded text-sm"
+                                      >
+                                        <span className="font-medium">
+                                          {exercise.name}
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {exercise.sets} sets × {exercise.reps}{" "}
+                                          reps • Rest: {exercise.rest}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Nutrition Details */}
+                            {event.details.nutrition && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  Nutrition Info
+                                </h4>
+                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                  <div className="p-2 bg-white rounded text-center">
+                                    <div className="font-bold text-lg">
+                                      {event.details.nutrition.calories}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      Calories
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1 text-xs">
+                                    <div>
+                                      Protein: {event.details.nutrition.protein}
+                                    </div>
+                                    <div>
+                                      Carbs: {event.details.nutrition.carbs}
+                                    </div>
+                                    <div>
+                                      Fats: {event.details.nutrition.fats}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <h5 className="font-medium mb-1 text-sm">
+                                    Foods:
+                                  </h5>
+                                  <ul className="text-xs text-gray-600 space-y-1">
+                                    {event.details.nutrition.foods.map(
+                                      (food, foodIndex) => (
+                                        <li key={foodIndex}>• {food}</li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Instructions */}
+                            {event.details.instructions && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  Instructions
+                                </h4>
+                                <ol className="text-xs text-gray-700 space-y-1">
+                                  {event.details.instructions.map(
+                                    (instruction, instructionIndex) => (
+                                      <li
+                                        key={instructionIndex}
+                                        className="flex"
+                                      >
+                                        <span className="font-medium mr-2">
+                                          {instructionIndex + 1}.
+                                        </span>
+                                        <span>{instruction}</span>
+                                      </li>
+                                    )
+                                  )}
+                                </ol>
+                              </div>
+                            )}
+
+                            {/* Tips */}
+                            {event.details.tips && (
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  💡 Tips
+                                </h4>
+                                <ul className="text-xs text-gray-700 space-y-1">
+                                  {event.details.tips.map((tip, tipIndex) => (
+                                    <li key={tipIndex} className="flex">
+                                      <span className="mr-2">•</span>
+                                      <span>{tip}</span>
+                                    </li>
                                   ))}
                                 </ul>
                               </div>
-                            </div>
-                          )}
-                          
-                          {/* Instructions */}
-                          {event.details.instructions && (
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Instructions</h4>
-                              <ol className="text-xs text-gray-700 space-y-1">
-                                {event.details.instructions.map((instruction, instructionIndex) => (
-                                  <li key={instructionIndex} className="flex">
-                                    <span className="font-medium mr-2">{instructionIndex + 1}.</span>
-                                    <span>{instruction}</span>
-                                  </li>
-                                ))}
-                              </ol>
-                            </div>
-                          )}
-
-                          {/* Tips */}
-                          {event.details.tips && (
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-2 text-sm">💡 Tips</h4>
-                              <ul className="text-xs text-gray-700 space-y-1">
-                                {event.details.tips.map((tip, tipIndex) => (
-                                  <li key={tipIndex} className="flex">
-                                    <span className="mr-2">•</span>
-                                    <span>{tip}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-600">No events scheduled for today</p>
@@ -1069,6 +1494,63 @@ const Calendar: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Edit Plan Modal */}
+      {editOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-black mb-4">Edit plan</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                  Difficulty
+                </label>
+                <select
+                  value={editDifficulty}
+                  onChange={(e) => setEditDifficulty(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                  Duration (weeks)
+                </label>
+                <input
+                  type="number"
+                  min={4}
+                  max={52}
+                  value={editDurationWeeks}
+                  onChange={(e) =>
+                    setEditDurationWeeks(parseInt(e.target.value || "0", 10))
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setEditOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-black hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className={`px-4 py-2 rounded-lg text-white ${
+                  savingEdit ? "bg-gray-500" : "bg-black hover:bg-gray-800"
+                }`}
+              >
+                {savingEdit ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

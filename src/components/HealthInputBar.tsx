@@ -85,6 +85,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
     if (!input.trim()) {
       return;
     }
+    console.log("[HealthInputBar] Submit fired with input:", input);
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -93,6 +94,9 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
     try {
       // If onPlanGenerate is provided, use it for the new flow
       if (onPlanGenerate) {
+        console.log(
+          "[HealthInputBar] onPlanGenerate prop detected. Calling parent with goal."
+        );
         onPlanGenerate(input);
         setInput("");
         setAttachedFile(null);
@@ -111,6 +115,7 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
         input,
         true
       );
+      console.log("[HealthInputBar] Estimated tokens:", estimatedTokens);
 
       // Generate health plan
       const result = await healthPlanSearchService.generateHealthPlanFromQuery(
@@ -133,10 +138,11 @@ export const HealthInputBar: React.FC<HealthInputBarProps> = ({
         setInput("");
         setAttachedFile(null);
       } else {
+        console.error("[HealthInputBar] Generation failed:", result.error);
         setError(result.error || "Failed to generate health plan");
       }
     } catch (error) {
-      console.error("Error generating health plan:", error);
+      console.error("[HealthInputBar] Error generating health plan:", error);
       setError("An error occurred while generating your health plan");
     } finally {
       setIsLoading(false);

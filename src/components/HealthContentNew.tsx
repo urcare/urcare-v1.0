@@ -19,6 +19,10 @@ interface DynamicContentItem {
   completed?: boolean;
   action?: string;
   type?: string;
+  // Added for generated plan options
+  difficulty?: "Easy" | "Moderate" | "Hard";
+  duration?: string;
+  planData?: unknown;
 }
 
 interface HealthGoal {
@@ -58,6 +62,8 @@ export const HealthContentNew = () => {
   const [sectionTitle, setSectionTitle] = useState("Health Insights");
   const [loading, setLoading] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set()); // Track which items are expanded
+  const [scheduleMenuOpen, setScheduleMenuOpen] = useState(false);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -99,6 +105,15 @@ export const HealthContentNew = () => {
     }
 
     try {
+      console.log(
+        "[HealthContentNew] handlePlanGenerate called with goal:",
+        goal
+      );
+      setGeneratingPlan(true);
+      setContentState("health_tips");
+      setSectionTitle("Generating your plan...");
+      setDynamicContent([]);
+
       toast.loading("Generating your personalized health plan...", {
         id: "plan-generation",
       });
@@ -119,6 +134,11 @@ export const HealthContentNew = () => {
         }
       );
 
+      console.log("[HealthContentNew] Supabase function response:", {
+        data,
+        error,
+      });
+
       const result = {
         success: !error && data?.success,
         plan: data?.plan,
@@ -126,32 +146,90 @@ export const HealthContentNew = () => {
       };
 
       if (result.success) {
-        toast.success(
-          "Health plan generated successfully! Redirecting to your calendar...",
-          {
-            id: "plan-generation",
-          }
-        );
+        // Build three long-term plan options from the base plan
+        const basePlan = result.plan;
 
-        // Navigate to calendar page to show the generated plan
-        setTimeout(() => {
-          navigate("/calendar", {
-            state: {
-              planData: result.plan,
-              fromGeneration: true,
+        const options: DynamicContentItem[] = [
+          {
+            id: "opt-easy",
+            title: "Balanced Wellness Plan",
+            description:
+              "A gentle, sustainable plan focused on consistency and habit-building.",
+            icon: "🟢",
+            time: "12 weeks",
+            isHighlighted: true,
+            action: "view_plan_option",
+            difficulty: "Easy",
+            duration: "12 weeks",
+            planData: { ...basePlan, difficulty: "easy", duration_weeks: 12 },
+          },
+          {
+            id: "opt-moderate",
+            title: "Performance Boost Plan",
+            description:
+              "A balanced challenge blending fitness, nutrition, and recovery.",
+            icon: "🟠",
+            time: "16 weeks",
+            isHighlighted: false,
+            action: "view_plan_option",
+            difficulty: "Moderate",
+            duration: "16 weeks",
+            planData: {
+              ...basePlan,
+              difficulty: "moderate",
+              duration_weeks: 16,
             },
-          });
-        }, 1500);
+          },
+          {
+            id: "opt-hard",
+            title: "Peak Transformation Plan",
+            description:
+              "An intensive roadmap for rapid, disciplined progress.",
+            icon: "🔴",
+            time: "24 weeks",
+            isHighlighted: false,
+            action: "view_plan_option",
+            difficulty: "Hard",
+            duration: "24 weeks",
+            planData: { ...basePlan, difficulty: "hard", duration_weeks: 24 },
+          },
+        ];
+
+        // Persist recommended options for back navigation
+        try {
+          sessionStorage.setItem(
+            "recommendedPlanOptions",
+            JSON.stringify(options)
+          );
+        } catch (e) {
+          console.warn("Failed to cache recommended options", e);
+        }
+
+        // Show the options in place of insights
+        setContentState("plan_selection");
+        setSectionTitle("Select Your Plan");
+        setDynamicContent(options);
+
+        toast.dismiss("plan-generation");
+        toast.success("Choose a plan to view full details", {
+          id: "plan-generation",
+        });
       } else {
+        console.error(
+          "[HealthContentNew] Plan generation failed:",
+          result.error
+        );
         toast.error(result.error || "Failed to generate health plan", {
           id: "plan-generation",
         });
       }
     } catch (error) {
-      console.error("Error generating health plan:", error);
+      console.error("[HealthContentNew] Error generating health plan:", error);
       toast.error("An error occurred while generating your health plan", {
         id: "plan-generation",
       });
+    } finally {
+      setGeneratingPlan(false);
     }
   };
 
@@ -399,6 +477,15 @@ export const HealthContentNew = () => {
           } else {
             throw new Error(data.error || "Failed to generate plan");
           }
+        } else if (item.action === "view_plan_option" && item.planData) {
+          // Navigate to calendar with the selected plan details
+          navigate("/calendar", {
+            state: {
+              planData: item.planData,
+              fromGeneration: true,
+              preview: true,
+            },
+          });
         }
       } catch (error) {
         console.error("Error generating plan:", error);
@@ -415,6 +502,68 @@ export const HealthContentNew = () => {
       toast.success(
         item.completed ? "Task marked incomplete" : "Task completed!"
       );
+    }
+  };
+
+  // Schedule card menu handlers
+  const handleScheduleEdit = async () => {
+    try {
+      setScheduleMenuOpen(false);
+      navigate("/calendar", {
+        state: { openEdit: true, preview: false },
+      });
+    } catch (e) {
+      console.error("Failed to navigate for edit", e);
+    }
+  };
+
+  const handleScheduleChange = async () => {
+    try {
+      setScheduleMenuOpen(false);
+      // Show plan selection so user can pick another plan
+      setContentState("plan_selection");
+      setSectionTitle("Recommended Plans");
+      // Attempt to load goals and show plan options
+      try {
+        if (!user) return;
+        const { data: goals } = await supabase
+          .from("user_health_goals")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "active");
+        const typedGoals = (goals || []) as unknown as HealthGoal[];
+        await loadHealthPlans(typedGoals);
+      } catch (e) {
+        console.warn("Failed to load goals for change plan", e);
+      }
+    } catch (e) {
+      console.error("Change plan failed", e);
+    }
+  };
+
+  const handleScheduleRemove = async () => {
+    try {
+      setScheduleMenuOpen(false);
+      if (!user) {
+        toast.error("Please log in");
+        return;
+      }
+      toast.loading("Removing your active plan...", { id: "remove-plan" });
+      // Delete active plan instead of update to avoid unique constraint conflicts
+      const { error } = await supabase
+        .from("two_day_health_plans")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+      if (error) throw error;
+      toast.success("Plan removed", { id: "remove-plan" });
+      // After removal, return to insights
+      setContentState("health_tips");
+      setSectionTitle("Health Insights");
+      await loadPersonalizedTips();
+    } catch (e) {
+      console.error("Remove plan failed", e);
+      toast.error("Failed to remove plan", { id: "remove-plan" });
     }
   };
 
@@ -453,14 +602,30 @@ export const HealthContentNew = () => {
           setContentState("upcoming_tasks");
           setSectionTitle("Today's Schedule");
           await loadUpcomingTasks(activePlans?.[0] || twoDayPlans?.[0]);
-        } else if (goals && goals.length > 0) {
-          setContentState("plan_selection");
-          setSectionTitle("Recommended Plans");
-          await loadHealthPlans(goals);
         } else {
-          setContentState("health_tips");
-          setSectionTitle("Health Insights");
-          await loadPersonalizedTips();
+          // If we have cached recommended options, prefer showing them when coming back from preview
+          try {
+            const cached = sessionStorage.getItem("recommendedPlanOptions");
+            if (cached) {
+              const opts: DynamicContentItem[] = JSON.parse(cached);
+              setContentState("plan_selection");
+              setSectionTitle("Select Your Plan");
+              setDynamicContent(opts);
+              return;
+            }
+          } catch (e) {
+            console.warn("Failed to read cached recommended options", e);
+          }
+
+          if (goals && goals.length > 0) {
+            setContentState("plan_selection");
+            setSectionTitle("Recommended Plans");
+            await loadHealthPlans(goals as unknown as HealthGoal[]);
+          } else {
+            setContentState("health_tips");
+            setSectionTitle("Health Insights");
+            await loadPersonalizedTips();
+          }
         }
       } catch (error) {
         console.error("Error determining user state:", error);
@@ -882,121 +1047,194 @@ export const HealthContentNew = () => {
         <div className="py-4">
           <div
             ref={stickyRef}
-            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col ${
+            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col overflow-hidden ${
               isSticky ? "sticky-bottom" : ""
             }`}
+            style={{ maxHeight: "75vh" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 relative flex-none">
               <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
-              <button className="text-gray-600">
-                <svg
-                  className="w-8 h-8"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="relative">
+                <button
+                  onClick={() => setScheduleMenuOpen((v) => !v)}
+                  className="text-gray-600 w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                  title="Settings"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </button>
+                {contentState === "upcoming_tasks" && scheduleMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-20">
+                    <button
+                      onClick={handleScheduleEdit}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
+                    >
+                      Edit plan
+                    </button>
+                    <button
+                      onClick={handleScheduleChange}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Change plan
+                    </button>
+                    <button
+                      onClick={handleScheduleRemove}
+                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
+                    >
+                      Remove plan
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Dynamic Content */}
-            <div className="space-y-4">
-              {loading ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-                </div>
-              ) : (
-                dynamicContent.slice(0, visibleItems).map((item, index) => {
-                  const isExpanded = expandedItems.has(index);
-                  const isNewItem = index >= 2;
-                  return (
-                    <div
-                      key={item.id}
-                      className={`rounded-[3rem] bg-white text-black hover:bg-gray-100 ${
-                        item.completed ? "opacity-60" : ""
-                      } ${isNewItem ? "fade-in-up" : ""}`}
-                    >
-                      {/* Header - Always visible */}
-                      <div
-                        className="flex items-center justify-between p-4 cursor-pointer"
-                        onClick={() => toggleItemExpansion(index)}
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto pr-1">
+              {/* Dynamic Content */}
+              <div className="space-y-4">
+                {loading || generatingPlan ? (
+                  <div className="space-y-3">
+                    <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-24 bg-gray-100 rounded-2xl animate-pulse"></div>
+                    <div className="h-24 bg-gray-100 rounded-2xl animate-pulse"></div>
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <svg
+                        className="w-4 h-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <div className="flex items-center gap-6">
-                          <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-teal-500 border-teal-500">
-                            {item.icon}
-                          </div>
-                          <div>
-                            <h3
-                              className={`font-bold text-xl text-black ${
-                                item.completed ? "line-through" : ""
-                              }`}
-                            >
-                              {item.title}
-                            </h3>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="text-sm text-gray-600">{item.time}</p>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleItemExpansion(index);
-                            }}
-                            className="transition-transform duration-200 text-gray-600"
-                          >
-                            <svg
-                              className="w-6 h-6"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              style={{
-                                transform: isExpanded
-                                  ? "rotate(180deg)"
-                                  : "rotate(0deg)",
-                              }}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Expandable Content */}
-                      {isExpanded && (
-                        <div className="px-4 pb-4 border-t border-gray-200">
-                          <div className="pt-4">
-                            <div className="space-y-3 text-gray-700">
-                              <p className="text-sm leading-relaxed">
-                                {item.description}
-                              </p>
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                      <span>Generating your personalized plan...</span>
+                    </div>
+                  </div>
+                ) : (
+                  dynamicContent.map((item, index) => {
+                    const isExpanded = expandedItems.has(index);
+                    const isNewItem = index >= 2;
+                    const isPlanOption = item.action === "view_plan_option";
+                    return (
+                      <div
+                        key={item.id}
+                        className={`rounded-[3rem] bg-white text-black hover:bg-gray-100 ${
+                          item.completed ? "opacity-60" : ""
+                        } ${isNewItem ? "fade-in-up" : ""}`}
+                      >
+                        {/* Header - Always visible */}
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-teal-500 border-teal-500">
+                              {item.icon}
+                            </div>
+                            <div>
+                              <h3
+                                className={`font-bold text-xl text-black ${
+                                  item.completed ? "line-through" : ""
+                                }`}
+                              >
+                                {item.title}
+                              </h3>
+                              {isPlanOption && (
+                                <div className="text-sm text-gray-600 mt-1">
+                                  <span className="mr-3">
+                                    Duration: {item.duration}
+                                  </span>
+                                  <span>Difficulty: {item.difficulty}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
+                          <div className="flex items-center gap-4">
+                            {!isPlanOption && (
+                              <div className="text-right">
+                                <p className="text-sm text-gray-600">
+                                  {item.time}
+                                </p>
+                              </div>
+                            )}
+                            {isPlanOption ? (
+                              <button
+                                onClick={() => handleContentClick(item)}
+                                className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
+                              >
+                                View plan details
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => toggleItemExpansion(index)}
+                                className="transition-transform duration-200 text-gray-600"
+                              >
+                                <svg
+                                  className="w-6 h-6"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  style={{
+                                    transform: isExpanded
+                                      ? "rotate(180deg)"
+                                      : "rotate(0deg)",
+                                  }}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                  />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+
+                        {/* Expandable Content (not used for plan options) */}
+                        {!isPlanOption && isExpanded && (
+                          <div className="px-4 pb-4 border-t border-gray-200">
+                            <div className="pt-4">
+                              <div className="space-y-3 text-gray-700">
+                                <p className="text-sm leading-relaxed">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>
