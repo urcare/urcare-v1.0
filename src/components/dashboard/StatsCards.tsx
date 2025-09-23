@@ -21,15 +21,15 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
   return (
     <div className="flex gap-3">
       {/* Steps Tracker Card */}
-      <div className="flex-1 bg-white rounded-xl p-3 shadow-lg">
+      <div className="flex-1 bg-card-bg rounded-xl p-3 shadow-lg">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-5 h-5 bg-green-100 rounded-lg flex items-center justify-center">
             <Footprints className="w-3 h-3 text-green-600" />
           </div>
-          <h4 className="text-xs font-medium text-gray-700">Steps Today</h4>
+          <h4 className="text-xs font-medium text-logo-text">Steps Today</h4>
         </div>
 
-        <div className="text-xl font-bold text-gray-800 mb-1">
+        <div className="text-xl font-bold text-logo-text mb-1">
           {currentSteps.toLocaleString()}
         </div>
 
@@ -48,7 +48,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
             return (
               <div
                 key={i}
-                className="w-1.5 bg-green-500 rounded-t transition-all duration-300"
+                className="w-1.5 bg-progress-fill rounded-t transition-all duration-300"
                 style={{ height: `${height}px` }}
               ></div>
             );
@@ -57,17 +57,17 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
       </div>
 
       {/* Today's Calories Card */}
-      <div className="flex-1 bg-white rounded-xl p-3 shadow-lg">
+      <div className="flex-1 bg-card-bg rounded-xl p-3 shadow-lg">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-5 h-5 bg-green-100 rounded-lg flex items-center justify-center">
             <ShoppingBag className="w-3 h-3 text-green-600" />
           </div>
-          <h4 className="text-xs font-medium text-gray-700">
+          <h4 className="text-xs font-medium text-logo-text">
             Today's Calories
           </h4>
         </div>
 
-        <div className="text-xl font-bold text-gray-800 mb-1">
+        <div className="text-xl font-bold text-logo-text mb-1">
           {todayCalories} Kcal
         </div>
 

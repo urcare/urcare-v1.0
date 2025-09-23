@@ -31,7 +31,7 @@ export const ActivityTracker: React.FC<ActivityTrackerProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <h3 className="text-lg font-semibold text-text-primary mb-4">
         Today's Activities
       </h3>
 
@@ -53,15 +53,15 @@ export const ActivityTracker: React.FC<ActivityTrackerProps> = ({
                 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
                 ${
                   isCompleted
-                    ? "bg-green-50 border-green-500 text-green-700"
-                    : "bg-gray-50 border-gray-300 text-gray-600 hover:border-blue-400 hover:bg-blue-50"
+                    ? "bg-progress-fill/20 border-progress-fill text-logo-text"
+                    : "bg-card-secondary/20 border-border-accent text-text-secondary hover:border-border-accent hover:bg-card-secondary/40"
                 }
               `}
             >
               <div className="text-2xl mb-2">{activity.icon}</div>
               <div className="text-sm font-medium">{activity.label}</div>
               {isCompleted && (
-                <div className="text-xs text-green-600 mt-1">✓ Done</div>
+                <div className="text-xs text-logo-text mt-1">✓ Done</div>
               )}
             </button>
           );
