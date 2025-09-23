@@ -728,7 +728,7 @@ export const HealthContentNew = () => {
             <div className="flex flex-col">
               {/* Headers Row - HEALTH SCORE and WEEKLY VIEW */}
               <div className="flex items-center gap-8 mb-3">
-                <div className="text-white text-sm font-medium ml-4">
+                <div className="text-white text-sm font-medium ml-2">
                   HEALTH SCORE
                 </div>
                 <div className="text-white text-sm font-medium">
@@ -788,7 +788,7 @@ export const HealthContentNew = () => {
                 </div>
 
                 {/* Activity Icons */}
-                <div className="flex items-center gap-1 mr-4">
+                <div className="flex items-center gap-1 mr-2">
                     {/* Running Icon */}
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
                       <div className="relative w-12 h-12">
@@ -992,7 +992,7 @@ export const HealthContentNew = () => {
               </div>
 
               {/* Bottom Row - Streak Counter and Score Boost */}
-              <div className="flex items-center gap-6 mt-3 ml-4">
+              <div className="flex items-center gap-6 mt-3 ml-2">
                 {/* Streak Counter */}
                 <div className="flex items-center gap-1">
                   <span className="text-xl">🔥</span>
