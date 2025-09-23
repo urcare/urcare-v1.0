@@ -783,7 +783,7 @@ export const HealthContentNew = () => {
                 </div>
 
                 {/* Activity Icons Section */}
-                <div className="flex flex-col">
+                <div className="flex flex-col items-center">
                   <div className="text-white text-sm font-medium mb-3">
                     WEEKLY VIEW
                   </div>
