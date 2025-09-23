@@ -844,7 +844,7 @@ export const HealthContentNew = () => {
                         <img
                           src="/icons/run.png"
                           alt="Run"
-                          className="w-4 h-4 drop-shadow-lg"
+                          className="w-6 h-6 drop-shadow-lg"
                         />
                       </div>
                     </div>
@@ -882,9 +882,9 @@ export const HealthContentNew = () => {
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <img
-                          src="/icons/healthy-icon.svg"
+                          src="/icons/icons8-healthy-100.png"
                           alt="Healthy"
-                          className="w-4 h-4 drop-shadow-lg"
+                          className="w-6 h-6 drop-shadow-lg"
                         />
                       </div>
                     </div>
@@ -924,7 +924,7 @@ export const HealthContentNew = () => {
                         <img
                           src="/icons/water.png"
                           alt="Water"
-                          className="w-4 h-4 drop-shadow-lg"
+                          className="w-6 h-6 drop-shadow-lg"
                         />
                       </div>
                     </div>
@@ -964,7 +964,7 @@ export const HealthContentNew = () => {
                         <img
                           src="/icons/knife.png"
                           alt="Diet"
-                          className="w-4 h-4 drop-shadow-lg"
+                          className="w-6 h-6 drop-shadow-lg"
                         />
                       </div>
                     </div>
@@ -1004,7 +1004,7 @@ export const HealthContentNew = () => {
                         <img
                           src="/icons/cal.png"
                           alt="Calories"
-                          className="w-4 h-4 drop-shadow-lg"
+                          className="w-6 h-6 drop-shadow-lg"
                         />
                       </div>
                     </div>
