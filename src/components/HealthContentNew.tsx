@@ -725,11 +725,11 @@ export const HealthContentNew = () => {
         {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
           <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               {/* Left Section - Health Score */}
               <div className="flex flex-col items-center">
                 <div className="text-white text-sm font-medium mb-3">
-                  Health Score
+                  HEALTH SCORE
                 </div>
 
                 {/* Circular Progress */}
@@ -803,15 +803,15 @@ export const HealthContentNew = () => {
               </div>
 
               {/* Right Section - Weekly View */}
-              <div className="flex-1 ml-8">
+              <div className="flex-1 ml-6">
                 <div className="text-white text-sm font-medium mb-3">
                   WEEKLY VIEW
                 </div>
 
                 {/* Activity Icons */}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2 mb-3 justify-between">
                   {/* Running Icon */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
                       <svg
                         className="w-12 h-12 transform -rotate-90"
@@ -851,7 +851,7 @@ export const HealthContentNew = () => {
                   </div>
 
                   {/* Leaf Icon */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
                       <svg
                         className="w-12 h-12 transform -rotate-90"
@@ -891,7 +891,7 @@ export const HealthContentNew = () => {
                   </div>
 
                   {/* Drop Icon */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
                       <svg
                         className="w-12 h-12 transform -rotate-90"
@@ -931,7 +931,7 @@ export const HealthContentNew = () => {
                   </div>
 
                   {/* Diet Icon */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
                       <svg
                         className="w-12 h-12 transform -rotate-90"
@@ -971,7 +971,7 @@ export const HealthContentNew = () => {
                   </div>
 
                   {/* Calories Icon */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
                       <svg
                         className="w-12 h-12 transform -rotate-90"
@@ -1012,7 +1012,7 @@ export const HealthContentNew = () => {
                 </div>
 
                 {/* Score Boost */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-2">
                   <span className="text-xl">🔥</span>
                   <span className="text-white text-sm font-medium">
                     {getStreakBonusText(healthData?.streak_bonus || 1.0)}
