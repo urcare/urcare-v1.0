@@ -551,10 +551,15 @@ OUTPUT:
 - Regional food options and substitutions
 - JSON format maintained for API compatibility
 
-Create encouraging, achievable plans that demonstrate dramatic improvement over generic outputs.`;
+Create encouraging, achievable plans that demonstrate dramatic improvement over generic outputs.
 
-  const userPrompt = `## USER'S SPECIFIC HEALTH GOAL
+CRITICAL: Every plan must be hyper-personalized to the user's specific goal. Do not create generic plans.`;
+
+  const userPrompt = `## USER'S SPECIFIC HEALTH GOAL - THIS IS THE PRIMARY FOCUS
 "${userGoal || "Improve overall health and wellness"}"
+
+## CRITICAL: EVERY RECOMMENDATION MUST DIRECTLY SUPPORT THIS GOAL
+The user's primary goal is: "${userGoal || "Improve overall health and wellness"}"
 
 ## COMPREHENSIVE USER PROFILE ANALYSIS
 ${JSON.stringify(userData, null, 2)}
@@ -590,6 +595,16 @@ You MUST use EVERY piece of the above user data to create hyper-personalized pla
 - Health Goals: ${
     userData.goals.length > 0 ? userData.goals.join(", ") : "General wellness"
   } - every activity should contribute to these specific goals
+
+### PRIMARY GOAL FOCUS - CRITICAL
+- USER'S MAIN GOAL: "${userGoal || "Improve overall health and wellness"}"
+- EVERY activity, meal, and exercise must be specifically designed to achieve this goal
+- If goal is "GAIN WEIGHT": focus on calorie surplus, strength training, protein intake
+- If goal is "LOSE WEIGHT": focus on calorie deficit, cardio, portion control
+- If goal is "BUILD MUSCLE": focus on progressive overload, protein timing, recovery
+- If goal is "IMPROVE FITNESS": focus on cardiovascular health, endurance, flexibility
+- If goal is "MANAGE STRESS": focus on mindfulness, sleep, relaxation techniques
+- If goal is "BETTER SLEEP": focus on sleep hygiene, circadian rhythm, evening routines
 
 ### SCHEDULE INTEGRATION MANDATE
 - Wake Time: ${
@@ -893,7 +908,19 @@ Every single activity must include:
 - SAFETY considerations
 - PROGRESSIVE adjustments over time
 
-Remember: This is their personalized health coaching plan. Make it encouraging, achievable, and tailored to their unique situation while maintaining the highest safety standards. Demonstrate dramatic improvement over generic AI outputs.`;
+Remember: This is their personalized health coaching plan. Make it encouraging, achievable, and tailored to their unique situation while maintaining the highest safety standards. Demonstrate dramatic improvement over generic AI outputs.
+
+## FINAL GOAL-SPECIFIC REQUIREMENTS:
+- The user's goal is: "${userGoal || "Improve overall health and wellness"}"
+- EVERY recommendation must directly support achieving this specific goal
+- If the goal is "GAIN WEIGHT", include high-calorie meals, strength training, and recovery protocols
+- If the goal is "LOSE WEIGHT", include calorie-controlled meals, cardio, and portion control
+- If the goal is "BUILD MUSCLE", include progressive resistance training, protein timing, and adequate rest
+- If the goal is "IMPROVE FITNESS", include cardiovascular training, flexibility, and endurance building
+- If the goal is "MANAGE STRESS", include mindfulness practices, relaxation techniques, and stress-reducing activities
+- If the goal is "BETTER SLEEP", include sleep hygiene practices, evening routines, and circadian optimization
+
+DO NOT create generic plans. Every single activity must be specifically designed to help the user achieve their stated goal: "${userGoal || "Improve overall health and wellness"}"`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
