@@ -782,8 +782,12 @@ export const HealthContentNew = () => {
                   </div>
                 </div>
 
-                {/* Activity Icons */}
-                <div className="flex items-center gap-3">
+                {/* Activity Icons Section */}
+                <div className="flex flex-col">
+                  <div className="text-white text-sm font-medium mb-3">
+                    WEEKLY VIEW
+                  </div>
+                  <div className="flex items-center gap-1">
                   {/* Running Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     <div className="relative w-12 h-12">
@@ -983,6 +987,7 @@ export const HealthContentNew = () => {
                       </div>
                     </div>
                   </div>
+                </div>
                 </div>
               </div>
               
