@@ -727,11 +727,11 @@ export const HealthContentNew = () => {
           <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
             <div className="flex flex-col">
               {/* Headers Row - HEALTH SCORE and WEEKLY VIEW */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-8 mb-3">
                 <div className="text-white text-sm font-medium ml-4">
                   HEALTH SCORE
                 </div>
-                <div className="text-white text-sm font-medium mr-4">
+                <div className="text-white text-sm font-medium">
                   WEEKLY VIEW
                 </div>
               </div>
