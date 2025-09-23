@@ -691,7 +691,7 @@ export const HealthContentNew = () => {
       {/* Centered Loading Overlay for Plan Generation */}
       {generatingPlan && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
+            <div className="bg-card-bg rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
             <div className="text-center">
               <div className="w-16 h-16 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
@@ -749,8 +749,8 @@ export const HealthContentNew = () => {
         </div>
       )}
 
-      {/* Fixed Header with User Info - White Container */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white px-6 py-4 rounded-b-[3rem] shadow-lg">
+      {/* Fixed Header with User Info - Deep Emerald Green Container */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-card-bg px-6 py-4 rounded-b-[3rem] shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 ring-2 ring-white/50 shadow-lg">
@@ -1113,18 +1113,18 @@ export const HealthContentNew = () => {
         <div className="py-4">
           <div
             ref={stickyRef}
-            className={`bg-white rounded-[3rem] p-4 shadow-lg flex flex-col overflow-hidden ${
+            className={`bg-card-bg rounded-[3rem] p-4 shadow-lg flex flex-col overflow-hidden ${
               isSticky ? "sticky-bottom" : ""
             }`}
             style={{ maxHeight: "75vh" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4 relative flex-none">
-              <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
+              <h2 className="text-2xl font-bold text-logo-text">{sectionTitle}</h2>
               <div className="relative">
                 <button
                   onClick={() => setScheduleMenuOpen((v) => !v)}
-                  className="text-gray-600 w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                  className="text-logo-text w-10 h-10 rounded-full hover:bg-card-secondary/20 flex items-center justify-center"
                   title="Settings"
                 >
                   <svg
@@ -1148,16 +1148,16 @@ export const HealthContentNew = () => {
                   </svg>
                 </button>
                 {contentState === "upcoming_tasks" && scheduleMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-20">
+                  <div className="absolute right-0 mt-2 w-48 bg-card-bg text-logo-text rounded-lg shadow-lg z-20">
                     <button
                       onClick={handleScheduleEdit}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
+                      className="w-full text-left px-4 py-2 hover:bg-card-secondary/20 rounded-t-lg"
                     >
                       Edit plan
                     </button>
                     <button
                       onClick={handleScheduleChange}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 hover:bg-card-secondary/20"
                     >
                       Change plan
                     </button>
@@ -1213,19 +1213,19 @@ export const HealthContentNew = () => {
                     return (
                       <div
                         key={item.id}
-                        className={`rounded-[3rem] bg-white text-black hover:bg-gray-100 ${
+                        className={`rounded-[3rem] bg-card-secondary text-logo-text hover:bg-card-secondary/80 ${
                           item.completed ? "opacity-60" : ""
                         } ${isNewItem ? "fade-in-up" : ""}`}
                       >
                         {/* Header - Always visible */}
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-teal-500 border-teal-500">
+                            <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-card-bg border-border-accent">
                               {item.icon}
                             </div>
                             <div>
                               <h3
-                                className={`font-bold text-xl text-black ${
+                                className={`font-bold text-xl text-logo-text ${
                                   item.completed ? "line-through" : ""
                                 }`}
                               >

@@ -1231,16 +1231,16 @@ const Calendar: React.FC = () => {
                 </svg>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-20">
+                <div className="absolute right-0 mt-2 w-48 bg-card-bg text-logo-text rounded-lg shadow-lg z-20">
                   <button
                     onClick={openEdit}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
+                    className="w-full text-left px-4 py-2 hover:bg-card-secondary/20 rounded-t-lg"
                   >
                     Edit plan
                   </button>
                   <button
                     onClick={handleChangePlan}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 hover:bg-card-secondary/20"
                   >
                     Change plan
                   </button>
@@ -1778,8 +1778,8 @@ const Calendar: React.FC = () => {
       {/* Edit Plan Modal */}
       {editOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-black mb-4">Edit plan</h3>
+          <div className="bg-card-bg rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-logo-text mb-4">Edit plan</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">
