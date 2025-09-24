@@ -1258,501 +1258,83 @@ const Calendar: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-t-3xl -mt-4 relative z-10 min-h-screen">
+      <div className="bg-white rounded-t-3xl mt-8 relative z-10 min-h-screen">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
         </div>
 
         <div className="px-6">
-          {/* Date Header */}
-          <h2 className="text-2xl font-bold text-black mb-6">{selectedDate}</h2>
+          {/* Plan Details (replacing timetable) */}
+          <h2 className="text-2xl font-bold text-black mb-6">Plan Details</h2>
           {isPreview && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-              Preview mode — set this plan as default to keep the schedule.
+              Preview mode — set this plan as default to keep the plan.
             </div>
           )}
 
-          {/* Week Calendar */}
-          <div className="flex justify-between mb-8">
-            {weekDays.map((day, index) => (
-              <div
-                key={index}
-                className={`flex flex-col items-center py-2 px-3 rounded-xl cursor-pointer transition-colors ${
-                  day.date === selectedDay ? "bg-amber-50" : "hover:bg-gray-50"
-                }`}
-                onClick={() => {
-                  setSelectedDay(day.date);
-                  // Update header to reflect chosen date
-                  const parts = day.fullDate.split("-");
-                  const d = new Date(
-                    Number(parts[0]),
-                    Number(parts[1]) - 1,
-                    Number(parts[2])
-                  );
-                  setSelectedDate(formatHeaderDate(d));
-                }}
-              >
-                <span className="text-sm text-gray-600 mb-1">{day.day}</span>
-                <span className="text-lg font-medium text-black">
-                  {day.date}
-                </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+
+            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-2">Summary</h3>
+              <div className="text-sm text-gray-700 space-y-1">
+                <div><strong>Name:</strong> {planData?.plan_name || "Custom Plan"}</div>
+                <div><strong>Primary Goal:</strong> {planData?.primary_goal || "Improve overall health"}</div>
+                <div><strong>Duration:</strong> {planData?.duration_weeks || 12} weeks</div>
+                <div><strong>Difficulty:</strong> {(planData as any)?.difficulty || "Moderate"}</div>
+                <div><strong>Starts:</strong> {(location.state as any)?.planData?.plan_start_date || "Today"}</div>
               </div>
-            ))}
+            </div>
+
+            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-2">Expected Impacts</h3>
+              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                {(planData as any)?.expected_outcomes?.length
+                  ? (planData as any).expected_outcomes.map((t: string, i: number) => (<li key={i}>{t}</li>))
+                  : ["Better energy and focus","Improved fitness and mobility","Consistent meal timing and nutrition","Healthier sleep routine"].map((t, i) => (<li key={i}>{t}</li>))}
+              </ul>
+            </div>
+
+            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
+              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                {((location.state as any)?.planData?.overall_goals || planData?.overall_goals || ["Build healthy habits","Balance nutrition & activity"]).map((g: string, i: number) => (<li key={i}>{g}</li>))}
+              </ul>
+            </div>
+
+            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-2">Tips & Safety</h3>
+              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                {(((location.state as any)?.planData?.progress_tips) || []).concat(((location.state as any)?.planData?.safety_notes) || []).slice(0,6).map((t: string, i: number) => (<li key={i}>{t}</li>))}
+                {(!((location.state as any)?.planData?.progress_tips)?.length && !((location.state as any)?.planData?.safety_notes)?.length) && (<>
+                  <li>Hydrate well and warm up before workouts</li>
+                  <li>Scale intensity based on your current fitness</li>
+                  <li>Prioritize sleep and recovery</li>
+                </>)}
+              </ul>
+            </div>
           </div>
 
-          {/* Timeline */}
-          <div className="space-y-6">
-            {events && events.length > 0 ? (
-              events
-                .filter((event) => {
-                  // If we know mapped day dates, keep all (times are same-day only UI)
-                  // This stub keeps all events; hook real filtering when event carries date.
-                  return true;
-                })
-                .map((event, index) => {
-                  const isExpanded = expandedEvent === event.id;
-
-                  return (
-                    <div key={event.id} className="flex items-start space-x-4">
-                      {/* Time Label */}
-                      <div className="w-16 text-sm text-gray-600 mt-1">
-                        {event.time}
-                      </div>
-
-                      {/* Event Card */}
-                      <div className="flex-1">
-                        {event.color === "text" ? (
-                          <div className="py-2">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="text-black font-medium">
-                                  {event.title}
-                                </h3>
-                                {event.duration && (
-                                  <p className="text-sm text-gray-600">
-                                    {event.duration}
-                                  </p>
-                                )}
-                              </div>
-                              {/* Expand/Collapse Button */}
-                              {event.details && (
-                                <button
-                                  onClick={() =>
-                                    setExpandedEvent(
-                                      isExpanded ? null : event.id
-                                    )
-                                  }
-                                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                                >
-                                  {isExpanded ? (
-                                    <ChevronUp className="w-4 h-4" />
-                                  ) : (
-                                    <ChevronDown className="w-4 h-4" />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className={`rounded-xl p-4 ${getEventColorClass(
-                              event.color
-                            )}`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">{event.title}</h3>
-                                {event.duration && (
-                                  <p className="text-sm opacity-80 mt-1">
-                                    {event.duration}
-                                  </p>
-                                )}
-                              </div>
-                              {/* Expand/Collapse Button */}
-                              {event.details && (
-                                <button
-                                  onClick={() =>
-                                    setExpandedEvent(
-                                      isExpanded ? null : event.id
-                                    )
-                                  }
-                                  className="p-1 rounded-full hover:bg-white/20 transition-colors"
-                                >
-                                  {isExpanded ? (
-                                    <ChevronUp className="w-4 h-4" />
-                                  ) : (
-                                    <ChevronDown className="w-4 h-4" />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Expanded Details */}
-                        {isExpanded && event.details && (
-                          <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-4">
-                            {event.details.description && (
-                              <p className="text-gray-700 text-sm font-medium">
-                                {event.details.description}
-                              </p>
-                            )}
-
-                            {/* Detailed Instructions */}
-                            {event.details.detailedInstructions && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  📋 Detailed Instructions
-                                </h4>
-                                <div className="bg-white p-3 rounded-lg">
-                                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                                    {event.details.detailedInstructions.join(
-                                      "\n"
-                                    )}
-                                  </pre>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Workout Details */}
-                            {event.details.exercises && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  💪 Exercises
-                                </h4>
-                                <div className="space-y-2">
-                                  {event.details.exercises.map(
-                                    (exercise, exerciseIndex) => (
-                                      <div
-                                        key={exerciseIndex}
-                                        className="flex justify-between items-center p-2 bg-white rounded text-sm"
-                                      >
-                                        <span className="font-medium">
-                                          {exercise.name}
-                                        </span>
-                                        <span className="text-gray-600">
-                                          {exercise.sets} sets × {exercise.reps}{" "}
-                                          reps • Rest: {exercise.rest}
-                                        </span>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Exercise Breakdown */}
-                            {event.details.exerciseBreakdown && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🏋️ Exercise Breakdown
-                                </h4>
-                                <div className="space-y-3">
-                                  {event.details.exerciseBreakdown.map(
-                                    (exercise, exerciseIndex) => (
-                                      <div
-                                        key={exerciseIndex}
-                                        className="bg-white p-3 rounded-lg border"
-                                      >
-                                        <div className="flex justify-between items-start mb-2">
-                                          <h5 className="font-semibold text-sm">
-                                            {exercise.name}
-                                          </h5>
-                                          <span className="text-xs text-gray-500">
-                                            {exercise.sets} sets ×{" "}
-                                            {exercise.reps} reps
-                                          </span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
-                                          {exercise.rpe && (
-                                            <div>RPE: {exercise.rpe}</div>
-                                          )}
-                                          {exercise.rest && (
-                                            <div>Rest: {exercise.rest}</div>
-                                          )}
-                                          {exercise.workTime && (
-                                            <div>Work: {exercise.workTime}</div>
-                                          )}
-                                          {exercise.restTime && (
-                                            <div>Rest: {exercise.restTime}</div>
-                                          )}
-                                        </div>
-                                        <div className="text-xs text-gray-700 mb-2">
-                                          <strong>Form:</strong> {exercise.form}
-                                        </div>
-                                        {exercise.alternatives && (
-                                          <div className="text-xs text-gray-600">
-                                            <strong>Alternatives:</strong>{" "}
-                                            {exercise.alternatives.join(", ")}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Workout Details Summary */}
-                            {event.details.workoutDetails && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🏃 Workout Summary
-                                </h4>
-                                <div className="bg-white p-3 rounded-lg grid grid-cols-2 gap-2 text-xs">
-                                  <div>
-                                    <strong>Warm-up:</strong>{" "}
-                                    {event.details.workoutDetails.warmup}
-                                  </div>
-                                  <div>
-                                    <strong>Main Workout:</strong>{" "}
-                                    {event.details.workoutDetails.mainWorkout}
-                                  </div>
-                                  <div>
-                                    <strong>Cool-down:</strong>{" "}
-                                    {event.details.workoutDetails.cooldown}
-                                  </div>
-                                  <div>
-                                    <strong>Total Time:</strong>{" "}
-                                    {event.details.workoutDetails.totalTime}
-                                  </div>
-                                  <div>
-                                    <strong>Intensity:</strong>{" "}
-                                    {event.details.workoutDetails.intensity}
-                                  </div>
-                                  <div>
-                                    <strong>Equipment:</strong>{" "}
-                                    {event.details.workoutDetails.equipment}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Nutrition Details */}
-                            {event.details.nutrition && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🍎 Nutrition Info
-                                </h4>
-                                <div className="grid grid-cols-2 gap-2 mb-3">
-                                  <div className="p-2 bg-white rounded text-center">
-                                    <div className="font-bold text-lg">
-                                      {event.details.nutrition.calories}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                      Calories
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1 text-xs">
-                                    <div>
-                                      Protein: {event.details.nutrition.protein}
-                                    </div>
-                                    <div>
-                                      Carbs: {event.details.nutrition.carbs}
-                                    </div>
-                                    <div>
-                                      Fats: {event.details.nutrition.fats}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div>
-                                  <h5 className="font-medium mb-1 text-sm">
-                                    Foods:
-                                  </h5>
-                                  <ul className="text-xs text-gray-600 space-y-1">
-                                    {event.details.nutrition.foods.map(
-                                      (food, foodIndex) => (
-                                        <li key={foodIndex}>• {food}</li>
-                                      )
-                                    )}
-                                  </ul>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Nutritional Details */}
-                            {event.details.nutritionalDetails && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🥗 Nutritional Breakdown
-                                </h4>
-                                <div className="bg-white p-3 rounded-lg grid grid-cols-2 gap-2 text-xs">
-                                  <div>
-                                    <strong>Calories:</strong>{" "}
-                                    {event.details.nutritionalDetails.calories}
-                                  </div>
-                                  <div>
-                                    <strong>Protein:</strong>{" "}
-                                    {event.details.nutritionalDetails.protein}
-                                  </div>
-                                  <div>
-                                    <strong>Carbs:</strong>{" "}
-                                    {event.details.nutritionalDetails.carbs}
-                                  </div>
-                                  <div>
-                                    <strong>Fats:</strong>{" "}
-                                    {event.details.nutritionalDetails.fats}
-                                  </div>
-                                  <div>
-                                    <strong>Fiber:</strong>{" "}
-                                    {event.details.nutritionalDetails.fiber}
-                                  </div>
-                                  <div>
-                                    <strong>Timing:</strong>{" "}
-                                    {event.details.nutritionalDetails.timing}
-                                  </div>
-                                  <div>
-                                    <strong>Eating Order:</strong>{" "}
-                                    {
-                                      event.details.nutritionalDetails
-                                        .eatingOrder
-                                    }
-                                  </div>
-                                  <div>
-                                    <strong>Chewing:</strong>{" "}
-                                    {event.details.nutritionalDetails.chewing}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Office Optimizations */}
-                            {event.details.officeOptimizations && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🏢 Office Optimizations
-                                </h4>
-                                <div className="bg-white p-3 rounded-lg grid grid-cols-1 gap-2 text-xs">
-                                  <div>
-                                    <strong>Ergonomics:</strong>{" "}
-                                    {
-                                      event.details.officeOptimizations
-                                        .ergonomics
-                                    }
-                                  </div>
-                                  <div>
-                                    <strong>Lighting:</strong>{" "}
-                                    {event.details.officeOptimizations.lighting}
-                                  </div>
-                                  <div>
-                                    <strong>Breaks:</strong>{" "}
-                                    {event.details.officeOptimizations.breaks}
-                                  </div>
-                                  <div>
-                                    <strong>Hydration:</strong>{" "}
-                                    {
-                                      event.details.officeOptimizations
-                                        .hydration
-                                    }
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Office Specific Details */}
-                            {event.details.officeSpecific && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  💼 Office-Specific Activities
-                                </h4>
-                                <div className="bg-white p-3 rounded-lg grid grid-cols-1 gap-2 text-xs">
-                                  <div>
-                                    <strong>Desk Stretches:</strong>{" "}
-                                    {event.details.officeSpecific.deskStretches}
-                                  </div>
-                                  <div>
-                                    <strong>Standing:</strong>{" "}
-                                    {event.details.officeSpecific.standing}
-                                  </div>
-                                  <div>
-                                    <strong>Eye Care:</strong>{" "}
-                                    {event.details.officeSpecific.eyeCare}
-                                  </div>
-                                  <div>
-                                    <strong>Circulation:</strong>{" "}
-                                    {event.details.officeSpecific.circulation}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Instructions */}
-                            {event.details.instructions && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  📝 Instructions
-                                </h4>
-                                <ol className="text-xs text-gray-700 space-y-1">
-                                  {event.details.instructions.map(
-                                    (instruction, instructionIndex) => (
-                                      <li
-                                        key={instructionIndex}
-                                        className="flex"
-                                      >
-                                        <span className="font-medium mr-2">
-                                          {instructionIndex + 1}.
-                                        </span>
-                                        <span>{instruction}</span>
-                                      </li>
-                                    )
-                                  )}
-                                </ol>
-                              </div>
-                            )}
-
-                            {/* Tips */}
-                            {event.details.tips && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  💡 Tips
-                                </h4>
-                                <ul className="text-xs text-gray-700 space-y-1">
-                                  {event.details.tips.map((tip, tipIndex) => (
-                                    <li key={tipIndex} className="flex">
-                                      <span className="mr-2">•</span>
-                                      <span>{tip}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {/* Benefits */}
-                            {event.details.benefits && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  ✅ Benefits
-                                </h4>
-                                <p className="text-xs text-gray-700">
-                                  {event.details.benefits}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Scientific Evidence */}
-                            {event.details.scientificEvidence && (
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                                  🔬 Scientific Evidence
-                                </h4>
-                                <p className="text-xs text-gray-700 italic">
-                                  {event.details.scientificEvidence}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600">No events scheduled for today</p>
-              </div>
-            )}
+          <div className="rounded-2xl bg-white p-4 border border-gray-200">
+            <h3 className="text-lg font-semibold text-black mb-2">What’s Inside</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
+              <div><strong>Workouts</strong><p className="mt-1">{planData?.plan_data?.daily_templates?.weekday?.workouts?.length || 4} sessions/week, progressive overload</p></div>
+              <div><strong>Nutrition</strong><p className="mt-1">Balanced macros, regular meals, meal-prep guidance</p></div>
+              <div><strong>Wellness</strong><p className="mt-1">Mindfulness, hydration, and sleep hygiene practices</p></div>
+            </div>
           </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+        </div>
         </div>
 
         {/* Floating Action Button */}
