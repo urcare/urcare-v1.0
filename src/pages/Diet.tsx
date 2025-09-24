@@ -154,14 +154,14 @@ const Diet: React.FC = () => {
       <MobileNavigation>
         <div className="space-y-6">
           {/* Hero Header */}
-          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-b-3xl px-6 py-8 text-white">
+          <div className="bg-card-bg rounded-b-3xl px-6 py-8 text-logo-text">
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-2">Find your plan</h1>
               <p className="text-green-100 mb-6">
                 Simplify your nutrition decisions. With the test, we will create
                 the best plan for you.
               </p>
-              <Button className="bg-white text-green-600 hover:bg-green-50 font-semibold px-8 py-3 rounded-full">
+              <Button className="bg-accent text-foreground hover:bg-accent/90 font-semibold px-8 py-3 rounded-full">
                 Take the test
               </Button>
             </div>
@@ -180,7 +180,7 @@ const Diet: React.FC = () => {
                       onClick={() => setSelectedDietCategory(category.id)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                         isActive
-                          ? "bg-green-100 text-green-700 font-semibold"
+                          ? "bg-card-secondary/20 text-text-primary font-semibold"
                           : "text-gray-600 hover:bg-gray-100"
                       }`}
                     >

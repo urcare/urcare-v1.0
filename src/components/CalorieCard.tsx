@@ -217,7 +217,7 @@ export const CalorieCard: React.FC<CalorieCardProps> = ({
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div
-                    className="bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-500"
+                    className="bg-progress-fill h-1.5 rounded-full transition-all duration-500"
                     style={{ width: `${macroPercentages.protein}%` }}
                   />
                 </div>

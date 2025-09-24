@@ -61,8 +61,8 @@ export const DashboardHeader: React.FC = () => {
   }, [profile]);
 
   const getIndexColor = (index: number) => {
-    if (index >= 8) return "text-green-500";
-    if (index >= 6) return "text-yellow-500";
+    if (index >= 8) return "text-logo-text";
+    if (index >= 6) return "text-logo-text";
     return "text-red-500";
   };
 
@@ -79,7 +79,7 @@ export const DashboardHeader: React.FC = () => {
   if (!user || !profile) {
     return (
       <div className="h-1/4 bg-transparent px-4 pt-4">
-        <div className="text-gray-500 text-center">Loading...</div>
+        <div className="text-text-secondary text-center">Loading...</div>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export const DashboardHeader: React.FC = () => {
           <div className="flex flex-col">
             {/* Professional greeting */}
             <h2
-              className="text-lg sm:text-xl font-light text-gray-800 mb-1 sm:mb-2 tracking-wide"
+              className="text-lg sm:text-xl font-light text-text-primary mb-1 sm:mb-2 tracking-wide"
               style={{
                 fontFamily:
                   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -131,10 +131,10 @@ export const DashboardHeader: React.FC = () => {
                   {healthIndex.toFixed(1)}
                 </span>
               </div>
-              <div className="flex items-center gap-1 bg-green-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-green-200/50">
-                <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600" />
-                <span className="text-xs sm:text-sm text-green-700 font-medium ml-1">
+              <div className="flex items-center gap-1 bg-card-secondary/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-border-accent/50">
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-logo-text" />
+                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-logo-text" />
+                <span className="text-xs sm:text-sm text-text-secondary font-medium ml-1">
                   Health Index
                 </span>
               </div>
@@ -144,11 +144,11 @@ export const DashboardHeader: React.FC = () => {
 
         {/* Right side - Edit and Settings icons */}
         <div className="flex flex-col gap-1 sm:gap-2">
-          <button className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors">
-            <Edit className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />
+          <button className="w-6 h-6 sm:w-8 sm:h-8 bg-card-secondary/20 backdrop-blur-sm rounded-lg flex items-center justify-center hover:bg-card-secondary/30 transition-colors">
+            <Edit className="w-3 h-3 sm:w-4 sm:h-4 text-text-secondary" />
           </button>
-          <button className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors">
-            <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />
+          <button className="w-6 h-6 sm:w-8 sm:h-8 bg-card-secondary/20 backdrop-blur-sm rounded-lg flex items-center justify-center hover:bg-card-secondary/30 transition-colors">
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-text-secondary" />
           </button>
         </div>
       </div>

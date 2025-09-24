@@ -83,7 +83,7 @@ const Workout: React.FC = () => {
   const muscleGroups: MuscleGroup[] = [
     { name: "Chest", color: "bg-red-500", intensity: 0 },
     { name: "Back", color: "bg-blue-500", intensity: 0 },
-    { name: "Shoulders", color: "bg-green-500", intensity: 0 },
+    { name: "Shoulders", color: "bg-progress-fill", intensity: 0 },
     { name: "Biceps", color: "bg-yellow-500", intensity: 0 },
     { name: "Triceps", color: "bg-purple-500", intensity: 0 },
     { name: "Abs", color: "bg-pink-500", intensity: 0 },
@@ -553,7 +553,7 @@ const Workout: React.FC = () => {
                       Pause
                     </Button>
                     <Button
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      className="flex-1 bg-accent hover:bg-accent/90 text-foreground"
                       onClick={completeSet}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
@@ -594,4 +594,3 @@ const Workout: React.FC = () => {
 };
 
 export default Workout;
-
