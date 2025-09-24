@@ -116,7 +116,7 @@ export const HealthContentNew = () => {
       setSectionTitle("Generating your plan...");
       setDynamicContent([]);
 
-      toast.loading("Generating your personalized health plan...", {
+      toast.loading("Generating your personalized health protocol...", {
         id: "plan-generation",
       });
 
@@ -154,7 +154,7 @@ export const HealthContentNew = () => {
         const options: DynamicContentItem[] = [
           {
             id: "opt-easy",
-            title: "Balanced Wellness Plan",
+            title: "Balanced Wellness Protocol",
             description:
               "A gentle, sustainable plan focused on consistency and habit-building.",
             icon: "🟢",
@@ -167,7 +167,7 @@ export const HealthContentNew = () => {
           },
           {
             id: "opt-moderate",
-            title: "Performance Boost Plan",
+            title: "Performance Boost Protocol",
             description:
               "A balanced challenge blending fitness, nutrition, and recovery.",
             icon: "🟠",
@@ -184,7 +184,7 @@ export const HealthContentNew = () => {
           },
           {
             id: "opt-hard",
-            title: "Peak Transformation Plan",
+            title: "Peak Transformation Protocol",
             description:
               "An intensive roadmap for rapid, disciplined progress.",
             icon: "🔴",
@@ -209,25 +209,25 @@ export const HealthContentNew = () => {
 
         // Show the options in place of insights
         setContentState("plan_selection");
-        setSectionTitle("Select Your Plan");
+        setSectionTitle("Select Your Protocol");
         setDynamicContent(options);
 
         toast.dismiss("plan-generation");
-        toast.success("Choose a plan to view full details", {
+        toast.success("Choose a protocol to view full details", {
           id: "plan-generation",
         });
       } else {
         console.error(
-          "[HealthContentNew] Plan generation failed:",
+          "[HealthContentNew] Protocol generation failed:",
           result.error
         );
-        toast.error(result.error || "Failed to generate health plan", {
+        toast.error(result.error || "Failed to generate health protocol", {
           id: "plan-generation",
         });
       }
     } catch (error) {
-      console.error("[HealthContentNew] Error generating health plan:", error);
-      toast.error("An error occurred while generating your health plan", {
+      console.error("[HealthContentNew] Error generating health protocol:", error);
+      toast.error("An error occurred while generating your health protocol", {
         id: "plan-generation",
       });
     } finally {
@@ -306,7 +306,7 @@ export const HealthContentNew = () => {
     const plans: DynamicContentItem[] = [
       {
         id: "1",
-        title: "Comprehensive Health Plan",
+        title: "Comprehensive Health Protocol",
         description: "AI-generated plan based on your specific health goals",
         icon: <Flame className="w-6 h-6 text-logo-text" />,
         time: "4-12 weeks",
@@ -315,8 +315,8 @@ export const HealthContentNew = () => {
       },
       {
         id: "2",
-        title: "Quick Start 2-Day Plan",
-        description: "Get started immediately with a focused 2-day health plan",
+        title: "Quick Start 2-Day Protocol",
+        description: "Get started immediately with a focused 2-day health protocol",
         icon: <Flame className="w-6 h-6 text-logo-text" />,
         time: "2 days",
         isHighlighted: false,
@@ -330,8 +330,8 @@ export const HealthContentNew = () => {
     if (goalTypes.includes("weight_loss")) {
       plans.push({
         id: "3",
-        title: "Weight Management Plan",
-        description: "Sustainable weight loss through nutrition and exercise",
+        title: "Weight Management Protocol",
+        description: "Sustainable weight management through nutrition and exercise",
         icon: "⚖️",
         time: "8-16 weeks",
         isHighlighted: false,
@@ -342,8 +342,8 @@ export const HealthContentNew = () => {
     if (goalTypes.includes("fitness")) {
       plans.push({
         id: "4",
-        title: "Fitness & Strength Plan",
-        description: "Build muscle and improve cardiovascular health",
+        title: "Fitness & Strength Protocol",
+        description: "Build muscle and improve cardiovascular health through structured protocol",
         icon: "🏋️",
         time: "12 weeks",
         isHighlighted: false,
@@ -442,7 +442,7 @@ export const HealthContentNew = () => {
             "Improve overall health",
             profile
           );
-          toast.success("Comprehensive health plan generated!");
+          toast.success("Comprehensive health protocol generated!");
 
           // Refresh to show new tasks
           setTimeout(() => {
@@ -471,13 +471,13 @@ export const HealthContentNew = () => {
           }
 
           if (data.success) {
-            toast.success("Quick start plan generated!");
+            toast.success("Quick start protocol generated!");
             // Refresh to show new tasks
             setTimeout(() => {
               window.location.reload();
             }, 1000);
           } else {
-            throw new Error(data.error || "Failed to generate plan");
+            throw new Error(data.error || "Failed to generate protocol");
           }
         } else if (item.action === "view_plan_option" && item.planData) {
           // Navigate to calendar with the selected plan details
@@ -490,8 +490,8 @@ export const HealthContentNew = () => {
           });
         }
       } catch (error) {
-        console.error("Error generating plan:", error);
-        toast.error("Failed to generate plan");
+        console.error("Error generating protocol:", error);
+        toast.error("Failed to generate protocol");
       } finally {
         setLoading(false);
       }
@@ -550,7 +550,7 @@ export const HealthContentNew = () => {
         toast.error("Please log in");
         return;
       }
-      toast.loading("Removing your active plan...", { id: "remove-plan" });
+      toast.loading("Removing your active protocol...", { id: "remove-plan" });
       // Delete active plan instead of update to avoid unique constraint conflicts
       const { error } = await supabase
         .from("two_day_health_plans")
@@ -558,14 +558,14 @@ export const HealthContentNew = () => {
         .eq("user_id", user.id)
         .eq("is_active", true);
       if (error) throw error;
-      toast.success("Plan removed", { id: "remove-plan" });
+      toast.success("Protocol removed", { id: "remove-plan" });
       // After removal, return to insights
       setContentState("health_tips");
       setSectionTitle("Health Insights");
       await loadPersonalizedTips();
     } catch (e) {
-      console.error("Remove plan failed", e);
-      toast.error("Failed to remove plan", { id: "remove-plan" });
+      console.error("Remove protocol failed", e);
+      toast.error("Failed to remove protocol", { id: "remove-plan" });
     }
   };
 
@@ -579,7 +579,7 @@ export const HealthContentNew = () => {
         // Check if we're coming from a saved plan
         if (location.state?.planSaved) {
           setContentState("upcoming_tasks");
-          setSectionTitle("Your Health Schedule");
+          setSectionTitle("Your Health Protocol");
           // Load the most recent active plan
           const { data: activePlan } = await supabase
             .from("two_day_health_plans")
@@ -595,7 +595,7 @@ export const HealthContentNew = () => {
           }
           // Show success message
           toast.success(
-            "Plan saved successfully! Your schedule is now active."
+            "Protocol saved successfully! Your protocol is now active."
           );
           return;
         }
@@ -633,7 +633,7 @@ export const HealthContentNew = () => {
           (twoDayPlans && twoDayPlans.length > 0)
         ) {
           setContentState("upcoming_tasks");
-          setSectionTitle("Today's Schedule");
+          setSectionTitle("Today's Protocol");
           await loadUpcomingTasks(activePlans?.[0] || twoDayPlans?.[0]);
         } else {
           // If we have cached recommended options, prefer showing them when coming back from preview
@@ -642,7 +642,7 @@ export const HealthContentNew = () => {
             if (cached) {
               const opts: DynamicContentItem[] = JSON.parse(cached);
               setContentState("plan_selection");
-              setSectionTitle("Select Your Plan");
+              setSectionTitle("Select Your Protocol");
               setDynamicContent(opts);
               return;
             }
@@ -727,11 +727,11 @@ export const HealthContentNew = () => {
               </div>
 
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Generating Your Health Plan
+                Generating Your Health Protocol
               </h3>
 
               <p className="text-gray-600 mb-6">
-                Creating a personalized plan based on your goals and
+                Creating a personalized protocol based on your goals and
                 preferences...
               </p>
 
@@ -743,7 +743,7 @@ export const HealthContentNew = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                  <span>Creating nutrition plan...</span>
+                  <span>Creating nutrition protocol...</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
@@ -751,7 +751,7 @@ export const HealthContentNew = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                  <span>Finalizing your plan...</span>
+                  <span>Finalizing your protocol...</span>
                 </div>
               </div>
             </div>
@@ -1163,19 +1163,19 @@ export const HealthContentNew = () => {
                       onClick={handleScheduleEdit}
                       className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
                     >
-                      Edit plan
+                      Edit protocol
                     </button>
                     <button
                       onClick={handleScheduleChange}
                       className="w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
-                      Change plan
+                      Change protocol
                     </button>
                     <button
                       onClick={handleScheduleRemove}
                       className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
                     >
-                      Remove plan
+                      Remove protocol
                     </button>
                   </div>
                 )}
@@ -1264,7 +1264,7 @@ export const HealthContentNew = () => {
                                 onClick={() => handleContentClick(item)}
                                 className="px-4 py-2 bg-accent text-foreground rounded-full hover:bg-accent/90 transition-colors"
                               >
-                                View plan details
+                                View protocol details
                               </button>
                             ) : (
                               <button

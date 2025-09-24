@@ -1188,8 +1188,8 @@ const Calendar: React.FC = () => {
               </h1>
               <p className="text-white text-sm">
                 {planData
-                  ? `${planData.duration_weeks} weeks plan`
-                  : "4 weeks plan"}
+                  ? `${planData.duration_weeks} weeks protocol`
+                  : "4 weeks protocol"}
               </p>
             </div>
           </div>
@@ -1210,7 +1210,7 @@ const Calendar: React.FC = () => {
                     Saving...
                   </>
                 ) : (
-                  "Set as default plan"
+                  "Set as default protocol"
                 )}
               </button>
             )}
@@ -1236,19 +1236,19 @@ const Calendar: React.FC = () => {
                     onClick={openEdit}
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
                   >
-                    Edit plan
+                    Edit protocol
                   </button>
                   <button
                     onClick={handleChangePlan}
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
-                    Change plan
+                    Change protocol
                   </button>
                   <button
                     onClick={handleRemovePlan}
                     className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
                   >
-                    Remove plan
+                    Remove protocol
                   </button>
                 </div>
               )}
@@ -1265,11 +1265,11 @@ const Calendar: React.FC = () => {
         </div>
 
         <div className="px-6">
-          {/* Plan Details (replacing timetable) */}
-          <h2 className="text-2xl font-bold text-black mb-6">Plan Details</h2>
+          {/* Protocol Details (replacing timetable) */}
+          <h2 className="text-2xl font-bold text-black mb-6">Protocol Details</h2>
           {isPreview && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-              Preview mode — set this plan as default to keep the plan.
+              Preview mode — set this protocol as default to keep the protocol.
             </div>
           )}
 
@@ -1278,7 +1278,7 @@ const Calendar: React.FC = () => {
             <div className="rounded-2xl bg-white p-4 border border-gray-200">
               <h3 className="text-lg font-semibold text-black mb-2">Summary</h3>
               <div className="text-sm text-gray-700 space-y-1">
-                <div><strong>Name:</strong> {planData?.plan_name || "Custom Plan"}</div>
+                <div><strong>Name:</strong> {planData?.plan_name || "Custom Protocol"}</div>
                 <div><strong>Primary Goal:</strong> {planData?.primary_goal || "Improve overall health"}</div>
                 <div><strong>Duration:</strong> {planData?.duration_weeks || 12} weeks</div>
                 <div><strong>Difficulty:</strong> {(planData as any)?.difficulty || "Moderate"}</div>
@@ -1361,7 +1361,7 @@ const Calendar: React.FC = () => {
       {editOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-black mb-4">Edit plan</h3>
+            <h3 className="text-xl font-bold text-black mb-4">Edit protocol</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">
