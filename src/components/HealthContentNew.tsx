@@ -5,6 +5,7 @@ import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Brain, CheckCircle2, Circle, Dumbbell, Droplets, Footprints, Moon, Sun, Utensils, Flame } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,7 +14,7 @@ interface DynamicContentItem {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   time: string;
   isHighlighted: boolean;
   completed?: boolean;
@@ -236,7 +237,7 @@ export const HealthContentNew = () => {
 
   // Content loading functions
   const loadPersonalizedTips = useCallback(async () => {
-    const tips = [];
+    const tips = [] as DynamicContentItem[];
 
     // Age-specific hydration tip
     tips.push({
@@ -245,7 +246,7 @@ export const HealthContentNew = () => {
       description: `Based on your ${
         profile?.age || 30
       }-year-old profile, drink 16oz of water upon waking to kickstart metabolism`,
-      icon: "💧",
+      icon: <Droplets className="w-6 h-6 text-logo-text" />,
       time: "Morning",
       isHighlighted: true,
     });
@@ -257,7 +258,7 @@ export const HealthContentNew = () => {
       description: `Your ideal bedtime is ${
         profile?.sleep_time || "10:00 PM"
       } for 7-8 hours of quality rest`,
-      icon: "😴",
+      icon: <Moon className="w-6 h-6 text-logo-text" />,
       time: "Tonight",
       isHighlighted: false,
     });
@@ -269,7 +270,7 @@ export const HealthContentNew = () => {
       description: `${
         profile?.gender === "female" ? "Women benefit from" : "Men benefit from"
       } strength training 3x/week for bone health`,
-      icon: "💪",
+      icon: <Dumbbell className="w-6 h-6 text-logo-text" />,
       time: "This Week",
       isHighlighted: false,
     });
@@ -280,7 +281,7 @@ export const HealthContentNew = () => {
         id: "4",
         title: "Manage Your Health Conditions",
         description: `Focus on anti-inflammatory foods for your ${profile.chronic_conditions[0]} management`,
-        icon: "🩺",
+      icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
         time: "Daily",
         isHighlighted: false,
       });
@@ -292,7 +293,7 @@ export const HealthContentNew = () => {
         id: "5",
         title: `${profile.diet_type} Diet Optimization`,
         description: `Meal prep strategies specifically designed for your ${profile.diet_type.toLowerCase()} lifestyle`,
-        icon: "🥗",
+      icon: <Utensils className="w-6 h-6 text-logo-text" />,
         time: "Meal Times",
         isHighlighted: false,
       });
@@ -302,12 +303,12 @@ export const HealthContentNew = () => {
   }, [profile]);
 
   const loadHealthPlans = useCallback(async (goals: HealthGoal[]) => {
-    const plans = [
+    const plans: DynamicContentItem[] = [
       {
         id: "1",
         title: "Comprehensive Health Plan",
         description: "AI-generated plan based on your specific health goals",
-        icon: "🎯",
+        icon: <Flame className="w-6 h-6 text-logo-text" />,
         time: "4-12 weeks",
         isHighlighted: true,
         action: "generate_comprehensive",
@@ -316,7 +317,7 @@ export const HealthContentNew = () => {
         id: "2",
         title: "Quick Start 2-Day Plan",
         description: "Get started immediately with a focused 2-day health plan",
-        icon: "⚡",
+        icon: <Flame className="w-6 h-6 text-logo-text" />,
         time: "2 days",
         isHighlighted: false,
         action: "generate_quick",
@@ -354,21 +355,21 @@ export const HealthContentNew = () => {
   }, []);
 
   const getActivityIcon = (type: string) => {
-    const iconMap: { [key: string]: string } = {
-      workout: "🏋️",
-      meal: "🍽️",
-      hydration: "💧",
-      sleep: "😴",
-      meditation: "🧘",
-      walk: "🚶",
-      morning: "🌅",
-      default: "✅",
+    const iconMap: { [key: string]: React.ReactNode } = {
+      workout: <Dumbbell className="w-6 h-6 text-logo-text" />,
+      meal: <Utensils className="w-6 h-6 text-logo-text" />,
+      hydration: <Droplets className="w-6 h-6 text-logo-text" />,
+      sleep: <Moon className="w-6 h-6 text-logo-text" />,
+      meditation: <Brain className="w-6 h-6 text-logo-text" />,
+      walk: <Footprints className="w-6 h-6 text-logo-text" />,
+      morning: <Sun className="w-6 h-6 text-logo-text" />,
+      default: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
     };
     return iconMap[type] || iconMap["default"];
   };
 
   const loadUpcomingTasks = useCallback(async (activePlan: HealthPlan) => {
-    const tasks = [];
+    const tasks: DynamicContentItem[] = [];
 
     if (activePlan && activePlan.day_1_plan) {
       // Extract today's activities from the plan
@@ -397,7 +398,7 @@ export const HealthContentNew = () => {
           id: "1",
           title: "Morning Routine",
           description: "30-min morning wellness routine",
-          icon: "🌅",
+          icon: <Sun className="w-6 h-6 text-logo-text" />,
           time: "07:00 AM",
           isHighlighted: true,
           completed: false,
@@ -406,7 +407,7 @@ export const HealthContentNew = () => {
           id: "2",
           title: "Healthy Breakfast",
           description: "Protein-rich meal with complex carbs",
-          icon: "🍳",
+          icon: <Utensils className="w-6 h-6 text-logo-text" />,
           time: "08:00 AM",
           isHighlighted: false,
           completed: false,
@@ -415,7 +416,7 @@ export const HealthContentNew = () => {
           id: "3",
           title: "Midday Movement",
           description: "15-min walk or light exercise",
-          icon: "🚶",
+          icon: <Footprints className="w-6 h-6 text-logo-text" />,
           time: "01:30 PM",
           isHighlighted: false,
           completed: false,
@@ -1222,26 +1223,26 @@ export const HealthContentNew = () => {
                     return (
                       <div
                         key={item.id}
-                        className={`rounded-[3rem] bg-white text-black hover:bg-gray-100 ${
+                        className={`rounded-[3rem] bg-card-secondary text-logo-text hover:bg-card-secondary/80 ${
                           item.completed ? "opacity-60" : ""
                         } ${isNewItem ? "fade-in-up" : ""}`}
                       >
                         {/* Header - Always visible */}
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-teal-500 border-teal-500">
+                            <div className="w-16 h-16 aspect-square rounded-full flex items-center justify-center text-2xl border-2 bg-card-bg border-border-accent">
                               {item.icon}
                             </div>
                             <div>
                               <h3
-                                className={`font-bold text-xl text-black ${
+                                className={`font-bold text-xl text-logo-text ${
                                   item.completed ? "line-through" : ""
                                 }`}
                               >
                                 {item.title}
                               </h3>
                               {isPlanOption && (
-                                <div className="text-sm text-gray-600 mt-1">
+                                <div className="text-sm text-text-secondary mt-1">
                                   <span className="mr-3">
                                     Duration: {item.duration}
                                   </span>
@@ -1253,7 +1254,7 @@ export const HealthContentNew = () => {
                           <div className="flex items-center gap-4">
                             {!isPlanOption && (
                               <div className="text-right">
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-text-secondary">
                                   {item.time}
                                 </p>
                               </div>
@@ -1261,7 +1262,7 @@ export const HealthContentNew = () => {
                             {isPlanOption ? (
                               <button
                                 onClick={() => handleContentClick(item)}
-                                className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
+                                className="px-4 py-2 bg-accent text-foreground rounded-full hover:bg-accent/90 transition-colors"
                               >
                                 View plan details
                               </button>
