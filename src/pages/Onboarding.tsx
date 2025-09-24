@@ -99,31 +99,48 @@ const Onboarding = () => {
       // Check subscription status and redirect accordingly
       const checkSubscriptionAndRedirect = async () => {
         try {
-          const { subscriptionService } = await import("../services/subscriptionService");
-          const { isTrialBypassEnabled } = await import("../config/subscription");
+          const { subscriptionService } = await import(
+            "../services/subscriptionService"
+          );
+          const { isTrialBypassEnabled } = await import(
+            "../config/subscription"
+          );
 
           // Check if trial bypass is enabled (for development/testing)
           if (isTrialBypassEnabled()) {
-            console.log("Onboarding: Trial bypass enabled, redirecting to dashboard");
+            console.log(
+              "Onboarding: Trial bypass enabled, redirecting to dashboard"
+            );
             navigate("/dashboard", { replace: true });
             return;
           }
 
           // Check actual subscription status
-          const subscriptionStatus = await subscriptionService.getSubscriptionStatus(profile.id);
-          const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
+          const subscriptionStatus =
+            await subscriptionService.getSubscriptionStatus(profile.id);
+          const hasAccess =
+            subscriptionStatus.isActive || subscriptionStatus.isTrial;
 
           if (hasAccess) {
-            console.log("Onboarding: User has active subscription or trial, redirecting to dashboard");
+            console.log(
+              "Onboarding: User has active subscription or trial, redirecting to dashboard"
+            );
             navigate("/dashboard", { replace: true });
           } else {
-            console.log("Onboarding: User no subscription, redirecting to paywall");
+            console.log(
+              "Onboarding: User no subscription, redirecting to paywall"
+            );
             navigate("/paywall", { replace: true });
           }
         } catch (subscriptionError) {
-          console.error("Onboarding: Error checking subscription status:", subscriptionError);
+          console.error(
+            "Onboarding: Error checking subscription status:",
+            subscriptionError
+          );
           // Fallback: redirect to paywall
-          console.log("Onboarding: Subscription check failed, redirecting to paywall");
+          console.log(
+            "Onboarding: Subscription check failed, redirecting to paywall"
+          );
           navigate("/paywall", { replace: true });
         }
       };
@@ -342,11 +359,11 @@ const Onboarding = () => {
   // Show completion
   if (onboardingStep === "complete") {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 px-4 overflow-hidden">
+      <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-4 overflow-hidden">
         <div className="text-center max-w-sm sm:max-w-md">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
             <svg
-              className="w-8 h-8 sm:w-10 sm:h-10 text-green-600"
+              className="w-8 h-8 sm:w-10 sm:h-10 text-logo-text"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -359,10 +376,10 @@ const Onboarding = () => {
               />
             </svg>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-4">
             Profile Setup Complete!
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg text-text-secondary mb-6 sm:mb-8">
             Your profile has been successfully saved. You can now start using
             UrCare.
           </p>
@@ -371,16 +388,22 @@ const Onboarding = () => {
               // Check subscription status and redirect accordingly
               const checkSubscriptionAndRedirect = async () => {
                 try {
-                  const { subscriptionService } = await import("../services/subscriptionService");
-                  const { isTrialBypassEnabled } = await import("../config/subscription");
+                  const { subscriptionService } = await import(
+                    "../services/subscriptionService"
+                  );
+                  const { isTrialBypassEnabled } = await import(
+                    "../config/subscription"
+                  );
 
                   if (isTrialBypassEnabled()) {
                     navigate("/dashboard", { replace: true });
                     return;
                   }
 
-                  const subscriptionStatus = await subscriptionService.getSubscriptionStatus(user.id);
-                  const hasAccess = subscriptionStatus.isActive || subscriptionStatus.isTrial;
+                  const subscriptionStatus =
+                    await subscriptionService.getSubscriptionStatus(user.id);
+                  const hasAccess =
+                    subscriptionStatus.isActive || subscriptionStatus.isTrial;
 
                   if (hasAccess) {
                     navigate("/dashboard", { replace: true });
@@ -395,7 +418,7 @@ const Onboarding = () => {
 
               checkSubscriptionAndRedirect();
             }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="w-full bg-accent hover:bg-accent/90 text-foreground py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
             Continue to Dashboard
           </button>

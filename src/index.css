@@ -105,85 +105,81 @@
     /* Safari iOS viewport fix */
     --vh: 1vh;
 
-    /* Light Mode Colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Light Mode Colors - Specified Palette */
+    --background: 210 17% 98%; /* #F8F9FA */
+    --foreground: 0 0% 0%; /* #000000 */
+    --card: 157 100% 18%; /* #005E3D */
+    --card-foreground: 51 100% 50%; /* #FFD700 */
+    --popover: 210 17% 98%; /* #F8F9FA */
+    --popover-foreground: 0 0% 0%; /* #000000 */
 
-    /* Primary Colors */
-    --primary: 219 78% 46%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 168 76% 36%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    /* Primary/Secondary/Accent */
+    --primary: 157 100% 18%; /* Deep Emerald Green */
+    --primary-foreground: 51 100% 50%; /* Gold */
+    --secondary: 226 43% 21%; /* #1E2A4B */
+    --secondary-foreground: 51 100% 50%; /* Gold */
+    --accent: 51 100% 50%; /* Gold */
+    --accent-foreground: 0 0% 0%; /* Black */
 
-    /* Status Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status */
+    --success: 157 100% 18%; /* Emerald */
+    --success-foreground: 51 100% 50%; /* Gold */
+    --warning: 51 100% 50%; /* Gold */
+    --warning-foreground: 0 0% 0%; /* Black */
+    --destructive: 0 84% 60%; /* Red */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    /* Neutral Colors */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 219 78% 46%;
+    /* Neutral */
+    --muted: 210 9% 46%; /* #6C757D */
+    --muted-foreground: 0 0% 0%; /* Black */
+    --border: 51 100% 50%; /* Gold */
+    --input: 210 17% 98%; /* White Smoke */
+    --ring: 51 100% 50%; /* Gold */
 
     /* Background Variations */
-    --background-secondary: 210 40% 97%;
-    --background-tertiary: 210 40% 94%;
-    --text-secondary: 215.4 16.3% 46.9%;
-    --text-tertiary: 215.4 16.3% 65.1%;
-    --border-medium: 215.4 16.3% 82.1%;
+    --background-secondary: 210 17% 98%;
+    --background-tertiary: 210 17% 98%;
+    --text-secondary: 210 9% 46%; /* Davy's Gray */
+    --text-tertiary: 210 9% 46%;
+    --border-medium: 51 100% 50%;
 
     --radius: 1rem;
   }
 
   .dark {
-    /* Dark Mode Colors */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 6.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Dark Mode - Specified Palette */
+    --background: 226 43% 21%; /* #1E2A4B */
+    --foreground: 51 100% 50%; /* Gold */
+    --card: 157 100% 18%; /* Emerald */
+    --card-foreground: 51 100% 50%;
+    --popover: 226 43% 21%;
+    --popover-foreground: 51 100% 50%;
 
-    /* Primary Colors - Adjusted for dark mode */
-    --primary: 217.2 91.2% 69.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 170 76% 46%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 142 76% 46%;
-    --accent-foreground: 0 0% 100%;
+    --primary: 157 100% 18%;
+    --primary-foreground: 51 100% 50%;
+    --secondary: 226 43% 21%;
+    --secondary-foreground: 51 100% 50%;
+    --accent: 51 100% 50%;
+    --accent-foreground: 0 0% 0%;
 
-    /* Status Colors - Enhanced for dark mode */
-    --success: 142 76% 46%;
-    --success-foreground: 0 0% 100%;
-    --warning: 45 93% 57%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 70%;
-    --destructive-foreground: 222.2 84% 4.9%;
+    --success: 157 100% 18%;
+    --success-foreground: 51 100% 50%;
+    --warning: 51 100% 50%;
+    --warning-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Neutral Colors */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 91.2% 69.8%;
+    --muted: 225 38% 27%; /* #2B3A60 */
+    --muted-foreground: 51 100% 50%;
+    --border: 51 100% 50%;
+    --input: 226 43% 21%;
+    --ring: 51 100% 50%;
 
-    /* Background Variations */
-    --background-secondary: 217.2 32.6% 11.5%;
-    --background-tertiary: 217.2 32.6% 20.5%;
-    --text-secondary: 215 20.2% 65.1%;
-    --text-tertiary: 217.2 32.6% 50.1%;
-    --border-medium: 217.2 32.6% 27.5%;
+    --background-secondary: 226 43% 21%;
+    --background-tertiary: 225 38% 27%;
+    --text-secondary: 51 100% 50%;
+    --text-tertiary: 51 100% 50%;
+    --border-medium: 51 100% 50%;
   }
 }
 

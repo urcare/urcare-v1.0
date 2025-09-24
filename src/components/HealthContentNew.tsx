@@ -5,7 +5,7 @@ import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Type definitions for dynamic content
@@ -588,12 +588,14 @@ export const HealthContentNew = () => {
             .order("created_at", { ascending: false })
             .limit(1)
             .single();
-          
+
           if (activePlan) {
             await loadUpcomingTasks(activePlan);
           }
           // Show success message
-          toast.success("Plan saved successfully! Your schedule is now active.");
+          toast.success(
+            "Plan saved successfully! Your schedule is now active."
+          );
           return;
         }
 
@@ -668,7 +670,14 @@ export const HealthContentNew = () => {
     };
 
     determineUserState();
-  }, [user, profile, loadPersonalizedTips, loadHealthPlans, loadUpcomingTasks, location.state]);
+  }, [
+    user,
+    profile,
+    loadPersonalizedTips,
+    loadHealthPlans,
+    loadUpcomingTasks,
+    location.state,
+  ]);
 
   const {
     cardRef: stickyRef,
