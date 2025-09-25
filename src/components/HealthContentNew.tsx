@@ -44,17 +44,28 @@ interface HealthGoal {
   status: string;
 }
 
+interface HealthPlanActivity {
+  id?: string;
+  title: string;
+  description: string;
+  type: string;
+  startTime?: string;
+  completed?: boolean;
+  duration?: number;
+  instructions?: string[];
+  tips?: string[];
+  benefits?: string[];
+  nutritionalDetails?: string;
+  workoutDetails?: string;
+  scientificEvidence?: string;
+  priority?: string;
+  category?: string;
+}
+
 interface HealthPlan {
   id: string;
   day_1_plan?: {
-    activities?: Array<{
-      id?: string;
-      title: string;
-      description: string;
-      type: string;
-      startTime?: string;
-      completed?: boolean;
-    }>;
+    activities?: HealthPlanActivity[];
   };
 }
 
@@ -393,15 +404,49 @@ export const HealthContentNew = () => {
 
       if (todaysPlan.activities) {
         todaysPlan.activities.forEach((activity, index: number) => {
+          // Create detailed description with all available information
+          let detailedDescription = activity.description || "";
+          
+          // Add duration if available
+          if (activity.duration) {
+            detailedDescription += `\n⏱️ Duration: ${activity.duration} minutes`;
+          }
+          
+          // Add instructions if available
+          if (activity.instructions && activity.instructions.length > 0) {
+            detailedDescription += `\n📋 Instructions:\n${activity.instructions.map(inst => `• ${inst}`).join('\n')}`;
+          }
+          
+          // Add tips if available
+          if (activity.tips && activity.tips.length > 0) {
+            detailedDescription += `\n💡 Tips:\n${activity.tips.map(tip => `• ${tip}`).join('\n')}`;
+          }
+          
+          // Add benefits if available
+          if (activity.benefits && activity.benefits.length > 0) {
+            detailedDescription += `\n🎯 Benefits:\n${activity.benefits.map(benefit => `• ${benefit}`).join('\n')}`;
+          }
+          
+          // Add nutritional details for meals
+          if (activity.type === 'meal' && activity.nutritionalDetails) {
+            detailedDescription += `\n🍽️ Nutrition: ${activity.nutritionalDetails}`;
+          }
+          
+          // Add workout details for exercises
+          if (activity.type === 'exercise' && activity.workoutDetails) {
+            detailedDescription += `\n💪 Workout: ${activity.workoutDetails}`;
+          }
+
           tasks.push({
             id: activity.id || `task-${index}`,
             title: activity.title,
-            description: activity.description,
+            description: detailedDescription,
             icon: getActivityIcon(activity.type),
             time: activity.startTime || "Anytime",
             isHighlighted: index === 0,
             completed: activity.completed || false,
             type: activity.type,
+            duration: activity.duration ? `${activity.duration} min` : undefined,
           });
         });
       }
@@ -1315,9 +1360,16 @@ export const HealthContentNew = () => {
                           <div className="px-4 pb-4 border-t border-gray-200">
                             <div className="pt-4">
                               <div className="space-y-3 text-gray-700">
-                                <p className="text-sm leading-relaxed">
+                                <div className="text-sm leading-relaxed whitespace-pre-line">
                                   {item.description}
-                                </p>
+                                </div>
+                                {item.duration && (
+                                  <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                                    <span className="text-blue-600 font-medium">
+                                      ⏱️ Duration: {item.duration}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
