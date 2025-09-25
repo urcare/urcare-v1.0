@@ -1167,10 +1167,12 @@ export const HealthContentNew = () => {
           </div>
         </div>
 
-        {/* Health Goal Input Bar */}
-        <div className="py-4">
-          <HealthInputBar onPlanGenerate={handlePlanGenerate} />
-        </div>
+        {/* Health Goal Input Bar - Only show when no active plan */}
+        {contentState !== "upcoming_tasks" && (
+          <div className="py-4">
+            <HealthInputBar onPlanGenerate={handlePlanGenerate} />
+          </div>
+        )}
 
         {/* Dynamic Upcoming Tasks Section - White Card */}
         <div className="py-4">
