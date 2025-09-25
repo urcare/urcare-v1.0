@@ -759,9 +759,9 @@ const PlanDetails: React.FC = () => {
       setIsPreview(false);
       toast.success("Plan set as default!", { id: "save-plan" });
 
-      // Navigate to health insights to show the plan is active
+      // Navigate to dashboard to show the plan is active
       setTimeout(() => {
-        navigate("/health-plan", {
+        navigate("/dashboard", {
           state: {
             showInsights: true,
             planSaved: true,
