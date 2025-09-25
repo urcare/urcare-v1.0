@@ -779,6 +779,13 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
   };
 
   const handleNext = () => {
+    console.log(
+      "SerialOnboarding: handleNext called, currentStep:",
+      currentStep,
+      "totalSteps:",
+      steps.length
+    );
+
     if (validateStep(currentStep)) {
       // Calculate age when completing date of birth step
       if (steps[currentStep].id === "dateOfBirth") {
@@ -820,6 +827,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
 
       // Check if this is the referral step (second to last)
       if (currentStep === steps.length - 2) {
+        console.log("SerialOnboarding: Moving to completion step");
         // Move to completion step
         setCurrentStep(currentStep + 1);
         return;
@@ -827,13 +835,20 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
 
       // Check if this is the completion step (last step)
       if (currentStep === steps.length - 1) {
+        console.log(
+          "SerialOnboarding: Completion step - calling onComplete with data:",
+          data
+        );
         // Save all onboarding data to database
         console.log("Saving onboarding data at completion step:", data);
         onComplete(data);
         return;
       } else {
+        console.log("SerialOnboarding: Moving to next step");
         setCurrentStep(currentStep + 1);
       }
+    } else {
+      console.log("SerialOnboarding: Validation failed for step:", currentStep);
     }
   };
 
@@ -1139,7 +1154,14 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
           />
         );
       case "completion":
-        return <CompletionStep onContinue={handleNext} />;
+        return (
+          <CompletionStep
+            onContinue={() => {
+              console.log("SerialOnboarding: Completion step continue clicked");
+              handleNext();
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -1169,8 +1191,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         </div>
       </div>
 
-      {/* Main content - centered and scrollable */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 overflow-y-auto">
+      {/* Main content - scrollable, header stays outside the scroll area */}
+      <div className="flex-1 flex flex-col items-center px-4 sm:px-6 py-6 pb-24 overflow-y-auto scrollbar-hide smooth-scroll scroll-mt-24">
         <div className="w-full max-w-md">
           {/* Question - hidden for completion step */}
           {currentStepData.id !== "completion" && (

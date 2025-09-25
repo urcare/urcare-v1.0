@@ -41,7 +41,10 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
       {/* Continue button */}
       <div className="pt-4">
         <button
-          onClick={onContinue}
+          onClick={() => {
+            console.log("CompletionStep: Continue button clicked");
+            onContinue();
+          }}
           className="w-full bg-primary text-white py-4 px-6 rounded-2xl font-medium hover:bg-primary/90 transition-colors"
         >
           Continue

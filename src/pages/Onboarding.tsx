@@ -6,6 +6,22 @@ import { toast } from "sonner";
 import { SerialOnboarding } from "../components/onboarding/SerialOnboarding";
 import { useAuth } from "../contexts/AuthContext";
 
+// Helper function for months (same as in SerialOnboarding)
+const getMonths = () => [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 interface OnboardingData {
   fullName: string;
   age: string;
@@ -62,6 +78,7 @@ const Onboarding = () => {
   const [pendingOnboardingData, setPendingOnboardingData] =
     useState<OnboardingData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   // Helper function to convert descriptive time to proper time format
   const convertTimeToFormat = (timeValue: string | null): string | null => {
@@ -175,6 +192,17 @@ const Onboarding = () => {
   // Define handleSerialComplete before using it in useEffect
   const handleSerialComplete = useCallback(
     async (data: OnboardingData) => {
+      console.log(
+        "Onboarding.tsx: handleSerialComplete called with data:",
+        data
+      );
+
+      // Guard against multiple calls
+      if (isCompleting) {
+        console.log("Onboarding already in progress, skipping duplicate call");
+        return;
+      }
+
       if (!user) {
         console.error("No user found for onboarding completion");
         toast.error("User not found", { description: "Please log in again." });
@@ -187,6 +215,8 @@ const Onboarding = () => {
         return;
       }
 
+      setIsCompleting(true);
+
       console.log(
         "Starting comprehensive onboarding completion for user:",
         user.id
@@ -195,12 +225,40 @@ const Onboarding = () => {
       setLoading(true);
 
       try {
+        // Calculate date of birth from birth month, day, and year
+        const calculateDateOfBirth = (
+          month: string,
+          day: string,
+          year: string
+        ) => {
+          if (!month || !day || !year) return null;
+          const monthIndex = getMonths().indexOf(month);
+          if (monthIndex === -1) return null;
+          return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(
+            parseInt(day)
+          ).padStart(2, "0")}`;
+        };
+
+        const dateOfBirth = calculateDateOfBirth(
+          data.birthMonth,
+          data.birthDay,
+          data.birthYear
+        );
+        console.log(
+          "Calculated date of birth:",
+          dateOfBirth,
+          "from:",
+          data.birthMonth,
+          data.birthDay,
+          data.birthYear
+        );
+
         // Create or update user profile
         const profileData = {
           id: user.id,
           full_name: data.fullName || null,
           age: data.age || null,
-          date_of_birth: data.dateOfBirth || null,
+          date_of_birth: dateOfBirth,
           gender: data.gender || null,
           unit_system: data.unitSystem || "metric",
           height_feet: data.heightFeet || null,
@@ -272,12 +330,16 @@ const Onboarding = () => {
         await refreshProfile();
 
         // Set onboarding step to complete
+        console.log("Onboarding.tsx: Setting onboardingStep to 'complete'");
         setOnboardingStep("complete");
 
         toast.success("Onboarding completed successfully!", {
           description: "Your profile has been saved.",
         });
 
+        console.log(
+          "Onboarding.tsx: Onboarding completion successful, should redirect"
+        );
         // Let the redirect logic handle navigation based on updated profile
         // The useEffect with profile dependency will redirect to /health-assessment
       } catch (error) {
@@ -288,9 +350,10 @@ const Onboarding = () => {
         });
       } finally {
         setLoading(false);
+        setIsCompleting(false);
       }
     },
-    [user, navigate, refreshProfile]
+    [user, navigate, refreshProfile, isCompleting]
   );
 
   // Restore onboarding data from localStorage after OAuth (only once)
