@@ -705,6 +705,35 @@ const PlanDetails: React.FC = () => {
         return;
       }
 
+      // Delete any existing active plan first to avoid constraint conflicts
+      const { error: deleteError } = await supabase
+        .from("two_day_health_plans")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
+      if (deleteError) {
+        console.warn("Warning: Could not delete existing plans:", deleteError);
+        // Continue anyway - the insert might still work
+      }
+
+      // Store metadata within the JSONB fields
+      const day1Plan = {
+        ...(base.day_1_plan || {}),
+        overall_goals: base.overall_goals || [],
+        progress_tips: base.progress_tips || [],
+        safety_notes: base.safety_notes || [],
+        cultural_adaptations: base.cultural_adaptations || [],
+      };
+
+      const day2Plan = {
+        ...(base.day_2_plan || {}),
+        overall_goals: base.overall_goals || [],
+        progress_tips: base.progress_tips || [],
+        safety_notes: base.safety_notes || [],
+        cultural_adaptations: base.cultural_adaptations || [],
+      };
+
       const insertRow: any = {
         user_id: user.id,
         is_active: true,
@@ -715,12 +744,8 @@ const PlanDetails: React.FC = () => {
           new Date(Date.now() + 24 * 60 * 60 * 1000)
             .toISOString()
             .split("T")[0],
-        day_1_plan: base.day_1_plan || {},
-        day_2_plan: base.day_2_plan || {},
-        overall_goals: base.overall_goals || [],
-        progress_tips: base.progress_tips || [],
-        safety_notes: base.safety_notes || [],
-        cultural_adaptations: base.cultural_adaptations || [],
+        day_1_plan: day1Plan,
+        day_2_plan: day2Plan,
       };
 
       const { data, error } = await supabase

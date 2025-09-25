@@ -904,6 +904,35 @@ const PlanDetails: React.FC = () => {
         return;
       }
 
+      // Delete any existing active plan first to avoid constraint conflicts
+      const { error: deleteError } = await supabase
+        .from("two_day_health_plans")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
+      if (deleteError) {
+        console.warn("Warning: Could not delete existing plans:", deleteError);
+        // Continue anyway - the insert might still work
+      }
+
+      // Store metadata within the JSONB fields
+      const day1Plan = {
+        ...(base.day_1_plan || {}),
+        overall_goals: base.overall_goals || [],
+        progress_tips: base.progress_tips || [],
+        safety_notes: base.safety_notes || [],
+        cultural_adaptations: base.cultural_adaptations || [],
+      };
+
+      const day2Plan = {
+        ...(base.day_2_plan || {}),
+        overall_goals: base.overall_goals || [],
+        progress_tips: base.progress_tips || [],
+        safety_notes: base.safety_notes || [],
+        cultural_adaptations: base.cultural_adaptations || [],
+      };
+
       const insertRow: any = {
         user_id: user.id,
         is_active: true,
@@ -914,12 +943,8 @@ const PlanDetails: React.FC = () => {
           new Date(Date.now() + 24 * 60 * 60 * 1000)
             .toISOString()
             .split("T")[0],
-        day_1_plan: base.day_1_plan || {},
-        day_2_plan: base.day_2_plan || {},
-        overall_goals: base.overall_goals || [],
-        progress_tips: base.progress_tips || [],
-        safety_notes: base.safety_notes || [],
-        cultural_adaptations: base.cultural_adaptations || [],
+        day_1_plan: day1Plan,
+        day_2_plan: day2Plan,
       };
 
       const { data, error } = await supabase
@@ -1266,7 +1291,7 @@ const PlanDetails: React.FC = () => {
 
         <div className="px-6">
           {/* Protocol Details (replacing timetable) */}
-          <h2 className="text-2xl font-bold text-black mb-6">
+          <h2 className="text-2xl font-bold text-black mb-4">
             Protocol Details
           </h2>
           {isPreview && (
@@ -1275,8 +1300,8 @@ const PlanDetails: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 -mx-6">
+            <div className="rounded-2xl bg-white p-4">
               <h3 className="text-lg font-semibold text-black mb-2">Summary</h3>
               <div className="text-sm text-gray-700 space-y-1">
                 <div>
@@ -1303,7 +1328,7 @@ const PlanDetails: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+            <div className="rounded-2xl bg-white p-4">
               <h3 className="text-lg font-semibold text-black mb-2">
                 Expected Impacts
               </h3>
@@ -1321,7 +1346,7 @@ const PlanDetails: React.FC = () => {
               </ul>
             </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+            <div className="rounded-2xl bg-white p-4">
               <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
               <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
                 {(
@@ -1336,7 +1361,7 @@ const PlanDetails: React.FC = () => {
               </ul>
             </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+            <div className="rounded-2xl bg-white p-4">
               <h3 className="text-lg font-semibold text-black mb-2">
                 Tips & Safety
               </h3>
