@@ -128,10 +128,6 @@ export const HealthContentNew = () => {
     }
 
     try {
-      console.log(
-        "[HealthContentNew] handlePlanGenerate called with goal:",
-        goal
-      );
       setGeneratingPlan(true);
       setContentState("health_tips");
       setSectionTitle("Generating your plan...");
@@ -157,10 +153,6 @@ export const HealthContentNew = () => {
         }
       );
 
-      console.log("[HealthContentNew] Supabase function response:", {
-        data,
-        error,
-      });
 
       const result = {
         success: !error && data?.success,
@@ -413,17 +405,17 @@ export const HealthContentNew = () => {
           }
           
           // Add instructions if available
-          if (activity.instructions && activity.instructions.length > 0) {
+          if (activity.instructions && Array.isArray(activity.instructions) && activity.instructions.length > 0) {
             detailedDescription += `\n📋 Instructions:\n${activity.instructions.map(inst => `• ${inst}`).join('\n')}`;
           }
           
           // Add tips if available
-          if (activity.tips && activity.tips.length > 0) {
+          if (activity.tips && Array.isArray(activity.tips) && activity.tips.length > 0) {
             detailedDescription += `\n💡 Tips:\n${activity.tips.map(tip => `• ${tip}`).join('\n')}`;
           }
           
           // Add benefits if available
-          if (activity.benefits && activity.benefits.length > 0) {
+          if (activity.benefits && Array.isArray(activity.benefits) && activity.benefits.length > 0) {
             detailedDescription += `\n🎯 Benefits:\n${activity.benefits.map(benefit => `• ${benefit}`).join('\n')}`;
           }
           
