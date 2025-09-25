@@ -29,6 +29,7 @@ const PlanDetails: React.FC = () => {
   // Keep a copy of mapped AI dates for simple filtering
   const [aiDay1Date, setAiDay1Date] = useState<string | null>(null);
   const [aiDay2Date, setAiDay2Date] = useState<string | null>(null);
+  const [events, setEvents] = useState<any[]>([]);
 
   const formatHeaderDate = (d: Date) =>
     d.toLocaleDateString(undefined, { day: "numeric", month: "long" });
@@ -1055,7 +1056,7 @@ const PlanDetails: React.FC = () => {
         <div className="px-6">
           {/* Protocol Details Card */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-black mb-6">
+            <h2 className="text-2xl font-bold text-black mb-4">
               Protocol Details
             </h2>
             {isPreview && (
@@ -1065,8 +1066,8 @@ const PlanDetails: React.FC = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 -mx-6">
+              <div className="rounded-xl bg-gray-50 p-4">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Summary
                 </h3>
@@ -1095,7 +1096,7 @@ const PlanDetails: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+              <div className="rounded-xl bg-gray-50 p-4">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Expected Impacts
                 </h3>
@@ -1113,7 +1114,7 @@ const PlanDetails: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+              <div className="rounded-xl bg-gray-50 p-4">
                 <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
                 <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
                   {(
@@ -1128,7 +1129,7 @@ const PlanDetails: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+              <div className="rounded-xl bg-gray-50 p-4">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Tips & Safety
                 </h3>
