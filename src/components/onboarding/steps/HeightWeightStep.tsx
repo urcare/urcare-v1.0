@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
 interface HeightWeightStepProps {
-  unitSystem: 'imperial' | 'metric';
+  unitSystem: "imperial" | "metric";
   heightFeet: string;
   heightInches: string;
   heightCm: string;
@@ -19,7 +19,12 @@ interface WheelPickerProps {
   width: string;
 }
 
-const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onValueChange, width }) => {
+const WheelPicker: React.FC<WheelPickerProps> = ({
+  options,
+  selectedValue,
+  onValueChange,
+  width,
+}) => {
   const selectedIndex = options.indexOf(selectedValue);
   const visibleItems = 7;
   const itemHeight = 50;
@@ -31,7 +36,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   const triggerHapticFeedback = () => {
     try {
-      if ('vibrate' in navigator) {
+      if ("vibrate" in navigator) {
         navigator.vibrate([30]);
       }
     } catch (error) {
@@ -42,7 +47,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   const getVisibleOptions = () => {
     const result = [];
     const halfVisible = Math.floor(visibleItems / 2);
-    
+
     for (let i = -halfVisible; i <= halfVisible; i++) {
       const index = selectedIndex + i;
       if (index >= 0 && index < options.length) {
@@ -50,14 +55,14 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
           value: options[index],
           index: index,
           offset: i,
-          isSelected: i === 0
+          isSelected: i === 0,
         });
       } else {
         result.push({
-          value: '',
+          value: "",
           index: -1,
           offset: i,
-          isSelected: false
+          isSelected: false,
         });
       }
     }
@@ -65,7 +70,11 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   };
 
   const handleItemClick = (targetIndex: number) => {
-    if (targetIndex >= 0 && targetIndex < options.length && targetIndex !== selectedIndex) {
+    if (
+      targetIndex >= 0 &&
+      targetIndex < options.length &&
+      targetIndex !== selectedIndex
+    ) {
       triggerHapticFeedback();
       onValueChange(options[targetIndex]);
     }
@@ -103,10 +112,10 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
       }
     };
 
-    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener("wheel", handleWheel);
     };
   }, [selectedIndex]); // Re-add listener when selectedIndex changes
 
@@ -118,11 +127,11 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || touchStartY === null) return;
-    
+
     e.preventDefault();
     const currentY = e.touches[0].clientY;
     const deltaY = touchStartY - currentY;
-    
+
     if (Math.abs(deltaY) > 15) {
       if (deltaY > 0) {
         moveDown();
@@ -145,10 +154,10 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || touchStartY === null) return;
-    
+
     const currentY = e.clientY;
     const deltaY = touchStartY - currentY;
-    
+
     if (Math.abs(deltaY) > 12) {
       if (deltaY > 0) {
         moveDown();
@@ -165,17 +174,17 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowUp') {
+    if (e.key === "ArrowUp") {
       e.preventDefault();
       moveUp();
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
       moveDown();
     }
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`relative ${width} h-48 sm:h-56 overflow-hidden flex flex-col justify-center focus:outline-none rounded-xl`}
       onTouchStart={handleTouchStart}
@@ -187,9 +196,13 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
       onMouseLeave={handleMouseUp}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      style={{ userSelect: 'none' }}
+      style={{ userSelect: "none" }}
     >
-      <div className={`flex flex-col items-center justify-center h-full relative transition-all duration-200 ease-out ${isScrolling ? 'scale-105' : 'scale-100'}`}>
+      <div
+        className={`flex flex-col items-center justify-center h-full relative transition-all duration-200 ease-out ${
+          isScrolling ? "scale-105" : "scale-100"
+        }`}
+      >
         {getVisibleOptions().map((item, index) => {
           if (!item.value) {
             return (
@@ -197,48 +210,53 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
                 key={`empty-${index}`}
                 style={{ height: `${itemHeight}px` }}
                 className="flex items-center justify-center"
-              >
-              </div>
+              ></div>
             );
           }
 
           const distance = Math.abs(item.offset);
-          let opacity, fontSize, fontWeight, color, textShadow, transform, zIndex;
-          
+          let opacity,
+            fontSize,
+            fontWeight,
+            color,
+            textShadow,
+            transform,
+            zIndex;
+
           if (item.isSelected) {
             opacity = 1;
-            fontSize = 'clamp(14px, 3.5vw, 18px)';
-            fontWeight = '700';
-            color = '#111827';
-            textShadow = 'none';
-            transform = 'scale(1) translateZ(0)';
+            fontSize = "clamp(14px, 3.5vw, 18px)";
+            fontWeight = "700";
+            color = "#111827";
+            textShadow = "none";
+            transform = "scale(1) translateZ(0)";
             zIndex = 10;
           } else if (distance === 1) {
             opacity = 0.7;
-            fontSize = 'clamp(12px, 3vw, 16px)';
-            fontWeight = '500';
-            color = '#374151';
-            textShadow = 'none';
-            transform = 'scale(1) translateZ(0)';
+            fontSize = "clamp(12px, 3vw, 16px)";
+            fontWeight = "500";
+            color = "#374151";
+            textShadow = "none";
+            transform = "scale(1) translateZ(0)";
             zIndex = 5;
           } else if (distance === 2) {
             opacity = 0.4;
-            fontSize = 'clamp(10px, 2.5vw, 14px)';
-            fontWeight = '400';
-            color = '#6b7280';
-            textShadow = 'none';
-            transform = 'scale(1) translateZ(0)';
+            fontSize = "clamp(10px, 2.5vw, 14px)";
+            fontWeight = "400";
+            color = "#6b7280";
+            textShadow = "none";
+            transform = "scale(1) translateZ(0)";
             zIndex = 3;
           } else {
             opacity = 0.2;
-            fontSize = 'clamp(9px, 2vw, 12px)';
-            fontWeight = '400';
-            color = '#9ca3af';
-            textShadow = 'none';
-            transform = 'scale(1) translateZ(0)';
+            fontSize = "clamp(9px, 2vw, 12px)";
+            fontWeight = "400";
+            color = "#9ca3af";
+            textShadow = "none";
+            transform = "scale(1) translateZ(0)";
             zIndex = 1;
           }
-          
+
           return (
             <div
               key={`${item.value}-${index}`}
@@ -247,17 +265,17 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
                 height: `${itemHeight}px`,
                 opacity,
                 transform,
-                zIndex
+                zIndex,
               }}
               onClick={() => handleItemClick(item.index)}
             >
-              <span 
+              <span
                 className="select-none text-center leading-tight pointer-events-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
                 style={{
                   fontSize,
                   fontWeight,
                   color,
-                  textShadow
+                  textShadow,
                 }}
               >
                 {item.value}
@@ -271,11 +289,16 @@ const WheelPicker: React.FC<WheelPickerProps> = ({ options, selectedValue, onVal
 };
 
 // Helper functions for height and weight pickers
-const getHeightFeet = () => Array.from({ length: 6 }, (_, i) => (i + 3).toString()); // 3-8 feet
-const getHeightInches = () => Array.from({ length: 12 }, (_, i) => i.toString()); // 0-11 inches
-const getHeightCm = () => Array.from({ length: 151 }, (_, i) => (i + 100).toString()); // 100-250 cm
-const getWeightLb = () => Array.from({ length: 301 }, (_, i) => (i + 50).toString()); // 50-350 lb
-const getWeightKg = () => Array.from({ length: 221 }, (_, i) => (i + 30).toString()); // 30-250 kg
+const getHeightFeet = () =>
+  Array.from({ length: 6 }, (_, i) => (i + 3).toString()); // 3-8 feet
+const getHeightInches = () =>
+  Array.from({ length: 12 }, (_, i) => i.toString()); // 0-11 inches
+const getHeightCm = () =>
+  Array.from({ length: 151 }, (_, i) => (i + 100).toString()); // 100-250 cm
+const getWeightLb = () =>
+  Array.from({ length: 301 }, (_, i) => (i + 50).toString()); // 50-350 lb
+const getWeightKg = () =>
+  Array.from({ length: 221 }, (_, i) => (i + 30).toString()); // 30-250 kg
 
 export const HeightWeightStep: React.FC<HeightWeightStepProps> = ({
   unitSystem,
@@ -285,27 +308,27 @@ export const HeightWeightStep: React.FC<HeightWeightStepProps> = ({
   weightLb,
   weightKg,
   onChange,
-  error
+  error,
 }) => (
   <div className="space-y-4 sm:space-y-6 w-full">
     {/* Unit System Toggle */}
     <div className="flex justify-center space-x-2 px-2">
       <button
-        onClick={() => onChange('unitSystem', 'metric')}
+        onClick={() => onChange("unitSystem", "metric")}
         className={`px-3 py-2 sm:px-4 sm:py-2 rounded-xl border-2 transition-all duration-200 text-sm sm:text-base ${
-          unitSystem === 'metric'
-            ? 'border-gray-900 bg-gray-900 text-white'
-            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+          unitSystem === "metric"
+            ? "border-gray-900 bg-gray-900 text-white"
+            : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
         }`}
       >
         Metric (cm, kg)
       </button>
       <button
-        onClick={() => onChange('unitSystem', 'imperial')}
+        onClick={() => onChange("unitSystem", "imperial")}
         className={`px-3 py-2 sm:px-4 sm:py-2 rounded-xl border-2 transition-all duration-200 text-sm sm:text-base ${
-          unitSystem === 'imperial'
-            ? 'border-gray-900 bg-gray-900 text-white'
-            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+          unitSystem === "imperial"
+            ? "border-gray-900 bg-gray-900 text-white"
+            : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
         }`}
       >
         Imperial (ft, in, lb)
@@ -314,23 +337,27 @@ export const HeightWeightStep: React.FC<HeightWeightStepProps> = ({
 
     {/* Height and Weight Pickers */}
     <div className="flex justify-center space-x-2 sm:space-x-4 px-2">
-      {unitSystem === 'metric' ? (
+      {unitSystem === "metric" ? (
         <>
           <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Height (cm)</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+              Height (cm)
+            </label>
             <WheelPicker
               options={getHeightCm()}
               selectedValue={heightCm}
-              onValueChange={(value) => onChange('heightCm', value)}
+              onValueChange={(value) => onChange("heightCm", value)}
               width="w-16 sm:w-20"
             />
           </div>
           <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Weight (kg)</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+              Weight (kg)
+            </label>
             <WheelPicker
               options={getWeightKg()}
               selectedValue={weightKg}
-              onValueChange={(value) => onChange('weightKg', value)}
+              onValueChange={(value) => onChange("weightKg", value)}
               width="w-16 sm:w-20"
             />
           </div>
@@ -338,40 +365,44 @@ export const HeightWeightStep: React.FC<HeightWeightStepProps> = ({
       ) : (
         <>
           <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Height (ft)</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+              Height (ft)
+            </label>
             <WheelPicker
               options={getHeightFeet()}
               selectedValue={heightFeet}
-              onValueChange={(value) => onChange('heightFeet', value)}
+              onValueChange={(value) => onChange("heightFeet", value)}
               width="w-12 sm:w-16"
             />
           </div>
           <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Height (in)</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+              Height (in)
+            </label>
             <WheelPicker
               options={getHeightInches()}
               selectedValue={heightInches}
-              onValueChange={(value) => onChange('heightInches', value)}
+              onValueChange={(value) => onChange("heightInches", value)}
               width="w-12 sm:w-16"
             />
           </div>
           <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Weight (lb)</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+              Weight (lb)
+            </label>
             <WheelPicker
               options={getWeightLb()}
               selectedValue={weightLb}
-              onValueChange={(value) => onChange('weightLb', value)}
+              onValueChange={(value) => onChange("weightLb", value)}
               width="w-16 sm:w-20"
             />
           </div>
         </>
       )}
     </div>
-    
+
     {error && (
-      <div className="text-red-500 text-sm text-center mt-2 px-2">
-        {error}
-      </div>
+      <div className="text-red-500 text-sm text-center mt-2 px-2">{error}</div>
     )}
   </div>
-); 
+);

@@ -1,22 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { toast } from "sonner";
 import {
-  AlertTriangle,
-  TrendingDown,
-  Heart,
   Activity,
-  Moon,
+  AlertTriangle,
   Apple,
-  Droplets,
-  Clock,
-  Target,
   ArrowRight,
   CheckCircle,
+  Clock,
+  Heart,
+  Moon,
+  Target,
+  TrendingDown,
   XCircle,
-  AlertCircle,
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "../contexts/AuthContext";
 
 interface HealthMetric {
   id: string;
@@ -36,7 +34,12 @@ const HealthAssessment: React.FC = () => {
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
 
   // Debug logging
-  console.log("HealthAssessment: Auth state", { isInitialized, loading, profile: !!profile, user: !!user });
+  console.log("HealthAssessment: Auth state", {
+    isInitialized,
+    loading,
+    profile: !!profile,
+    user: !!user,
+  });
 
   // Redirect if not authenticated or profile not loaded
   if (!isInitialized || loading) {
@@ -62,7 +65,8 @@ const HealthAssessment: React.FC = () => {
             Health Risk Assessment
           </h1>
           <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-            Our advanced algorithm will analyze your health data to identify critical issues that need immediate attention.
+            Our advanced algorithm will analyze your health data to identify
+            critical issues that need immediate attention.
           </p>
 
           {/* Animated Button */}
@@ -78,8 +82,14 @@ const HealthAssessment: React.FC = () => {
           {/* Loading dots */}
           <div className="flex justify-center mt-6 space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div
+              className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
+              style={{ animationDelay: "0.1s" }}
+            ></div>
+            <div
+              className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
+              style={{ animationDelay: "0.2s" }}
+            ></div>
           </div>
         </div>
       </div>
@@ -109,14 +119,14 @@ const HealthAssessment: React.FC = () => {
       workout_time: profile.workout_time,
       diet_type: profile.diet_type,
       chronic_conditions: profile.chronic_conditions,
-      preferences: profile.preferences
+      preferences: profile.preferences,
     });
 
     const height = parseFloat(profile.height_cm) || 170;
     const weight = parseFloat(profile.weight_kg) || 70;
-    const bmi = weight / ((height / 100) ** 2);
+    const bmi = weight / (height / 100) ** 2;
     const age = profile.age || 30;
-    
+
     const metrics: HealthMetric[] = [];
 
     // BMI Analysis (we have height and weight)
@@ -133,7 +143,7 @@ const HealthAssessment: React.FC = () => {
       metrics.push({
         id: "bmi",
         title: "BMI",
-        value: `${bmi.toFixed(1)} (${bmi > 30 ? 'Obese' : 'Overweight'})`,
+        value: `${bmi.toFixed(1)} (${bmi > 30 ? "Obese" : "Overweight"})`,
         status: "bad",
         icon: AlertTriangle,
         iconColor: "text-red-600",
@@ -151,7 +161,10 @@ const HealthAssessment: React.FC = () => {
 
     // Sleep Analysis (we have sleep_time and wake_up_time)
     if (profile.sleep_time && profile.wake_up_time) {
-      const sleepHours = calculateSleepHours(profile.sleep_time, profile.wake_up_time);
+      const sleepHours = calculateSleepHours(
+        profile.sleep_time,
+        profile.wake_up_time
+      );
       if (sleepHours < 7) {
         metrics.push({
           id: "sleep",
@@ -235,7 +248,9 @@ const HealthAssessment: React.FC = () => {
 
     // Chronic Conditions Analysis (we have chronic_conditions)
     if (profile.chronic_conditions && profile.chronic_conditions.length > 0) {
-      const conditions = profile.chronic_conditions.filter((c: string) => c !== 'none');
+      const conditions = profile.chronic_conditions.filter(
+        (c: string) => c !== "none"
+      );
       if (conditions.length > 0) {
         metrics.push({
           id: "conditions",
@@ -311,15 +326,15 @@ const HealthAssessment: React.FC = () => {
 
   const handleAnalyzeHealth = async () => {
     setIsAnalyzing(true);
-    
+
     // Simulate analysis time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const metrics = generateHealthMetrics(profile);
     setHealthMetrics(metrics);
     setAnalysisComplete(true);
     setIsAnalyzing(false);
-    
+
     toast.error("Health analysis complete - Multiple issues detected!");
   };
 
@@ -334,11 +349,12 @@ const HealthAssessment: React.FC = () => {
       Math.abs(index - currentIndex + totalItems),
       Math.abs(index - currentIndex - totalItems)
     );
-    
+
     // Calculate position relative to center
     const relativeIndex = index - currentIndex;
-    const adjustedIndex = relativeIndex < 0 ? relativeIndex + totalItems : relativeIndex;
-    
+    const adjustedIndex =
+      relativeIndex < 0 ? relativeIndex + totalItems : relativeIndex;
+
     if (distance === 0) {
       // Main card (center) - fully visible
       return {
@@ -383,22 +399,23 @@ const HealthAssessment: React.FC = () => {
 
   if (!analysisComplete) {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
-            <Heart className="w-8 h-8 text-white" />
+          <div className="w-24 h-24 mb-6 mx-auto">
+            <img src="/brand.png" alt="UrCare Logo" className="w-full h-full" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Health Risk Assessment
           </h1>
           <p className="text-lg text-gray-600 mb-8 max-w-md">
-            Our advanced algorithm will analyze your health data to identify critical issues that need immediate attention.
+            Our advanced algorithm will analyze your health data to identify
+            critical issues that need immediate attention.
           </p>
-          
+
           {!isAnalyzing ? (
             <button
               onClick={handleAnalyzeHealth}
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Target className="w-5 h-5 mr-2" />
               Analyze My Health Now
@@ -406,9 +423,9 @@ const HealthAssessment: React.FC = () => {
             </button>
           ) : (
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
               <p className="text-gray-600">Analyzing your health profile...</p>
-          </div>
+            </div>
           )}
         </div>
       </div>
@@ -416,7 +433,7 @@ const HealthAssessment: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex flex-col overflow-hidden">
       {/* Carousel Container - Perfectly centered */}
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="relative w-full max-w-sm mx-auto">
@@ -425,8 +442,8 @@ const HealthAssessment: React.FC = () => {
             {healthMetrics.map((metric, index) => {
               const IconComponent = metric.icon;
               const style = getCardStyle(index);
-              
-    return (
+
+              return (
                 <div
                   key={metric.id}
                   className="absolute w-full transition-all duration-1000 ease-in-out"
@@ -436,35 +453,41 @@ const HealthAssessment: React.FC = () => {
                     <div className="flex items-center w-full">
                       {/* Icon */}
                       <div className="flex-shrink-0 mr-4">
-                        <IconComponent className={`w-6 h-6 ${metric.iconColor}`} />
-            </div>
+                        <IconComponent
+                          className={`w-6 h-6 ${metric.iconColor}`}
+                        />
+                      </div>
 
                       {/* Content */}
                       <div className="flex-1">
                         <h3 className="text-sm font-medium text-gray-900">
                           {metric.title}
                         </h3>
-                        <p className={`text-lg font-bold ${
-                          metric.status === 'good' ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <p
+                          className={`text-lg font-bold ${
+                            metric.status === "good"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
                           {metric.value}
                         </p>
-                </div>
-                      
+                      </div>
+
                       {/* Status Icon */}
                       <div className="flex-shrink-0">
-                        {metric.status === 'good' ? (
+                        {metric.status === "good" ? (
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                             <CheckCircle className="w-4 h-4 text-white" />
-                  </div>
+                          </div>
                         ) : (
                           <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                             <XCircle className="w-4 h-4 text-white" />
-                  </div>
+                          </div>
                         )}
-            </div>
+                      </div>
                     </div>
-                </div>
+                  </div>
                 </div>
               );
             })}
@@ -480,15 +503,17 @@ const HealthAssessment: React.FC = () => {
             Build a better health timeline
           </h2>
           <p className="text-gray-600 leading-relaxed text-sm">
-            The health issues identified above can lead to serious complications if left unaddressed. 
-            UrCare's proven system has helped thousands of users reverse these exact problems and achieve optimal health outcomes.
+            The health issues identified above can lead to serious complications
+            if left unaddressed. UrCare's proven system has helped thousands of
+            users reverse these exact problems and achieve optimal health
+            outcomes.
           </p>
         </div>
 
         {/* Call to Action */}
         <button
           onClick={handleGetSolution}
-          className="w-full bg-black text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all duration-200 flex items-center justify-center"
+          className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 flex items-center justify-center"
         >
           <CheckCircle className="w-5 h-5 mr-2" />
           Get My Personalized Health Plan
@@ -498,9 +523,9 @@ const HealthAssessment: React.FC = () => {
         <p className="text-center text-sm text-gray-500 mt-3">
           Join 50,000+ users who transformed their health with UrCare
         </p>
-        </div>
       </div>
-    );
+    </div>
+  );
 };
 
 export default HealthAssessment;

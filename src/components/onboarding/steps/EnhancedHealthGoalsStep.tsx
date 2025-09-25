@@ -149,7 +149,7 @@ export const EnhancedHealthGoalsStep: React.FC<
               className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
                 selectedGoals.includes(goal.value)
                   ? "border-primary bg-primary/5 text-primary shadow-lg scale-105"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-emerald-300 hover:bg-primary/5"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -297,7 +297,7 @@ export const EnhancedHealthGoalsStep: React.FC<
                           className={`cursor-pointer transition-all ${
                             detail.timelinePreference === pref.value
                               ? "ring-2 ring-primary bg-primary/5"
-                              : "hover:bg-gray-50"
+                              : "hover:bg-primary/5"
                           }`}
                           onClick={() =>
                             onUpdateGoalDetail(goalType, {
@@ -395,7 +395,7 @@ export const EnhancedHealthGoalsStep: React.FC<
 
       {/* Timeline Preview */}
       {selectedGoals.length > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-emerald-50 border-emerald-200">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
               <Clock className="h-5 w-5" />

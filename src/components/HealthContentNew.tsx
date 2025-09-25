@@ -4,8 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Brain,
+  CheckCircle2,
+  Droplets,
+  Dumbbell,
+  Flame,
+  Footprints,
+  Moon,
+  Sun,
+  Utensils,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Brain, CheckCircle2, Circle, Dumbbell, Droplets, Footprints, Moon, Sun, Utensils, Flame } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -226,7 +236,10 @@ export const HealthContentNew = () => {
         });
       }
     } catch (error) {
-      console.error("[HealthContentNew] Error generating health protocol:", error);
+      console.error(
+        "[HealthContentNew] Error generating health protocol:",
+        error
+      );
       toast.error("An error occurred while generating your health protocol", {
         id: "plan-generation",
       });
@@ -281,7 +294,7 @@ export const HealthContentNew = () => {
         id: "4",
         title: "Manage Your Health Conditions",
         description: `Focus on anti-inflammatory foods for your ${profile.chronic_conditions[0]} management`,
-      icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
+        icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
         time: "Daily",
         isHighlighted: false,
       });
@@ -293,7 +306,7 @@ export const HealthContentNew = () => {
         id: "5",
         title: `${profile.diet_type} Diet Optimization`,
         description: `Meal prep strategies specifically designed for your ${profile.diet_type.toLowerCase()} lifestyle`,
-      icon: <Utensils className="w-6 h-6 text-logo-text" />,
+        icon: <Utensils className="w-6 h-6 text-logo-text" />,
         time: "Meal Times",
         isHighlighted: false,
       });
@@ -316,7 +329,8 @@ export const HealthContentNew = () => {
       {
         id: "2",
         title: "Quick Start 2-Day Protocol",
-        description: "Get started immediately with a focused 2-day health protocol",
+        description:
+          "Get started immediately with a focused 2-day health protocol",
         icon: <Flame className="w-6 h-6 text-logo-text" />,
         time: "2 days",
         isHighlighted: false,
@@ -331,7 +345,8 @@ export const HealthContentNew = () => {
       plans.push({
         id: "3",
         title: "Weight Management Protocol",
-        description: "Sustainable weight management through nutrition and exercise",
+        description:
+          "Sustainable weight management through nutrition and exercise",
         icon: "⚖️",
         time: "8-16 weeks",
         isHighlighted: false,
@@ -343,7 +358,8 @@ export const HealthContentNew = () => {
       plans.push({
         id: "4",
         title: "Fitness & Strength Protocol",
-        description: "Build muscle and improve cardiovascular health through structured protocol",
+        description:
+          "Build muscle and improve cardiovascular health through structured protocol",
         icon: "🏋️",
         time: "12 weeks",
         isHighlighted: false,
@@ -481,7 +497,7 @@ export const HealthContentNew = () => {
           }
         } else if (item.action === "view_plan_option" && item.planData) {
           // Navigate to calendar with the selected plan details
-          navigate("/calendar", {
+          navigate("/plan-details", {
             state: {
               planData: item.planData,
               fromGeneration: true,

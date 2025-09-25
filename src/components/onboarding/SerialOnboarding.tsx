@@ -18,7 +18,7 @@ import { CompletionStep } from "./steps/CompletionStep";
 import { CriticalConditionsStep } from "./steps/CriticalConditionsStep";
 import { DateOfBirthStep } from "./steps/DateOfBirthStep";
 import { DietTypeStep } from "./steps/DietTypeStep";
-import { EmergencyContactStep } from "./steps/EmergencyContactStep";
+import { DrinkingStep } from "./steps/DrinkingStep";
 import { FullNameStep } from "./steps/FullNameStep";
 import { GenderStep } from "./steps/GenderStep";
 import { HealthGoalsStep } from "./steps/HealthGoalsStep";
@@ -28,13 +28,13 @@ import { MealTimingsStep } from "./steps/MealTimingsStep";
 import { MedicationsStep } from "./steps/MedicationsStep";
 import { ReferralCodeStep } from "./steps/ReferralCodeStep";
 import { RoutineFlexibilityStep } from "./steps/RoutineFlexibilityStep";
-import { ShareProgressStep } from "./steps/ShareProgressStep";
 import { SleepScheduleStep } from "./steps/SleepScheduleStep";
+import { SmokingStep } from "./steps/SmokingStep";
 import { SurgeryStep } from "./steps/SurgeryStep";
 import { TrackFamilyStep } from "./steps/TrackFamilyStep";
-import { WearableStep } from "./steps/WearableStep";
 import { WorkScheduleStep } from "./steps/WorkScheduleStep";
 import { WorkoutTimeStep } from "./steps/WorkoutTimeStep";
+import { WorkoutTypeStep } from "./steps/WorkoutTypeStep";
 
 interface OnboardingData {
   fullName: string;
@@ -66,12 +66,10 @@ interface OnboardingData {
   dinnerTime: string;
   workoutTime: string;
   routineFlexibility: string;
-  usesWearable: string;
-  wearableType: string;
+  workoutType: string;
+  smoking: string;
+  drinking: string;
   trackFamily: string;
-  shareProgress: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
   criticalConditions: string;
   hasHealthReports: string;
   healthReports: string[];
@@ -140,24 +138,29 @@ const steps = [
     type: "slider",
     icon: User,
   },
-  { id: "wearable", title: "Wearable devices", type: "wearable", icon: User },
+  {
+    id: "workoutType",
+    title: "Workout type",
+    type: "workoutType",
+    icon: User,
+  },
+  {
+    id: "smoking",
+    title: "Smoking habits",
+    type: "smoking",
+    icon: User,
+  },
+  {
+    id: "drinking",
+    title: "Alcohol consumption",
+    type: "drinking",
+    icon: User,
+  },
   {
     id: "trackFamily",
     title: "Family tracking",
     type: "yesNoChoice",
     icon: Users,
-  },
-  {
-    id: "shareProgress",
-    title: "Progress sharing",
-    type: "yesNoChoice",
-    icon: Users,
-  },
-  {
-    id: "emergencyContact",
-    title: "Emergency contact",
-    type: "emergencyContact",
-    icon: User,
   },
   {
     id: "criticalConditions",
@@ -639,12 +642,10 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
     dinnerTime: "19:00",
     workoutTime: "Morning (06:00-10:00)",
     routineFlexibility: "5",
-    usesWearable: "No",
-    wearableType: "",
+    workoutType: "",
+    smoking: "",
+    drinking: "",
     trackFamily: "No",
-    shareProgress: "No",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
     criticalConditions: "",
     hasHealthReports: "No",
     healthReports: [],
@@ -739,30 +740,24 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
       case "routineFlexibility":
         // Flexibility slider has default value, no validation needed
         break;
-      case "wearable":
-        if (!data.usesWearable) {
-          newErrors.wearable = "Please select if you use a wearable device";
-        } else if (data.usesWearable === "Yes" && !data.wearableType) {
-          newErrors.wearable = "Please select your wearable device type";
+      case "workoutType":
+        if (!data.workoutType) {
+          newErrors.workoutType = "Please select your preferred workout type";
+        }
+        break;
+      case "smoking":
+        if (!data.smoking) {
+          newErrors.smoking = "Please select your smoking status";
+        }
+        break;
+      case "drinking":
+        if (!data.drinking) {
+          newErrors.drinking = "Please select your alcohol consumption level";
         }
         break;
       case "trackFamily":
         if (!data.trackFamily) {
           newErrors.trackFamily = "Please select yes or no";
-        }
-        break;
-      case "shareProgress":
-        if (!data.shareProgress) {
-          newErrors.shareProgress = "Please select yes or no";
-        }
-        break;
-      case "emergencyContact":
-        if (
-          !data.emergencyContactName.trim() ||
-          !data.emergencyContactPhone.trim()
-        ) {
-          newErrors.emergencyContact =
-            "Please provide emergency contact name and phone number";
         }
         break;
       case "criticalConditions":
@@ -1077,14 +1072,28 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
             error={errors.routineFlexibility}
           />
         );
-      case "wearable":
+      case "workoutType":
         return (
-          <WearableStep
-            usesWearable={data.usesWearable}
-            wearableType={data.wearableType}
-            onUsesWearableChange={(v) => updateData("usesWearable", v)}
-            onWearableTypeChange={(v) => updateData("wearableType", v)}
-            error={errors.wearable}
+          <WorkoutTypeStep
+            value={data.workoutType}
+            onChange={(v) => updateData("workoutType", v)}
+            error={errors.workoutType}
+          />
+        );
+      case "smoking":
+        return (
+          <SmokingStep
+            value={data.smoking}
+            onChange={(v) => updateData("smoking", v)}
+            error={errors.smoking}
+          />
+        );
+      case "drinking":
+        return (
+          <DrinkingStep
+            value={data.drinking}
+            onChange={(v) => updateData("drinking", v)}
+            error={errors.drinking}
           />
         );
       case "trackFamily":
@@ -1093,23 +1102,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
             value={data.trackFamily}
             onChange={(v) => updateData("trackFamily", v)}
             error={errors.trackFamily}
-          />
-        );
-      case "shareProgress":
-        return (
-          <ShareProgressStep
-            value={data.shareProgress}
-            onChange={(v) => updateData("shareProgress", v)}
-            error={errors.shareProgress}
-          />
-        );
-      case "emergencyContact":
-        return (
-          <EmergencyContactStep
-            name={data.emergencyContactName}
-            phone={data.emergencyContactPhone}
-            onChange={updateData}
-            error={errors.emergencyContact}
           />
         );
       case "criticalConditions":
@@ -1155,31 +1147,27 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
 
   return (
     <div className="fixed inset-0 bg-app-bg flex flex-col overflow-hidden">
-      {/* Header with back button and progress - hidden for completion step */}
-      {currentStepData.id !== "completion" && (
-        <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0 bg-app-bg">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePrevious}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <ArrowLeft className="w-6 h-6 text-text-secondary" />
-          </Button>
+      {/* Header with back button and progress bar */}
+      <div className="flex items-center p-4 pt-12 flex-shrink-0 bg-app-bg">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handlePrevious}
+          className="p-2 hover:bg-gray-100 rounded-full mr-4"
+        >
+          <ArrowLeft className="w-6 h-6 text-text-secondary" />
+        </Button>
 
-          {/* Progress bar */}
-          <div className="flex-1 mx-4 sm:mx-8">
-            <div className="w-full bg-progress-track rounded-full h-1">
-              <div
-                className="bg-progress-fill h-1 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
+        {/* Progress bar - reduced width */}
+        <div className="flex-1 max-w-xs">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
-
-          <div className="w-10"></div>
         </div>
-      )}
+      </div>
 
       {/* Main content - centered and scrollable */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 overflow-y-auto">
@@ -1223,7 +1211,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
 
       {/* Continue Button - fixed at bottom - hidden for completion step */}
       {currentStepData.id !== "completion" && (
-        <div className="p-4 sm:p-6 pb-6 flex-shrink-0 bg-gray-50">
+        <div className="p-4 sm:p-6 pb-6 flex-shrink-0 bg-white">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1231,7 +1219,7 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
           >
             <Button
               onClick={handleNext}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full bg-primary hover:bg-primary/90 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               {currentStep === steps.length - 2 ? "Continue" : "Continue"}
             </Button>

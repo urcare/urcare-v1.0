@@ -2,55 +2,16 @@ import { supabase } from "@/integrations/supabase/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  Activity,
-  ComprehensiveHealthPlan,
-  MealPlan,
-  WorkoutPlan,
-} from "../types/comprehensiveHealthPlan";
-
-interface Event {
-  id: string;
-  title: string;
-  duration: string;
-  time: string;
-  color: "green" | "lime" | "beige" | "text";
-  type?: "activity" | "meal" | "workout" | "wellness";
-  description?: string;
-  // Add details for expandable content
-  details?: {
-    description?: string;
-    exercises?: Array<{
-      name: string;
-      sets: number;
-      reps: number;
-      rest: string;
-    }>;
-    nutrition?: {
-      calories: number;
-      protein: string;
-      carbs: string;
-      fats: string;
-      foods: string[];
-    };
-    instructions?: string[];
-    tips?: string[];
-  };
-}
+import { ComprehensiveHealthPlan } from "../types/comprehensiveHealthPlan";
 
 const PlanDetails: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const [planData, setPlanData] = useState<ComprehensiveHealthPlan | null>(
     null
   );
-  const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // Add state for expanded events
-  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState<boolean>(false);
   const [savingDefault, setSavingDefault] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -63,6 +24,7 @@ const PlanDetails: React.FC = () => {
   const [weekDays, setWeekDays] = useState<
     Array<{ day: string; date: number; fullDate: string }>
   >([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   // Keep a copy of mapped AI dates for simple filtering
   const [aiDay1Date, setAiDay1Date] = useState<string | null>(null);
@@ -97,190 +59,71 @@ const PlanDetails: React.FC = () => {
     setSelectedDate(formatHeaderDate(new Date()));
   }, []);
 
-  // Default events for demo
-  const defaultEvents: Event[] = [
-    {
-      id: "1",
-      title: "Dailly stand-up",
-      duration: "1 hour",
-      time: "9:00 am",
-      color: "green",
-    },
-    {
-      id: "2",
-      title: "Design Alignment",
-      duration: "",
-      time: "10:00 am",
-      color: "lime",
-    },
-    {
-      id: "3",
-      title: "Review work place safety",
-      duration: "45 min",
-      time: "11:00 am",
-      color: "beige",
-    },
-    {
-      id: "4",
-      title: "Lunch",
-      duration: "30 min",
-      time: "12:00 am",
-      color: "text",
-    },
-  ];
+  // Convert AI Health Coach plan to calendar events
+  const convertAIHealthCoachPlanToEvents = useCallback(
+    (aiPlan: any): Event[] => {
+      console.log("🤖 Converting AI Health Coach plan to events");
+      const events: Event[] = [];
 
-  // Helper function to parse time strings
-  const parseTime = (timeStr: string): number => {
-    const [time, period] = timeStr.split(" ");
-    const [hours, minutes] = time.split(":").map(Number);
-    let totalMinutes = hours * 60 + minutes;
-    if (period === "pm" && hours !== 12) totalMinutes += 12 * 60;
-    if (period === "am" && hours === 12) totalMinutes -= 12 * 60;
-    return totalMinutes;
-  };
+      // Convert day 1 activities
+      if (aiPlan.day1 && aiPlan.day1.activities) {
+        aiPlan.day1.activities.forEach((activity: any, index: number) => {
+          const startTime = new Date(
+            `${aiPlan.day1.date}T${activity.startTime}`
+          );
+          const endTime = new Date(`${aiPlan.day1.date}T${activity.endTime}`);
 
-  // Convert AI Health Coach Plan to Calendar Events
-  const convertAIHealthCoachPlanToEvents = (aiPlan: any): Event[] => {
-    console.log("🔄 Converting AI Health Coach Plan to events");
-    const events: Event[] = [];
-    let eventId = 1;
-
-    // Helper function to get activity color
-    const getActivityColor = (
-      type: string
-    ): "green" | "lime" | "beige" | "text" => {
-      switch (type.toLowerCase()) {
-        case "meal":
-        case "nutrition":
-          return "beige";
-        case "exercise":
-        case "workout":
-        case "movement":
-          return "green";
-        case "wellness":
-        case "mindfulness":
-        case "breathing":
-          return "lime";
-        default:
-          return "text";
-      }
-    };
-
-    // Process Day 1 activities
-    if (aiPlan.day1 && aiPlan.day1.activities) {
-      aiPlan.day1.activities.forEach((activity: any) => {
-        events.push({
-          id: `day1-${eventId++}`,
-          title: activity.title || activity.name || "Activity",
-          duration: `${activity.duration || 30} min`,
-          time: activity.startTime || "9:00 am",
-          color: getActivityColor(activity.type || "wellness"),
-          type: activity.type || "activity",
-          description: activity.description || "",
-          details: {
-            description: activity.description || "",
-            instructions: activity.instructions || [],
-            tips: activity.tips || [],
-          },
-        });
-      });
-    }
-
-    // If no activities found, create some from the plan structure
-    if (events.length === 0 && aiPlan.day1) {
-      const day1 = aiPlan.day1;
-      let currentTime = "7:00 am";
-
-      // Morning routine
-      if (day1.focus) {
-        events.push({
-          id: `focus-${eventId++}`,
-          title: "Daily Focus",
-          duration: "15 min",
-          time: currentTime,
-          color: "lime",
-          type: "wellness",
-          description: day1.focus,
-          details: {
-            description: day1.focus,
-            tips: ["Start your day with intention", "Focus on your main goal"],
-          },
-        });
-      }
-
-      // Movement
-      if (day1.movement) {
-        events.push({
-          id: `movement-${eventId++}`,
-          title: day1.movement.type === "home" ? "Home Workout" : "Gym Session",
-          duration: `${day1.movement.duration_min || 45} min`,
-          time: "8:00 am",
-          color: "green",
-          type: "workout",
-          description: `${day1.movement.duration_min || 45} minute ${
-            day1.movement.type
-          } workout`,
-          details: {
-            description: `${day1.movement.duration_min || 45} minute ${
-              day1.movement.type
-            } workout`,
-            exercises: day1.movement.exercises || [],
-            tips: day1.movement.warmup || [],
-          },
-        });
-      }
-
-      // Nutrition/Meals
-      if (day1.nutrition && day1.nutrition.meals) {
-        day1.nutrition.meals.forEach((meal: any, index: number) => {
-          const mealTimes = ["8:30 am", "12:30 pm", "7:00 pm"];
           events.push({
-            id: `meal-${eventId++}`,
-            title: meal.name || `Meal ${index + 1}`,
-            duration: "30 min",
-            time: mealTimes[index] || "12:00 pm",
-            color: "beige",
-            type: "meal",
-            description: meal.detailedDescription || "Healthy meal",
-            details: {
-              description: meal.detailedDescription || "Healthy meal",
-              nutrition: meal.macros
-                ? {
-                    calories: meal.macros.p + meal.macros.c + meal.macros.f,
-                    protein: `${meal.macros.p}g`,
-                    carbs: `${meal.macros.c}g`,
-                    fats: `${meal.macros.f}g`,
-                    foods: meal.items?.map((item: any) => item.food) || [],
-                  }
-                : undefined,
-              tips: meal.eatingInstructions || [],
-            },
+            id: `ai-day1-${activity.id}`,
+            title: activity.title,
+            start: startTime,
+            end: endTime,
+            description: activity.description,
+            type: activity.type,
+            priority: activity.priority,
+            category: activity.category,
+            instructions: activity.instructions,
+            tips: activity.tips,
+            benefits: activity.benefits,
+            scientificEvidence: activity.scientificEvidence,
+            day: 1,
+            isAI: true,
           });
         });
       }
 
-      // Stress management
-      if (day1.stress) {
-        events.push({
-          id: `stress-${eventId++}`,
-          title: day1.stress.practice || "Stress Management",
-          duration: `${day1.stress.duration_min || 10} min`,
-          time: "6:00 pm",
-          color: "lime",
-          type: "wellness",
-          description: day1.stress.reflection_prompt || "Mindfulness practice",
-          details: {
-            description:
-              day1.stress.reflection_prompt || "Mindfulness practice",
-            tips: ["Take deep breaths", "Focus on the present moment"],
-          },
+      // Convert day 2 activities
+      if (aiPlan.day2 && aiPlan.day2.activities) {
+        aiPlan.day2.activities.forEach((activity: any, index: number) => {
+          const startTime = new Date(
+            `${aiPlan.day2.date}T${activity.startTime}`
+          );
+          const endTime = new Date(`${aiPlan.day2.date}T${activity.endTime}`);
+
+          events.push({
+            id: `ai-day2-${activity.id}`,
+            title: activity.title,
+            start: startTime,
+            end: endTime,
+            description: activity.description,
+            type: activity.type,
+            priority: activity.priority,
+            category: activity.category,
+            instructions: activity.instructions,
+            tips: activity.tips,
+            benefits: activity.benefits,
+            scientificEvidence: activity.scientificEvidence,
+            day: 2,
+            isAI: true,
+          });
         });
       }
-    }
 
-    console.log(`✅ Converted AI plan to ${events.length} events`);
-    return events;
-  };
+      console.log(`✅ Converted ${events.length} AI activities to events`);
+      return events;
+    },
+    []
+  );
 
   // Convert plan data to calendar events with user's actual schedule
   const convertPlanToEvents = useCallback(
@@ -803,47 +646,8 @@ const PlanDetails: React.FC = () => {
 
           console.log("✅ Plan data validation passed, setting plan data");
           setPlanData(planData);
-
-          // Try to convert plan to events with error handling
-          try {
-            console.log("🔄 Converting plan to events...");
-            const planEvents = convertPlanToEvents(planData);
-            console.log("📅 Plan events generated:", {
-              eventCount: planEvents.length,
-              events: planEvents.map((e) => ({
-                id: e.id,
-                title: e.title,
-                time: e.time,
-                type: e.type,
-              })),
-            });
-            setEvents(planEvents.length > 0 ? planEvents : defaultEvents);
-            console.log("✅ Events set successfully");
-          } catch (conversionError) {
-            console.warn(
-              "❌ Plan conversion failed, using default events:",
-              conversionError
-            );
-            console.log("🔍 Conversion error details:", {
-              errorMessage: conversionError.message,
-              errorStack: conversionError.stack,
-              planData: planData,
-            });
-            setEvents(defaultEvents);
-          }
         } else {
-          console.log(
-            "⚠️ No plan data in location state, using default events"
-          );
-          console.log(
-            "📝 Default events:",
-            defaultEvents.map((e) => ({
-              id: e.id,
-              title: e.title,
-              time: e.time,
-            }))
-          );
-          setEvents(defaultEvents);
+          console.log("⚠️ No plan data in location state");
         }
       } catch (error) {
         console.error("❌ Error loading plan data:", error);
@@ -854,12 +658,8 @@ const PlanDetails: React.FC = () => {
           locationState: location.state,
         });
         setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load calendar data"
+          error instanceof Error ? error.message : "Failed to load plan data"
         );
-        setEvents(defaultEvents); // Fallback to default events
-        console.log("🔄 Fallback to default events due to error");
       } finally {
         console.log("🏁 Calendar loading completed");
         setIsLoading(false);
@@ -869,7 +669,7 @@ const PlanDetails: React.FC = () => {
     // Debounce multiple calls to prevent rapid reloads
     const timeoutId = setTimeout(loadPlanData, 50);
     return () => clearTimeout(timeoutId);
-  }, [location.state?.planData, convertPlanToEvents]); // More specific dependency
+  }, [location.state?.planData]); // More specific dependency
 
   const handleBackToDashboard = useCallback(() => {
     try {
@@ -1007,7 +807,7 @@ const PlanDetails: React.FC = () => {
 
       if (isPreview) {
         // Update local preview only and refresh events
-        navigate("/calendar", {
+        navigate("/plan-details", {
           state: { ...location.state, planData: updated, preview: true },
           replace: true,
         });
@@ -1053,7 +853,7 @@ const PlanDetails: React.FC = () => {
           .select();
         if (error) throw error;
         toast.success("Plan updated", { id: "edit-plan" });
-        navigate("/calendar", {
+        navigate("/plan-details", {
           state: {
             planData: { ...updated, day_1_plan: day1, day_2_plan: day2 },
             preview: false,
@@ -1194,28 +994,8 @@ const PlanDetails: React.FC = () => {
             </div>
           </div>
           <div className="text-white">
-            {isPreview && (
-              <button
-                onClick={handleSetAsDefault}
-                disabled={savingDefault}
-                className={`px-4 py-2 rounded-lg ${
-                  savingDefault
-                    ? "bg-gray-500"
-                    : "bg-amber-500 hover:bg-amber-600"
-                }`}
-              >
-                {savingDefault ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
-                  </>
-                ) : (
-                  "Set as default protocol"
-                )}
-              </button>
-            )}
             {/* Settings menu trigger */}
-            <div className="inline-block ml-3 relative">
+            <div className="inline-block relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
@@ -1232,23 +1012,31 @@ const PlanDetails: React.FC = () => {
               </button>
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-20">
-                  <button
-                    onClick={openEdit}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg"
-                  >
-                    Edit protocol
-                  </button>
+                  {isPreview && (
+                    <button
+                      onClick={handleSetAsDefault}
+                      disabled={savingDefault}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 rounded-t-lg flex items-center ${
+                        savingDefault ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      {savingDefault ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        "Set as default protocol"
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={handleChangePlan}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                      isPreview ? "" : "rounded-t-lg"
+                    } ${isPreview ? "rounded-b-lg" : ""}`}
                   >
                     Change protocol
-                  </button>
-                  <button
-                    onClick={handleRemovePlan}
-                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
-                  >
-                    Remove protocol
                   </button>
                 </div>
               )}
@@ -1258,153 +1046,142 @@ const PlanDetails: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-t-3xl relative z-10 min-h-screen -mt-8">
+      <div className="relative z-10 min-h-screen -mt-8">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
         </div>
 
         <div className="px-6">
-          {/* Protocol Details (replacing timetable) */}
-          <h2 className="text-2xl font-bold text-black mb-6">
-            Protocol Details
-          </h2>
-          {isPreview && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-              Preview mode — set this protocol as default to keep the protocol.
-            </div>
-          )}
+          {/* Protocol Details Card */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <h2 className="text-2xl font-bold text-black mb-6">
+              Protocol Details
+            </h2>
+            {isPreview && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+                Preview mode — set this protocol as default to keep the
+                protocol.
+              </div>
+            )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-2">Summary</h3>
-              <div className="text-sm text-gray-700 space-y-1">
-                <div>
-                  <strong>Name:</strong>{" "}
-                  {planData?.plan_name || "Custom Protocol"}
-                </div>
-                <div>
-                  <strong>Primary Goal:</strong>{" "}
-                  {planData?.primary_goal || "Improve overall health"}
-                </div>
-                <div>
-                  <strong>Duration:</strong> {planData?.duration_weeks || 12}{" "}
-                  weeks
-                </div>
-                <div>
-                  <strong>Difficulty:</strong>{" "}
-                  {(planData as any)?.difficulty || "Moderate"}
-                </div>
-                <div>
-                  <strong>Starts:</strong>{" "}
-                  {(location.state as any)?.planData?.plan_start_date ||
-                    "Today"}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-black mb-2">
+                  Summary
+                </h3>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <div>
+                    <strong>Name:</strong>{" "}
+                    {planData?.plan_name || "Custom Protocol"}
+                  </div>
+                  <div>
+                    <strong>Primary Goal:</strong>{" "}
+                    {planData?.primary_goal || "Improve overall health"}
+                  </div>
+                  <div>
+                    <strong>Duration:</strong> {planData?.duration_weeks || 12}{" "}
+                    weeks
+                  </div>
+                  <div>
+                    <strong>Difficulty:</strong>{" "}
+                    {(planData as any)?.difficulty || "Moderate"}
+                  </div>
+                  <div>
+                    <strong>Starts:</strong>{" "}
+                    {(location.state as any)?.planData?.plan_start_date ||
+                      "Today"}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-2">
-                Expected Impacts
-              </h3>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                {(planData as any)?.expected_outcomes?.length
-                  ? (planData as any).expected_outcomes.map(
-                      (t: string, i: number) => <li key={i}>{t}</li>
-                    )
-                  : [
-                      "Better energy and focus",
-                      "Improved fitness and mobility",
-                      "Consistent meal timing and nutrition",
-                      "Healthier sleep routine",
-                    ].map((t, i) => <li key={i}>{t}</li>)}
-              </ul>
-            </div>
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-black mb-2">
+                  Expected Impacts
+                </h3>
+                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                  {(planData as any)?.expected_outcomes?.length
+                    ? (planData as any).expected_outcomes.map(
+                        (t: string, i: number) => <li key={i}>{t}</li>
+                      )
+                    : [
+                        "Better energy and focus",
+                        "Improved fitness and mobility",
+                        "Consistent meal timing and nutrition",
+                        "Healthier sleep routine",
+                      ].map((t, i) => <li key={i}>{t}</li>)}
+                </ul>
+              </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                {(
-                  (location.state as any)?.planData?.overall_goals ||
-                  planData?.overall_goals || [
-                    "Build healthy habits",
-                    "Balance nutrition & activity",
-                  ]
-                ).map((g: string, i: number) => (
-                  <li key={i}>{g}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-2">
-                Tips & Safety
-              </h3>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                {((location.state as any)?.planData?.progress_tips || [])
-                  .concat((location.state as any)?.planData?.safety_notes || [])
-                  .slice(0, 6)
-                  .map((t: string, i: number) => (
-                    <li key={i}>{t}</li>
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
+                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                  {(
+                    (location.state as any)?.planData?.overall_goals ||
+                    planData?.overall_goals || [
+                      "Build healthy habits",
+                      "Balance nutrition & activity",
+                    ]
+                  ).map((g: string, i: number) => (
+                    <li key={i}>{g}</li>
                   ))}
-                {!(location.state as any)?.planData?.progress_tips?.length &&
-                  !(location.state as any)?.planData?.safety_notes?.length && (
-                    <>
-                      <li>Hydrate well and warm up before workouts</li>
-                      <li>Scale intensity based on your current fitness</li>
-                      <li>Prioritize sleep and recovery</li>
-                    </>
-                  )}
-              </ul>
-            </div>
-          </div>
+                </ul>
+              </div>
 
-          <div className="rounded-2xl bg-white p-4 border border-gray-200">
-            <h3 className="text-lg font-semibold text-black mb-2">
-              What’s Inside
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
-              <div>
-                <strong>Workouts</strong>
-                <p className="mt-1">
-                  {planData?.plan_data?.daily_templates?.weekday?.workouts
-                    ?.length || 4}{" "}
-                  sessions/week, progressive overload
-                </p>
-              </div>
-              <div>
-                <strong>Nutrition</strong>
-                <p className="mt-1">
-                  Balanced macros, regular meals, meal-prep guidance
-                </p>
-              </div>
-              <div>
-                <strong>Wellness</strong>
-                <p className="mt-1">
-                  Mindfulness, hydration, and sleep hygiene practices
-                </p>
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-black mb-2">
+                  Tips & Safety
+                </h3>
+                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                  {((location.state as any)?.planData?.progress_tips || [])
+                    .concat(
+                      (location.state as any)?.planData?.safety_notes || []
+                    )
+                    .slice(0, 6)
+                    .map((t: string, i: number) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  {!(location.state as any)?.planData?.progress_tips?.length &&
+                    !(location.state as any)?.planData?.safety_notes
+                      ?.length && (
+                      <>
+                        <li>Hydrate well and warm up before workouts</li>
+                        <li>Scale intensity based on your current fitness</li>
+                        <li>Prioritize sleep and recovery</li>
+                      </>
+                    )}
+                </ul>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Floating Action Button */}
-        <div className="fixed bottom-8 right-6">
-          <button className="w-14 h-14 bg-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors">
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
+            <div className="rounded-2xl bg-white p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-2">
+                What’s Inside
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
+                <div>
+                  <strong>Workouts</strong>
+                  <p className="mt-1">
+                    {planData?.plan_data?.daily_templates?.weekday?.workouts
+                      ?.length || 4}{" "}
+                    sessions/week, progressive overload
+                  </p>
+                </div>
+                <div>
+                  <strong>Nutrition</strong>
+                  <p className="mt-1">
+                    Balanced macros, regular meals, meal-prep guidance
+                  </p>
+                </div>
+                <div>
+                  <strong>Wellness</strong>
+                  <p className="mt-1">
+                    Mindfulness, hydration, and sleep hygiene practices
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

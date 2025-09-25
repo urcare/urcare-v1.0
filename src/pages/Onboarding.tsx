@@ -115,6 +115,22 @@ const Onboarding = () => {
             return;
           }
 
+          // Check if user has completed health assessment
+          const { data: healthPlan } = await supabase
+            .from("health_plans")
+            .select("id")
+            .eq("user_id", profile.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (!healthPlan) {
+            console.log(
+              "Onboarding: User hasn't completed health assessment, redirecting to health-assessment"
+            );
+            navigate("/health-assessment", { replace: true });
+            return;
+          }
+
           // Check actual subscription status
           const subscriptionStatus =
             await subscriptionService.getSubscriptionStatus(profile.id);
@@ -209,12 +225,10 @@ const Onboarding = () => {
           dinner_time: convertTimeToFormat(data.dinnerTime),
           workout_time: convertTimeToFormat(data.workoutTime),
           routine_flexibility: data.routineFlexibility || null,
-          uses_wearable: data.usesWearable || null,
-          wearable_type: data.wearableType || null,
+          workout_type: data.workoutType || null,
+          smoking: data.smoking || null,
+          drinking: data.drinking || null,
           track_family: data.trackFamily || null,
-          share_progress: data.shareProgress || null,
-          emergency_contact_name: data.emergencyContactName || null,
-          emergency_contact_phone: data.emergencyContactPhone || null,
           critical_conditions: data.criticalConditions || null,
           has_health_reports: data.hasHealthReports || null,
           health_reports: data.healthReports || null,
@@ -265,7 +279,7 @@ const Onboarding = () => {
         });
 
         // Let the redirect logic handle navigation based on updated profile
-        // The useEffect with profile dependency will redirect to /custom-plan
+        // The useEffect with profile dependency will redirect to /health-assessment
       } catch (error) {
         console.error("Error completing onboarding:", error);
         toast.error("Failed to complete onboarding", {

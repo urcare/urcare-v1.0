@@ -1,42 +1,49 @@
-import {
-  Apple,
-  Beef,
-  Carrot,
-  Dumbbell,
-  Fish,
-  Leaf,
-  Utensils,
-  Wheat,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, X } from "lucide-react";
 import React from "react";
 
-interface DietTypeStepProps {
+interface SmokingStepProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
 }
 
-const dietTypes = [
-  { value: "Balanced", icon: Apple, color: "text-green-500" },
-  { value: "Vegetarian", icon: Carrot, color: "text-orange-500" },
-  { value: "Vegan", icon: Leaf, color: "text-emerald-500" },
-  { value: "Keto", icon: Beef, color: "text-red-500" },
-  { value: "Paleo", icon: Fish, color: "text-blue-500" },
-  { value: "Low Carb", icon: Wheat, color: "text-yellow-500" },
-  { value: "High Protein", icon: Dumbbell, color: "text-purple-500" },
-  { value: "Other", icon: Utensils, color: "text-gray-500" },
+const smokingOptions = [
+  {
+    value: "Never smoked",
+    icon: CheckCircle,
+    color: "text-green-500",
+    description: "No smoking history",
+  },
+  {
+    value: "Former smoker",
+    icon: Clock,
+    color: "text-yellow-500",
+    description: "Quit smoking previously",
+  },
+  {
+    value: "Occasional smoker",
+    icon: AlertTriangle,
+    color: "text-orange-500",
+    description: "Smoke occasionally",
+  },
+  {
+    value: "Regular smoker",
+    icon: X,
+    color: "text-red-500",
+    description: "Smoke regularly",
+  },
 ];
 
-export const DietTypeStep: React.FC<DietTypeStepProps> = ({
+export const SmokingStep: React.FC<SmokingStepProps> = ({
   value,
   onChange,
   error,
 }) => (
   <div className="w-full space-y-6">
     <div className="flex justify-center">
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-2xl">
         <div className="grid grid-cols-2 gap-4">
-          {dietTypes.map((option) => {
+          {smokingOptions.map((option) => {
             const IconComponent = option.icon;
             return (
               <button
@@ -53,7 +60,10 @@ export const DietTypeStep: React.FC<DietTypeStepProps> = ({
                     value === option.value ? "text-white" : option.color
                   }`}
                 />
-                <span className="text-base font-semibold">{option.value}</span>
+                <span className="text-base font-semibold leading-tight">
+                  {option.value}
+                </span>
+                <span className="text-xs opacity-75">{option.description}</span>
               </button>
             );
           })}

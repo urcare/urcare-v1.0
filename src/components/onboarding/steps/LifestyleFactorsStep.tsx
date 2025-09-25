@@ -155,7 +155,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
                 className={`cursor-pointer transition-all ${
                   lifestyleFactors.smokingStatus === option.value
                     ? "ring-2 ring-primary bg-primary/5"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-primary/5"
                 }`}
                 onClick={() => onUpdate({ smokingStatus: option.value as any })}
               >
@@ -209,7 +209,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
                 className={`cursor-pointer transition-all ${
                   lifestyleFactors.alcoholConsumption === option.value
                     ? "ring-2 ring-primary bg-primary/5"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-primary/5"
                 }`}
                 onClick={() =>
                   onUpdate({ alcoholConsumption: option.value as any })
@@ -265,7 +265,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
                 className={`cursor-pointer transition-all ${
                   lifestyleFactors.exerciseFrequency === option.value
                     ? "ring-2 ring-primary bg-primary/5"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-primary/5"
                 }`}
                 onClick={() =>
                   onUpdate({ exerciseFrequency: option.value as any })
@@ -297,7 +297,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
                 className={`cursor-pointer transition-all ${
                   lifestyleFactors.fitnessLevel === option.value
                     ? "ring-2 ring-primary bg-primary/5"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-primary/5"
                 }`}
                 onClick={() => onUpdate({ fitnessLevel: option.value as any })}
               >
@@ -356,7 +356,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
                   className={`cursor-pointer transition-all ${
                     lifestyleFactors.stressLevel === option.value
                       ? "ring-2 ring-primary bg-primary/5"
-                      : "hover:bg-gray-50"
+                      : "hover:bg-primary/5"
                   }`}
                   onClick={() => onUpdate({ stressLevel: option.value as any })}
                 >
@@ -374,7 +374,7 @@ export const LifestyleFactorsStep: React.FC<LifestyleFactorsStepProps> = ({
       </div>
 
       {/* Summary */}
-      <Card className="bg-gray-50">
+      <Card className="bg-primary/5">
         <CardHeader>
           <CardTitle className="text-md">Lifestyle Summary</CardTitle>
         </CardHeader>

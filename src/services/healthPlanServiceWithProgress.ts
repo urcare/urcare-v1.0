@@ -61,7 +61,7 @@ class HealthPlanServiceWithProgress {
             reject(
               new Error("Health plan generation timeout - trying fallback")
             ),
-          60000 // Increased to 60 seconds
+          30000 // Reduced to 30 seconds for faster fallback
         );
       });
 

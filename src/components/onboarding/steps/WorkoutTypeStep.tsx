@@ -1,42 +1,61 @@
-import {
-  Apple,
-  Beef,
-  Carrot,
-  Dumbbell,
-  Fish,
-  Leaf,
-  Utensils,
-  Wheat,
-} from "lucide-react";
+import { Dumbbell, Heart, Home, TreePine, Waves, Zap } from "lucide-react";
 import React from "react";
 
-interface DietTypeStepProps {
+interface WorkoutTypeStepProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
 }
 
-const dietTypes = [
-  { value: "Balanced", icon: Apple, color: "text-green-500" },
-  { value: "Vegetarian", icon: Carrot, color: "text-orange-500" },
-  { value: "Vegan", icon: Leaf, color: "text-emerald-500" },
-  { value: "Keto", icon: Beef, color: "text-red-500" },
-  { value: "Paleo", icon: Fish, color: "text-blue-500" },
-  { value: "Low Carb", icon: Wheat, color: "text-yellow-500" },
-  { value: "High Protein", icon: Dumbbell, color: "text-purple-500" },
-  { value: "Other", icon: Utensils, color: "text-gray-500" },
+const workoutTypes = [
+  {
+    value: "Yoga",
+    icon: TreePine,
+    color: "text-green-500",
+    description: "Mindful movement and flexibility",
+  },
+  {
+    value: "Home Gym",
+    icon: Home,
+    color: "text-blue-500",
+    description: "Equipment-based workouts at home",
+  },
+  {
+    value: "Gym",
+    icon: Dumbbell,
+    color: "text-red-500",
+    description: "Commercial gym facilities",
+  },
+  {
+    value: "Swimming",
+    icon: Waves,
+    color: "text-cyan-500",
+    description: "Water-based exercises",
+  },
+  {
+    value: "Cardio",
+    icon: Heart,
+    color: "text-pink-500",
+    description: "Running, cycling, aerobics",
+  },
+  {
+    value: "HIIT",
+    icon: Zap,
+    color: "text-orange-500",
+    description: "High-intensity interval training",
+  },
 ];
 
-export const DietTypeStep: React.FC<DietTypeStepProps> = ({
+export const WorkoutTypeStep: React.FC<WorkoutTypeStepProps> = ({
   value,
   onChange,
   error,
 }) => (
   <div className="w-full space-y-6">
     <div className="flex justify-center">
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-2xl">
         <div className="grid grid-cols-2 gap-4">
-          {dietTypes.map((option) => {
+          {workoutTypes.map((option) => {
             const IconComponent = option.icon;
             return (
               <button
@@ -53,7 +72,10 @@ export const DietTypeStep: React.FC<DietTypeStepProps> = ({
                     value === option.value ? "text-white" : option.color
                   }`}
                 />
-                <span className="text-base font-semibold">{option.value}</span>
+                <span className="text-base font-semibold leading-tight">
+                  {option.value}
+                </span>
+                <span className="text-xs opacity-75">{option.description}</span>
               </button>
             );
           })}

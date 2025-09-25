@@ -143,6 +143,10 @@
     --text-tertiary: 210 9% 46%;
     --border-medium: 51 100% 50%;
 
+    /* Progress bar colors */
+    --progress-track: 210 9% 46%; /* #6C757D - grey track */
+    --progress-fill: 157 100% 18%; /* Primary emerald green fill */
+
     --radius: 1rem;
   }
 
@@ -180,6 +184,10 @@
     --text-secondary: 51 100% 50%;
     --text-tertiary: 51 100% 50%;
     --border-medium: 51 100% 50%;
+
+    /* Progress bar colors - dark mode */
+    --progress-track: 225 38% 27%; /* #2B3A60 - dark grey track */
+    --progress-fill: 157 100% 18%; /* Primary emerald green fill */
   }
 }
 
@@ -199,6 +207,7 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
+    user-select: none;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     /* Fix for Safari mobile viewport */

@@ -29,7 +29,7 @@ const Landing = () => {
             user &&
             profile?.onboarding_completed
           ) {
-            navigate("/custom-plan", { replace: true });
+            navigate("/health-assessment", { replace: true });
           }
         }, 1000);
         return () => clearTimeout(redirectTimer);
@@ -98,7 +98,7 @@ const Landing = () => {
                 } else if (authMode === "signin") {
                   // For signin, check if user has completed onboarding
                   if (profile?.onboarding_completed) {
-                    navigate("/custom-plan");
+                    navigate("/health-assessment");
                   } else {
                     navigate("/welcome-screen");
                   }

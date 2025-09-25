@@ -1,7 +1,7 @@
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
+import React from "react";
 
 interface SurgeryStepProps {
   hasSurgery: string;
@@ -18,30 +18,30 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
   onHasSurgeryChange,
   onAddSurgeryDetail,
   onRemoveSurgeryDetail,
-  error
+  error,
 }) => {
-  const [input, setInput] = React.useState('');
-  
+  const [input, setInput] = React.useState("");
+
   return (
     <div className="space-y-4">
       {/* Yes/No Selection */}
       <div className="flex justify-center space-x-2">
         <button
-          onClick={() => onHasSurgeryChange('Yes')}
+          onClick={() => onHasSurgeryChange("Yes")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
-            hasSurgery === 'Yes'
-              ? 'border-gray-900 bg-gray-900 text-white'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+            hasSurgery === "Yes"
+              ? "border-gray-900 bg-gray-900 text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
           }`}
         >
           Yes
         </button>
         <button
-          onClick={() => onHasSurgeryChange('No')}
+          onClick={() => onHasSurgeryChange("No")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
-            hasSurgery === 'No'
-              ? 'border-gray-900 bg-gray-900 text-white'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+            hasSurgery === "No"
+              ? "border-gray-900 bg-gray-900 text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
           }`}
         >
           No
@@ -49,18 +49,18 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
       </div>
 
       {/* Surgery Details Input */}
-      {hasSurgery === 'Yes' && (
+      {hasSurgery === "Yes" && (
         <div className="space-y-4">
           <div className="flex space-x-2">
             <Input
               type="text"
               placeholder="Add surgery detail"
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && input.trim()) {
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && input.trim()) {
                   onAddSurgeryDetail(input.trim());
-                  setInput('');
+                  setInput("");
                 }
               }}
               className="flex-1 p-4 rounded-2xl border-2 border-gray-200 focus:border-gray-900 focus:ring-0"
@@ -69,7 +69,7 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
               onClick={() => {
                 if (input.trim()) {
                   onAddSurgeryDetail(input.trim());
-                  setInput('');
+                  setInput("");
                 }
               }}
               className="px-6 py-4 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white"
@@ -81,12 +81,14 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
           {/* Surgery Details List */}
           {surgeryDetails.length > 0 && (
             <div className="space-y-2">
-              {surgeryDetails.map(detail => (
+              {surgeryDetails.map((detail) => (
                 <div
                   key={detail}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                  className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl"
                 >
-                  <span className="text-sm font-medium text-gray-700">{detail}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {detail}
+                  </span>
                   <button
                     onClick={() => onRemoveSurgeryDetail(detail)}
                     className="p-1 text-gray-400 hover:text-red-500 transition-colors"
@@ -99,12 +101,10 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
           )}
         </div>
       )}
-      
+
       {error && (
-        <div className="text-red-500 text-sm text-center mt-2">
-          {error}
-        </div>
+        <div className="text-red-500 text-sm text-center mt-2">{error}</div>
       )}
     </div>
   );
-}; 
+};

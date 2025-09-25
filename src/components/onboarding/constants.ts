@@ -103,8 +103,8 @@ export const MEDICAL_CONDITIONS = [
 
 // Common container styles
 export const ONBOARDING_LAYOUTS = {
-  fullScreen: "min-h-screen bg-gray-50 flex flex-col",
-  centered: "min-h-screen bg-gray-50 flex items-center justify-center px-4",
+  fullScreen: "min-h-screen bg-white flex flex-col",
+  centered: "min-h-screen bg-white flex items-center justify-center px-4",
   content: "flex-1 flex items-center justify-center px-6",
   header: "flex items-center justify-between p-4 pt-12",
   footer: "p-6 pb-8",

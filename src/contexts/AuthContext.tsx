@@ -49,12 +49,10 @@ export interface UserProfile {
   dinner_time: string | null;
   workout_time: string | null;
   routine_flexibility: string | null;
-  uses_wearable: string | null;
-  wearable_type: string | null;
+  workout_type: string | null;
+  smoking: string | null;
+  drinking: string | null;
   track_family: string | null;
-  share_progress: string | null;
-  emergency_contact_name: string | null;
-  emergency_contact_phone: string | null;
   critical_conditions: string | null;
   has_health_reports: string | null;
   health_reports: string[] | null;
@@ -265,7 +263,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Handle 403/401 auth errors by clearing session
         if (
           error &&
-          (error.message?.includes("403") || error.message?.includes("401") || error.message?.includes("Forbidden"))
+          (error.message?.includes("403") ||
+            error.message?.includes("401") ||
+            error.message?.includes("Forbidden"))
         ) {
           console.warn("Auth session expired, clearing session");
           await supabase.auth.signOut();

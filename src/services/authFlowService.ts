@@ -348,7 +348,7 @@ class AuthFlowService {
         "/diet": () => flowState.canAccessDashboard,
         "/workout": () => flowState.canAccessDashboard,
         "/planner": () => flowState.canAccessDashboard,
-        "/calendar": () => flowState.isOnboardingComplete, // Calendar accessible after onboarding
+        "/plan-details": () => flowState.isOnboardingComplete, // Plan details accessible after onboarding
         "/subscription": () => flowState.isOnboardingComplete,
         "/welcome-screen": () => true, // Always accessible for authenticated users
       };

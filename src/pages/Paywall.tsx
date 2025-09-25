@@ -1,7 +1,7 @@
+import RazorpayPaymentButton from "@/components/payment/RazorpayPaymentButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { trialService } from "@/services/trialService";
-import { ArrowLeft, Bell, Check, Crown, Lock } from "lucide-react";
+import { ArrowLeft, Bell, Check, Heart, Watch } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,25 +12,7 @@ const Paywall: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
   );
-  const [isCreatingTrial, setIsCreatingTrial] = useState(false);
-  const [trialStatus, setTrialStatus] = useState<any>(null);
-  const [canClaimTrial, setCanClaimTrial] = useState(true);
-
-  useEffect(() => {
-    const checkTrialStatus = async () => {
-      if (!user?.id) return;
-
-      try {
-        const status = await trialService.getTrialStatus(user.id);
-        setTrialStatus(status);
-        setCanClaimTrial(status.canClaimTrial);
-      } catch (error) {
-        console.error("Error checking trial status:", error);
-      }
-    };
-
-    checkTrialStatus();
-  }, [user]);
+  const [showPaymentButton, setShowPaymentButton] = useState(false);
 
   // Handle payment success redirect
   useEffect(() => {
@@ -40,7 +22,7 @@ const Paywall: React.FC = () => {
       const paymentSuccess = urlParams.get("payment_success");
 
       if (paymentSuccess === "true") {
-        toast.success("🎉 Payment successful! Welcome to UrCare Assistant!");
+        toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
         // Redirect to dashboard with access unlocked
         setTimeout(() => {
           window.location.href = "/dashboard";
@@ -51,61 +33,42 @@ const Paywall: React.FC = () => {
     handlePaymentSuccess();
   }, []);
 
-  const handleStartTrial = async () => {
-    if (!user?.id) {
-      toast.error("Please log in to start your trial");
-      return;
-    }
-
-    if (!canClaimTrial) {
-      toast.error("You have already claimed your trial");
-      return;
-    }
-
-    setIsCreatingTrial(true);
-    try {
-      const success = await trialService.startTrial(user.id);
-
-      if (success) {
-        toast.success("🎉 Welcome to your 3-day free trial!");
-        // Redirect to dashboard
-        window.location.href = "/dashboard";
-      } else {
-        toast.error("Failed to start trial. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error starting trial:", error);
-      toast.error("Error starting trial. Please try again.");
-    } finally {
-      setIsCreatingTrial(false);
-    }
-  };
-
   const handleSubscribe = async () => {
     if (!user) {
       toast.error("Please log in to subscribe");
       return;
     }
 
-    // For now, start trial instead of full subscription
-    await handleStartTrial();
+    console.log("Subscribe button clicked, showing payment button");
+    // Show payment button
+    setShowPaymentButton(true);
   };
 
-  // Calculate trial end date (3 days from now)
-  const getTrialEndDate = () => {
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 3);
-    return trialEnd.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const handlePaymentSuccess = () => {
+    toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
+    console.log("Payment success callback triggered");
+
+    // Redirect to dashboard with access unlocked
+    setTimeout(() => {
+      console.log("Redirecting to dashboard after successful payment");
+      window.location.href = "/dashboard";
+    }, 2000);
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast.error(`Payment failed: ${error}`);
+    setShowPaymentButton(false);
+  };
+
+  const handlePaymentCancel = () => {
+    toast.info("Payment cancelled");
+    setShowPaymentButton(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-6">
+      <div className="flex items-center justify-between p-4">
         <button
           onClick={() => navigate("/")}
           className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-100"
@@ -118,97 +81,98 @@ const Paywall: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-md mx-auto px-6 pb-8">
-        {/* Main Headline */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">
-            Start your 3-day FREE trial to continue.
+      <div className="max-w-md mx-auto px-6 pb-6">
+        {/* App Icon */}
+        <div className="text-center mb-6">
+          <div className="w-24 h-24 mx-auto mb-4">
+            <img src="/brand.png" alt="UrCare Logo" className="w-full h-full" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Subscribe to UrCare Pro
           </h1>
           <p className="text-gray-600 text-base">
-            Unlock all features and get the most out of your health journey
+            Choose your plan and start your health journey today.
           </p>
         </div>
 
-        {/* Trial Timeline */}
-        <div className="space-y-6 mb-8">
-          {/* Today */}
+        {/* Features */}
+        <div className="space-y-4 mb-6">
+          {/* All Features */}
           <div className="flex items-start gap-4">
-            <div className="relative">
-              <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
-                <Lock className="w-2.5 h-2.5 text-white" />
-              </div>
-              <div className="absolute top-4 left-2 w-0.5 h-8 bg-orange-500"></div>
+            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+              <Bell className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-black text-sm">Today</h3>
-              <p className="text-gray-500 text-sm">
-                Unlock all the app's features like AI calorie scanning and more.
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                All Features
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Nutrition, Journal, Insights, and more
               </p>
             </div>
           </div>
 
-          {/* In 2 Days */}
+          {/* Historical Data */}
           <div className="flex items-start gap-4">
-            <div className="relative">
-              <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
-                <Bell className="w-2.5 h-2.5 text-white" />
-              </div>
-              <div className="absolute top-4 left-2 w-0.5 h-8 bg-gray-300"></div>
+            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+              <Heart className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-black text-sm">
-                In 2 Days - Reminder
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                Historical Data
               </h3>
-              <p className="text-gray-500 text-sm">
-                We'll send you a reminder that your trial is ending soon.
+              <p className="text-gray-600 text-sm">
+                View all data, insights, and trends
               </p>
             </div>
           </div>
 
-          {/* In 3 Days */}
+          {/* Apple Watch */}
           <div className="flex items-start gap-4">
-            <div className="w-4 h-4 bg-black rounded-sm flex items-center justify-center">
-              <Crown className="w-2.5 h-2.5 text-white" />
+            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+              <Watch className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-black text-sm">
-                In 3 Days - Billing Starts
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                Apple Watch
               </h3>
-              <p className="text-gray-500 text-sm">
-                You'll be charged on {getTrialEndDate()} unless you cancel
-                anytime before.
+              <p className="text-gray-600 text-sm">
+                Access to strength training and smart alarms
               </p>
             </div>
           </div>
         </div>
 
         {/* Subscription Options */}
-        <div className="space-y-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           {/* Monthly Option */}
           <div
-            className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-sm ${
+            className={`relative p-3 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-lg ${
               billingCycle === "monthly"
-                ? "border-black shadow-lg"
-                : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                ? "border-emerald-500 shadow-emerald-500/20"
+                : "border-gray-200 hover:border-gray-300"
             }`}
             onClick={() => setBillingCycle("monthly")}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-black text-lg mb-1">
-                  Monthly
-                </h3>
-                <p className="text-gray-600 text-sm">₹599 /mo</p>
-              </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-gray-900 text-2xl mb-2">
+                Monthly
+              </h3>
+              <p className="text-emerald-600 text-base font-bold mb-1">
+                $9.99/mo
+              </p>
+              <p className="text-red-500 text-xs font-medium mb-2">
+                Only 300 spots left
+              </p>
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
                   billingCycle === "monthly"
-                    ? "border-black bg-black"
-                    : "border-gray-300 bg-white"
+                    ? "border-emerald-500 bg-emerald-500"
+                    : "border-gray-300 bg-transparent"
                 }`}
               >
                 {billingCycle === "monthly" && (
-                  <Check className="w-3 h-3 text-white" />
+                  <Check className="w-4 h-4 text-white" />
                 )}
               </div>
             </div>
@@ -216,76 +180,82 @@ const Paywall: React.FC = () => {
 
           {/* Yearly Option */}
           <div
-            className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-sm ${
+            className={`relative p-3 rounded-2xl border-2 cursor-pointer transition-all bg-white shadow-lg ${
               billingCycle === "annual"
-                ? "border-black shadow-lg"
-                : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                ? "border-emerald-500 shadow-emerald-500/20"
+                : "border-gray-200 hover:border-gray-300"
             }`}
             onClick={() => setBillingCycle("annual")}
           >
-            <div className="absolute -top-3 left-6">
-              <div className="bg-black text-white text-xs px-3 py-1 rounded-full font-medium">
-                3 DAYS FREE
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+              <div className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                Save 50%
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-black text-lg mb-1">
-                  Yearly
-                </h3>
-                <p className="text-gray-600 text-sm">₹416.58 /mo</p>
-                <p className="text-green-600 text-xs font-medium mt-1">
-                  Save 30%
-                </p>
-              </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-gray-900 text-2xl mb-2">
+                Yearly
+              </h3>
+              <p className="text-emerald-600 text-base font-bold mb-1">
+                $59.99
+              </p>
+              <p className="text-red-500 text-xs font-medium mb-2">
+                Only 1200 spots left
+              </p>
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
                   billingCycle === "annual"
-                    ? "border-black bg-black"
-                    : "border-gray-300 bg-white"
+                    ? "border-emerald-500 bg-emerald-500"
+                    : "border-gray-300 bg-transparent"
                 }`}
               >
                 {billingCycle === "annual" && (
-                  <Check className="w-3 h-3 text-white" />
+                  <Check className="w-4 h-4 text-white" />
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Payment Status */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <Check className="w-4 h-4 text-green-600" />
-          <span className="text-gray-600 text-sm font-medium">
-            No Payment Due Now
-          </span>
-        </div>
-
-        {/* CTA Button */}
-        <Button
-          onClick={handleSubscribe}
-          disabled={isCreatingTrial || !canClaimTrial}
-          className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-2xl text-base transition-all duration-200 disabled:bg-gray-400 shadow-lg hover:shadow-xl"
-        >
-          {isCreatingTrial ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Starting Trial...
-            </>
-          ) : !canClaimTrial ? (
-            "Trial Already Claimed"
-          ) : (
-            "Start My 3-Day Free Trial"
-          )}
-        </Button>
+        {/* CTA Button or Payment Button */}
+        {showPaymentButton ? (
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Complete Your Subscription
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Secure payment powered by Razorpay
+              </p>
+            </div>
+            <RazorpayPaymentButton
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              onCancel={handlePaymentCancel}
+              planType={billingCycle}
+              className="w-full"
+            />
+            <Button
+              onClick={() => setShowPaymentButton(false)}
+              variant="outline"
+              className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+            >
+              Back to Plans
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleSubscribe}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+          >
+            Subscribe Now
+          </Button>
+        )}
 
         {/* Fine Print */}
         <div className="text-center mt-4 space-y-1">
           <p className="text-gray-500 text-xs">
-            3 days free, then ₹4,999 per year (₹416.58/mo)
-          </p>
-          <p className="text-gray-400 text-xs">
-            Cancel anytime. No commitment.
+            Doesn't work? Money back guarantee
           </p>
         </div>
       </div>

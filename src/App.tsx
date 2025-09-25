@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import RazorpayTestPage from "./components/payment/RazorpayTestPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
-import Calendar from "./pages/Calendar";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
@@ -12,6 +12,7 @@ import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import PlanDetails from "./pages/PlanDetails";
 import ProfileManagement from "./pages/ProfileManagement";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
@@ -41,6 +42,7 @@ function App() {
           <Route path="/auth" element={<AuthCallback />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
+          <Route path="/razorpay-test" element={<RazorpayTestPage />} />
 
           {/* Protected Routes */}
           <Route
@@ -163,14 +165,14 @@ function App() {
           />
 
           <Route
-            path="/calendar"
+            path="/plan-details"
             element={
               <ProtectedRoute
                 requireOnboardingComplete={true}
                 requireSubscription={false}
               >
                 <ErrorBoundary>
-                  <Calendar />
+                  <PlanDetails />
                 </ErrorBoundary>
               </ProtectedRoute>
             }

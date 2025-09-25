@@ -68,34 +68,47 @@ class HealthPlanService {
     try {
       console.log("🚀 Generating AI health plan...");
 
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("Plan generation timeout - using fallback"));
+        }, 30000); // 30 second timeout
+      });
+
       // First try the main AI health coach plan function
-      const { data, error } = await supabase.functions.invoke(
+      const generatePromise = supabase.functions.invoke(
         "generate-ai-health-coach-plan",
         {
           method: "POST",
           body: {},
           headers: {
             Authorization: `Bearer ${
-              (
-                await supabase.auth.getSession()
-              ).data.session?.access_token
+              (await supabase.auth.getSession()).data.session?.access_token
             }`,
           },
         }
       );
 
+      let data, error;
+      try {
+        const result = await Promise.race([generatePromise, timeoutPromise]);
+        data = result.data;
+        error = result.error;
+      } catch (timeoutError) {
+        console.warn("⚠️ AI service timeout, using fallback plan");
+        return this.createFallbackPlan();
+      }
+
       if (error) {
         console.warn("❌ AI health coach plan failed:", error.message);
-        throw new Error(
-          `Failed to generate AI Health Coach plan: ${error.message}`
-        );
+        // Don't throw error, use fallback instead
+        return this.createFallbackPlan();
       }
 
       if (!data.success) {
         console.warn("❌ AI health coach plan returned error:", data.error);
-        throw new Error(
-          data.error || "Failed to generate AI Health Coach plan"
-        );
+        // Don't throw error, use fallback instead
+        return this.createFallbackPlan();
       }
 
       console.log("✅ Successfully generated AI health plan");
@@ -103,32 +116,7 @@ class HealthPlanService {
     } catch (error) {
       console.error("❌ Error generating AI Health Coach plan:", error);
 
-      // Try the simple health plan function as backup
-      try {
-        console.log("🔄 Trying simple health plan as fallback...");
-
-        const { data: simpleData, error: simpleError } =
-          await supabase.functions.invoke("generate-health-plan-simple", {
-            method: "POST",
-            body: {},
-            headers: {
-              Authorization: `Bearer ${
-                (
-                  await supabase.auth.getSession()
-                ).data.session?.access_token
-              }`,
-            },
-          });
-
-        if (!simpleError && simpleData?.success) {
-          console.log("✅ Successfully generated simple health plan");
-          return simpleData.plan;
-        }
-      } catch (simpleError) {
-        console.error("❌ Simple health plan also failed:", simpleError);
-      }
-
-      // Final fallback to client-side plan
+      // Use fallback plan immediately instead of trying other services
       console.warn("⚠️ Using client-side fallback plan");
       return this.createFallbackPlan();
     }
