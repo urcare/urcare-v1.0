@@ -1067,7 +1067,7 @@ const PlanDetails: React.FC = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 -mx-6">
-              <div className="rounded-xl bg-gray-50 p-4">
+              <div className="rounded-xl bg-gray-50 p-4 !border-0">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Summary
                 </h3>
@@ -1096,7 +1096,7 @@ const PlanDetails: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4">
+              <div className="rounded-xl bg-gray-50 p-4 !border-0">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Expected Impacts
                 </h3>
@@ -1114,7 +1114,7 @@ const PlanDetails: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4">
+              <div className="rounded-xl bg-gray-50 p-4 !border-0">
                 <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
                 <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
                   {(
@@ -1129,7 +1129,7 @@ const PlanDetails: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4">
+              <div className="rounded-xl bg-gray-50 p-4 !border-0">
                 <h3 className="text-lg font-semibold text-black mb-2">
                   Tips & Safety
                 </h3>
