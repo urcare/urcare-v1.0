@@ -37,15 +37,6 @@ const HealthPlan: React.FC = () => {
         {/* New Comprehensive Health Plan System */}
         <HealthContentNew />
 
-        {/* Test Link */}
-        <div className="mt-8 text-center">
-          <a
-            href="/test-comprehensive-health-plan"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            🧪 Test Comprehensive Health Plan System
-          </a>
-        </div>
       </div>
     </div>
   );
