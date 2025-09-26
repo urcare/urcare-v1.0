@@ -1,4 +1,5 @@
-import RazorpayPaymentButton from "@/components/payment/RazorpayPaymentButton";
+// import RazorpayPaymentButton from "@/components/payment/RazorpayPaymentButton";
+import PhonePeCheckout from "@/components/payment/PhonePeCheckout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscriptionService } from "@/services/subscriptionService";
@@ -354,14 +355,14 @@ const Paywall: React.FC = () => {
                 Complete Your Subscription
               </h3>
               <p className="text-gray-600 text-sm mb-4">
-                Secure payment powered by Razorpay
+                Secure payment powered by PhonePe
               </p>
             </div>
-            <RazorpayPaymentButton
+            <PhonePeCheckout
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}
               onCancel={handlePaymentCancel}
-              planType={billingCycle}
+              billingCycle={billingCycle}
               className="w-full"
             />
             <Button

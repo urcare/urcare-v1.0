@@ -12,6 +12,7 @@ import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import PhonePeSuccess from "./pages/PhonePeSuccess";
 import PlanDetails from "./pages/PlanDetails";
 import ProfileManagement from "./pages/ProfileManagement";
 import Progress from "./pages/Progress";
@@ -80,6 +81,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/payment/phonepe/success" element={<PhonePeSuccess />} />
 
           <Route
             path="/subscription"
