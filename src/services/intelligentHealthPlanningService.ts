@@ -271,7 +271,7 @@ export class IntelligentHealthPlanningService {
       return nextDaySchedule;
     } catch (error) {
       console.error("Error generating next day schedule:", error);
-      return this.createFallbackNextDaySchedule(currentPlan, nextDate);
+      return null;
     }
   }
 
@@ -974,7 +974,7 @@ IMPORTANT:
       days.push({
         date: date.toISOString().split("T")[0],
         dayOfWeek: date.toLocaleDateString("en-US", { weekday: "long" }),
-        activities: this.createFallbackActivities(difficulty, i),
+        activities: [],
         summary: {
           totalActivities: 8,
           totalDuration:
@@ -1007,70 +1007,6 @@ IMPORTANT:
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    };
-  }
-
-  private static createFallbackActivities(
-    difficulty: string,
-    dayIndex: number
-  ): DetailedActivity[] {
-    const baseActivities = [
-      {
-        id: `wake_${dayIndex}`,
-        type: "wake_up" as const,
-        title: "Wake Up",
-        description: "Start your day with energy",
-        startTime: "06:00",
-        endTime: "06:15",
-        duration: 15,
-        priority: "high" as const,
-        difficulty: difficulty as "easy" | "moderate" | "hard",
-        instructions: ["Set alarm", "Get up immediately", "Stretch"],
-        tips: ["Place alarm away from bed", "Drink water first thing"],
-      },
-      {
-        id: `breakfast_${dayIndex}`,
-        type: "breakfast" as const,
-        title: "Breakfast",
-        description: "Nutritious morning meal",
-        startTime: "07:00",
-        endTime: "07:30",
-        duration: 30,
-        priority: "high" as const,
-        difficulty: difficulty as "easy" | "moderate" | "hard",
-        instructions: ["Prepare meal", "Eat mindfully", "Clean up"],
-        tips: ["Include protein", "Stay hydrated"],
-        nutritionDetails: {
-          calories: 400,
-          protein: 20,
-          carbs: 50,
-          fat: 15,
-          ingredients: ["Eggs", "Oatmeal", "Fruit"],
-          preparation: ["Cook eggs", "Prepare oatmeal", "Add fruit"],
-          variations: ["Different fruits", "Different grains"],
-        },
-      },
-    ];
-
-    return baseActivities;
-  }
-
-  private static createFallbackNextDaySchedule(
-    plan: any,
-    nextDate: Date
-  ): DailySchedule {
-    return {
-      date: nextDate.toISOString().split("T")[0],
-      dayOfWeek: nextDate.toLocaleDateString("en-US", { weekday: "long" }),
-      activities: this.createFallbackActivities(plan.difficulty, 0),
-      summary: {
-        totalActivities: 8,
-        totalDuration: 90,
-        calories: 2000,
-        protein: 150,
-        focusAreas: ["fitness", "nutrition"],
-        difficulty: plan.difficulty,
-      },
     };
   }
 }

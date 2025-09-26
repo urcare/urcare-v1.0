@@ -4,7 +4,6 @@ import {
   ComprehensiveHealthPlan,
   DailyPlanExecution,
   MealPlan,
-  PLAN_TYPE_DEFINITIONS,
   PlanData,
   WeeklyProgressTracking,
   WorkoutPlan,
@@ -375,110 +374,8 @@ export class ComprehensiveHealthPlanService {
       }
     } catch (error) {
       console.error("Error generating plan with AI:", error);
-      // Fallback to template generation
-      return this.generateFallbackPlanData(
-        userGoal,
-        userProfile,
-        planCalculation
-      );
+      throw new Error("Failed to generate plan - AI service unavailable");
     }
-  }
-
-  /**
-   * Generate fallback plan data when AI is unavailable
-   */
-  private generateFallbackPlanData(
-    userGoal: string,
-    userProfile: any,
-    planCalculation: any
-  ): PlanData {
-    const planTypeInfo = PLAN_TYPE_DEFINITIONS[planCalculation.plan_type];
-
-    return {
-      overview: {
-        description: `A comprehensive ${
-          planCalculation.duration_weeks
-        }-week ${planTypeInfo.name.toLowerCase()} plan focused on ${userGoal}`,
-        expected_outcomes: planCalculation.expected_outcomes,
-        key_principles: [
-          "Gradual progression",
-          "Sustainable practices",
-          "Evidence-based approaches",
-          "Personalized adaptation",
-          "Safety first",
-        ],
-        success_metrics: [
-          "Weekly compliance rate > 70%",
-          "Progressive milestone achievement",
-          "Sustained behavior change",
-          "Measurable health improvements",
-          "User satisfaction and engagement",
-        ],
-        safety_considerations: [
-          "Monitor for adverse reactions",
-          "Adjust intensity based on feedback",
-          "Regular progress assessments",
-          "Professional consultation when needed",
-          "Emergency protocols in place",
-        ],
-      },
-      weekly_structure: this.generateWeeklyStructure(planCalculation),
-      daily_templates: this.generateDailyTemplates(userGoal, userProfile),
-      adaptation_rules: {
-        compliance_thresholds: {
-          excellent: 90,
-          good: 70,
-          needs_improvement: 50,
-          poor: 30,
-        },
-        adjustment_triggers: {
-          timeline_extension: [
-            "Compliance rate < 50% for 2 consecutive weeks",
-            "User reports excessive difficulty",
-            "Health concerns arise",
-            "Life circumstances change",
-          ],
-          intensity_increase: [
-            "Compliance rate > 90% for 2 consecutive weeks",
-            "User reports exercises too easy",
-            "Faster than expected progress",
-            "User requests more challenge",
-          ],
-          intensity_decrease: [
-            "User reports excessive fatigue",
-            "Compliance rate declining",
-            "Health issues arise",
-            "User feedback indicates difficulty",
-          ],
-          plan_modification: [
-            "Goal changes",
-            "Lifestyle changes",
-            "Health status changes",
-            "User preferences change",
-          ],
-        },
-      },
-      progression_rules: {
-        weekly_progression: {
-          intensity_increase_percentage: 5,
-          volume_increase_percentage: 10,
-          complexity_increase: true,
-        },
-        plateau_handling: {
-          detection_criteria: [
-            "No progress for 2 consecutive weeks",
-            "Declining motivation",
-            "Stagnant measurements",
-          ],
-          adjustment_strategies: [
-            "Increase variety",
-            "Adjust intensity",
-            "Add new challenges",
-            "Review and modify goals",
-          ],
-        },
-      },
-    };
   }
 
   private generatePlanName(

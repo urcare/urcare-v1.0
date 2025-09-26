@@ -2,7 +2,38 @@ import { supabase } from "@/integrations/supabase/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ComprehensiveHealthPlan } from "../types/comprehensiveHealthPlan";
+import {
+  EnhancedPlanDetails,
+  EnhancedPlanDetailsService,
+} from "../services/enhancedPlanDetailsService";
+import { PlanNamingService } from "../services/planNamingService";
+import {
+  Activity,
+  ComprehensiveHealthPlan,
+  MealPlan,
+  WorkoutPlan,
+} from "../types/comprehensiveHealthPlan";
+
+interface Event {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  description: string;
+  type: string;
+  priority: string;
+  category: string;
+  instructions: string[];
+  tips: string[];
+  benefits?: string[];
+  scientificEvidence?: string[];
+  day: number;
+  isAI: boolean;
+  duration?: string;
+  time?: string;
+  color?: "green" | "lime" | "beige" | "text";
+  details?: any;
+}
 
 const PlanDetails: React.FC = () => {
   const location = useLocation();
@@ -10,6 +41,8 @@ const PlanDetails: React.FC = () => {
   const [planData, setPlanData] = useState<ComprehensiveHealthPlan | null>(
     null
   );
+  const [enhancedDetails, setEnhancedDetails] =
+    useState<EnhancedPlanDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPreview, setIsPreview] = useState<boolean>(false);
@@ -29,10 +62,172 @@ const PlanDetails: React.FC = () => {
   // Keep a copy of mapped AI dates for simple filtering
   const [aiDay1Date, setAiDay1Date] = useState<string | null>(null);
   const [aiDay2Date, setAiDay2Date] = useState<string | null>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
 
   const formatHeaderDate = (d: Date) =>
     d.toLocaleDateString(undefined, { day: "numeric", month: "long" });
+
+  // Helper function to parse time string to minutes
+  const parseTime = (timeStr: string): number => {
+    if (!timeStr) return 0;
+    const [time, period] = timeStr.split(" ");
+    const [hours, minutes] = time.split(":").map(Number);
+    let totalMinutes = hours * 60 + minutes;
+    if (period === "pm" && hours !== 12) totalMinutes += 12 * 60;
+    if (period === "am" && hours === 12) totalMinutes -= 12 * 60;
+    return totalMinutes;
+  };
+
+  // Generate goal-specific expected impacts
+  const getExpectedImpacts = (goal: string): string[] => {
+    const goalLower = goal.toLowerCase();
+
+    if (goalLower.includes("weight") && goalLower.includes("gain")) {
+      return [
+        "Increased muscle mass and strength",
+        "Improved body composition",
+        "Enhanced appetite and nutrition intake",
+        "Better energy levels and recovery",
+      ];
+    }
+
+    if (goalLower.includes("weight") && goalLower.includes("loss")) {
+      return [
+        "Sustainable weight loss",
+        "Improved body composition",
+        "Better energy levels",
+        "Enhanced self-confidence",
+      ];
+    }
+
+    if (goalLower.includes("muscle") || goalLower.includes("build")) {
+      return [
+        "Increased muscle mass",
+        "Enhanced strength and power",
+        "Improved body composition",
+        "Better metabolic health",
+      ];
+    }
+
+    if (goalLower.includes("fitness") || goalLower.includes("endurance")) {
+      return [
+        "Improved cardiovascular health",
+        "Enhanced endurance and stamina",
+        "Better overall fitness",
+        "Increased energy levels",
+      ];
+    }
+
+    if (goalLower.includes("stress") || goalLower.includes("mental")) {
+      return [
+        "Reduced stress levels",
+        "Improved mental clarity",
+        "Better sleep quality",
+        "Enhanced emotional well-being",
+      ];
+    }
+
+    // Default impacts for general health improvement
+    return [
+      "Better energy and focus",
+      "Improved fitness and mobility",
+      "Consistent meal timing and nutrition",
+      "Healthier sleep routine",
+    ];
+  };
+
+  // Get plan name based on difficulty level
+  // Get systematic plan name using the naming service
+  const getSystematicPlanName = (goal: string, difficulty: string) => {
+    if (!goal || goal.trim() === "") {
+      return "Health Protocol";
+    }
+
+    const cleanedGoal = PlanNamingService.cleanUserGoal(goal);
+    const systematicName = PlanNamingService.getPlanNameForDifficulty(
+      cleanedGoal,
+      difficulty || "moderate"
+    );
+
+    // Debug logging
+    console.log("Plan naming debug:", {
+      originalGoal: goal,
+      cleanedGoal,
+      difficulty,
+      systematicName,
+    });
+
+    return systematicName;
+  };
+
+  // Get goal-specific theme colors with emerald green theme
+  const getGoalTheme = (goal: string) => {
+    const goalLower = goal.toLowerCase();
+
+    if (goalLower.includes("weight") && goalLower.includes("gain")) {
+      return {
+        primary: "bg-emerald-600",
+        secondary: "bg-emerald-50",
+        accent: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: "💪",
+        gradient: "from-emerald-500 to-green-600",
+      };
+    }
+
+    if (goalLower.includes("weight") && goalLower.includes("loss")) {
+      return {
+        primary: "bg-emerald-600",
+        secondary: "bg-emerald-50",
+        accent: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: "🔥",
+        gradient: "from-emerald-500 to-green-600",
+      };
+    }
+
+    if (goalLower.includes("muscle") || goalLower.includes("build")) {
+      return {
+        primary: "bg-emerald-600",
+        secondary: "bg-emerald-50",
+        accent: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: "🏋️",
+        gradient: "from-emerald-500 to-green-600",
+      };
+    }
+
+    if (goalLower.includes("fitness") || goalLower.includes("endurance")) {
+      return {
+        primary: "bg-emerald-600",
+        secondary: "bg-emerald-50",
+        accent: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: "🏃",
+        gradient: "from-emerald-500 to-green-600",
+      };
+    }
+
+    if (goalLower.includes("stress") || goalLower.includes("mental")) {
+      return {
+        primary: "bg-emerald-600",
+        secondary: "bg-emerald-50",
+        accent: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: "🧘",
+        gradient: "from-emerald-500 to-green-600",
+      };
+    }
+
+    return {
+      primary: "bg-emerald-600",
+      secondary: "bg-emerald-50",
+      accent: "text-emerald-700",
+      border: "border-emerald-200",
+      icon: "🌟",
+      gradient: "from-emerald-500 to-green-600",
+    };
+  };
 
   const generateCurrentWeek = () => {
     const today = new Date();
@@ -59,6 +254,18 @@ const PlanDetails: React.FC = () => {
     setWeekDays(week);
     setSelectedDate(formatHeaderDate(new Date()));
   }, []);
+
+  // Generate enhanced details when plan data is available
+  useEffect(() => {
+    if (planData) {
+      const userGoal = planData.primary_goal || "improve overall health";
+      const enhanced = EnhancedPlanDetailsService.generateEnhancedDetails(
+        planData,
+        userGoal
+      );
+      setEnhancedDetails(enhanced);
+    }
+  }, [planData]);
 
   // Convert AI Health Coach plan to calendar events
   const convertAIHealthCoachPlanToEvents = useCallback(
@@ -387,7 +594,7 @@ const PlanDetails: React.FC = () => {
         ) {
           weekdayTemplate.wellness_activities.forEach((activity: Activity) => {
             // Schedule wellness activities during work breaks or after work
-            let wellnessTime = userSchedule.workStart + 4 * 60; // 4 hours after work starts (lunch break)
+            const wellnessTime = userSchedule.workStart + 4 * 60; // 4 hours after work starts (lunch break)
 
             events.push({
               id: `wellness-${eventId++}`,
@@ -641,7 +848,7 @@ const PlanDetails: React.FC = () => {
               "❌ Invalid plan data structure, using default events"
             );
             console.log("🔍 Invalid plan data:", planData);
-            setEvents(defaultEvents);
+            setEvents([]);
             return;
           }
 
@@ -986,11 +1193,12 @@ const PlanDetails: React.FC = () => {
       >
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+
         <div className="flex justify-between items-start relative z-10">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleBackToDashboard}
-              className="text-white hover:text-gray-300 transition-colors"
+              className="text-white hover:text-gray-300 transition-colors p-2 rounded-full bg-white/10 hover:bg-white/20"
             >
               <svg
                 className="w-6 h-6"
@@ -1006,17 +1214,42 @@ const PlanDetails: React.FC = () => {
                 />
               </svg>
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-1">
-                {planData
-                  ? planData.primary_goal || planData.plan_name
-                  : "Habit Builder"}
-              </h1>
-              <p className="text-white text-sm">
-                {planData
-                  ? `${planData.duration_weeks} weeks protocol`
-                  : "4 weeks protocol"}
-              </p>
+            <div className="flex items-center space-x-3">
+              <div
+                className={`w-12 h-12 ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).primary
+                } rounded-full flex items-center justify-center text-white text-2xl`}
+              >
+                {
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).icon
+                }
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-1">
+                  {getSystematicPlanName(
+                    planData?.primary_goal ||
+                      (location.state as any)?.userGoal ||
+                      (location.state as any)?.planData?.primary_goal,
+                    (planData as any)?.difficulty ||
+                      (location.state as any)?.difficulty ||
+                      "moderate"
+                  ) ||
+                    planData?.plan_name ||
+                    planData?.primary_goal ||
+                    (location.state as any)?.userGoal ||
+                    "Health Protocol"}
+                </h1>
+                <p className="text-white/90 text-sm">
+                  {planData?.duration_weeks ||
+                    (location.state as any)?.planData?.duration_weeks ||
+                    12}{" "}
+                  weeks protocol
+                </p>
+              </div>
             </div>
           </div>
           <div className="text-white">
@@ -1079,134 +1312,911 @@ const PlanDetails: React.FC = () => {
         </div>
 
         <div className="px-6">
-          {/* Protocol Details Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-black mb-4">
-              Protocol Details
-            </h2>
+          {/* Protocol Details Card with Goal-Specific Theming */}
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
+            {/* Goal-specific accent line */}
+            <div
+              className={`absolute top-0 left-0 right-0 h-1 ${
+                getGoalTheme(planData?.primary_goal || "improve overall health")
+                  .primary
+              }`}
+            ></div>
+
+            <div className="flex items-center space-x-3 mb-6">
+              <div
+                className={`w-10 h-10 ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } rounded-xl flex items-center justify-center`}
+              >
+                <span className="text-2xl">
+                  {
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).icon
+                  }
+                </span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Protocol Details
+              </h2>
+            </div>
+
             {isPreview && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-                Preview mode — set this protocol as default to keep the
-                protocol.
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-center space-x-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>
+                  Preview mode — set this protocol as default to keep the
+                  protocol.
+                </span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 -mx-6">
-              <div className="rounded-xl bg-gray-50 p-4 !border-0">
-                <h3 className="text-lg font-semibold text-black mb-2">
-                  Summary
-                </h3>
-                <div className="text-sm text-gray-700 space-y-1">
-                  <div>
-                    <strong>Name:</strong>{" "}
-                    {planData?.plan_name || "Custom Protocol"}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div
+                className={`rounded-2xl ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } p-6 border ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).border
+                }`}
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className={`w-8 h-8 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
                   </div>
-                  <div>
-                    <strong>Primary Goal:</strong>{" "}
-                    {planData?.primary_goal || "Improve overall health"}
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Summary
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-sm font-medium text-gray-600">
+                      Name:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {getSystematicPlanName(
+                        planData?.primary_goal ||
+                          (location.state as any)?.userGoal ||
+                          (location.state as any)?.planData?.primary_goal,
+                        (planData as any)?.difficulty ||
+                          (location.state as any)?.difficulty ||
+                          "moderate"
+                      ) ||
+                        planData?.plan_name ||
+                        planData?.primary_goal ||
+                        (location.state as any)?.userGoal ||
+                        "Health Protocol"}
+                    </span>
                   </div>
-                  <div>
-                    <strong>Duration:</strong> {planData?.duration_weeks || 12}{" "}
-                    weeks
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-sm font-medium text-gray-600">
+                      Primary Goal:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {planData?.primary_goal ||
+                        (location.state as any)?.userGoal ||
+                        (location.state as any)?.planData?.primary_goal ||
+                        "Improve overall health"}
+                    </span>
                   </div>
-                  <div>
-                    <strong>Difficulty:</strong>{" "}
-                    {(planData as any)?.difficulty || "Moderate"}
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-sm font-medium text-gray-600">
+                      Duration:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {planData?.duration_weeks ||
+                        (location.state as any)?.planData?.duration_weeks ||
+                        12}{" "}
+                      weeks
+                    </span>
                   </div>
-                  <div>
-                    <strong>Starts:</strong>{" "}
-                    {(location.state as any)?.planData?.plan_start_date ||
-                      "Today"}
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-sm font-medium text-gray-600">
+                      Difficulty:
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        getGoalTheme(
+                          planData?.primary_goal || "improve overall health"
+                        ).primary
+                      } text-white`}
+                    >
+                      {(planData as any)?.difficulty || "Moderate"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      Starts:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {(location.state as any)?.planData?.plan_start_date ||
+                        "Today"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 !border-0">
-                <h3 className="text-lg font-semibold text-black mb-2">
-                  Expected Impacts
-                </h3>
-                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                  {(planData as any)?.expected_outcomes?.length
-                    ? (planData as any).expected_outcomes.map(
-                        (t: string, i: number) => <li key={i}>{t}</li>
-                      )
-                    : [
-                        "Better energy and focus",
-                        "Improved fitness and mobility",
-                        "Consistent meal timing and nutrition",
-                        "Healthier sleep routine",
-                      ].map((t, i) => <li key={i}>{t}</li>)}
-                </ul>
+              <div
+                className={`rounded-2xl ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } p-6 border ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).border
+                }`}
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className={`w-8 h-8 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Expected Impacts
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {(
+                    planData?.plan_data?.overview?.expected_outcomes ||
+                    (planData as any)?.expected_outcomes ||
+                    enhancedDetails?.expectedImpacts ||
+                    getExpectedImpacts(
+                      planData?.primary_goal || "improve overall health"
+                    )
+                  ).map((impact: string, i: number) => (
+                    <div key={i} className="flex items-start space-x-3">
+                      <div
+                        className={`w-2 h-2 ${
+                          getGoalTheme(
+                            planData?.primary_goal || "improve overall health"
+                          ).primary
+                        } rounded-full mt-2 flex-shrink-0`}
+                      ></div>
+                      <span className="text-sm text-gray-700">{impact}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 !border-0">
-                <h3 className="text-lg font-semibold text-black mb-2">Goals</h3>
-                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+              <div
+                className={`rounded-2xl ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } p-6 border ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).border
+                }`}
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className={`w-8 h-8 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Goals</h3>
+                </div>
+                <div className="space-y-3">
                   {(
+                    planData?.plan_data?.overview?.key_principles ||
                     (location.state as any)?.planData?.overall_goals ||
-                    planData?.overall_goals || [
+                    planData?.secondary_goals || [
                       "Build healthy habits",
                       "Balance nutrition & activity",
                     ]
                   ).map((g: string, i: number) => (
-                    <li key={i}>{g}</li>
+                    <div key={i} className="flex items-start space-x-3">
+                      <div
+                        className={`w-2 h-2 ${
+                          getGoalTheme(
+                            planData?.primary_goal || "improve overall health"
+                          ).primary
+                        } rounded-full mt-2 flex-shrink-0`}
+                      ></div>
+                      <span className="text-sm text-gray-700">{g}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-4 !border-0">
-                <h3 className="text-lg font-semibold text-black mb-2">
-                  Tips & Safety
-                </h3>
-                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                  {((location.state as any)?.planData?.progress_tips || [])
+              <div
+                className={`rounded-2xl ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } p-6 border ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).border
+                }`}
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className={`w-8 h-8 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Tips & Safety
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {(
+                    planData?.plan_data?.overview?.safety_considerations ||
+                    (location.state as any)?.planData?.progress_tips ||
+                    []
+                  )
                     .concat(
                       (location.state as any)?.planData?.safety_notes || []
                     )
                     .slice(0, 6)
                     .map((t: string, i: number) => (
-                      <li key={i}>{t}</li>
+                      <div key={i} className="flex items-start space-x-3">
+                        <div
+                          className={`w-2 h-2 ${
+                            getGoalTheme(
+                              planData?.primary_goal || "improve overall health"
+                            ).primary
+                          } rounded-full mt-2 flex-shrink-0`}
+                        ></div>
+                        <span className="text-sm text-gray-700">{t}</span>
+                      </div>
                     ))}
-                  {!(location.state as any)?.planData?.progress_tips?.length &&
+                  {!planData?.plan_data?.overview?.safety_considerations
+                    ?.length &&
+                    !(location.state as any)?.planData?.progress_tips?.length &&
                     !(location.state as any)?.planData?.safety_notes
                       ?.length && (
                       <>
-                        <li>Hydrate well and warm up before workouts</li>
-                        <li>Scale intensity based on your current fitness</li>
-                        <li>Prioritize sleep and recovery</li>
+                        <div className="flex items-start space-x-3">
+                          <div
+                            className={`w-2 h-2 ${
+                              getGoalTheme(
+                                planData?.primary_goal ||
+                                  "improve overall health"
+                              ).primary
+                            } rounded-full mt-2 flex-shrink-0`}
+                          ></div>
+                          <span className="text-sm text-gray-700">
+                            Hydrate well and warm up before workouts
+                          </span>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                          <div
+                            className={`w-2 h-2 ${
+                              getGoalTheme(
+                                planData?.primary_goal ||
+                                  "improve overall health"
+                              ).primary
+                            } rounded-full mt-2 flex-shrink-0`}
+                          ></div>
+                          <span className="text-sm text-gray-700">
+                            Scale intensity based on your current fitness
+                          </span>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                          <div
+                            className={`w-2 h-2 ${
+                              getGoalTheme(
+                                planData?.primary_goal ||
+                                  "improve overall health"
+                              ).primary
+                            } rounded-full mt-2 flex-shrink-0`}
+                          ></div>
+                          <span className="text-sm text-gray-700">
+                            Prioritize sleep and recovery
+                          </span>
+                        </div>
                       </>
                     )}
-                </ul>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-4 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-2">
-                What’s Inside
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
-                <div>
-                  <strong>Workouts</strong>
-                  <p className="mt-1">
+            <div
+              className={`rounded-2xl ${
+                getGoalTheme(planData?.primary_goal || "improve overall health")
+                  .secondary
+              } p-6 border ${
+                getGoalTheme(planData?.primary_goal || "improve overall health")
+                  .border
+              } mt-6`}
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <div
+                  className={`w-8 h-8 ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).primary
+                  } rounded-lg flex items-center justify-center`}
+                >
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  What's Inside
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div
+                    className={`w-12 h-12 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-xl flex items-center justify-center mx-auto mb-3`}
+                  >
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Workouts</h4>
+                  <p className="text-sm text-gray-600">
                     {planData?.plan_data?.daily_templates?.weekday?.workouts
-                      ?.length || 4}{" "}
-                    sessions/week, progressive overload
+                      ?.length ||
+                      planData?.plan_data?.daily_templates?.weekend?.workouts
+                        ?.length ||
+                      4}{" "}
+                    sessions/week,{" "}
+                    {planData?.plan_data?.overview?.training_approach ||
+                      "progressive overload"}
                   </p>
                 </div>
-                <div>
-                  <strong>Nutrition</strong>
-                  <p className="mt-1">
-                    Balanced macros, regular meals, meal-prep guidance
+                <div className="text-center">
+                  <div
+                    className={`w-12 h-12 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-xl flex items-center justify-center mx-auto mb-3`}
+                  >
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Nutrition
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {planData?.plan_data?.overview?.nutrition_approach ||
+                      "Balanced macros, regular meals, meal-prep guidance"}
                   </p>
                 </div>
-                <div>
-                  <strong>Wellness</strong>
-                  <p className="mt-1">
-                    Mindfulness, hydration, and sleep hygiene practices
+                <div className="text-center">
+                  <div
+                    className={`w-12 h-12 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-xl flex items-center justify-center mx-auto mb-3`}
+                  >
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Wellness</h4>
+                  <p className="text-sm text-gray-600">
+                    {planData?.plan_data?.overview?.wellness_approach ||
+                      "Mindfulness, hydration, and sleep hygiene practices"}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Week-by-Week Plan Structure */}
+            <div
+              className={`rounded-2xl ${
+                getGoalTheme(planData?.primary_goal || "improve overall health")
+                  .secondary
+              } p-6 border ${
+                getGoalTheme(planData?.primary_goal || "improve overall health")
+                  .border
+              } mt-6`}
+            >
+              <div className="flex items-center space-x-2 mb-6">
+                <div
+                  className={`w-8 h-8 ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).primary
+                  } rounded-lg flex items-center justify-center`}
+                >
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Plan Progression
+                </h3>
+              </div>
+              <div className="space-y-6">
+                {enhancedDetails?.weeklyProgression?.slice(0, 4).map((week) => (
+                  <div
+                    key={week.week}
+                    className={`border-l-4 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } pl-6 bg-white rounded-r-2xl p-4 shadow-sm`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 ${
+                            getGoalTheme(
+                              planData?.primary_goal || "improve overall health"
+                            ).primary
+                          } rounded-lg flex items-center justify-center text-white font-bold text-sm`}
+                        >
+                          {week.week}
+                        </div>
+                        <h4 className="font-semibold text-gray-900">
+                          Week {week.week}
+                        </h4>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          week.intensity === "low"
+                            ? "bg-green-100 text-green-800"
+                            : week.intensity === "moderate"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {week.intensity} intensity
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-900 mb-1">Focus:</p>
+                        <p className="text-gray-600">{week.focus}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 mb-1">
+                          Key Activities:
+                        </p>
+                        <p className="text-gray-600">
+                          {week.keyActivities.join(", ")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 mb-1">
+                          Milestones:
+                        </p>
+                        <p className="text-gray-600">
+                          {week.milestones.join(", ")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 mb-1">
+                          Expected Outcomes:
+                        </p>
+                        <p className="text-gray-600">
+                          {week.expectedOutcomes.join(", ")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )) ||
+                  // Fallback to plan data or default structure
+                  (planData?.plan_data?.weekly_structure
+                    ? Object.entries(planData.plan_data.weekly_structure)
+                        .slice(0, 4)
+                        .map(([week, data]: [string, any]) => (
+                          <div
+                            key={week}
+                            className="border-l-4 border-blue-500 pl-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-gray-800">
+                                Week {week.replace("week", "")}
+                              </h4>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  data.intensity_level === "low"
+                                    ? "bg-green-100 text-green-800"
+                                    : data.intensity_level === "moderate"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {data.intensity_level} intensity
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p>
+                                <strong>Focus:</strong>{" "}
+                                {data.focus_areas?.join(", ") ||
+                                  "General health improvement"}
+                              </p>
+                              <p>
+                                <strong>Key Activities:</strong>{" "}
+                                {data.key_activities?.join(", ") ||
+                                  "Workouts, nutrition, wellness"}
+                              </p>
+                              {data.milestones &&
+                                data.milestones.length > 0 && (
+                                  <p>
+                                    <strong>Milestones:</strong>{" "}
+                                    {data.milestones.join(", ")}
+                                  </p>
+                                )}
+                            </div>
+                          </div>
+                        ))
+                    : // Default week structure based on plan duration
+                      Array.from(
+                        { length: Math.min(planData?.duration_weeks || 4, 4) },
+                        (_, i) => (
+                          <div
+                            key={i + 1}
+                            className="border-l-4 border-blue-500 pl-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-gray-800">
+                                Week {i + 1}
+                              </h4>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  i === 0
+                                    ? "bg-green-100 text-green-800"
+                                    : i === 1
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {i === 0
+                                  ? "low"
+                                  : i === 1
+                                  ? "moderate"
+                                  : "high"}{" "}
+                                intensity
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p>
+                                <strong>Focus:</strong>{" "}
+                                {i === 0
+                                  ? "Foundation building, habit formation"
+                                  : i === 1
+                                  ? "Progressive adaptation, skill development"
+                                  : i === 2
+                                  ? "Intensity increase, advanced techniques"
+                                  : "Peak performance, optimization"}
+                              </p>
+                              <p>
+                                <strong>Key Activities:</strong>{" "}
+                                {i === 0
+                                  ? "Basic workouts, meal planning, sleep optimization"
+                                  : i === 1
+                                  ? "Progressive overload, nutrition timing, recovery"
+                                  : i === 2
+                                  ? "Advanced training, macro cycling, stress management"
+                                  : "Peak training, performance nutrition, mental preparation"}
+                              </p>
+                              <p>
+                                <strong>Milestones:</strong>{" "}
+                                {i === 0
+                                  ? "Establish routine, track progress"
+                                  : i === 1
+                                  ? "Increase intensity, measure improvements"
+                                  : i === 2
+                                  ? "Push limits, optimize performance"
+                                  : "Achieve goals, maintain consistency"}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      ))}
+              </div>
+            </div>
+
+            {/* Goal-Specific Tips and Safety */}
+            {enhancedDetails && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div
+                  className={`rounded-2xl ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).secondary
+                  } p-6 border ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).border
+                  }`}
+                >
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div
+                      className={`w-8 h-8 ${
+                        getGoalTheme(
+                          planData?.primary_goal || "improve overall health"
+                        ).primary
+                      } rounded-lg flex items-center justify-center`}
+                    >
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Goal-Specific Tips
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {enhancedDetails.goalSpecificTips.map((tip, i) => (
+                      <div key={i} className="flex items-start space-x-3">
+                        <div
+                          className={`w-2 h-2 ${
+                            getGoalTheme(
+                              planData?.primary_goal || "improve overall health"
+                            ).primary
+                          } rounded-full mt-2 flex-shrink-0`}
+                        ></div>
+                        <span className="text-sm text-gray-700">{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  className={`rounded-2xl ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).secondary
+                  } p-6 border ${
+                    getGoalTheme(
+                      planData?.primary_goal || "improve overall health"
+                    ).border
+                  }`}
+                >
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div
+                      className={`w-8 h-8 ${
+                        getGoalTheme(
+                          planData?.primary_goal || "improve overall health"
+                        ).primary
+                      } rounded-lg flex items-center justify-center`}
+                    >
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Safety Considerations
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {enhancedDetails.safetyConsiderations.map(
+                      (consideration, i) => (
+                        <div key={i} className="flex items-start space-x-3">
+                          <div
+                            className={`w-2 h-2 ${
+                              getGoalTheme(
+                                planData?.primary_goal ||
+                                  "improve overall health"
+                              ).primary
+                            } rounded-full mt-2 flex-shrink-0`}
+                          ></div>
+                          <span className="text-sm text-gray-700">
+                            {consideration}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success Metrics */}
+            {enhancedDetails && (
+              <div
+                className={`rounded-2xl ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).secondary
+                } p-6 border ${
+                  getGoalTheme(
+                    planData?.primary_goal || "improve overall health"
+                  ).border
+                } mt-6`}
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className={`w-8 h-8 ${
+                      getGoalTheme(
+                        planData?.primary_goal || "improve overall health"
+                      ).primary
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Success Metrics
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {enhancedDetails.successMetrics.map((metric, i) => (
+                    <div key={i} className="flex items-center space-x-3">
+                      <div
+                        className={`w-3 h-3 ${
+                          getGoalTheme(
+                            planData?.primary_goal || "improve overall health"
+                          ).primary
+                        } rounded-full`}
+                      ></div>
+                      <span className="text-sm text-gray-700">{metric}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

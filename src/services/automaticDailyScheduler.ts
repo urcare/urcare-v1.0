@@ -73,8 +73,8 @@ export class AutomaticDailyScheduler {
       const todayProgress = await this.getDailyProgress(userId, todayStr);
 
       if (!todayProgress) {
-        console.log("⚠️ No progress data for today, using default difficulty");
-        return await this.generateNextDaySchedule(userId, tomorrowStr, 50); // Default 50% completion
+        console.log("⚠️ No progress data for today, cannot generate schedule");
+        return null;
       }
 
       // Generate next day schedule based on today's performance

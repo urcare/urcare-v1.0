@@ -153,7 +153,6 @@ export const HealthContentNew = () => {
         }
       );
 
-
       const result = {
         success: !error && data?.success,
         plan: data?.plan,
@@ -398,34 +397,52 @@ export const HealthContentNew = () => {
         todaysPlan.activities.forEach((activity, index: number) => {
           // Create detailed description with all available information
           let detailedDescription = activity.description || "";
-          
+
           // Add duration if available
           if (activity.duration) {
             detailedDescription += `\n⏱️ Duration: ${activity.duration} minutes`;
           }
-          
+
           // Add instructions if available
-          if (activity.instructions && Array.isArray(activity.instructions) && activity.instructions.length > 0) {
-            detailedDescription += `\n📋 Instructions:\n${activity.instructions.map(inst => `• ${inst}`).join('\n')}`;
+          if (
+            activity.instructions &&
+            Array.isArray(activity.instructions) &&
+            activity.instructions.length > 0
+          ) {
+            detailedDescription += `\n📋 Instructions:\n${activity.instructions
+              .map((inst) => `• ${inst}`)
+              .join("\n")}`;
           }
-          
+
           // Add tips if available
-          if (activity.tips && Array.isArray(activity.tips) && activity.tips.length > 0) {
-            detailedDescription += `\n💡 Tips:\n${activity.tips.map(tip => `• ${tip}`).join('\n')}`;
+          if (
+            activity.tips &&
+            Array.isArray(activity.tips) &&
+            activity.tips.length > 0
+          ) {
+            detailedDescription += `\n💡 Tips:\n${activity.tips
+              .map((tip) => `• ${tip}`)
+              .join("\n")}`;
           }
-          
+
           // Add benefits if available
-          if (activity.benefits && Array.isArray(activity.benefits) && activity.benefits.length > 0) {
-            detailedDescription += `\n🎯 Benefits:\n${activity.benefits.map(benefit => `• ${benefit}`).join('\n')}`;
+          if (
+            activity.benefits &&
+            Array.isArray(activity.benefits) &&
+            activity.benefits.length > 0
+          ) {
+            detailedDescription += `\n🎯 Benefits:\n${activity.benefits
+              .map((benefit) => `• ${benefit}`)
+              .join("\n")}`;
           }
-          
+
           // Add nutritional details for meals
-          if (activity.type === 'meal' && activity.nutritionalDetails) {
+          if (activity.type === "meal" && activity.nutritionalDetails) {
             detailedDescription += `\n🍽️ Nutrition: ${activity.nutritionalDetails}`;
           }
-          
+
           // Add workout details for exercises
-          if (activity.type === 'exercise' && activity.workoutDetails) {
+          if (activity.type === "exercise" && activity.workoutDetails) {
             detailedDescription += `\n💪 Workout: ${activity.workoutDetails}`;
           }
 
@@ -438,7 +455,9 @@ export const HealthContentNew = () => {
             isHighlighted: index === 0,
             completed: activity.completed || false,
             type: activity.type,
-            duration: activity.duration ? `${activity.duration} min` : undefined,
+            duration: activity.duration
+              ? `${activity.duration} min`
+              : undefined,
           });
         });
       }
