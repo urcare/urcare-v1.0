@@ -1306,7 +1306,7 @@ const PlanDetails: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 min-h-screen -mt-8">
+      <div className="bg-white rounded-t-3xl relative z-10 min-h-screen -mt-8">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
