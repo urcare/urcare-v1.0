@@ -679,27 +679,21 @@ export const HealthContentNew = () => {
           await loadPersonalizedTips();
           return;
         }
-        // Check for active comprehensive health plans
+        // Check for active comprehensive health plans (only saved plans)
         const { data: activePlans } = await supabase
           .from("comprehensive_health_plans")
           .select("*")
           .eq("user_id", user.id)
           .eq("status", "active");
 
-        // Check for active 2-day plans as fallback
+        // Check for active 2-day plans as fallback (only saved plans)
         const { data: twoDayPlans } = await supabase
           .from("two_day_health_plans")
           .select("*")
           .eq("user_id", user.id)
           .eq("is_active", true);
 
-        // Check for user health goals
-        const { data: goals } = await supabase
-          .from("user_health_goals")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("status", "active");
-
+        // Only show plans if they are actually saved in the database
         if (
           (activePlans && activePlans.length > 0) ||
           (twoDayPlans && twoDayPlans.length > 0)
@@ -708,25 +702,21 @@ export const HealthContentNew = () => {
           setSectionTitle("Today's Protocol");
           await loadUpcomingTasks(activePlans?.[0] || twoDayPlans?.[0]);
         } else {
-          // If we have cached recommended options, prefer showing them when coming back from preview
-          try {
-            const cached = sessionStorage.getItem("recommendedPlanOptions");
-            if (cached) {
-              const opts: DynamicContentItem[] = JSON.parse(cached);
-              setContentState("plan_selection");
-              setSectionTitle("Select Your Protocol");
-              setDynamicContent(opts);
-              return;
-            }
-          } catch (e) {
-            console.warn("Failed to read cached recommended options", e);
-          }
+          // No saved plans found - show health insights or plan selection
+          // Check for user health goals to determine if we should show plan generation
+          const { data: goals } = await supabase
+            .from("user_health_goals")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("status", "active");
 
           if (goals && goals.length > 0) {
+            // User has goals but no saved plan - show plan selection
             setContentState("plan_selection");
             setSectionTitle("Recommended Plans");
             await loadHealthPlans(goals as unknown as HealthGoal[]);
           } else {
+            // No goals and no saved plan - show health insights
             setContentState("health_tips");
             setSectionTitle("Health Insights");
             await loadPersonalizedTips();
