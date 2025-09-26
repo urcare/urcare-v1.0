@@ -999,9 +999,10 @@ const PlanDetails: React.FC = () => {
         return;
       }
       toast.loading("Removing your active plan...", { id: "remove-plan" });
+      // Delete active plan instead of update to avoid unique constraint conflicts
       const { error } = await supabase
         .from("two_day_health_plans")
-        .update({ is_active: false })
+        .delete()
         .eq("user_id", user.id)
         .eq("is_active", true);
       if (error) throw error;
