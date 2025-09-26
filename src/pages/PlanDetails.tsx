@@ -1307,21 +1307,10 @@ const PlanDetails: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="bg-white rounded-t-3xl relative z-10 min-h-screen -mt-8">
-        {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-        </div>
 
         <div className="px-6">
           {/* Protocol Details Card with Goal-Specific Theming */}
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
-            {/* Goal-specific accent line */}
-            <div
-              className={`absolute top-0 left-0 right-0 h-1 ${
-                getGoalTheme(planData?.primary_goal || "improve overall health")
-                  .primary
-              }`}
-            ></div>
 
             <div className="flex items-center space-x-3 mb-6">
               <div
