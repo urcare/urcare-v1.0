@@ -87,6 +87,8 @@ export const HealthContentNew = () => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set()); // Track which items are expanded
   const [scheduleMenuOpen, setScheduleMenuOpen] = useState(false);
   const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [userGoals, setUserGoals] = useState<HealthGoal[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(false);
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -97,6 +99,49 @@ export const HealthContentNew = () => {
     }
     return "User";
   };
+
+  const formatTime = (timeString: string) => {
+    if (!timeString || timeString === "Anytime") return timeString;
+
+    // Handle different time formats
+    let time = timeString;
+
+    // If it has seconds (HH:MM:SS), remove them
+    if (time.includes(":") && time.split(":").length === 3) {
+      time = time.split(":").slice(0, 2).join(":");
+    }
+
+    // Parse the time
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const fetchUserGoals = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setGoalsLoading(true);
+      const { data: goals, error } = await supabase
+        .from("user_health_goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("priority", { ascending: true })
+        .limit(3); // Show top 3 goals
+
+      if (error) throw error;
+      setUserGoals(goals || []);
+    } catch (error) {
+      console.error("Error fetching user goals:", error);
+      setUserGoals([]);
+    } finally {
+      setGoalsLoading(false);
+    }
+  }, [user]);
 
   const toggleItemExpansion = (index: number) => {
     setExpandedItems((prev) => {
@@ -451,7 +496,7 @@ export const HealthContentNew = () => {
             title: activity.title,
             description: detailedDescription,
             icon: getActivityIcon(activity.type),
-            time: activity.startTime || "Anytime",
+            time: formatTime(activity.startTime || "Anytime"),
             isHighlighted: index === 0,
             completed: activity.completed || false,
             type: activity.type,
@@ -471,7 +516,7 @@ export const HealthContentNew = () => {
           title: "Morning Routine",
           description: "30-min morning wellness routine",
           icon: <Sun className="w-6 h-6 text-logo-text" />,
-          time: "07:00 AM",
+          time: formatTime("07:00"),
           isHighlighted: true,
           completed: false,
         },
@@ -480,7 +525,7 @@ export const HealthContentNew = () => {
           title: "Healthy Breakfast",
           description: "Protein-rich meal with complex carbs",
           icon: <Utensils className="w-6 h-6 text-logo-text" />,
-          time: "08:00 AM",
+          time: formatTime("08:00"),
           isHighlighted: false,
           completed: false,
         },
@@ -489,7 +534,7 @@ export const HealthContentNew = () => {
           title: "Midday Movement",
           description: "15-min walk or light exercise",
           icon: <Footprints className="w-6 h-6 text-logo-text" />,
-          time: "01:30 PM",
+          time: formatTime("13:30"),
           isHighlighted: false,
           completed: false,
         }
@@ -646,6 +691,8 @@ export const HealthContentNew = () => {
     if (!user || !profile) return;
 
     const determineUserState = async () => {
+      // Fetch user goals
+      await fetchUserGoals();
       setLoading(true);
       try {
         // Check if we're coming from a saved plan
@@ -870,7 +917,7 @@ export const HealthContentNew = () => {
 
             {/* Notification Icon */}
             <div className="relative">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center">
                 <img
                   src="/icons/notification.png"
                   alt="notification"
@@ -884,18 +931,15 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
-      <div className="flex-1 bg-teal-800 overflow-y-auto pt-24 px-4">
+      <div className="flex-1 bg-green-500 overflow-y-auto pt-24 px-4">
         {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
         <div className="py-4">
-          <div className="bg-teal-500 rounded-[3rem] p-8 w-full">
+          <div className="bg-emerald-500 rounded-[3rem] p-8 w-full">
             <div className="flex flex-col">
-              {/* Headers Row - HEALTH SCORE and WEEKLY VIEW */}
+              {/* Headers Row - HEALTH SCORE */}
               <div className="flex items-center gap-8 mb-3">
                 <div className="text-white text-sm font-medium ml-2">
                   HEALTH SCORE
-                </div>
-                <div className="text-white text-sm font-medium">
-                  WEEKLY VIEW
                 </div>
               </div>
 
@@ -950,207 +994,32 @@ export const HealthContentNew = () => {
                   </div>
                 </div>
 
-                {/* Activity Icons */}
-                <div className="flex items-center gap-1 mr-2">
-                  {/* Running Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/run.png"
-                          alt="Run"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
-                      </div>
+                {/* User Health Goals */}
+                <div className="flex flex-col gap-2 mr-2 max-w-xs">
+                  {goalsLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-white text-sm">
+                        Loading goals...
+                      </span>
                     </div>
-                  </div>
-
-                  {/* Leaf Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/icons8-healthy-100.png"
-                          alt="Healthy"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
+                  ) : userGoals.length > 0 ? (
+                    userGoals.map((goal, index) => (
+                      <div key={goal.id} className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                        <span className="text-white text-sm font-medium truncate">
+                          {goal.title}
+                        </span>
                       </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-white/50 rounded-full flex-shrink-0"></div>
+                      <span className="text-white/80 text-sm">
+                        Set your health goals
+                      </span>
                     </div>
-                  </div>
-
-                  {/* Drop Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/water.png"
-                          alt="Water"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Diet Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/knife.png"
-                          alt="Diet"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Calories Icon */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg
-                        className="w-12 h-12 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        {/* Background Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="3"
-                          fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="12"
-                          stroke="#F59E0B"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 12}`}
-                          strokeDashoffset={`${2 * Math.PI * 12 * (1 - 0)}`}
-                          className="drop-shadow-lg"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img
-                          src="/icons/cal.png"
-                          alt="Calories"
-                          className="w-8 h-8 drop-shadow-lg"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -1161,14 +1030,6 @@ export const HealthContentNew = () => {
                   <span className="text-xl">🔥</span>
                   <span className="text-white text-sm font-medium">
                     {healthData?.streak_days || 0} Days
-                  </span>
-                </div>
-
-                {/* Score Boost */}
-                <div className="flex items-center gap-1">
-                  <span className="text-xl">🔥</span>
-                  <span className="text-white text-sm font-medium">
-                    {getStreakBonusText(healthData?.streak_bonus || 1.0)}
                   </span>
                 </div>
               </div>

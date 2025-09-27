@@ -4,7 +4,7 @@ import React from "react";
 
 const Dashboard: React.FC = () => {
   return (
-    <div className="bg-emerald-800 min-h-screen">
+    <div className="bg-green-500 min-h-screen">
       <ThemeWrapper>
         <div className="space-y-2">
           <HealthContentNew />
