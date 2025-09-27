@@ -103,7 +103,7 @@ export class HealthScoreService {
         streak_bonus: streakBonus,
       };
     } catch (error: any) {
-      // Gracefully handle missing table or 404 errors
+      // Gracefully handle missing table or 404/406 errors
       if (
         error?.code === "42P01" ||
         error?.code === "PGRST116" ||
@@ -114,10 +114,11 @@ export class HealthScoreService {
         ) ||
         error?.message?.includes("Not Found") ||
         error?.message?.includes("404") ||
-        error?.message?.includes("406")
+        error?.message?.includes("406") ||
+        error?.message?.includes("Not Acceptable")
       ) {
         console.warn(
-          "health_scores table missing; returning default health score"
+          "Database tables not set up yet. Please run the database setup script."
         );
         return {
           score: 75, // Default healthy score
