@@ -50,12 +50,7 @@ interface OnboardingData {
   dinnerTime: string;
   workoutTime: string;
   routineFlexibility: string;
-  usesWearable: string;
-  wearableType: string;
   trackFamily: string;
-  shareProgress: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
   criticalConditions: string;
   hasHealthReports: string;
   healthReports: string[];
@@ -282,12 +277,7 @@ const Onboarding = () => {
           workout_type: data.workoutType || null,
           smoking: data.smoking || null,
           drinking: data.drinking || null,
-          uses_wearable: data.usesWearable || null,
-          wearable_type: data.wearableType || null,
           track_family: data.trackFamily || null,
-          share_progress: data.shareProgress || null,
-          emergency_contact_name: data.emergencyContactName || null,
-          emergency_contact_phone: data.emergencyContactPhone || null,
           critical_conditions: data.criticalConditions || null,
           has_health_reports: data.hasHealthReports || null,
           health_reports: data.healthReports || null,
