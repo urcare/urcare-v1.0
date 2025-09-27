@@ -16,9 +16,6 @@ export const TrackFamilyStep: React.FC<TrackFamilyStepProps> = ({
     <div className="flex justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Family Health Tracking
-          </h3>
           <p className="text-sm text-gray-600">
             Would you like to track family members' health too?
           </p>

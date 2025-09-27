@@ -46,7 +46,7 @@ const chronicConditions = [
   },
   {
     id: "chronic_stress_anxiety",
-    title: "Chronic Stress / Anxiety",
+    title: "Stress / Anxiety",
     description: "Burnout, overthinking, sleep struggles",
     category: "Top Lifestyle Disorders",
   },
@@ -78,7 +78,7 @@ const chronicConditions = [
   },
   {
     id: "chronic_pain",
-    title: "Chronic Pain (Back Pain, Joint Pain, Arthritis)",
+    title: "Pain (Back Pain, Joint Pain, Arthritis)",
     description: "Persistent pain affecting daily activities",
     category: "Additional Disorders",
   },
@@ -96,7 +96,7 @@ const chronicConditions = [
   },
   {
     id: "low_energy_chronic_fatigue",
-    title: "Low Energy / Chronic Fatigue",
+    title: "Low Energy / Fatigue",
     description: "Persistent tiredness, low stamina, energy crashes",
     category: "Additional Disorders",
   },
@@ -154,11 +154,8 @@ export const ChronicConditionsStep: React.FC<ChronicConditionsStepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Main Header */}
+      {/* Description */}
       <div className="text-center space-y-2 py-2">
-        <h2 className="text-xl font-bold text-gray-900">
-          Do You Have Any of These Conditions?
-        </h2>
         <p className="text-gray-600 text-xs">
           Choose all that apply — your Health Twin will adapt your plan.
         </p>

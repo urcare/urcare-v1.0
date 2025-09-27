@@ -1,8 +1,7 @@
-import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { subscriptionService } from "@/services/subscriptionService";
+import { useCallback, useState } from "react";
 
 type Props = {
   planSlug?: string;
@@ -30,27 +29,30 @@ export default function PhonePeCheckout({
     try {
       const merchantTransactionId = `${user.id}-${Date.now()}`;
 
-      // Get INR price (fallback) then convert to paise
-      const price = await subscriptionService.getPricingForUser(
-        user.id,
-        planSlug,
-        billingCycle,
-      );
-      const amountPaise = Math.round((price || 0) * 100);
+      // Use fixed INR prices and convert to paise
+      const priceINR = billingCycle === "monthly" ? 849 : 4999;
+      const amountPaise = priceINR * 100; // Convert INR to paise
 
       const redirectUrl = `${window.location.origin}/payment/phonepe/success?tx=${merchantTransactionId}&plan=${planSlug}&cycle=${billingCycle}`;
+
+      const requestBody = {
+        amount: amountPaise,
+        merchantTransactionId,
+        redirectUrl,
+      };
+
+      console.log("Sending PhonePe request:", requestBody);
 
       const { data, error } = await supabase.functions.invoke(
         "create-phonepe-payment",
         {
-          body: {
-            amount: amountPaise,
-            merchantTransactionId,
-            redirectUrl,
-          },
-        },
+          body: requestBody,
+        }
       );
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error("PhonePe function error:", error);
+        throw new Error(error.message || "PhonePe payment failed");
+      }
 
       const url: string | undefined =
         data?.data?.instrumentResponse?.redirectInfo?.url;
@@ -68,11 +70,14 @@ export default function PhonePeCheckout({
       <Button onClick={startCheckout} disabled={loading} className={className}>
         {loading ? "Processing..." : "Pay with PhonePe"}
       </Button>
-      <Button variant="ghost" onClick={onCancel} disabled={loading} className="w-full">
+      <Button
+        variant="ghost"
+        onClick={onCancel}
+        disabled={loading}
+        className="w-full"
+      >
         Cancel
       </Button>
     </div>
   );
 }
-
-

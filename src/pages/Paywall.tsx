@@ -20,9 +20,17 @@ const Paywall: React.FC = () => {
   const [originalMonthly, setOriginalMonthly] = useState<number | null>(19.99);
   const [originalAnnual, setOriginalAnnual] = useState<number | null>(149.99);
 
+  // Fixed INR prices
+  const priceMonthlyINR = 849;
+  const priceAnnualINR = 4999;
+
   const formatCurrency = (amount: number | null) => {
     if (amount === null || amount === undefined) return "";
     return `$${amount.toFixed(2)}`;
+  };
+
+  const formatINR = (amount: number) => {
+    return `₹${amount.toLocaleString()}`;
   };
 
   // Handle payment success redirect
@@ -192,6 +200,21 @@ const Paywall: React.FC = () => {
               </div>
             </div>
 
+            {/* Pre-Launch Access */}
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <div className="text-2xl">⚡</div>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg mb-1">
+                  Pre-Launch Access
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Pre-Launch Only: 1,500 Seats. Once filled, doors close.
+                </p>
+              </div>
+            </div>
+
             {/* Blockchain-Secured Data */}
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
@@ -222,78 +245,14 @@ const Paywall: React.FC = () => {
                 </p>
               </div>
             </div>
-
-            {/* Pre-Launch Access */}
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <div className="text-2xl">⚡</div>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Pre-Launch Access
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Pre-Launch Only: 1,500 Seats. Once filled, doors close.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Subscription Options */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {/* Monthly Option */}
-          <div
-            className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all shadow-lg ${
-              billingCycle === "monthly"
-                ? "border-orange-500 bg-white shadow-orange-500/20"
-                : "border-gray-200 bg-gray-50 hover:border-gray-300"
-            }`}
-            onClick={() => setBillingCycle("monthly")}
-          >
-            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
-              <div className="bg-orange-500 text-white text-[8px] px-1 py-0.5 rounded-full font-medium text-center">
-                FLEXIBLE
-              </div>
-            </div>
-            <div className="text-center">
-              <h3 className="font-semibold text-gray-900 text-lg mb-2">
-                Monthly
-              </h3>
-              <p className="text-gray-900 text-2xl font-bold mb-1">
-                {formatCurrency(priceMonthly ?? 9.57)}
-              </p>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-gray-400 text-sm line-through">
-                  {formatCurrency(originalMonthly ?? 19.99)}
-                </span>
-                <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded font-medium">
-                  {priceMonthly !== null && originalMonthly !== null
-                    ? `Save ${formatCurrency(
-                        Math.max(0, originalMonthly - priceMonthly)
-                      )}`
-                    : ""}
-                </span>
-              </div>
-              <p className="text-gray-500 text-sm mb-1">per month</p>
-              <p className="text-gray-400 text-xs mb-3">Standard pricing</p>
-              <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
-                  billingCycle === "monthly"
-                    ? "border-orange-500 bg-orange-500"
-                    : "border-gray-300 bg-transparent"
-                }`}
-              >
-                {billingCycle === "monthly" && (
-                  <Check className="w-4 h-4 text-white" />
-                )}
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-2 gap-3 mb-6">
           {/* Yearly Option - Most Popular */}
           <div
-            className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all shadow-lg ${
+            className={`relative p-3 rounded-xl border-2 cursor-pointer transition-all shadow-md ${
               billingCycle === "annual"
                 ? "border-orange-500 bg-white shadow-orange-500/20"
                 : "border-gray-200 bg-gray-50 hover:border-gray-300"
@@ -301,22 +260,28 @@ const Paywall: React.FC = () => {
             onClick={() => setBillingCycle("annual")}
           >
             <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
-              <div className="bg-orange-500 text-white text-[8px] px-1 py-0.5 rounded-full font-medium text-center">
+              <div className="bg-orange-500 text-white text-[7px] px-1 py-0.5 rounded-full font-medium text-center">
                 VALUE FOR MONEY
               </div>
             </div>
             <div className="text-center">
-              <h3 className="font-semibold text-gray-900 text-lg mb-2">
+              <h3 className="font-semibold text-gray-900 text-base mb-1">
                 Yearly
               </h3>
-              <p className="text-gray-900 text-2xl font-bold mb-1">
-                {formatCurrency(priceAnnual ?? 56.36)}
-              </p>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-gray-400 text-sm line-through">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <p className="text-gray-900 text-base font-bold">
+                  {formatCurrency(priceAnnual ?? 56.36)}
+                </p>
+                <span className="text-gray-500 text-sm">or</span>
+                <p className="text-gray-900 text-base font-bold">
+                  {formatINR(priceAnnualINR)}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-gray-400 text-xs line-through">
                   {formatCurrency(149.99)}
                 </span>
-                <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded font-medium">
+                <span className="bg-orange-100 text-orange-600 text-xs px-1 py-0.5 rounded font-medium">
                   {priceAnnual !== null
                     ? `Save ${formatCurrency(
                         Math.max(0, 149.99 - priceAnnual)
@@ -324,23 +289,84 @@ const Paywall: React.FC = () => {
                     : ""}
                 </span>
               </div>
-              <p className="text-gray-500 text-sm mb-1">
+              <p className="text-gray-500 text-xs mb-1">
                 {priceAnnual
                   ? `Only ${formatCurrency((priceAnnual ?? 56.36) / 12)}/month`
                   : ""}
               </p>
-              <p className="text-gray-400 text-xs mb-3">
+              <p className="text-gray-400 text-xs mb-1">
                 Only for founding members of UrCare
               </p>
+              <p className="text-red-600 text-xs font-medium mb-2">
+                Only 300 spots left
+              </p>
               <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto ${
                   billingCycle === "annual"
                     ? "border-orange-500 bg-orange-500"
                     : "border-gray-300 bg-transparent"
                 }`}
               >
                 {billingCycle === "annual" && (
-                  <Check className="w-4 h-4 text-white" />
+                  <Check className="w-3 h-3 text-white" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Option */}
+          <div
+            className={`relative p-3 rounded-xl border-2 cursor-pointer transition-all shadow-md ${
+              billingCycle === "monthly"
+                ? "border-orange-500 bg-white shadow-orange-500/20"
+                : "border-gray-200 bg-gray-50 hover:border-gray-300"
+            }`}
+            onClick={() => setBillingCycle("monthly")}
+          >
+            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
+              <div className="bg-orange-500 text-white text-[7px] px-1 py-0.5 rounded-full font-medium text-center">
+                FLEXIBLE
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-gray-900 text-base mb-1">
+                Monthly
+              </h3>
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <p className="text-gray-900 text-base font-bold">
+                  {formatCurrency(priceMonthly ?? 9.57)}
+                </p>
+                <span className="text-gray-500 text-sm">or</span>
+                <p className="text-gray-900 text-base font-bold">
+                  {formatINR(priceMonthlyINR)}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-gray-400 text-xs line-through">
+                  {formatCurrency(originalMonthly ?? 19.99)}
+                </span>
+                <span className="bg-orange-100 text-orange-600 text-xs px-1 py-0.5 rounded font-medium">
+                  {priceMonthly !== null && originalMonthly !== null
+                    ? `Save ${formatCurrency(
+                        Math.max(0, originalMonthly - priceMonthly)
+                      )}`
+                    : ""}
+                </span>
+              </div>
+              <p className="text-gray-500 text-xs mb-1">per month</p>
+              <p className="text-gray-400 text-xs mb-1">Standard pricing</p>
+              <p className="text-red-600 text-xs font-medium mb-2">
+                Only 1200 spots left
+              </p>
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto ${
+                  billingCycle === "monthly"
+                    ? "border-orange-500 bg-orange-500"
+                    : "border-gray-300 bg-transparent"
+                }`}
+              >
+                {billingCycle === "monthly" && (
+                  <Check className="w-3 h-3 text-white" />
                 )}
               </div>
             </div>
@@ -386,6 +412,15 @@ const Paywall: React.FC = () => {
         <div className="text-center mt-4 space-y-1">
           <p className="text-gray-500 text-xs">
             Doesn't work? Money back guarantee
+          </p>
+          <p className="text-gray-500 text-xs">
+            By subscribing, you agree to our{" "}
+            <button
+              onClick={() => navigate("/legal")}
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Terms & Conditions
+            </button>
           </p>
         </div>
       </div>

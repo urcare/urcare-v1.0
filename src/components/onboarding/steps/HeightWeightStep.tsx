@@ -1,11 +1,8 @@
 import React from "react";
 
 interface HeightWeightStepProps {
-  unitSystem: "imperial" | "metric";
   heightFeet: string;
   heightInches: string;
-  heightCm: string;
-  weightLb: string;
   weightKg: string;
   onChange: (field: string, value: string) => void;
   error?: string;
@@ -301,104 +298,48 @@ const getWeightKg = () =>
   Array.from({ length: 221 }, (_, i) => (i + 30).toString()); // 30-250 kg
 
 export const HeightWeightStep: React.FC<HeightWeightStepProps> = ({
-  unitSystem,
   heightFeet,
   heightInches,
-  heightCm,
-  weightLb,
   weightKg,
   onChange,
   error,
 }) => (
   <div className="space-y-4 sm:space-y-6 w-full">
-    {/* Unit System Toggle */}
-    <div className="flex justify-center space-x-2 px-2">
-      <button
-        onClick={() => onChange("unitSystem", "metric")}
-        className={`px-3 py-2 sm:px-4 sm:py-2 rounded-xl border-2 transition-all duration-200 text-sm sm:text-base ${
-          unitSystem === "metric"
-            ? "border-gray-900 bg-gray-900 text-white"
-            : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
-        }`}
-      >
-        Metric (cm, kg)
-      </button>
-      <button
-        onClick={() => onChange("unitSystem", "imperial")}
-        className={`px-3 py-2 sm:px-4 sm:py-2 rounded-xl border-2 transition-all duration-200 text-sm sm:text-base ${
-          unitSystem === "imperial"
-            ? "border-gray-900 bg-gray-900 text-white"
-            : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
-        }`}
-      >
-        Imperial (ft, in, lb)
-      </button>
-    </div>
-
     {/* Height and Weight Pickers */}
     <div className="flex justify-center space-x-2 sm:space-x-4 px-2">
-      {unitSystem === "metric" ? (
-        <>
-          <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
-              Height (cm)
-            </label>
-            <WheelPicker
-              options={getHeightCm()}
-              selectedValue={heightCm}
-              onValueChange={(value) => onChange("heightCm", value)}
-              width="w-16 sm:w-20"
-            />
-          </div>
-          <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
-              Weight (kg)
-            </label>
-            <WheelPicker
-              options={getWeightKg()}
-              selectedValue={weightKg}
-              onValueChange={(value) => onChange("weightKg", value)}
-              width="w-16 sm:w-20"
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
-              Height (ft)
-            </label>
-            <WheelPicker
-              options={getHeightFeet()}
-              selectedValue={heightFeet}
-              onValueChange={(value) => onChange("heightFeet", value)}
-              width="w-12 sm:w-16"
-            />
-          </div>
-          <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
-              Height (in)
-            </label>
-            <WheelPicker
-              options={getHeightInches()}
-              selectedValue={heightInches}
-              onValueChange={(value) => onChange("heightInches", value)}
-              width="w-12 sm:w-16"
-            />
-          </div>
-          <div className="flex flex-col items-center">
-            <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
-              Weight (lb)
-            </label>
-            <WheelPicker
-              options={getWeightLb()}
-              selectedValue={weightLb}
-              onValueChange={(value) => onChange("weightLb", value)}
-              width="w-16 sm:w-20"
-            />
-          </div>
-        </>
-      )}
+      <div className="flex flex-col items-center">
+        <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+          Height (ft)
+        </label>
+        <WheelPicker
+          options={getHeightFeet()}
+          selectedValue={heightFeet}
+          onValueChange={(value) => onChange("heightFeet", value)}
+          width="w-12 sm:w-16"
+        />
+      </div>
+      <div className="flex flex-col items-center">
+        <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+          Height (in)
+        </label>
+        <WheelPicker
+          options={getHeightInches()}
+          selectedValue={heightInches}
+          onValueChange={(value) => onChange("heightInches", value)}
+          width="w-12 sm:w-16"
+        />
+      </div>
+      <div className="flex flex-col items-center">
+        <label className="text-xs sm:text-sm font-medium text-gray-600 mb-2">
+          Weight (kg)
+        </label>
+        <WheelPicker
+          options={getWeightKg()}
+          selectedValue={weightKg}
+          onValueChange={(value) => onChange("weightKg", value)}
+          width="w-16 sm:w-20"
+        />
+      </div>
     </div>
 
     {error && (

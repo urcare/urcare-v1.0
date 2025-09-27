@@ -106,9 +106,6 @@ export const HealthGoalsStep: React.FC<HealthGoalsStepProps> = ({
     <div className="space-y-6">
       {/* Main Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">
-          What Do You Want to Achieve With UrCare?
-        </h2>
         <p className="text-gray-600 text-sm">
           Choose all that apply — your Health Twin adapts to your goals.
         </p>

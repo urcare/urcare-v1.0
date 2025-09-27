@@ -43,11 +43,9 @@ interface OnboardingData {
   birthDay: string;
   birthYear: string;
   gender: string;
-  unitSystem: "imperial" | "metric";
   heightFeet: string;
   heightInches: string;
   heightCm: string;
-  weightLb: string;
   weightKg: string;
   wakeUpTime: string;
   sleepTime: string;
@@ -111,13 +109,18 @@ const steps = [
   },
   {
     id: "chronicConditions",
-    title: "Chronic conditions",
+    title: "Do you have these conditions?",
     type: "multiChoice",
     icon: User,
   },
   { id: "medications", title: "Medications", type: "medications", icon: User },
   { id: "surgery", title: "Surgery history", type: "surgery", icon: User },
-  { id: "healthGoals", title: "Health goals", type: "healthGoals", icon: User },
+  {
+    id: "healthGoals",
+    title: "What do you want to achieve?",
+    type: "healthGoals",
+    icon: User,
+  },
   { id: "dietType", title: "Diet type", type: "dietChoice", icon: User },
   { id: "bloodGroup", title: "Blood group", type: "bloodGroup", icon: Weight },
   {
@@ -619,16 +622,14 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
     birthDay: "1",
     birthYear: "2000",
     gender: "",
-    unitSystem: "metric",
     heightFeet: "5",
     heightInches: "6",
-    heightCm: "170",
-    weightLb: "150",
+    heightCm: "168", // Default height in cm (5'6")
     weightKg: "70",
-    wakeUpTime: "06:00",
-    sleepTime: "22:00",
-    workStart: "09:00",
-    workEnd: "18:00",
+    wakeUpTime: "6:00 AM",
+    sleepTime: "10:00 PM",
+    workStart: "9:00 AM",
+    workEnd: "6:00 PM",
     chronicConditions: [],
     takesMedications: "No",
     medications: [],
@@ -637,10 +638,10 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
     healthGoals: [],
     dietType: "Balanced",
     bloodGroup: "",
-    breakfastTime: "07:00",
-    lunchTime: "12:00",
-    dinnerTime: "19:00",
-    workoutTime: "Morning (06:00-10:00)",
+    breakfastTime: "7:00 AM",
+    lunchTime: "12:00 PM",
+    dinnerTime: "7:00 PM",
+    workoutTime: "Morning (6:00 AM-10:00 AM)",
     routineFlexibility: "5",
     workoutType: "",
     smoking: "",
@@ -797,30 +798,17 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         setData((prev) => ({ ...prev, age: calculatedAge }));
       }
 
-      // Convert units when completing height/weight step
+      // Convert height from feet & inches to cm for storage when completing height/weight step
       if (steps[currentStep].id === "heightWeight") {
         const updatedData = { ...data };
 
-        if (data.unitSystem === "imperial") {
-          // Convert imperial to metric
-          const totalInches =
-            parseInt(data.heightFeet) * 12 + parseInt(data.heightInches);
-          const heightCm = Math.round(totalInches * 2.54);
-          const weightKg = Math.round(parseInt(data.weightLb) * 0.453592);
+        // Convert feet & inches to cm for storage
+        const totalInches =
+          parseInt(data.heightFeet) * 12 + parseInt(data.heightInches);
+        const heightCm = Math.round(totalInches * 2.54);
 
-          updatedData.heightCm = heightCm.toString();
-          updatedData.weightKg = weightKg.toString();
-        } else {
-          // Convert metric to imperial
-          const totalInches = Math.round(parseInt(data.heightCm) / 2.54);
-          const feet = Math.floor(totalInches / 12);
-          const inches = totalInches % 12;
-          const weightLb = Math.round(parseInt(data.weightKg) / 0.453592);
-
-          updatedData.heightFeet = feet.toString();
-          updatedData.heightInches = inches.toString();
-          updatedData.weightLb = weightLb.toString();
-        }
+        // Store both formats for compatibility
+        updatedData.heightCm = heightCm.toString();
 
         setData(updatedData);
       }
@@ -979,11 +967,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
       case "heightWeight":
         return (
           <HeightWeightStep
-            unitSystem={data.unitSystem}
             heightFeet={data.heightFeet}
             heightInches={data.heightInches}
-            heightCm={data.heightCm}
-            weightLb={data.weightLb}
             weightKg={data.weightKg}
             onChange={updateData}
             error={errors.heightWeight}
