@@ -81,11 +81,11 @@ export class UnifiedHealthPlanService {
       console.log("🤖 Step 2: Generating AI prompt...");
       const promptType =
         request.promptType || this.determinePromptType(processedData, request);
-      const healthPlanPrompt = this.generatePrompt(
+      const healthPlanPrompt = AIPromptGenerator.generatePersonalizedPrompt(
         processedData,
         aiContext,
-        promptType,
-        request.userQuery
+        request.userGoal || "improve overall health",
+        promptType as "comprehensive" | "goalAware" | "queryBased"
       );
 
       // Step 3: Call AI service

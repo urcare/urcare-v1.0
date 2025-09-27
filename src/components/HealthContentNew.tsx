@@ -1,9 +1,11 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHealthPlan } from "@/hooks/useHealthPlan";
 import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
+import { EnhancedPlanNamingService } from "@/services/enhancedPlanNamingService";
 import {
   Brain,
   CheckCircle2,
@@ -74,6 +76,11 @@ export const HealthContentNew = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const insightsCardRef = useRef<HTMLDivElement | null>(null);
+  const {
+    currentPlan,
+    loading: planLoading,
+    loadCurrentPlan,
+  } = useHealthPlan();
 
   // State management for dynamic content
   const [contentState, setContentState] = useState<
@@ -208,12 +215,36 @@ export const HealthContentNew = () => {
         // Build three long-term plan options from the base plan
         const basePlan = result.plan;
 
+        // Generate personalized plan names based on user goal using enhanced service
+        const easyPlanName =
+          await EnhancedPlanNamingService.generatePersonalizedPlanName({
+            goal: goal,
+            difficulty: "easy",
+            duration: 12,
+            userProfile: profile,
+          });
+
+        const moderatePlanName =
+          await EnhancedPlanNamingService.generatePersonalizedPlanName({
+            goal: goal,
+            difficulty: "moderate",
+            duration: 16,
+            userProfile: profile,
+          });
+
+        const hardPlanName =
+          await EnhancedPlanNamingService.generatePersonalizedPlanName({
+            goal: goal,
+            difficulty: "hard",
+            duration: 24,
+            userProfile: profile,
+          });
+
         const options: DynamicContentItem[] = [
           {
             id: "opt-easy",
-            title: "Balanced Wellness Protocol",
-            description:
-              "A gentle, sustainable plan focused on consistency and habit-building.",
+            title: easyPlanName.planName,
+            description: easyPlanName.subtitle,
             icon: "🟢",
             time: "12 weeks",
             isHighlighted: true,
@@ -224,9 +255,8 @@ export const HealthContentNew = () => {
           },
           {
             id: "opt-moderate",
-            title: "Performance Boost Protocol",
-            description:
-              "A balanced challenge blending fitness, nutrition, and recovery.",
+            title: moderatePlanName.planName,
+            description: moderatePlanName.subtitle,
             icon: "🟠",
             time: "16 weeks",
             isHighlighted: false,
@@ -241,9 +271,8 @@ export const HealthContentNew = () => {
           },
           {
             id: "opt-hard",
-            title: "Peak Transformation Protocol",
-            description:
-              "An intensive roadmap for rapid, disciplined progress.",
+            title: hardPlanName.planName,
+            description: hardPlanName.subtitle,
             icon: "🔴",
             time: "24 weeks",
             isHighlighted: false,
@@ -675,6 +704,10 @@ export const HealthContentNew = () => {
         .eq("user_id", user.id)
         .eq("is_active", true);
       if (error) throw error;
+
+      // Refresh the health plan state to reflect the removal
+      await loadCurrentPlan();
+
       toast.success("Protocol removed", { id: "remove-plan" });
       // After removal, return to insights
       setContentState("health_tips");
@@ -994,9 +1027,26 @@ export const HealthContentNew = () => {
                   </div>
                 </div>
 
-                {/* User Health Goals */}
+                {/* User Health Goals / Current Plan */}
                 <div className="flex flex-col gap-2 mr-2 max-w-xs">
-                  {goalsLoading ? (
+                  {planLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-white text-sm">
+                        Loading plan...
+                      </span>
+                    </div>
+                  ) : currentPlan ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                      <span className="text-white text-sm font-medium truncate">
+                        {currentPlan.plan_data?.plan_name ||
+                          currentPlan.plan_data?.title ||
+                          (currentPlan as any)?.plan_name ||
+                          "Active Health Plan"}
+                      </span>
+                    </div>
+                  ) : goalsLoading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span className="text-white text-sm">

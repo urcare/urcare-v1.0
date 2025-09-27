@@ -30,8 +30,8 @@ export class PlanNamingService {
     // Extract goal category
     const category = this.extractGoalCategory(goalLower);
 
-    // Generate name based on difficulty and category
-    const planName = this.generateNameByDifficulty(category, difficulty);
+    // Generate name based on difficulty and category, passing original goal
+    const planName = this.generateNameByDifficulty(category, difficulty, goal);
     const subtitle = this.generateSubtitle(category, difficulty, duration);
     const intensity = this.getIntensityLevel(difficulty);
 
@@ -94,55 +94,65 @@ export class PlanNamingService {
    */
   private static generateNameByDifficulty(
     category: string,
-    difficulty: string
+    difficulty: string,
+    originalGoal?: string
   ): string {
+    // If we have the original goal, create personalized names
+    if (originalGoal) {
+      const goalWords = this.extractKeyWords(originalGoal);
+      const intensityPrefix = this.getIntensityPrefix(difficulty);
+
+      return `${intensityPrefix} ${goalWords} Protocol`;
+    }
+
+    // Fallback to category-based naming
     const namingMatrix = {
       // Easy plans - gentle, approachable
       easy: {
-        muscle_gain: "Muscle Starter",
-        weight_loss: "Weight Ease",
-        muscle_building: "Strength Start",
-        strength_training: "Power Start",
-        fitness_training: "Fitness First",
-        cardiovascular: "Cardio Start",
-        endurance_training: "Stamina Start",
-        mental_wellness: "Mind Calm",
-        mindfulness: "Zen Start",
-        sleep_optimization: "Sleep Ease",
-        general_health: "Health Start",
-        nutrition_focus: "Nutrition Start",
+        muscle_gain: "Easy Weight Gain Protocol",
+        weight_loss: "Easy Weight Loss Protocol",
+        muscle_building: "Easy Muscle Building Protocol",
+        strength_training: "Easy Strength Protocol",
+        fitness_training: "Easy Fitness Protocol",
+        cardiovascular: "Easy Cardio Protocol",
+        endurance_training: "Easy Endurance Protocol",
+        mental_wellness: "Easy Mental Wellness Protocol",
+        mindfulness: "Easy Mindfulness Protocol",
+        sleep_optimization: "Easy Sleep Protocol",
+        general_health: "Easy Health Protocol",
+        nutrition_focus: "Easy Nutrition Protocol",
       },
 
       // Moderate plans - balanced, professional
       moderate: {
-        muscle_gain: "Muscle Builder",
-        weight_loss: "Fat Burner",
-        muscle_building: "Strength Protocol",
-        strength_training: "Power Protocol",
-        fitness_training: "Fitness Boost",
-        cardiovascular: "Cardio Protocol",
-        endurance_training: "Stamina Protocol",
-        mental_wellness: "Mind Protocol",
-        mindfulness: "Zen Protocol",
-        sleep_optimization: "Sleep Protocol",
-        general_health: "Health Protocol",
-        nutrition_focus: "Nutrition Protocol",
+        muscle_gain: "Moderate Weight Gain Protocol",
+        weight_loss: "Moderate Weight Loss Protocol",
+        muscle_building: "Moderate Muscle Building Protocol",
+        strength_training: "Moderate Strength Protocol",
+        fitness_training: "Moderate Fitness Protocol",
+        cardiovascular: "Moderate Cardio Protocol",
+        endurance_training: "Moderate Endurance Protocol",
+        mental_wellness: "Moderate Mental Wellness Protocol",
+        mindfulness: "Moderate Mindfulness Protocol",
+        sleep_optimization: "Moderate Sleep Protocol",
+        general_health: "Moderate Health Protocol",
+        nutrition_focus: "Moderate Nutrition Protocol",
       },
 
       // Hard plans - intense, powerful
       hard: {
-        muscle_gain: "Muscle Mass Protocol",
-        weight_loss: "Fat Burn Protocol",
-        muscle_building: "Power Builder",
-        strength_training: "Elite Strength",
-        fitness_training: "Elite Fitness",
-        cardiovascular: "Cardio Elite",
-        endurance_training: "Stamina Elite",
-        mental_wellness: "Zen Master",
-        mindfulness: "Mind Master",
-        sleep_optimization: "Sleep Master",
-        general_health: "Ultimate Protocol",
-        nutrition_focus: "Nutrition Elite",
+        muscle_gain: "Ultimate Weight Gain Protocol",
+        weight_loss: "Ultimate Weight Loss Protocol",
+        muscle_building: "Ultimate Muscle Building Protocol",
+        strength_training: "Ultimate Strength Protocol",
+        fitness_training: "Ultimate Fitness Protocol",
+        cardiovascular: "Ultimate Cardio Protocol",
+        endurance_training: "Ultimate Endurance Protocol",
+        mental_wellness: "Ultimate Mental Wellness Protocol",
+        mindfulness: "Ultimate Mindfulness Protocol",
+        sleep_optimization: "Ultimate Sleep Protocol",
+        general_health: "Ultimate Health Protocol",
+        nutrition_focus: "Ultimate Nutrition Protocol",
       },
     };
 
@@ -249,5 +259,89 @@ export class PlanNamingService {
       .trim();
 
     return cleaned || "improve overall health";
+  }
+
+  /**
+   * Extract key words from user goal for personalized naming
+   */
+  private static extractKeyWords(goal: string): string {
+    const goalLower = goal.toLowerCase();
+
+    // Weight-related goals
+    if (goalLower.includes("gain") && goalLower.includes("weight")) {
+      return "Weight Gain";
+    }
+    if (goalLower.includes("lose") && goalLower.includes("weight")) {
+      return "Weight Loss";
+    }
+    if (goalLower.includes("weight") && goalLower.includes("loss")) {
+      return "Weight Loss";
+    }
+
+    // Muscle and strength goals
+    if (goalLower.includes("muscle") && goalLower.includes("build")) {
+      return "Muscle Building";
+    }
+    if (goalLower.includes("build") && goalLower.includes("muscle")) {
+      return "Muscle Building";
+    }
+    if (goalLower.includes("muscle") || goalLower.includes("bulk")) {
+      return "Muscle Building";
+    }
+    if (goalLower.includes("strength") || goalLower.includes("power")) {
+      return "Strength Training";
+    }
+
+    // Fitness goals
+    if (goalLower.includes("fitness") || goalLower.includes("endurance")) {
+      return "Fitness Training";
+    }
+    if (goalLower.includes("cardio") || goalLower.includes("running")) {
+      return "Cardio Training";
+    }
+    if (goalLower.includes("stamina") || goalLower.includes("energy")) {
+      return "Endurance Training";
+    }
+
+    // Mental wellness goals
+    if (goalLower.includes("stress") || goalLower.includes("mental")) {
+      return "Mental Wellness";
+    }
+    if (goalLower.includes("mindfulness") || goalLower.includes("meditation")) {
+      return "Mindfulness";
+    }
+    if (goalLower.includes("sleep") || goalLower.includes("rest")) {
+      return "Sleep Optimization";
+    }
+
+    // General health goals
+    if (goalLower.includes("health") || goalLower.includes("wellness")) {
+      return "Health Improvement";
+    }
+    if (goalLower.includes("diet") || goalLower.includes("nutrition")) {
+      return "Nutrition Focus";
+    }
+
+    // Default fallback - capitalize first letter of each word
+    return goal
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  /**
+   * Get intensity prefix based on difficulty
+   */
+  private static getIntensityPrefix(difficulty: string): string {
+    switch (difficulty) {
+      case "easy":
+        return "Easy";
+      case "moderate":
+        return "Moderate";
+      case "hard":
+        return "Ultimate";
+      default:
+        return "Moderate";
+    }
   }
 }

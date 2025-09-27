@@ -7,6 +7,7 @@
 
 import { UserProfile } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { EnhancedDailyScheduleService } from "./enhancedDailyScheduleService";
 import { ProcessedUserData, userDataProcessor } from "./userDataProcessor";
 
 // ============================================================================
@@ -216,7 +217,7 @@ export class IntelligentHealthPlanningService {
   }
 
   /**
-   * Generate next day's schedule automatically
+   * Generate next day's schedule automatically using enhanced service
    */
   static async generateNextDaySchedule(
     userId: string,
@@ -244,31 +245,65 @@ export class IntelligentHealthPlanningService {
       .eq("id", userId)
       .single();
 
+    if (!profile) {
+      throw new Error("User profile not found");
+    }
+
     // Adjust difficulty based on completion rate
     const adjustedDifficulty = this.adjustDifficultyBasedOnCompletion(
       currentPlan.difficulty,
       previousDayCompletion
     );
 
-    // Generate next day's schedule
+    // Generate next day's schedule using enhanced service
     const nextDate = new Date(currentDate);
     nextDate.setDate(nextDate.getDate() + 1);
-
-    const prompt = this.createNextDayPrompt(
-      profile,
-      currentPlan,
-      adjustedDifficulty,
-      nextDate
-    );
+    const nextDateStr = nextDate.toISOString().split("T")[0];
 
     try {
-      const aiResponse = await this.callAIService(prompt);
-      const nextDaySchedule = this.processNextDayResponse(aiResponse, nextDate);
+      const enhancedSchedule =
+        await EnhancedDailyScheduleService.generatePersonalizedSchedule({
+          goal: currentPlan.goal || "improve overall health",
+          difficulty: adjustedDifficulty as "easy" | "moderate" | "hard",
+          userProfile: profile,
+          planData: currentPlan,
+          date: nextDateStr,
+        });
+
+      // Convert enhanced schedule to legacy format
+      const legacySchedule: DailySchedule = {
+        date: enhancedSchedule.date,
+        dayOfWeek: enhancedSchedule.dayOfWeek,
+        activities: enhancedSchedule.activities.map((activity) => ({
+          id: activity.id,
+          type: activity.type,
+          title: activity.title,
+          description: activity.description,
+          startTime: activity.startTime,
+          endTime: activity.endTime,
+          duration: activity.duration,
+          priority: activity.priority,
+          category: activity.category,
+          instructions: activity.instructions,
+          tips: activity.tips,
+          relatedGoals: [enhancedSchedule.goal],
+          impactScore: 0.8,
+          complianceWeight: 0.9,
+        })),
+        summary: {
+          totalActivities: enhancedSchedule.activities.length,
+          workoutTime: enhancedSchedule.summary.workoutTime,
+          mealCount: enhancedSchedule.summary.mealCount,
+          sleepHours: enhancedSchedule.summary.sleepHours,
+          focusAreas: enhancedSchedule.summary.focusAreas,
+          goalContributions: enhancedSchedule.summary.goalContributions,
+        },
+      };
 
       // Update the weekly plan with new day
-      await this.updateWeeklyPlanWithNewDay(currentPlan.id, nextDaySchedule);
+      await this.updateWeeklyPlanWithNewDay(currentPlan.id, legacySchedule);
 
-      return nextDaySchedule;
+      return legacySchedule;
     } catch (error) {
       console.error("Error generating next day schedule:", error);
       return null;

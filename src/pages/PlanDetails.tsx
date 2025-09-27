@@ -6,6 +6,7 @@ import {
   EnhancedPlanDetails,
   EnhancedPlanDetailsService,
 } from "../services/enhancedPlanDetailsService";
+import { healthPlanService } from "../services/healthPlanService";
 import { PlanNamingService } from "../services/planNamingService";
 import {
   Activity,
@@ -1006,6 +1007,10 @@ const PlanDetails: React.FC = () => {
         .eq("user_id", user.id)
         .eq("is_active", true);
       if (error) throw error;
+
+      // Clear the health plan cache to ensure fresh data on dashboard
+      healthPlanService.clearCache();
+
       toast.success("Plan removed", { id: "remove-plan" });
       navigate("/dashboard");
     } catch (e) {
@@ -1307,11 +1312,9 @@ const PlanDetails: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="bg-white rounded-t-3xl relative z-10 min-h-screen -mt-8">
-
         <div className="px-6">
           {/* Protocol Details Card with Goal-Specific Theming */}
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
-
             <div className="flex items-center space-x-3 mb-6">
               <div
                 className={`w-10 h-10 ${
