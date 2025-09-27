@@ -10,6 +10,7 @@ import Goals from "./pages/Goals";
 import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
 import Landing from "./pages/Landing";
+import Legal from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
@@ -44,6 +45,7 @@ function App() {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/razorpay-test" element={<RazorpayTestPage />} />
+          <Route path="/legal" element={<Legal />} />
 
           {/* Protected Routes */}
           <Route
