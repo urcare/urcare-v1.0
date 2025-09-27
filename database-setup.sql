@@ -19,7 +19,11 @@ CREATE INDEX IF NOT EXISTS idx_health_scores_last_updated ON health_scores(last_
 -- Enable RLS
 ALTER TABLE health_scores ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies
+-- Create RLS policies (drop if exists first)
+DROP POLICY IF EXISTS "Users can view their own health scores" ON health_scores;
+DROP POLICY IF EXISTS "Users can insert their own health scores" ON health_scores;
+DROP POLICY IF EXISTS "Users can update their own health scores" ON health_scores;
+
 CREATE POLICY "Users can view their own health scores" ON health_scores
     FOR SELECT USING (auth.uid() = user_id);
 
@@ -38,6 +42,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create trigger for health_scores (drop if exists first)
+DROP TRIGGER IF EXISTS update_health_scores_updated_at ON health_scores;
 CREATE TRIGGER update_health_scores_updated_at
     BEFORE UPDATE ON health_scores
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -89,7 +95,11 @@ CREATE INDEX IF NOT EXISTS idx_daily_activities_date ON daily_activities(activit
 -- Enable RLS for daily_activities
 ALTER TABLE daily_activities ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for daily_activities
+-- Create RLS policies for daily_activities (drop if exists first)
+DROP POLICY IF EXISTS "Users can view their own daily activities" ON daily_activities;
+DROP POLICY IF EXISTS "Users can insert their own daily activities" ON daily_activities;
+DROP POLICY IF EXISTS "Users can update their own daily activities" ON daily_activities;
+
 CREATE POLICY "Users can view their own daily activities" ON daily_activities
     FOR SELECT USING (auth.uid() = user_id);
 
@@ -99,7 +109,8 @@ CREATE POLICY "Users can insert their own daily activities" ON daily_activities
 CREATE POLICY "Users can update their own daily activities" ON daily_activities
     FOR UPDATE USING (auth.uid() = user_id);
 
--- Create trigger for daily_activities updated_at
+-- Create trigger for daily_activities updated_at (drop if exists first)
+DROP TRIGGER IF EXISTS update_daily_activities_updated_at ON daily_activities;
 CREATE TRIGGER update_daily_activities_updated_at
     BEFORE UPDATE ON daily_activities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
