@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import RazorpayTestPage from "./components/payment/RazorpayTestPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
 import Camera from "./pages/Camera";
@@ -44,7 +43,6 @@ function App() {
           <Route path="/auth" element={<AuthCallback />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
-          <Route path="/razorpay-test" element={<RazorpayTestPage />} />
           <Route path="/legal" element={<Legal />} />
 
           {/* Protected Routes */}
