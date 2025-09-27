@@ -29,11 +29,9 @@ interface OnboardingData {
   birthDay: string;
   birthYear: string;
   gender: string;
-  unitSystem: "imperial" | "metric";
   heightFeet: string;
   heightInches: string;
   heightCm: string;
-  weightLb: string;
   weightKg: string;
   wakeUpTime: string;
   sleepTime: string;
@@ -260,11 +258,9 @@ const Onboarding = () => {
           age: data.age || null,
           date_of_birth: dateOfBirth,
           gender: data.gender || null,
-          unit_system: data.unitSystem || "metric",
           height_feet: data.heightFeet || null,
           height_inches: data.heightInches || null,
           height_cm: data.heightCm || null,
-          weight_lb: data.weightLb || null,
           weight_kg: data.weightKg || null,
           wake_up_time: convertTimeToFormat(data.wakeUpTime),
           sleep_time: convertTimeToFormat(data.sleepTime),

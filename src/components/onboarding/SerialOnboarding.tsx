@@ -678,14 +678,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         }
         break;
       case "heightWeight":
-        if (data.unitSystem === "imperial") {
-          if (!data.heightFeet || !data.heightInches || !data.weightLb) {
-            newErrors.heightWeight = "Please enter your height and weight";
-          }
-        } else {
-          if (!data.heightCm || !data.weightKg) {
-            newErrors.heightWeight = "Please enter your height and weight";
-          }
+        if (!data.heightFeet || !data.heightInches || !data.weightKg) {
+          newErrors.heightWeight = "Please enter your height and weight";
         }
         break;
       case "sleepSchedule":
