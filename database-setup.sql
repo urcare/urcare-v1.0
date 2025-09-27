@@ -59,7 +59,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT 
-        CURRENT_DATE - INTERVAL '6 days' + INTERVAL '1 day' * generate_series(0, 6) as date,
+        (CURRENT_DATE - INTERVAL '6 days' + INTERVAL '1 day' * generate_series(0, 6))::DATE as date,
         COALESCE(hs.score, 75) as score,
         COALESCE(da.activities_completed, 0) as activities_completed,
         COALESCE(hs.streak_days, 0) as streak_days
@@ -67,13 +67,13 @@ BEGIN
     LEFT JOIN health_scores hs ON hs.user_id = p_user_id
     LEFT JOIN (
         SELECT 
-            DATE(activity_date) as date,
+            activity_date::DATE as date,
             COUNT(*) as activities_completed
         FROM daily_activities 
         WHERE user_id = p_user_id 
         AND activity_date >= CURRENT_DATE - INTERVAL '6 days'
-        GROUP BY DATE(activity_date)
-    ) da ON da.date = CURRENT_DATE - INTERVAL '6 days' + INTERVAL '1 day' * day_offset;
+        GROUP BY activity_date::DATE
+    ) da ON da.date = (CURRENT_DATE - INTERVAL '6 days' + INTERVAL '1 day' * day_offset)::DATE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -113,4 +113,42 @@ CREATE POLICY "Users can update their own daily activities" ON daily_activities
 DROP TRIGGER IF EXISTS update_daily_activities_updated_at ON daily_activities;
 CREATE TRIGGER update_daily_activities_updated_at
     BEFORE UPDATE ON daily_activities
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Create two_day_health_plans table if it doesn't exist
+CREATE TABLE IF NOT EXISTS two_day_health_plans (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    plan_name TEXT NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for two_day_health_plans
+CREATE INDEX IF NOT EXISTS idx_two_day_health_plans_user_id ON two_day_health_plans(user_id);
+CREATE INDEX IF NOT EXISTS idx_two_day_health_plans_active ON two_day_health_plans(is_active);
+
+-- Enable RLS for two_day_health_plans
+ALTER TABLE two_day_health_plans ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for two_day_health_plans (drop if exists first)
+DROP POLICY IF EXISTS "Users can view their own two day health plans" ON two_day_health_plans;
+DROP POLICY IF EXISTS "Users can insert their own two day health plans" ON two_day_health_plans;
+DROP POLICY IF EXISTS "Users can update their own two day health plans" ON two_day_health_plans;
+
+CREATE POLICY "Users can view their own two day health plans" ON two_day_health_plans
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own two day health plans" ON two_day_health_plans
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own two day health plans" ON two_day_health_plans
+    FOR UPDATE USING (auth.uid() = user_id);
+
+-- Create trigger for two_day_health_plans updated_at (drop if exists first)
+DROP TRIGGER IF EXISTS update_two_day_health_plans_updated_at ON two_day_health_plans;
+CREATE TRIGGER update_two_day_health_plans_updated_at
+    BEFORE UPDATE ON two_day_health_plans
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

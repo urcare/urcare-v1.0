@@ -69,7 +69,7 @@ export class HealthScoreService {
         );
 
         if (weeklyError) {
-          console.warn("get_weekly_view function not found, using default data");
+          console.warn("get_weekly_view function error:", weeklyError.message);
           // Create default weekly data
           weeklyData = Array.from({ length: 7 }, (_, i) => ({
             date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
