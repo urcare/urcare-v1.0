@@ -193,45 +193,28 @@ Return ONLY a JSON object with this exact structure:
   }
 
   /**
-   * Call AI service for personalized schedule
+   * Call AI service for personalized schedule via API
    */
   private static async callAIService(prompt: string): Promise<any> {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    try {
+      const response = await fetch("/api/generate-personalized-schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      });
 
-    if (!OPENAI_API_KEY) {
-      throw new Error("OpenAI API key not configured");
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error calling AI service:", error);
+      throw error;
     }
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a health and wellness expert who creates detailed, personalized daily schedules. Always respond with valid JSON only.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
   }
 
   /**
