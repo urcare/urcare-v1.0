@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS health_scores (
 CREATE TABLE IF NOT EXISTS two_day_health_plans (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    plan_name TEXT NOT NULL DEFAULT 'Default Plan',
+    name TEXT NOT NULL DEFAULT 'Default Plan',
     description TEXT,
     is_active BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -76,6 +76,6 @@ INSERT INTO health_scores (user_id, score, streak_days)
 SELECT '6295da0b-c227-4404-875a-0f16834bfa75', 75, 0
 WHERE NOT EXISTS (SELECT 1 FROM health_scores WHERE user_id = '6295da0b-c227-4404-875a-0f16834bfa75');
 
-INSERT INTO two_day_health_plans (user_id, plan_name, is_active) 
+INSERT INTO two_day_health_plans (user_id, name, is_active) 
 SELECT '6295da0b-c227-4404-875a-0f16834bfa75', 'Default Health Plan', true
 WHERE NOT EXISTS (SELECT 1 FROM two_day_health_plans WHERE user_id = '6295da0b-c227-4404-875a-0f16834bfa75');
