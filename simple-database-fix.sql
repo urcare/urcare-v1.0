@@ -71,10 +71,11 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 7. Insert default data for current user (replace with your actual user ID)
+-- Insert default data (ignore if already exists)
 INSERT INTO health_scores (user_id, score, streak_days) 
-VALUES ('6295da0b-c227-4404-875a-0f16834bfa75', 75, 0)
-ON CONFLICT (user_id) DO NOTHING;
+SELECT '6295da0b-c227-4404-875a-0f16834bfa75', 75, 0
+WHERE NOT EXISTS (SELECT 1 FROM health_scores WHERE user_id = '6295da0b-c227-4404-875a-0f16834bfa75');
 
 INSERT INTO two_day_health_plans (user_id, plan_name, is_active) 
-VALUES ('6295da0b-c227-4404-875a-0f16834bfa75', 'Default Health Plan', true)
-ON CONFLICT DO NOTHING;
+SELECT '6295da0b-c227-4404-875a-0f16834bfa75', 'Default Health Plan', true
+WHERE NOT EXISTS (SELECT 1 FROM two_day_health_plans WHERE user_id = '6295da0b-c227-4404-875a-0f16834bfa75');
