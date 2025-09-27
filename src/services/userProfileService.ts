@@ -100,12 +100,7 @@ export interface ProfileUpdateData {
   workout_type?: string;
   smoking?: string;
   drinking?: string;
-  uses_wearable?: string;
-  wearable_type?: string;
   track_family?: string;
-  share_progress?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
   critical_conditions?: string;
   has_health_reports?: string;
   health_reports?: string[];
@@ -159,12 +154,7 @@ export class UserProfileService {
         workout_type: data.workoutType,
         smoking: data.smoking,
         drinking: data.drinking,
-        uses_wearable: data.usesWearable,
-        wearable_type: data.wearableType,
         track_family: data.trackFamily,
-        share_progress: data.shareProgress,
-        emergency_contact_name: data.emergencyContactName,
-        emergency_contact_phone: data.emergencyContactPhone,
         critical_conditions: data.criticalConditions,
         has_health_reports: data.hasHealthReports,
         health_reports: data.healthReports,
