@@ -144,20 +144,9 @@ Return ONLY a JSON object with this exact structure:
    */
   private static async callAIService(prompt: string): Promise<any> {
     try {
-      const response = await fetch("/api/generate-personalized-plan-summary", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      // For now, skip AI calls and use enhanced fallback
+      // This will be replaced with Supabase Edge Functions later
+      throw new Error("AI service not available - using enhanced fallback");
     } catch (error) {
       console.error("Error calling AI service:", error);
       throw error;

@@ -110,20 +110,9 @@ Return ONLY a JSON object with this exact structure:
    */
   private static async callAIService(prompt: string): Promise<any> {
     try {
-      const response = await fetch("/api/generate-personalized-plan-name", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      // For now, skip AI calls and use enhanced fallback
+      // This will be replaced with Supabase Edge Functions later
+      throw new Error("AI service not available - using enhanced fallback");
     } catch (error) {
       console.error("Error calling AI service:", error);
       throw error;
@@ -176,9 +165,27 @@ Return ONLY a JSON object with this exact structure:
     const goalWords = this.extractKeyWords(goal);
     const intensityPrefix = this.getIntensityPrefix(difficulty);
     const userContext = userProfile ? ` for ${userProfile.full_name || "you"}` : "";
+    
+    // Create more personalized names based on goal
+    let personalizedName = "";
+    const goalLower = goal.toLowerCase();
+    
+    if (goalLower.includes("weight") && goalLower.includes("loss")) {
+      personalizedName = `${intensityPrefix} Weight Loss Journey`;
+    } else if (goalLower.includes("weight") && goalLower.includes("gain")) {
+      personalizedName = `${intensityPrefix} Weight Gain Program`;
+    } else if (goalLower.includes("muscle") || goalLower.includes("build")) {
+      personalizedName = `${intensityPrefix} Muscle Building Protocol`;
+    } else if (goalLower.includes("fitness") || goalLower.includes("strength")) {
+      personalizedName = `${intensityPrefix} Fitness Transformation`;
+    } else if (goalLower.includes("cardio") || goalLower.includes("endurance")) {
+      personalizedName = `${intensityPrefix} Cardio Challenge`;
+    } else {
+      personalizedName = `${intensityPrefix} ${goalWords} Transformation`;
+    }
 
     return {
-      planName: `${intensityPrefix} ${goalWords} Transformation`,
+      planName: personalizedName,
       subtitle: `Your personalized ${duration}-week journey`,
       description: `A ${difficulty} intensity plan specifically designed to help you ${goal.toLowerCase()}${userContext}.`,
       intensity: this.getIntensityLevel(difficulty),

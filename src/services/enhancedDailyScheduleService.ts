@@ -197,20 +197,9 @@ Return ONLY a JSON object with this exact structure:
    */
   private static async callAIService(prompt: string): Promise<any> {
     try {
-      const response = await fetch("/api/generate-personalized-schedule", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      // For now, skip AI calls and use enhanced fallback
+      // This will be replaced with Supabase Edge Functions later
+      throw new Error("AI service not available - using enhanced fallback");
     } catch (error) {
       console.error("Error calling AI service:", error);
       throw error;
@@ -264,12 +253,14 @@ Return ONLY a JSON object with this exact structure:
     const wakeUp = userProfile.wake_up_time || "07:00";
     const sleep = userProfile.sleep_time || "22:00";
     const workoutTime = userProfile.workout_time || "18:00";
+    const goalLower = goal.toLowerCase();
 
+    // Create goal-specific activities
     const activities: PersonalizedActivity[] = [
       {
         id: "wake-up",
         type: "other",
-        title: "Wake Up & Hydration",
+        title: "Morning Energy Boost",
         description: "Start your day with hydration and light movement",
         startTime: wakeUp,
         endTime: this.addMinutes(wakeUp, 15),
@@ -288,17 +279,14 @@ Return ONLY a JSON object with this exact structure:
       {
         id: "breakfast",
         type: "meal",
-        title: "Nutritious Breakfast",
-        description: "Balanced breakfast to fuel your day",
+        title: this.getGoalSpecificMealTitle("breakfast", goalLower),
+        description: this.getGoalSpecificMealDescription("breakfast", goalLower, userProfile),
         startTime: userProfile.breakfast_time || "08:00",
         endTime: this.addMinutes(userProfile.breakfast_time || "08:00", 30),
         duration: 30,
         priority: "high",
         category: "Nutrition",
-        instructions: [
-          "Include protein, carbs, and healthy fats",
-          "Eat mindfully",
-        ],
+        instructions: this.getGoalSpecificInstructions("breakfast", goalLower),
         tips: ["Prepare the night before if needed", "Focus on whole foods"],
         goalAlignment: `Provides energy and nutrients to support ${goal.toLowerCase()}`,
         personalizationNotes: "Tailored to your diet type and schedule",
@@ -378,5 +366,72 @@ Return ONLY a JSON object with this exact structure:
     return `${newHours.toString().padStart(2, "0")}:${newMins
       .toString()
       .padStart(2, "0")}`;
+  }
+
+  /**
+   * Get goal-specific meal title
+   */
+  private static getGoalSpecificMealTitle(mealType: string, goal: string): string {
+    if (goal.includes("weight") && goal.includes("loss")) {
+      return mealType === "breakfast" ? "Weight Loss Breakfast" : 
+             mealType === "lunch" ? "Lean Lunch" : "Light Dinner";
+    } else if (goal.includes("weight") && goal.includes("gain")) {
+      return mealType === "breakfast" ? "Muscle Building Breakfast" : 
+             mealType === "lunch" ? "High-Calorie Lunch" : "Protein-Rich Dinner";
+    } else if (goal.includes("muscle") || goal.includes("build")) {
+      return mealType === "breakfast" ? "Protein-Packed Breakfast" : 
+             mealType === "lunch" ? "Muscle Fuel Lunch" : "Recovery Dinner";
+    } else {
+      return mealType === "breakfast" ? "Nutritious Breakfast" : 
+             mealType === "lunch" ? "Balanced Lunch" : "Healthy Dinner";
+    }
+  }
+
+  /**
+   * Get goal-specific meal description
+   */
+  private static getGoalSpecificMealDescription(mealType: string, goal: string, userProfile: UserProfile): string {
+    const dietType = userProfile.diet_type || "Balanced";
+    
+    if (goal.includes("weight") && goal.includes("loss")) {
+      return `A ${dietType.toLowerCase()} meal designed to support your weight loss goals with the right balance of nutrients.`;
+    } else if (goal.includes("weight") && goal.includes("gain")) {
+      return `A calorie-dense ${dietType.toLowerCase()} meal to fuel your weight gain journey with quality nutrients.`;
+    } else if (goal.includes("muscle") || goal.includes("build")) {
+      return `A protein-rich ${dietType.toLowerCase()} meal to support muscle building and recovery.`;
+    } else {
+      return `A balanced ${dietType.toLowerCase()} meal to fuel your health and fitness goals.`;
+    }
+  }
+
+  /**
+   * Get goal-specific instructions
+   */
+  private static getGoalSpecificInstructions(mealType: string, goal: string): string[] {
+    if (goal.includes("weight") && goal.includes("loss")) {
+      return [
+        "Focus on lean proteins and vegetables",
+        "Control portion sizes",
+        "Include healthy fats in moderation"
+      ];
+    } else if (goal.includes("weight") && goal.includes("gain")) {
+      return [
+        "Include calorie-dense foods",
+        "Add healthy fats and proteins",
+        "Eat until comfortably full"
+      ];
+    } else if (goal.includes("muscle") || goal.includes("build")) {
+      return [
+        "Include high-quality protein",
+        "Add complex carbohydrates",
+        "Include healthy fats for recovery"
+      ];
+    } else {
+      return [
+        "Include protein, carbs, and healthy fats",
+        "Eat mindfully and slowly",
+        "Focus on whole, unprocessed foods"
+      ];
+    }
   }
 }
