@@ -10,6 +10,17 @@ import {
   Target,
   TrendingDown,
   XCircle,
+  Pill,
+  Shield,
+  Users,
+  Brain,
+  Droplets,
+  Coffee,
+  Briefcase,
+  Utensils,
+  Zap,
+  Plus,
+  Minus,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +31,7 @@ interface HealthMetric {
   id: string;
   title: string;
   value: string;
-  status: "good" | "bad";
+  status: "good" | "warning" | "bad";
   icon: React.ComponentType<any>;
   iconColor: string;
 }
@@ -28,7 +39,6 @@ interface HealthMetric {
 const HealthAssessment: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile, loading, isInitialized } = useAuth();
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
@@ -107,29 +117,28 @@ const HealthAssessment: React.FC = () => {
     return null;
   }
 
+  // Helper to check if array has meaningful data
+  const hasValidArrayData = (arr: any): boolean => {
+    if (!Array.isArray(arr)) return false;
+    return arr.length > 0 && arr.some((item: any) => item && item !== "none" && item !== "");
+  };
+
+  // Helper to check if string has meaningful data
+  const hasValidStringData = (str: any): boolean => {
+    return str && str !== "" && str !== "none" && str !== "prefer_not_to_say";
+  };
+
   // Generate health metrics based on ACTUAL profile data
   const generateHealthMetrics = (profile: any): HealthMetric[] => {
-    // Debug logging to see what data we're getting
-    console.log("HealthAssessment: Profile data received:", {
-      height_cm: profile.height_cm,
-      weight_kg: profile.weight_kg,
-      age: profile.age,
-      sleep_time: profile.sleep_time,
-      wake_up_time: profile.wake_up_time,
-      workout_time: profile.workout_time,
-      diet_type: profile.diet_type,
-      chronic_conditions: profile.chronic_conditions,
-      preferences: profile.preferences,
-    });
+    const metrics: HealthMetric[] = [];
+    const age = profile.age || 30;
 
+    // === Existing Metrics ===
+
+    // BMI Analysis
     const height = parseFloat(profile.height_cm) || 170;
     const weight = parseFloat(profile.weight_kg) || 70;
     const bmi = weight / (height / 100) ** 2;
-    const age = profile.age || 30;
-
-    const metrics: HealthMetric[] = [];
-
-    // BMI Analysis (we have height and weight)
     if (bmi < 18.5) {
       metrics.push({
         id: "bmi",
@@ -159,7 +168,7 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Sleep Analysis (we have sleep_time and wake_up_time)
+    // Sleep Analysis
     if (profile.sleep_time && profile.wake_up_time) {
       const sleepHours = calculateSleepHours(
         profile.sleep_time,
@@ -179,7 +188,7 @@ const HealthAssessment: React.FC = () => {
           id: "sleep",
           title: "Sleep",
           value: `${sleepHours.toFixed(1)}h (Excessive)`,
-          status: "bad",
+          status: "warning",
           icon: Moon,
           iconColor: "text-orange-500",
         });
@@ -204,7 +213,7 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Exercise Analysis (we have workout_time)
+    // Exercise Analysis
     if (!profile.workout_time) {
       metrics.push({
         id: "exercise",
@@ -212,7 +221,7 @@ const HealthAssessment: React.FC = () => {
         value: "No Workout Time",
         status: "bad",
         icon: Activity,
-        iconColor: "text-red-600",
+        iconColor: "text-red-500",
       });
     } else {
       metrics.push({
@@ -225,8 +234,8 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Diet Analysis (we have diet_type)
-    if (!profile.diet_type) {
+    // Diet Analysis
+    if (!hasValidStringData(profile.diet_type)) {
       metrics.push({
         id: "diet",
         title: "Diet",
@@ -246,10 +255,10 @@ const HealthAssessment: React.FC = () => {
       });
     }
 
-    // Chronic Conditions Analysis (we have chronic_conditions)
-    if (profile.chronic_conditions && profile.chronic_conditions.length > 0) {
+    // Chronic Conditions
+    if (hasValidArrayData(profile.chronic_conditions)) {
       const conditions = profile.chronic_conditions.filter(
-        (c: string) => c !== "none"
+        (c: string) => c && c !== "none" && c !== ""
       );
       if (conditions.length > 0) {
         metrics.push({
@@ -277,17 +286,17 @@ const HealthAssessment: React.FC = () => {
         value: "Not specified",
         status: "bad",
         icon: AlertTriangle,
-        iconColor: "text-orange-500",
+        iconColor: "text-red-500",
       });
     }
 
-    // Age Risk Analysis (we have age)
+    // Age Risk
     if (age > 40) {
       metrics.push({
         id: "age_risk",
         title: "Age Risk",
-        value: `${age} years (High Risk)`,
-        status: "bad",
+        value: `${age} years (Higher Risk)`,
+        status: "warning",
         icon: Clock,
         iconColor: "text-orange-500",
       });
@@ -295,9 +304,374 @@ const HealthAssessment: React.FC = () => {
       metrics.push({
         id: "age_risk",
         title: "Age Risk",
-        value: `${age} years (Low Risk)`,
+        value: `${age} years (Lower Risk)`,
         status: "good",
         icon: Clock,
+        iconColor: "text-green-500",
+      });
+    }
+
+    // === NEW METRICS ===
+
+    // Medications
+    if (!hasValidArrayData(profile.medications)) {
+      metrics.push({
+        id: "medications",
+        title: "Medications",
+        value: "Not specified",
+        status: "bad",
+        icon: Pill,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const meds = profile.medications.filter((m: string) => m && m !== "none");
+      if (meds.length > 0) {
+        metrics.push({
+          id: "medications",
+          title: "Medications",
+          value: `${meds.length} medication(s)`,
+          status: "warning",
+          icon: Pill,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "medications",
+          title: "Medications",
+          value: "None reported",
+          status: "good",
+          icon: Pill,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Allergies
+    if (!hasValidArrayData(profile.allergies)) {
+      metrics.push({
+        id: "allergies",
+        title: "Allergies",
+        value: "Not specified",
+        status: "bad",
+        icon: Shield,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const allergies = profile.allergies.filter((a: string) => a && a !== "none");
+      if (allergies.length > 0) {
+        metrics.push({
+          id: "allergies",
+          title: "Allergies",
+          value: `${allergies.length} allergy(ies)`,
+          status: "bad",
+          icon: Shield,
+          iconColor: "text-red-500",
+        });
+      } else {
+        metrics.push({
+          id: "allergies",
+          title: "Allergies",
+          value: "None reported",
+          status: "good",
+          icon: Shield,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Family History
+    if (!hasValidArrayData(profile.family_history)) {
+      metrics.push({
+        id: "family_history",
+        title: "Family History",
+        value: "Not specified",
+        status: "bad",
+        icon: Users,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const history = profile.family_history.filter((f: string) => f && f !== "none");
+      if (history.length > 0) {
+        metrics.push({
+          id: "family_history",
+          title: "Family History",
+          value: `${history.length} condition(s)`,
+          status: "warning",
+          icon: Users,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "family_history",
+          title: "Family History",
+          value: "No known history",
+          status: "good",
+          icon: Users,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Lifestyle
+    if (!hasValidStringData(profile.lifestyle)) {
+      metrics.push({
+        id: "lifestyle",
+        title: "Lifestyle",
+        value: "Not specified",
+        status: "bad",
+        icon: Zap,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const lifestyle = profile.lifestyle.toLowerCase();
+      if (lifestyle.includes("sedentary") || lifestyle.includes("inactive")) {
+        metrics.push({
+          id: "lifestyle",
+          title: "Lifestyle",
+          value: "Sedentary",
+          status: "bad",
+          icon: Zap,
+          iconColor: "text-red-500",
+        });
+      } else {
+        metrics.push({
+          id: "lifestyle",
+          title: "Lifestyle",
+          value: "Active",
+          status: "good",
+          icon: Zap,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Stress Levels
+    if (!hasValidStringData(profile.stress_levels)) {
+      metrics.push({
+        id: "stress",
+        title: "Stress Levels",
+        value: "Not specified",
+        status: "bad",
+        icon: Brain,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const stress = profile.stress_levels.toLowerCase();
+      if (stress.includes("high") || stress.includes("severe")) {
+        metrics.push({
+          id: "stress",
+          title: "Stress Levels",
+          value: "High",
+          status: "bad",
+          icon: Brain,
+          iconColor: "text-red-500",
+        });
+      } else if (stress.includes("moderate")) {
+        metrics.push({
+          id: "stress",
+          title: "Stress Levels",
+          value: "Moderate",
+          status: "warning",
+          icon: Brain,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "stress",
+          title: "Stress Levels",
+          value: "Low",
+          status: "good",
+          icon: Brain,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Mental Health
+    if (!hasValidStringData(profile.mental_health)) {
+      metrics.push({
+        id: "mental_health",
+        title: "Mental Health",
+        value: "Not specified",
+        status: "bad",
+        icon: Brain,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const mental = profile.mental_health.toLowerCase();
+      if (mental.includes("poor") || mental.includes("bad")) {
+        metrics.push({
+          id: "mental_health",
+          title: "Mental Health",
+          value: "Needs Attention",
+          status: "bad",
+          icon: Brain,
+          iconColor: "text-red-500",
+        });
+      } else if (mental.includes("fair")) {
+        metrics.push({
+          id: "mental_health",
+          title: "Mental Health",
+          value: "Fair",
+          status: "warning",
+          icon: Brain,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "mental_health",
+          title: "Mental Health",
+          value: "Good",
+          status: "good",
+          icon: Brain,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Hydration
+    if (!hasValidStringData(profile.hydration_habits)) {
+      metrics.push({
+        id: "hydration",
+        title: "Hydration",
+        value: "Not specified",
+        status: "bad",
+        icon: Droplets,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const hydration = profile.hydration_habits.toLowerCase();
+      if (hydration.includes("low") || hydration.includes("poor")) {
+        metrics.push({
+          id: "hydration",
+          title: "Hydration",
+          value: "Inadequate",
+          status: "bad",
+          icon: Droplets,
+          iconColor: "text-red-500",
+        });
+      } else if (hydration.includes("moderate")) {
+        metrics.push({
+          id: "hydration",
+          title: "Hydration",
+          value: "Moderate",
+          status: "warning",
+          icon: Droplets,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "hydration",
+          title: "Hydration",
+          value: "Good",
+          status: "good",
+          icon: Droplets,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Smoking Status
+    if (!hasValidStringData(profile.smoking_status)) {
+      metrics.push({
+        id: "smoking",
+        title: "Smoking",
+        value: "Not specified",
+        status: "bad",
+        icon: Coffee,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const smoking = profile.smoking_status.toLowerCase();
+      if (smoking.includes("yes") || smoking.includes("current")) {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: "Current Smoker",
+          status: "bad",
+          icon: Coffee,
+          iconColor: "text-red-500",
+        });
+      } else if (smoking.includes("former")) {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: "Former Smoker",
+          status: "warning",
+          icon: Coffee,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: "Non-Smoker",
+          status: "good",
+          icon: Coffee,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Alcohol Consumption
+    if (!hasValidStringData(profile.alcohol_consumption)) {
+      metrics.push({
+        id: "alcohol",
+        title: "Alcohol",
+        value: "Not specified",
+        status: "bad",
+        icon: Coffee,
+        iconColor: "text-red-500",
+      });
+    } else {
+      const alcohol = profile.alcohol_consumption.toLowerCase();
+      if (alcohol.includes("daily") || alcohol.includes("heavy")) {
+        metrics.push({
+          id: "alcohol",
+          title: "Alcohol",
+          value: "High Consumption",
+          status: "bad",
+          icon: Coffee,
+          iconColor: "text-red-500",
+        });
+      } else if (alcohol.includes("moderate") || alcohol.includes("weekly")) {
+        metrics.push({
+          id: "alcohol",
+          title: "Alcohol",
+          value: "Moderate",
+          status: "warning",
+          icon: Coffee,
+          iconColor: "text-orange-500",
+        });
+      } else {
+        metrics.push({
+          id: "alcohol",
+          title: "Alcohol",
+          value: "Low/None",
+          status: "good",
+          icon: Coffee,
+          iconColor: "text-green-500",
+        });
+      }
+    }
+
+    // Occupation
+    if (!hasValidStringData(profile.occupation)) {
+      metrics.push({
+        id: "occupation",
+        title: "Occupation",
+        value: "Not specified",
+        status: "bad",
+        icon: Briefcase,
+        iconColor: "text-red-500",
+      });
+    } else {
+      metrics.push({
+        id: "occupation",
+        title: "Occupation",
+        value: profile.occupation,
+        status: "good",
+        icon: Briefcase,
         iconColor: "text-green-500",
       });
     }
@@ -314,87 +688,18 @@ const HealthAssessment: React.FC = () => {
     return (wake.getTime() - sleep.getTime()) / (1000 * 60 * 60);
   };
 
-  // Auto-rotate carousel
-  useEffect(() => {
-    if (analysisComplete && healthMetrics.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % healthMetrics.length);
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [analysisComplete, healthMetrics.length]);
-
   const handleAnalyzeHealth = async () => {
     setIsAnalyzing(true);
-
-    // Simulate analysis time
     await new Promise((resolve) => setTimeout(resolve, 2000));
-
     const metrics = generateHealthMetrics(profile);
     setHealthMetrics(metrics);
     setAnalysisComplete(true);
     setIsAnalyzing(false);
-
-    toast.error("Health analysis complete - Multiple issues detected!");
+    toast.success("Health analysis complete!");
   };
 
   const handleGetSolution = () => {
     navigate("/paywall");
-  };
-
-  const getCardStyle = (index: number) => {
-    const totalItems = healthMetrics.length;
-    const distance = Math.min(
-      Math.abs(index - currentIndex),
-      Math.abs(index - currentIndex + totalItems),
-      Math.abs(index - currentIndex - totalItems)
-    );
-
-    // Calculate position relative to center
-    const relativeIndex = index - currentIndex;
-    const adjustedIndex =
-      relativeIndex < 0 ? relativeIndex + totalItems : relativeIndex;
-
-    if (distance === 0) {
-      // Main card (center) - fully visible
-      return {
-        transform: "translateY(0px) scale(1)",
-        opacity: 1,
-        zIndex: 10,
-        height: "80px",
-        marginBottom: "12px",
-      };
-    } else if (distance === 1) {
-      // Adjacent cards - partially visible
-      const offset = adjustedIndex === 1 ? 100 : -100;
-      return {
-        transform: `translateY(${offset}px) scale(0.85)`,
-        opacity: 0.6,
-        zIndex: 5,
-        height: "70px",
-        marginBottom: "10px",
-      };
-    } else if (distance === 2) {
-      // Second level cards - more faded
-      const offset = adjustedIndex === 2 ? 200 : -200;
-      return {
-        transform: `translateY(${offset}px) scale(0.7)`,
-        opacity: 0.3,
-        zIndex: 3,
-        height: "60px",
-        marginBottom: "8px",
-      };
-    } else {
-      // Farthest cards - heavily cropped and faded
-      const offset = adjustedIndex > 2 ? 300 : -300;
-      return {
-        transform: `translateY(${offset}px) scale(0.5)`,
-        opacity: 0.1,
-        zIndex: 1,
-        height: "50px",
-        marginBottom: "6px",
-      };
-    }
   };
 
   if (!analysisComplete) {
@@ -433,76 +738,79 @@ const HealthAssessment: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex flex-col overflow-hidden">
-      {/* Carousel Container - Perfectly centered */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="relative w-full max-w-sm mx-auto">
-          {/* Health Metrics Vertical Roller */}
-          <div className="relative h-80 overflow-hidden flex items-center justify-center">
-            {healthMetrics.map((metric, index) => {
-              const IconComponent = metric.icon;
-              const style = getCardStyle(index);
-
-              return (
-                <div
-                  key={metric.id}
-                  className="absolute w-full transition-all duration-1000 ease-in-out"
-                  style={style}
-                >
-                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-4 flex items-center">
-                    <div className="flex items-center w-full">
-                      {/* Icon */}
-                      <div className="flex-shrink-0 mr-4">
-                        <IconComponent
-                          className={`w-6 h-6 ${metric.iconColor}`}
-                        />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {metric.title}
-                        </h3>
-                        <p
-                          className={`text-lg font-bold ${
-                            metric.status === "good"
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {metric.value}
-                        </p>
-                      </div>
-
-                      {/* Status Icon */}
-                      <div className="flex-shrink-0">
-                        {metric.status === "good" ? (
-                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          </div>
-                        ) : (
-                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                            <XCircle className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+    <div className="h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex flex-col overflow-y-auto">
+      {/* Header */}
+      <div className="px-6 pt-8 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Your Health Snapshot</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Based on your profile and responses
+        </p>
       </div>
 
-      {/* Bottom Section - Fixed height */}
-      <div className="px-6 pb-8 flex-shrink-0">
-        {/* Main Message */}
-        <div className="text-left mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+      {/* Metrics List */}
+      <div className="px-6 pb-20 space-y-3">
+        {healthMetrics.map((metric, index) => {
+          const IconComponent = metric.icon;
+          const statusIcon =
+            metric.status === "good" ? (
+              <CheckCircle className="w-5 h-5 text-green-500" />
+            ) : metric.status === "warning" ? (
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+            ) : (
+              <XCircle className="w-5 h-5 text-red-500" />
+            );
+
+          return (
+            <div
+              key={metric.id}
+              className={`flex items-center p-4 rounded-xl shadow-sm border ${
+                metric.status === "good"
+                  ? "bg-green-50 border-green-200"
+                  : metric.status === "warning"
+                  ? "bg-orange-50 border-orange-200"
+                  : "bg-red-50 border-red-200"
+              }`}
+            >
+              <div className="flex-shrink-0 mr-3">
+                <IconComponent
+                  className={`w-5 h-5 ${
+                    metric.status === "good"
+                      ? "text-green-600"
+                      : metric.status === "warning"
+                      ? "text-orange-600"
+                      : "text-red-600"
+                  }`}
+                />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900">{metric.title}</h3>
+                <p
+                  className={`text-sm ${
+                    metric.status === "good"
+                      ? "text-green-700"
+                      : metric.status === "warning"
+                      ? "text-orange-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {metric.value}
+                </p>
+              </div>
+              <div className="flex-shrink-0 ml-2">
+                {statusIcon}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom Section */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
+        <div className="text-left mb-4">
+          <h2 className="text-xl font-bold text-gray-900">
             Build a better health timeline
           </h2>
-          <p className="text-gray-600 leading-relaxed text-sm">
+          <p className="text-sm text-gray-600 leading-relaxed">
             The health issues identified above can lead to serious complications
             if left unaddressed. UrCare's proven system has helped thousands of
             users reverse these exact problems and achieve optimal health
@@ -510,7 +818,6 @@ const HealthAssessment: React.FC = () => {
           </p>
         </div>
 
-        {/* Call to Action */}
         <button
           onClick={handleGetSolution}
           className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 flex items-center justify-center"
@@ -520,7 +827,7 @@ const HealthAssessment: React.FC = () => {
           <ArrowRight className="w-5 h-5 ml-2" />
         </button>
 
-        <p className="text-center text-sm text-gray-500 mt-3">
+        <p className="text-center text-xs text-gray-500 mt-2">
           Join 50,000+ users who transformed their health with UrCare
         </p>
       </div>

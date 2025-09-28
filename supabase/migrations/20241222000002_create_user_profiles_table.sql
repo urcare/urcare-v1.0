@@ -45,6 +45,10 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
+    -- NEW: Lifestyle fields (no restrictive CHECK)
+    drinking VARCHAR(20),   -- e.g., 'never', 'rarely', 'sometimes', 'often', 'daily'
+    smoking VARCHAR(20),    -- same as above
+    
     -- Ensure one profile per user
     UNIQUE(id)
 );
@@ -69,7 +73,15 @@ CREATE POLICY "Users can update their own profile" ON user_profiles
 CREATE POLICY "Users can delete their own profile" ON user_profiles
     FOR DELETE USING (auth.uid() = id);
 
--- Create trigger for updated_at
+-- Create trigger for updated_at (ensure this function exists)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 CREATE TRIGGER update_user_profiles_updated_at 
     BEFORE UPDATE ON user_profiles 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

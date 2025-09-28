@@ -5,6 +5,26 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { SerialOnboarding } from "../components/onboarding/SerialOnboarding";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  User,
+  Heart,
+  Droplets,
+  Coffee,
+  Brain,
+  Shield,
+  Users,
+  Zap,
+  Clock,
+  Activity,
+  Apple,
+  Pill,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Moon,
+  Sun,
+  Briefcase,
+} from "lucide-react";
 
 // Helper function for months (same as in SerialOnboarding)
 const getMonths = () => [
@@ -58,6 +78,20 @@ interface OnboardingData {
   saveProgress: string;
   preferences?: any;
   dateOfBirth?: string;
+
+  // ✅ NEW FIELDS: All additional health data
+  allergies?: string[];
+  family_history?: string[];
+  lifestyle?: string;
+  stress_levels?: string;
+  mental_health?: string;
+  hydration_habits?: string;
+  smoking_status?: string;
+  alcohol_consumption?: string;
+  occupation?: string;
+  workoutType?: string;
+  smoking?: string;
+  drinking?: string;
 }
 
 const Onboarding = () => {
@@ -95,6 +129,14 @@ const Onboarding = () => {
     };
 
     return timeMap[timeValue] || null;
+  };
+
+  // Normalize lifestyle fields to match DB constraints
+  const normalizeLifestyleValue = (value: string | null | undefined): string | null => {
+    if (!value || value.trim() === "" || value.toLowerCase().includes("prefer")) {
+      return null;
+    }
+    return value.toLowerCase().trim();
   };
 
   // Show auth popup if not authenticated
@@ -275,8 +317,8 @@ const Onboarding = () => {
           workout_time: convertTimeToFormat(data.workoutTime),
           routine_flexibility: data.routineFlexibility || null,
           workout_type: data.workoutType || null,
-          smoking: data.smoking || null,
-          drinking: data.drinking || null,
+          smoking: normalizeLifestyleValue(data.smoking),
+          drinking: normalizeLifestyleValue(data.drinking),
           track_family: data.trackFamily || null,
           critical_conditions: data.criticalConditions || null,
           has_health_reports: data.hasHealthReports || null,
@@ -285,6 +327,18 @@ const Onboarding = () => {
           save_progress: data.saveProgress || null,
           status: "active",
           preferences: data.preferences || {},
+
+          // ✅ NEW: Save all additional health fields
+          allergies: data.allergies || null,
+          family_history: data.family_history || null,
+          lifestyle: data.lifestyle || null,
+          stress_levels: data.stress_levels || null,
+          mental_health: data.mental_health || null,
+          hydration_habits: data.hydration_habits || null,
+          smoking_status: data.smoking_status || null,
+          alcohol_consumption: data.alcohol_consumption || null,
+          occupation: data.occupation || null,
+
           onboarding_completed: true,
         };
 
@@ -424,71 +478,95 @@ const Onboarding = () => {
     );
   }
 
-  // Show completion
-  if (onboardingStep === "complete") {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-4 overflow-hidden">
-        <div className="text-center max-w-sm sm:max-w-md">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <svg
-              className="w-8 h-8 sm:w-10 sm:h-10 text-logo-text"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-4">
-            Profile Setup Complete!
-          </h2>
-          <p className="text-base sm:text-lg text-text-secondary mb-6 sm:mb-8">
-            Your profile has been successfully saved. You can now start using
-            UrCare.
-          </p>
-          <button
-            onClick={() => {
-              // Check subscription status and redirect accordingly
-              const checkSubscriptionAndRedirect = async () => {
-                try {
-                  const { subscriptionService } = await import(
-                    "../services/subscriptionService"
-                  );
-                  const { isTrialBypassEnabled } = await import(
-                    "../config/subscription"
-                  );
+  // Show completion with scrollable profile data
+  if (onboardingStep === "complete" && profile) {
+    // Prepare profile fields for display
+    const profileFields = [
+      { label: "Full Name", value: profile.full_name, icon: User },
+      { label: "Age", value: profile.age, icon: Clock },
+      { label: "Gender", value: profile.gender, icon: User },
+      { label: "Height (cm)", value: profile.height_cm, icon: Activity },
+      { label: "Weight (kg)", value: profile.weight_kg, icon: Heart },
+      { label: "Diet Type", value: profile.diet_type, icon: Apple },
+      { label: "Workout Time", value: profile.workout_time, icon: Zap },
+      { label: "Sleep Time", value: profile.sleep_time, icon: Moon },
+      { label: "Wake Up Time", value: profile.wake_up_time, icon: Sun },
+      { label: "Medications", value: Array.isArray(profile.medications) ? profile.medications.join(", ") : profile.medications, icon: Pill },
+      { label: "Allergies", value: Array.isArray(profile.allergies) ? profile.allergies.join(", ") : profile.allergies, icon: Shield },
+      { label: "Family History", value: Array.isArray(profile.family_history) ? profile.family_history.join(", ") : profile.family_history, icon: Users },
+      { label: "Lifestyle", value: profile.lifestyle, icon: Zap },
+      { label: "Stress Levels", value: profile.stress_levels, icon: Brain },
+      { label: "Mental Health", value: profile.mental_health, icon: Brain },
+      { label: "Hydration", value: profile.hydration_habits, icon: Droplets },
+      { label: "Smoking Status", value: profile.smoking_status, icon: Coffee },
+      { label: "Alcohol Consumption", value: profile.alcohol_consumption, icon: Coffee },
+      { label: "Occupation", value: profile.occupation, icon: Briefcase },
+    ].filter(field => field.value != null && field.value !== "");
 
-                  if (isTrialBypassEnabled()) {
+    return (
+      <div className="h-screen bg-white flex flex-col overflow-hidden">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-bold text-gray-900">Your Profile Summary</h2>
+          <p className="text-sm text-gray-600">Review your saved information</p>
+        </div>
+
+        {/* Scrollable Cards */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          {profileFields.map((field, index) => {
+            const Icon = field.icon;
+            return (
+              <div key={index} className="flex items-start p-3 bg-gray-50 rounded-lg border">
+                <div className="flex-shrink-0 mr-3 mt-0.5">
+                  <Icon className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">{field.label}</h3>
+                  <p className="text-sm text-gray-700 mt-1">{field.value || "Not specified"}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Continue Button */}
+        <div className="p-4 border-t bg-white">
+          <button
+            onClick={async () => {
+              try {
+                const { subscriptionService } = await import("../services/subscriptionService");
+                const { isTrialBypassEnabled } = await import("../config/subscription");
+
+                if (isTrialBypassEnabled()) {
+                  navigate("/dashboard", { replace: true });
+                  return;
+                }
+
+                // Check if user has health plan
+                const { data: healthPlan } = await supabase
+                  .from("health_plans")
+                  .select("id")
+                  .eq("user_id", profile.id)
+                  .limit(1)
+                  .maybeSingle();
+
+                if (healthPlan) {
+                  const subscriptionStatus = await subscriptionService.getSubscriptionStatus(profile.id);
+                  if (subscriptionStatus.isActive || subscriptionStatus.isTrial) {
                     navigate("/dashboard", { replace: true });
                     return;
                   }
-
-                  const subscriptionStatus =
-                    await subscriptionService.getSubscriptionStatus(user.id);
-                  const hasAccess =
-                    subscriptionStatus.isActive || subscriptionStatus.isTrial;
-
-                  if (hasAccess) {
-                    navigate("/dashboard", { replace: true });
-                  } else {
-                    navigate("/paywall", { replace: true });
-                  }
-                } catch (error) {
-                  console.error("Error checking subscription status:", error);
-                  navigate("/paywall", { replace: true });
                 }
-              };
 
-              checkSubscriptionAndRedirect();
+                // New user or no active subscription
+                navigate("/paywall", { replace: true });
+              } catch (error) {
+                console.error("Redirect error:", error);
+                navigate("/paywall", { replace: true });
+              }
             }}
-            className="w-full bg-accent hover:bg-accent/90 text-foreground py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-colors"
           >
-            Continue to Dashboard
+            Continue
           </button>
         </div>
       </div>

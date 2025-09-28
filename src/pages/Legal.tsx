@@ -339,6 +339,11 @@ const Legal: React.FC = () => {
               For refund requests and inquiries, contact us at:{" "}
               <a href="mailto:refunds@yourapp.com">refunds@yourapp.com</a>
             </p>
+
+            <h3>Copyright and Ownership</h3>
+            <p className="text-gray-500 text-xs">
+            This website is owned by AAKARSHAK SAINI
+          </p>
           </div>
         </section>
       </div>

@@ -67,24 +67,25 @@ export const AuthCallback: React.FC = () => {
         } catch (error) {
           console.error("AuthCallback: Error determining redirect:", error);
           console.error("AuthCallback: Error details:", error);
-          // Fallback to onboarding if there's an error
-          window.location.href = "/onboarding";
+          // ✅ DO NOT redirect on error — stay on loading screen
+          // Removed fallback to "/onboarding"
         }
       }
     };
 
-    // Add timeout to prevent infinite waiting
-    const timeoutId = setTimeout(() => {
-      if (!hasRedirected.current && isInitialized && !loading) {
-        console.log("AuthCallback: Timeout reached, redirecting to onboarding");
-        hasRedirected.current = true;
-        window.location.href = "/onboarding";
-      }
-    }, 8000); // Increased timeout for mobile
+    // ✅ REMOVED timeout fallback to prevent auto-redirect
+    // const timeoutId = setTimeout(() => {
+    //   if (!hasRedirected.current && isInitialized && !loading) {
+    //     console.log("AuthCallback: Timeout reached, redirecting to onboarding");
+    //     hasRedirected.current = true;
+    //     window.location.href = "/onboarding";
+    //   }
+    // }, 8000);
 
     handleRedirect();
 
-    return () => clearTimeout(timeoutId);
+    // ✅ No cleanup needed since timeout is removed
+    // return () => clearTimeout(timeoutId);
   }, [isInitialized, loading, user]);
 
   // Reset redirect flag when user changes

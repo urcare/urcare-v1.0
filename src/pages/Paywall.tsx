@@ -422,6 +422,7 @@ const Paywall: React.FC = () => {
               Terms & Conditions
             </button>
           </p>
+          
         </div>
       </div>
     </div>
