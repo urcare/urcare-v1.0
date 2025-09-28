@@ -1,441 +1,324 @@
-/**
- * PhonePe Payment Gateway Service
- *
- * This service handles all PhonePe payment operations including:
- * - Payment initiation
- * - Payment status checking
- * - Refund processing
- * - Webhook handling
- */
+import { createClient } from "@supabase/supabase-js";
 
-import crypto from "crypto";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// PhonePe Configuration
-const PHONEPE_CONFIG = {
-  // Test credentials
-  MERCHANT_ID: "PHONEPEPGUAT",
-  KEY_INDEX: 1,
-  SECRET_KEY: "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3",
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  // API URLs
-  BASE_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox",
-  PAY_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay",
-  STATUS_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status",
-  REFUND_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/refund",
-  REFUND_STATUS_URL:
-    "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/refund/status",
-
-  // Production URLs (uncomment when going live)
-  // BASE_URL: 'https://api.phonepe.com/apis/pg',
-  // PAY_URL: 'https://api.phonepe.com/apis/pg/pg/v1/pay',
-  // STATUS_URL: 'https://api.phonepe.com/apis/pg/pg/v1/status',
-  // REFUND_URL: 'https://api.phonepe.com/apis/pg/pg/v1/refund',
-  // REFUND_STATUS_URL: 'https://api.phonepe.com/apis/pg/pg/v1/refund/status',
-};
-
-// PhonePe API Response Types
-export interface PhonePePayRequest {
-  merchantId: string;
-  merchantTransactionId: string;
-  merchantUserId: string;
+export interface PaymentInitiationRequest {
+  user_id: string;
+  plan_id: string;
+  billing_cycle: "monthly" | "annual";
   amount: number;
-  redirectUrl: string;
-  redirectMode: "POST" | "GET";
-  callbackUrl: string;
-  mobileNumber?: string;
-  paymentInstrument: {
-    type:
-      | "PAY_PAGE"
-      | "UPI_INTENT"
-      | "UPI_COLLECT"
-      | "UPI_QR"
-      | "CARD"
-      | "NET_BANKING";
-    targetApp?: string;
-    vpa?: string;
-    cardDetails?: {
-      cardNumber: string;
-      cardType: string;
-      cardIssuer: string;
-      expiryMonth: number;
-      expiryYear: number;
-      cvv: string;
-    };
-    bankCode?: string;
-  };
+  currency?: string;
+  payment_method: "card" | "upi" | "netbanking" | "wallet";
+  redirect_url?: string;
+  callback_url?: string;
 }
 
-export interface PhonePePayResponse {
+export interface PaymentInitiationResponse {
   success: boolean;
-  code: string;
-  message: string;
-  data: {
-    merchantId: string;
-    merchantTransactionId: string;
-    transactionId: string;
-    amount: number;
-    state: string;
-    responseCode: string;
-    paymentInstrument: {
-      type: string;
-      utr?: string;
-      cardDetails?: any;
-    };
-    redirectInfo?: {
-      url: string;
-      method: string;
-    };
-  };
+  payment_id: string;
+  merchant_transaction_id: string;
+  phonepe_transaction_id: string;
+  redirect_url: string;
+  payment_url: string;
 }
 
-export interface PhonePeStatusResponse {
+export interface PaymentStatusRequest {
+  merchant_transaction_id: string;
+  transaction_id?: string;
+}
+
+export interface PaymentStatusResponse {
   success: boolean;
-  code: string;
-  message: string;
-  data: {
-    merchantId: string;
-    merchantTransactionId: string;
-    transactionId: string;
+  payment: {
+    id: string;
+    status: string;
     amount: number;
-    state: "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED";
-    responseCode: string;
-    paymentInstrument: {
-      type: string;
-      utr?: string;
-      cardDetails?: any;
+    currency: string;
+    payment_method: string;
+    billing_cycle: string;
+    created_at: string;
+    processed_at: string | null;
+  };
+  phonepe_response: any;
+}
+
+export interface RefundRequest {
+  payment_id: string;
+  refund_amount?: number;
+  reason?: string;
+}
+
+export interface RefundResponse {
+  success: boolean;
+  refund_id: string;
+  refund_amount: number;
+  payment_id: string;
+  phonepe_response: any;
+}
+
+export interface VPAValidationRequest {
+  vpa: string;
+}
+
+export interface VPAValidationResponse {
+  success: boolean;
+  valid: boolean;
+  vpa: string;
+  message: string;
+  phonepe_response: any;
+  decoded_response: any;
+}
+
+export interface PaymentOptionsRequest {
+  amount?: number;
+  currency?: string;
+}
+
+export interface PaymentOptionsResponse {
+  success: boolean;
+  payment_options: {
+    upi: {
+      enabled: boolean;
+      methods: string[];
+    };
+    card: {
+      enabled: boolean;
+      methods: string[];
+    };
+    netbanking: {
+      enabled: boolean;
+      methods: string[];
+    };
+    wallet: {
+      enabled: boolean;
+      methods: string[];
     };
   };
-}
-
-export interface PhonePeRefundRequest {
-  merchantId: string;
-  merchantUserId: string;
-  originalTransactionId: string;
-  merchantRefundId: string;
-  amount: number;
-  callbackUrl: string;
-}
-
-export interface PhonePeRefundResponse {
-  success: boolean;
-  code: string;
   message: string;
-  data: {
-    merchantId: string;
-    merchantRefundId: string;
-    transactionId: string;
-    amount: number;
-    state: "PENDING" | "SUCCESS" | "FAILED";
-    responseCode: string;
-  };
+  phonepe_response: any;
 }
 
-export interface PaymentInitiationParams {
-  userId: string;
-  amount: number;
-  planId: string;
-  billingCycle: "monthly" | "annual";
-  userEmail?: string;
-  userPhone?: string;
-  paymentMethod:
-    | "PAY_PAGE"
-    | "UPI_INTENT"
-    | "UPI_COLLECT"
-    | "UPI_QR"
-    | "CARD"
-    | "NET_BANKING";
-  upiVpa?: string;
-  targetApp?: string;
-  bankCode?: string;
-  cardDetails?: {
-    cardNumber: string;
-    cardType: string;
-    cardIssuer: string;
-    expiryMonth: number;
-    expiryYear: number;
-    cvv: string;
-  };
-}
-
-class PhonePeService {
-  private base64Encode(data: string): string {
-    return Buffer.from(data).toString("base64");
-  }
-
-  private generateChecksum(payload: string): string {
-    const hash = crypto.createHash("sha256");
-    hash.update(payload + PHONEPE_CONFIG.SECRET_KEY);
-    return hash.digest("hex");
-  }
-
-  private generateMerchantTransactionId(): string {
-    return `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
+export class PhonePeService {
   /**
-   * Initiate payment with PhonePe
+   * Initiate a payment for subscription
    */
-  async initiatePayment(
-    params: PaymentInitiationParams
-  ): Promise<PhonePePayResponse> {
-    try {
-      const merchantTransactionId = this.generateMerchantTransactionId();
-
-      const payRequest: PhonePePayRequest = {
-        merchantId: PHONEPE_CONFIG.MERCHANT_ID,
-        merchantTransactionId,
-        merchantUserId: params.userId,
-        amount: params.amount * 100, // Convert to paise
-        redirectUrl: `${window.location.origin}/payment/success`,
-        redirectMode: "POST",
-        callbackUrl: `${window.location.origin}/api/phonepe/callback`,
-        mobileNumber: params.userPhone,
-        paymentInstrument: {
-          type: params.paymentMethod,
-          ...(params.paymentMethod === "UPI_INTENT" && {
-            targetApp: params.targetApp,
-          }),
-          ...(params.paymentMethod === "UPI_COLLECT" && { vpa: params.upiVpa }),
-          ...(params.paymentMethod === "CARD" && {
-            cardDetails: params.cardDetails,
-          }),
-          ...(params.paymentMethod === "NET_BANKING" && {
-            bankCode: params.bankCode,
-          }),
-        },
-      };
-
-      const payload = JSON.stringify(payRequest);
-      const base64Payload = this.base64Encode(payload);
-      const checksum = this.generateChecksum(base64Payload);
-
-      const requestBody = {
-        request: base64Payload,
-      };
-
-      const response = await fetch(PHONEPE_CONFIG.PAY_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum + "###" + PHONEPE_CONFIG.KEY_INDEX,
-          accept: "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Payment initiation failed");
+  static async initiatePayment(
+    request: PaymentInitiationRequest
+  ): Promise<PaymentInitiationResponse> {
+    const { data, error } = await supabase.functions.invoke(
+      "phonepe-payment-initiate",
+      {
+        body: request,
       }
+    );
 
-      return result;
-    } catch (error) {
-      console.error("PhonePe payment initiation error:", error);
-      throw error;
+    if (error) {
+      throw new Error(`Payment initiation failed: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
    * Check payment status
    */
-  async checkPaymentStatus(
-    merchantTransactionId: string
-  ): Promise<PhonePeStatusResponse> {
-    try {
-      const apiEndpoint = `${PHONEPE_CONFIG.STATUS_URL}/${PHONEPE_CONFIG.MERCHANT_ID}/${merchantTransactionId}`;
-      const checksum = this.generateChecksum(
-        `/pg/v1/status/${PHONEPE_CONFIG.MERCHANT_ID}/${merchantTransactionId}${PHONEPE_CONFIG.SECRET_KEY}`
-      );
+  static async checkPaymentStatus(
+    request: PaymentStatusRequest
+  ): Promise<PaymentStatusResponse> {
+    const { data, error } = await supabase.functions.invoke(
+      "phonepe-payment-status",
+      {
+        body: request,
+      }
+    );
 
-      const response = await fetch(apiEndpoint, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum + "###" + PHONEPE_CONFIG.KEY_INDEX,
-          accept: "application/json",
-        },
-      });
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error("PhonePe status check error:", error);
-      throw error;
+    if (error) {
+      throw new Error(`Payment status check failed: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
    * Process refund
    */
-  async processRefund(params: {
-    originalTransactionId: string;
-    amount: number;
-    userId: string;
-    reason?: string;
-  }): Promise<PhonePeRefundResponse> {
-    try {
-      const merchantRefundId = `REF_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
+  static async processRefund(request: RefundRequest): Promise<RefundResponse> {
+    const { data, error } = await supabase.functions.invoke("phonepe-refund", {
+      body: request,
+    });
 
-      const refundRequest: PhonePeRefundRequest = {
-        merchantId: PHONEPE_CONFIG.MERCHANT_ID,
-        merchantUserId: params.userId,
-        originalTransactionId: params.originalTransactionId,
-        merchantRefundId,
-        amount: params.amount * 100, // Convert to paise
-        callbackUrl: `${window.location.origin}/api/phonepe/refund-callback`,
-      };
-
-      const payload = JSON.stringify(refundRequest);
-      const base64Payload = this.base64Encode(payload);
-      const checksum = this.generateChecksum(base64Payload);
-
-      const requestBody = {
-        request: base64Payload,
-      };
-
-      const response = await fetch(PHONEPE_CONFIG.REFUND_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum + "###" + PHONEPE_CONFIG.KEY_INDEX,
-          accept: "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error("PhonePe refund error:", error);
-      throw error;
+    if (error) {
+      throw new Error(`Refund processing failed: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
-   * Check refund status
+   * Validate UPI VPA
    */
-  async checkRefundStatus(
-    merchantRefundId: string
-  ): Promise<PhonePeRefundResponse> {
-    try {
-      const apiEndpoint = `${PHONEPE_CONFIG.REFUND_STATUS_URL}/${PHONEPE_CONFIG.MERCHANT_ID}/${merchantRefundId}`;
-      const checksum = this.generateChecksum(
-        `/pg/v1/refund/status/${PHONEPE_CONFIG.MERCHANT_ID}/${merchantRefundId}${PHONEPE_CONFIG.SECRET_KEY}`
-      );
+  static async validateVPA(
+    request: VPAValidationRequest
+  ): Promise<VPAValidationResponse> {
+    const { data, error } = await supabase.functions.invoke(
+      "phonepe-vpa-validate",
+      {
+        body: request,
+      }
+    );
 
-      const response = await fetch(apiEndpoint, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum + "###" + PHONEPE_CONFIG.KEY_INDEX,
-          accept: "application/json",
-        },
-      });
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error("PhonePe refund status check error:", error);
-      throw error;
+    if (error) {
+      throw new Error(`VPA validation failed: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
-   * Validate VPA (Virtual Payment Address) for UPI
+   * Get available payment options
    */
-  async validateVPA(vpa: string): Promise<boolean> {
-    try {
-      const response = await fetch(
-        `https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/validate/vpa`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            accept: "application/json",
-          },
-          body: JSON.stringify({
-            vpa: vpa,
-          }),
-        }
-      );
+  static async getPaymentOptions(
+    request?: PaymentOptionsRequest
+  ): Promise<PaymentOptionsResponse> {
+    const { data, error } = await supabase.functions.invoke(
+      "phonepe-payment-options",
+      {
+        body: request || {},
+      }
+    );
 
-      const result = await response.json();
-      return result.success && result.data?.isValid === true;
-    } catch (error) {
-      console.error("VPA validation error:", error);
-      return false;
+    if (error) {
+      throw new Error(`Failed to get payment options: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
-   * Get available banks for net banking
+   * Get user payment history
    */
-  async getAvailableBanks(): Promise<any[]> {
-    try {
-      const response = await fetch(
-        "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/paymentOptions",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            accept: "application/json",
-          },
-        }
-      );
+  static async getPaymentHistory(limit: number = 10, offset: number = 0) {
+    const { data, error } = await supabase.rpc("get_user_payment_history", {
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
+      p_limit: limit,
+      p_offset: offset,
+    });
 
-      const result = await response.json();
-      return result.data?.netBankingOptions || [];
-    } catch (error) {
-      console.error("Get banks error:", error);
-      return [];
+    if (error) {
+      throw new Error(`Failed to get payment history: ${error.message}`);
     }
+
+    return data;
   }
 
   /**
-   * Verify webhook signature
+   * Get subscription analytics
    */
-  verifyWebhookSignature(payload: string, signature: string): boolean {
-    const expectedSignature = this.generateChecksum(payload);
-    return signature === expectedSignature;
+  static async getSubscriptionAnalytics() {
+    const { data, error } = await supabase.rpc("get_subscription_analytics", {
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
+    });
+
+    if (error) {
+      throw new Error(`Failed to get subscription analytics: ${error.message}`);
+    }
+
+    return data;
   }
 
   /**
-   * Get test card details for development
+   * Check if payment is refundable
    */
-  getTestCardDetails() {
-    return {
-      cardNumber: "4622943126146407",
-      cardType: "DEBIT_CARD",
-      cardIssuer: "VISA",
-      expiryMonth: 12,
-      expiryYear: 2023,
-      cvv: "936",
-    };
+  static async isPaymentRefundable(paymentId: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc("is_payment_refundable", {
+      p_payment_id: paymentId,
+    });
+
+    if (error) {
+      throw new Error(`Failed to check refund eligibility: ${error.message}`);
+    }
+
+    return data;
   }
 
   /**
-   * Get test UPI details for development
+   * Cancel subscription
    */
-  getTestUPIDetails() {
-    return {
-      vpa: "test@upi",
-      targetApps: ["phonepe", "gpay", "paytm", "bhim"],
-    };
-  }
+  static async cancelSubscription(
+    cancelAtPeriodEnd: boolean = true
+  ): Promise<boolean> {
+    const { data, error } = await supabase.rpc("cancel_subscription", {
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
+      p_cancel_at_period_end: cancelAtPeriodEnd,
+    });
 
-  /**
-   * Get test net banking details for development
-   */
-  getTestNetBankingDetails() {
-    return {
-      username: "Test",
-      password: "Test",
-    };
+    if (error) {
+      throw new Error(`Failed to cancel subscription: ${error.message}`);
+    }
+
+    return data;
   }
 }
 
-export const phonepeService = new PhonePeService();
-export default phonepeService;
+// Utility functions for common operations
+export class PhonePeUtils {
+  /**
+   * Format amount for display
+   */
+  static formatAmount(amount: number, currency: string = "INR"): string {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency,
+    }).format(amount);
+  }
+
+  /**
+   * Generate payment URL for redirect
+   */
+  static generatePaymentUrl(redirectUrl: string, paymentUrl: string): string {
+    const url = new URL(paymentUrl);
+    url.searchParams.set("redirect_url", redirectUrl);
+    return url.toString();
+  }
+
+  /**
+   * Validate VPA format
+   */
+  static isValidVPAFormat(vpa: string): boolean {
+    const vpaRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+    return vpaRegex.test(vpa);
+  }
+
+  /**
+   * Get payment method display name
+   */
+  static getPaymentMethodDisplayName(method: string): string {
+    const methodMap: { [key: string]: string } = {
+      card: "Credit/Debit Card",
+      upi: "UPI",
+      netbanking: "Net Banking",
+      wallet: "Digital Wallet",
+    };
+    return methodMap[method] || method;
+  }
+
+  /**
+   * Get payment status display name
+   */
+  static getPaymentStatusDisplayName(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      pending: "Pending",
+      processing: "Processing",
+      completed: "Completed",
+      failed: "Failed",
+      cancelled: "Cancelled",
+      refunded: "Refunded",
+    };
+    return statusMap[status] || status;
+  }
+}
+
+export default PhonePeService;

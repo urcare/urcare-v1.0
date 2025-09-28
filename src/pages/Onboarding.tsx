@@ -82,6 +82,22 @@ const Onboarding = () => {
       return timeValue;
     }
 
+    // Convert 12-hour AM/PM format to 24-hour format
+    if (/^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(timeValue)) {
+      const [time, period] = timeValue.split(/\s*(AM|PM)$/i);
+      const [hours, minutes] = time.split(":");
+      let hour24 = parseInt(hours, 10);
+
+      if (period.toUpperCase() === "AM") {
+        if (hour24 === 12) hour24 = 0;
+      } else {
+        // PM
+        if (hour24 !== 12) hour24 += 12;
+      }
+
+      return `${hour24.toString().padStart(2, "0")}:${minutes}`;
+    }
+
     // Convert descriptive time to proper format
     const timeMap: { [key: string]: string } = {
       "Early Morning (05:00-07:00)": "06:00",
