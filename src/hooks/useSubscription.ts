@@ -1,197 +1,158 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { subscriptionService } from '../services/subscriptionService';
-import {
-  SubscriptionCheckResult,
-  SubscriptionStatus,
-  UsageMetrics,
-  UserSubscription
-} from '../types/subscription';
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { UserSubscription } from "@/types/subscription";
+import { useEffect, useState } from "react";
 
-interface UseSubscriptionReturn {
-  // Subscription state
-  hasActiveSubscription: boolean;
-  subscription: UserSubscription | null;
-  subscriptionStatus: SubscriptionStatus | null;
-  usageMetrics: UsageMetrics[];
-  
-  // Loading states
-  isLoading: boolean;
-  isCheckingSubscription: boolean;
-  
-  // Methods
-  checkSubscription: () => Promise<void>;
-  canAccessFeature: (featureName: string) => boolean;
-  trackFeatureUsage: (featureName: string, increment?: number) => Promise<boolean>;
-  refreshUsageMetrics: () => Promise<void>;
-  
-  // Computed values
-  daysUntilExpiry: number;
-  isExpired: boolean;
-  canRenew: boolean;
-}
-
-export const useSubscription = (): UseSubscriptionReturn => {
-  const { user } = useAuth();
+export const useSubscription = () => {
+  const { profile } = useAuth();
+  const [subscription, setSubscription] = useState<UserSubscription | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  const [usageMetrics, setUsageMetrics] = useState<UsageMetrics[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
 
-  // Check subscription status
-  const checkSubscription = useCallback(async () => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
+  useEffect(() => {
+    if (profile?.id) {
+      fetchSubscription();
+    } else {
+      setLoading(false);
     }
+  }, [profile?.id]);
 
-    setIsCheckingSubscription(true);
-    try {
-      const [hasActive, userSub, status, metrics] = await Promise.all([
-        subscriptionService.hasActiveSubscription(user.id),
-        subscriptionService.getUserSubscription(user.id),
-        subscriptionService.getSubscriptionStatus(user.id),
-        subscriptionService.getUsageMetrics(user.id)
-      ]);
-
-      setHasActiveSubscription(hasActive);
-      setSubscription(userSub);
-      setSubscriptionStatus(status);
-      setUsageMetrics(metrics);
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      setHasActiveSubscription(false);
-      setSubscription(null);
-      setSubscriptionStatus(null);
-      setUsageMetrics([]);
-    } finally {
-      setIsLoading(false);
-      setIsCheckingSubscription(false);
-    }
-  }, [user?.id]);
-
-  // Track feature usage
-  const trackFeatureUsage = useCallback(async (featureName: string, increment: number = 1): Promise<boolean> => {
-    if (!user?.id || !subscription) {
-      return false;
-    }
+  const fetchSubscription = async () => {
+    if (!profile?.id) return;
 
     try {
-      const success = await subscriptionService.trackFeatureUsage(
-        subscription.subscription_id,
-        featureName,
-        increment
+      setLoading(true);
+
+      // Check if user has active subscription using the database function
+      const { data: hasActive, error: hasActiveError } = await supabase.rpc(
+        "has_active_subscription",
+        { p_user_id: profile.id }
       );
 
-      if (success) {
-        // Refresh usage metrics after tracking
-        await refreshUsageMetrics();
+      if (hasActiveError) {
+        console.error("Error checking subscription status:", hasActiveError);
+        return;
       }
 
-      return success;
-    } catch (error) {
-      console.error('Error tracking feature usage:', error);
-      return false;
-    }
-  }, [user?.id, subscription]);
+      setHasActiveSubscription(hasActive || false);
 
-  // Refresh usage metrics
-  const refreshUsageMetrics = useCallback(async () => {
-    if (!user?.id) return;
+      if (hasActive) {
+        // Get subscription details
+        const { data: subscriptionData, error: subscriptionError } =
+          await supabase.rpc("get_user_subscription", {
+            p_user_id: profile.id,
+          });
+
+        if (subscriptionError) {
+          console.error(
+            "Error fetching subscription details:",
+            subscriptionError
+          );
+          return;
+        }
+
+        if (subscriptionData && subscriptionData.length > 0) {
+          setSubscription(subscriptionData[0]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canAccessFeature = async (featureName: string): Promise<boolean> => {
+    if (!profile?.id) return false;
 
     try {
-      const metrics = await subscriptionService.getUsageMetrics(user.id);
-      setUsageMetrics(metrics);
+      const { data, error } = await supabase.rpc("can_access_feature", {
+        p_user_id: profile.id,
+        p_feature_name: featureName,
+      });
+
+      if (error) {
+        console.error("Error checking feature access:", error);
+        return false;
+      }
+
+      return data || false;
     } catch (error) {
-      console.error('Error refreshing usage metrics:', error);
-    }
-  }, [user?.id]);
-
-  // Check if user can access a specific feature
-  const canAccessFeature = useCallback((featureName: string): boolean => {
-    if (!subscription || !hasActiveSubscription) {
+      console.error("Error checking feature access:", error);
       return false;
     }
+  };
 
-    // Check if feature is included in the plan
-    const hasFeature = subscription.features.includes(featureName);
-    if (!hasFeature) {
+  const updateUsage = async (
+    featureName: string,
+    increment: number = 1
+  ): Promise<boolean> => {
+    if (!profile?.id) return false;
+
+    try {
+      const { data, error } = await supabase.rpc("update_subscription_usage", {
+        p_user_id: profile.id,
+        p_feature_name: featureName,
+        p_increment: increment,
+      });
+
+      if (error) {
+        console.error("Error updating usage:", error);
+        return false;
+      }
+
+      return data || false;
+    } catch (error) {
+      console.error("Error updating usage:", error);
       return false;
     }
+  };
 
-    // Check if subscription is expired
-    if (subscriptionStatus?.isExpired) {
-      return false;
-    }
+  const getDaysUntilExpiry = (): number => {
+    if (!subscription) return 0;
 
-    // Check usage limits
-    const featureUsage = usageMetrics.find(m => m.featureName === featureName);
-    if (featureUsage && featureUsage.isOverLimit) {
-      return false;
-    }
+    const now = new Date();
+    const expiryDate = new Date(subscription.current_period_end);
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-    return true;
-  }, [subscription, hasActiveSubscription, subscriptionStatus, usageMetrics]);
+    return Math.max(0, daysUntilExpiry);
+  };
 
-  // Computed values
-  const daysUntilExpiry = subscriptionStatus?.daysUntilExpiry || 0;
-  const isExpired = subscriptionStatus?.isExpired || false;
-  const canRenew = subscriptionStatus?.canRenew || false;
+  const isExpiringSoon = (days: number = 7): boolean => {
+    const daysUntilExpiry = getDaysUntilExpiry();
+    return daysUntilExpiry <= days && daysUntilExpiry > 0;
+  };
 
-  // Initial subscription check
-  useEffect(() => {
-    checkSubscription();
-  }, [checkSubscription]);
+  const isTrial = (): boolean => {
+    return subscription?.status === "trialing";
+  };
+
+  const getPlanLevel = (): number => {
+    if (!subscription) return 0;
+
+    const planLevels: Record<string, number> = {
+      basic: 1,
+      family: 2,
+      elite: 3,
+    };
+
+    return planLevels[subscription.plan_slug] || 0;
+  };
 
   return {
-    // State
-    hasActiveSubscription,
     subscription,
-    subscriptionStatus,
-    usageMetrics,
-    
-    // Loading states
-    isLoading,
-    isCheckingSubscription,
-    
-    // Methods
-    checkSubscription,
+    loading,
+    hasActiveSubscription,
     canAccessFeature,
-    trackFeatureUsage,
-    refreshUsageMetrics,
-    
-    // Computed values
-    daysUntilExpiry,
-    isExpired,
-    canRenew
+    updateUsage,
+    getDaysUntilExpiry,
+    isExpiringSoon,
+    isTrial,
+    getPlanLevel,
+    refetch: fetchSubscription,
   };
 };
-
-// Hook for checking if a specific feature is accessible
-export const useFeatureAccess = (featureName: string) => {
-  const { canAccessFeature, hasActiveSubscription, isLoading } = useSubscription();
-  
-  return {
-    canAccess: canAccessFeature(featureName),
-    hasSubscription: hasActiveSubscription,
-    isLoading
-  };
-};
-
-// Hook for tracking feature usage
-export const useFeatureUsage = (featureName: string) => {
-  const { trackFeatureUsage, usageMetrics, isLoading } = useSubscription();
-  
-  const currentUsage = usageMetrics.find(m => m.featureName === featureName);
-  
-  return {
-    currentUsage: currentUsage?.currentUsage || 0,
-    limit: currentUsage?.limit || null,
-    percentageUsed: currentUsage?.percentageUsed || 0,
-    isOverLimit: currentUsage?.isOverLimit || false,
-    trackUsage: (increment?: number) => trackFeatureUsage(featureName, increment),
-    isLoading
-  };
-}; 
