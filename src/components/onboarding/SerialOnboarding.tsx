@@ -279,6 +279,19 @@ const calculateSleepDuration = (sleepTime: string, wakeTime: string) => {
   return { hours, minutes, totalHours: durationMinutes / 60 };
 };
 
+// Helper function to compare time strings (HH:MM format)
+const compareTimes = (time1: string, time2: string): number => {
+  if (!time1 || !time2) return 0;
+  
+  const [hour1, minute1] = time1.split(":").map(Number);
+  const [hour2, minute2] = time2.split(":").map(Number);
+  
+  const minutes1 = hour1 * 60 + minute1;
+  const minutes2 = hour2 * 60 + minute2;
+  
+  return minutes1 - minutes2;
+};
+
 // Helper functions for height and weight pickers
 const getHeightFeet = () =>
   Array.from({ length: 6 }, (_, i) => (i + 3).toString()); // 3-8 feet
@@ -685,12 +698,26 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
       case "sleepSchedule":
         if (!data.wakeUpTime || !data.sleepTime) {
           newErrors.sleepSchedule = "Please set both wake-up and sleep times";
+        } else {
+          // For sleep schedule, we allow sleep time to be after wake time (crossing midnight)
+          // But we should validate that the times are reasonable
+          const wakeMinutes = compareTimes(data.wakeUpTime, "00:00");
+          const sleepMinutes = compareTimes(data.sleepTime, "00:00");
+          
+          // Basic validation: wake time should be reasonable (6 AM to 12 PM)
+          if (wakeMinutes < 360 || wakeMinutes > 720) { // 6 AM to 12 PM
+            newErrors.sleepSchedule = "Please set a reasonable wake-up time (6 AM - 12 PM)";
+          }
+          // Sleep time should be reasonable (8 PM to 4 AM next day)
+          else if (sleepMinutes < 1200 && sleepMinutes > 240) { // 8 PM to 4 AM
+            newErrors.sleepSchedule = "Please set a reasonable sleep time (8 PM - 4 AM)";
+          }
         }
         break;
       case "workSchedule":
         if (!data.workStart || !data.workEnd) {
           newErrors.workSchedule = "Please set your work schedule";
-        } else if (data.workStart >= data.workEnd) {
+        } else if (compareTimes(data.workStart, data.workEnd) >= 0) {
           newErrors.workSchedule = "Work start time must be before end time";
         }
         break;
