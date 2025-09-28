@@ -537,37 +537,19 @@ export const HealthContentNew = () => {
       }
     }
 
-    // Fallback tasks if no plan activities
+    // No fallback tasks - let the user know they need to generate a plan
     if (tasks.length === 0) {
-      tasks.push(
-        {
-          id: "1",
-          title: "Morning Routine",
-          description: "30-min morning wellness routine",
-          icon: <Sun className="w-6 h-6 text-logo-text" />,
-          time: formatTime("07:00"),
-          isHighlighted: true,
-          completed: false,
-        },
-        {
-          id: "2",
-          title: "Healthy Breakfast",
-          description: "Protein-rich meal with complex carbs",
-          icon: <Utensils className="w-6 h-6 text-logo-text" />,
-          time: formatTime("08:00"),
-          isHighlighted: false,
-          completed: false,
-        },
-        {
-          id: "3",
-          title: "Midday Movement",
-          description: "15-min walk or light exercise",
-          icon: <Footprints className="w-6 h-6 text-logo-text" />,
-          time: formatTime("13:30"),
-          isHighlighted: false,
-          completed: false,
-        }
-      );
+      tasks.push({
+        id: "no-plan",
+        title: "No Active Health Plan",
+        description:
+          "Generate a personalized health plan to see your daily protocol",
+        icon: <Target className="w-6 h-6 text-logo-text" />,
+        time: "Generate Plan",
+        isHighlighted: true,
+        completed: false,
+        action: "generate_plan",
+      });
     }
 
     setDynamicContent(tasks);
