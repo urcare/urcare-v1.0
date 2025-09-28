@@ -4,7 +4,6 @@ import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
-import EnhancedPlanner from "./pages/EnhancedPlanner";
 import Goals from "./pages/Goals";
 import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
@@ -13,7 +12,8 @@ import Legal from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
-import PlanDetails from "./pages/PlanDetails";
+import PlanDetails from "./pages/Calendar";
+import Planner from "./pages/Planner";
 import ProfileManagement from "./pages/ProfileManagement";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
@@ -148,7 +148,7 @@ function App() {
                 requireOnboardingComplete={true}
                 requireSubscription={true}
               >
-                <EnhancedPlanner />
+                <Planner />
               </ProtectedRoute>
             }
           />

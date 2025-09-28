@@ -399,7 +399,6 @@ class SubscriptionService {
       if (!subscription) {
         return {
           hasActiveSubscription: false,
-          isTrialActive: false,
           daysUntilExpiry: 0,
           canAccessFeature: () => false,
           getUsageForFeature: () => 0,
@@ -410,12 +409,10 @@ class SubscriptionService {
       const now = new Date();
       const expiryDate = new Date(subscription.current_period_end);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      const isTrialActive = subscription.status === 'trialing';
 
       return {
         hasActiveSubscription,
         subscription,
-        isTrialActive,
         daysUntilExpiry: Math.max(0, daysUntilExpiry),
         canAccessFeature: (featureName: string) => {
           return subscription.features.includes(featureName);
@@ -431,7 +428,6 @@ class SubscriptionService {
       console.error('Error in getSubscriptionCheckResult:', error);
       return {
         hasActiveSubscription: false,
-        isTrialActive: false,
         daysUntilExpiry: 0,
         canAccessFeature: () => false,
         getUsageForFeature: () => 0,
@@ -450,7 +446,6 @@ class SubscriptionService {
       if (!subscription) {
         return {
           isActive: false,
-          isTrial: false,
           isExpired: false,
           isCanceled: false,
           daysUntilExpiry: 0,
@@ -462,12 +457,10 @@ class SubscriptionService {
       const expiryDate = new Date(subscription.current_period_end);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       const isExpired = expiryDate < now;
-      const isTrial = subscription.status === 'trialing';
       const isCanceled = subscription.status === 'canceled';
 
       return {
         isActive: subscription.status === 'active' && !isExpired,
-        isTrial,
         isExpired,
         isCanceled,
         daysUntilExpiry: Math.max(0, daysUntilExpiry),
@@ -477,7 +470,6 @@ class SubscriptionService {
       console.error('Error in getSubscriptionStatus:', error);
       return {
         isActive: false,
-        isTrial: false,
         isExpired: false,
         isCanceled: false,
         daysUntilExpiry: 0,

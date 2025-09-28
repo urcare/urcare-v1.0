@@ -1,13 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { subscriptionService } from "./subscriptionService";
-import { trialService } from "./trialService";
 
 export interface AuthFlowState {
   isAuthenticated: boolean;
   isOnboardingComplete: boolean;
   hasActiveSubscription: boolean;
-  hasActiveTrial: boolean;
   shouldShowPaywall: boolean;
   nextRoute: string;
   canAccessDashboard: boolean;
@@ -30,7 +28,6 @@ class AuthFlowService {
         isAuthenticated: false,
         isOnboardingComplete: false,
         hasActiveSubscription: false,
-        hasActiveTrial: false,
         shouldShowPaywall: false,
         nextRoute: "/",
         canAccessDashboard: false,
@@ -42,7 +39,6 @@ class AuthFlowService {
       const [
         profileResult,
         subscriptionResult,
-        trialResult,
         healthAssessmentResult,
       ] = await Promise.allSettled([
         // Profile check with timeout
@@ -65,14 +61,6 @@ class AuthFlowService {
               () => reject(new Error("Subscription check timeout")),
               3000
             )
-          ),
-        ]),
-
-        // Trial check with timeout
-        Promise.race([
-          trialService.getTrialStatus(user.id),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Trial check timeout")), 3000)
           ),
         ]),
 
@@ -99,11 +87,6 @@ class AuthFlowService {
           ? (subscriptionResult.value as any)?.isActive ?? false
           : false;
 
-      const hasActiveTrial =
-        trialResult.status === "fulfilled"
-          ? (trialResult.value as any)?.isActive ?? false
-          : false;
-
       const hasCompletedHealthAssessment =
         healthAssessmentResult.status === "fulfilled"
           ? (healthAssessmentResult.value as any) ?? false
@@ -116,9 +99,6 @@ class AuthFlowService {
       if (subscriptionResult.status === "rejected") {
         console.warn("Subscription check failed:", subscriptionResult.reason);
       }
-      if (trialResult.status === "rejected") {
-        console.warn("Trial check failed:", trialResult.reason);
-      }
       if (healthAssessmentResult.status === "rejected") {
         console.warn(
           "Health assessment check failed:",
@@ -127,7 +107,7 @@ class AuthFlowService {
       }
 
       // Determine if user can access dashboard
-      const canAccessDashboard = hasActiveSubscription || hasActiveTrial;
+      const canAccessDashboard = hasActiveSubscription;
 
       // Determine next route based on current state
       let nextRoute = "/";
@@ -150,7 +130,6 @@ class AuthFlowService {
         isAuthenticated: true,
         isOnboardingComplete,
         hasActiveSubscription,
-        hasActiveTrial,
         shouldShowPaywall,
         nextRoute,
         canAccessDashboard,
@@ -161,7 +140,6 @@ class AuthFlowService {
         isAuthenticated: true,
         isOnboardingComplete: false,
         hasActiveSubscription: false,
-        hasActiveTrial: false,
         shouldShowPaywall: false,
         nextRoute: "/onboarding",
         canAccessDashboard: false,
@@ -307,18 +285,6 @@ class AuthFlowService {
     }
   }
 
-  /**
-   * Start trial for user
-   */
-  async startTrial(userId: string): Promise<boolean> {
-    try {
-      const trialInfo = await trialService.claimTrial(userId);
-      return !!trialInfo;
-    } catch (error) {
-      console.error("Error starting trial:", error);
-      return false;
-    }
-  }
 
   /**
    * Check if user can access a specific route

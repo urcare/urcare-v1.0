@@ -116,6 +116,22 @@ const Onboarding = () => {
       return timeValue;
     }
 
+    // Convert 12-hour AM/PM format to 24-hour format
+    if (/^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(timeValue)) {
+      const [time, period] = timeValue.split(/\s*(AM|PM)$/i);
+      const [hours, minutes] = time.split(":");
+      let hour24 = parseInt(hours, 10);
+
+      if (period.toUpperCase() === "AM") {
+        if (hour24 === 12) hour24 = 0;
+      } else {
+        // PM
+        if (hour24 !== 12) hour24 += 12;
+      }
+
+      return `${hour24.toString().padStart(2, "0")}:${minutes}`;
+    }
+
     // Convert descriptive time to proper format
     const timeMap: { [key: string]: string } = {
       "Early Morning (05:00-07:00)": "06:00",
@@ -154,18 +170,6 @@ const Onboarding = () => {
           const { subscriptionService } = await import(
             "../services/subscriptionService"
           );
-          const { isTrialBypassEnabled } = await import(
-            "../config/subscription"
-          );
-
-          // Check if trial bypass is enabled (for development/testing)
-          if (isTrialBypassEnabled()) {
-            console.log(
-              "Onboarding: Trial bypass enabled, redirecting to dashboard"
-            );
-            navigate("/dashboard", { replace: true });
-            return;
-          }
 
           // Check if user has completed health assessment
           const { data: healthPlan } = await supabase
@@ -186,12 +190,11 @@ const Onboarding = () => {
           // Check actual subscription status
           const subscriptionStatus =
             await subscriptionService.getSubscriptionStatus(profile.id);
-          const hasAccess =
-            subscriptionStatus.isActive || subscriptionStatus.isTrial;
+          const hasAccess = subscriptionStatus.isActive;
 
           if (hasAccess) {
             console.log(
-              "Onboarding: User has active subscription or trial, redirecting to dashboard"
+              "Onboarding: User has active subscription, redirecting to dashboard"
             );
             navigate("/dashboard", { replace: true });
           } else {
@@ -478,6 +481,7 @@ const Onboarding = () => {
     );
   }
 
+<<<<<<< HEAD
   // Show completion with scrollable profile data
   if (onboardingStep === "complete" && profile) {
     // Prepare profile fields for display
@@ -555,6 +559,56 @@ const Onboarding = () => {
                     navigate("/dashboard", { replace: true });
                     return;
                   }
+=======
+  // Show completion
+  if (onboardingStep === "complete") {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-4 overflow-hidden">
+        <div className="text-center max-w-sm sm:max-w-md">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <svg
+              className="w-8 h-8 sm:w-10 sm:h-10 text-logo-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-4">
+            Profile Setup Complete!
+          </h2>
+          <p className="text-base sm:text-lg text-text-secondary mb-6 sm:mb-8">
+            Your profile has been successfully saved. You can now start using
+            UrCare.
+          </p>
+          <button
+            onClick={() => {
+              // Check subscription status and redirect accordingly
+              const checkSubscriptionAndRedirect = async () => {
+                try {
+                  const { subscriptionService } = await import(
+                    "../services/subscriptionService"
+                  );
+
+                  const subscriptionStatus =
+                    await subscriptionService.getSubscriptionStatus(user.id);
+                  const hasAccess = subscriptionStatus.isActive;
+
+                  if (hasAccess) {
+                    navigate("/dashboard", { replace: true });
+                  } else {
+                    navigate("/paywall", { replace: true });
+                  }
+                } catch (error) {
+                  console.error("Error checking subscription status:", error);
+                  navigate("/paywall", { replace: true });
+>>>>>>> dd7caf11d2b74079ef2d6c011c3a6c6cd6c30d30
                 }
 
                 // New user or no active subscription

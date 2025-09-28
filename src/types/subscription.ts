@@ -77,7 +77,6 @@ export interface SubscriptionWithPlan extends Subscription {
 export interface SubscriptionCheckResult {
   hasActiveSubscription: boolean;
   subscription?: UserSubscription;
-  isTrialActive: boolean;
   daysUntilExpiry: number;
   canAccessFeature: (featureName: string) => boolean;
   getUsageForFeature: (featureName: string) => number;
@@ -125,7 +124,6 @@ export interface BillingCycle {
 
 export interface SubscriptionStatus {
   isActive: boolean;
-  isTrial: boolean;
   isExpired: boolean;
   isCanceled: boolean;
   daysUntilExpiry: number;

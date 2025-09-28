@@ -15,6 +15,15 @@ const Legal: React.FC = () => {
       <div className="max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Legal</h1>
 
+        {/* Ownership Information */}
+        <section className="mb-8">
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <p className="text-lg text-gray-800 font-medium">
+              UrCare is owned by AAKARSHAK SAINI
+            </p>
+          </div>
+        </section>
+
         {/* Privacy Policy */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
