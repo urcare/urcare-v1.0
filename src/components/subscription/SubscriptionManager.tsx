@@ -44,7 +44,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     canAccessFeature,
     trackFeatureUsage,
     refreshUsageMetrics,
-    isTrialActive,
     daysUntilExpiry,
     isExpired,
     canRenew
@@ -72,9 +71,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
       return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" />Expired</Badge>;
     }
 
-    if (subscriptionStatus.isTrial) {
-      return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />Trial</Badge>;
-    }
 
     if (subscriptionStatus.isCanceled) {
       return <Badge variant="outline" className="gap-1"><XCircle className="w-3 h-3" />Canceled</Badge>;
@@ -176,7 +172,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
           </div>
         </div>
         <CardDescription>
-          {isTrialActive ? 'Trial period active' : `${subscription?.billing_cycle} billing`}
+          {subscription?.billing_cycle} billing
           {daysUntilExpiry > 0 && ` • ${daysUntilExpiry} days remaining`}
         </CardDescription>
       </CardHeader>
@@ -197,10 +193,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             <div>
               <span className="text-gray-600">Days Remaining:</span>
               <div className="font-medium">{daysUntilExpiry}</div>
-            </div>
-            <div>
-              <span className="text-gray-600">Trial:</span>
-              <div className="font-medium">{isTrialActive ? 'Active' : 'Inactive'}</div>
             </div>
           </div>
         </div>
@@ -280,18 +272,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
           </div>
         )}
 
-        {/* Trial Warning */}
-        {isTrialActive && daysUntilExpiry <= 7 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-yellow-800">
-              <AlertTriangle className="w-4 h-4" />
-              <span className="text-sm font-medium">Trial ending soon</span>
-            </div>
-            <p className="text-xs text-yellow-700 mt-1">
-              Your trial ends in {daysUntilExpiry} days. Upgrade to continue using premium features.
-            </p>
-          </div>
-        )}
 
         {/* Expired Warning */}
         {isExpired && (

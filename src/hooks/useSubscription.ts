@@ -26,7 +26,6 @@ interface UseSubscriptionReturn {
   refreshUsageMetrics: () => Promise<void>;
   
   // Computed values
-  isTrialActive: boolean;
   daysUntilExpiry: number;
   isExpired: boolean;
   canRenew: boolean;
@@ -137,7 +136,6 @@ export const useSubscription = (): UseSubscriptionReturn => {
   }, [subscription, hasActiveSubscription, subscriptionStatus, usageMetrics]);
 
   // Computed values
-  const isTrialActive = subscriptionStatus?.isTrial || false;
   const daysUntilExpiry = subscriptionStatus?.daysUntilExpiry || 0;
   const isExpired = subscriptionStatus?.isExpired || false;
   const canRenew = subscriptionStatus?.canRenew || false;
@@ -165,7 +163,6 @@ export const useSubscription = (): UseSubscriptionReturn => {
     refreshUsageMetrics,
     
     // Computed values
-    isTrialActive,
     daysUntilExpiry,
     isExpired,
     canRenew

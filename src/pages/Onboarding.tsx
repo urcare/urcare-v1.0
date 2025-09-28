@@ -112,18 +112,6 @@ const Onboarding = () => {
           const { subscriptionService } = await import(
             "../services/subscriptionService"
           );
-          const { isTrialBypassEnabled } = await import(
-            "../config/subscription"
-          );
-
-          // Check if trial bypass is enabled (for development/testing)
-          if (isTrialBypassEnabled()) {
-            console.log(
-              "Onboarding: Trial bypass enabled, redirecting to dashboard"
-            );
-            navigate("/dashboard", { replace: true });
-            return;
-          }
 
           // Check if user has completed health assessment
           const { data: healthPlan } = await supabase
@@ -144,12 +132,11 @@ const Onboarding = () => {
           // Check actual subscription status
           const subscriptionStatus =
             await subscriptionService.getSubscriptionStatus(profile.id);
-          const hasAccess =
-            subscriptionStatus.isActive || subscriptionStatus.isTrial;
+          const hasAccess = subscriptionStatus.isActive;
 
           if (hasAccess) {
             console.log(
-              "Onboarding: User has active subscription or trial, redirecting to dashboard"
+              "Onboarding: User has active subscription, redirecting to dashboard"
             );
             navigate("/dashboard", { replace: true });
           } else {
@@ -459,19 +446,10 @@ const Onboarding = () => {
                   const { subscriptionService } = await import(
                     "../services/subscriptionService"
                   );
-                  const { isTrialBypassEnabled } = await import(
-                    "../config/subscription"
-                  );
-
-                  if (isTrialBypassEnabled()) {
-                    navigate("/dashboard", { replace: true });
-                    return;
-                  }
 
                   const subscriptionStatus =
                     await subscriptionService.getSubscriptionStatus(user.id);
-                  const hasAccess =
-                    subscriptionStatus.isActive || subscriptionStatus.isTrial;
+                  const hasAccess = subscriptionStatus.isActive;
 
                   if (hasAccess) {
                     navigate("/dashboard", { replace: true });
