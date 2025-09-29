@@ -71,14 +71,8 @@ function App() {
             }
           />
 
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            }
-          />
+          {/* TEMPORARY: Remove ProtectedRoute from onboarding and paywall for bypass */}
+          <Route path="/onboarding" element={<Onboarding />} />
 
           <Route
             path="/health-assessment"
@@ -89,14 +83,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/paywall"
-            element={
-              <ProtectedRoute requireOnboardingComplete={true}>
-                <Paywall />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/paywall" element={<Paywall />} />
 
           <Route
             path="/payment-wall"
