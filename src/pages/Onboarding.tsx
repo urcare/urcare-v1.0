@@ -24,6 +24,7 @@ import {
   Moon,
   Sun,
   Briefcase,
+  ArrowRight,
 } from "lucide-react";
 
 // Helper function for months (same as in SerialOnboarding)
@@ -247,11 +248,11 @@ const Onboarding = () => {
         console.log("No user found - in bypass mode, storing data locally");
         // Store onboarding data in localStorage for later use
         localStorage.setItem("pendingOnboardingData", JSON.stringify(data));
-        toast.success("Onboarding data saved! Please sign in to continue.", {
+        toast.success("Onboarding completed successfully!", {
           description: "Your progress has been saved locally.",
         });
-        // Navigate to paywall since we can't complete onboarding without a user
-        navigate("/paywall");
+        // Set onboarding step to complete to show the completion screen
+        setOnboardingStep("complete");
         return;
       }
 
@@ -490,9 +491,9 @@ const Onboarding = () => {
   }
 
   // Show completion with scrollable profile data
-  if (onboardingStep === "complete" && profile) {
-    // Prepare profile fields for display
-    const profileFields = [
+  if (onboardingStep === "complete") {
+    // Prepare profile fields for display - handle both authenticated and bypass modes
+    const profileFields = profile ? [
       { label: "Full Name", value: profile.full_name, icon: User },
       { label: "Age", value: profile.age, icon: Clock },
       { label: "Gender", value: profile.gender, icon: User },
@@ -512,7 +513,10 @@ const Onboarding = () => {
       { label: "Smoking Status", value: profile.smoking_status, icon: Coffee },
       { label: "Alcohol Consumption", value: profile.alcohol_consumption, icon: Coffee },
       { label: "Occupation", value: profile.occupation, icon: Briefcase },
-    ].filter(field => field.value != null && field.value !== "");
+    ].filter(field => field.value != null && field.value !== "") : [
+      { label: "Status", value: "Onboarding completed successfully!", icon: CheckCircle },
+      { label: "Next Step", value: "Please sign in to continue to the payment gateway", icon: ArrowRight },
+    ];
 
     return (
       <div className="h-screen bg-white flex flex-col overflow-hidden">
@@ -543,6 +547,12 @@ const Onboarding = () => {
         <div className="p-4 border-t bg-white">
           <button
             onClick={async () => {
+              // TEMPORARY: In bypass mode, always go to paywall
+              if (!user) {
+                navigate("/paywall", { replace: true });
+                return;
+              }
+
               try {
                 const { subscriptionService } = await import("../services/subscriptionService");
                 const { isTrialBypassEnabled } = await import("../config/subscription");
