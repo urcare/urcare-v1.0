@@ -291,8 +291,8 @@ class AuthFlowService {
    */
   async canAccessRoute(user: User | null, route: string): Promise<boolean> {
     if (!user) {
-      // Public routes
-      const publicRoutes = ["/", "/auth", "/auth/callback"];
+      // Public routes - TEMPORARILY ADD ONBOARDING AND PAYWALL
+      const publicRoutes = ["/", "/auth", "/auth/callback", "/onboarding", "/paywall"];
       return publicRoutes.includes(route);
     }
 
@@ -304,11 +304,10 @@ class AuthFlowService {
         string,
         (state: AuthFlowState) => boolean
       > = {
-        "/onboarding": () => !flowState.isOnboardingComplete,
+        "/onboarding": () => true, // TEMPORARY: Allow onboarding without auth
         "/health-assessment": () =>
           flowState.isOnboardingComplete && !flowState.canAccessDashboard,
-        "/paywall": () =>
-          flowState.isOnboardingComplete && !flowState.canAccessDashboard,
+        "/paywall": () => true, // TEMPORARY: Allow paywall without auth
         "/dashboard": () => flowState.canAccessDashboard,
         "/health-plan": () => flowState.canAccessDashboard,
         "/diet": () => flowState.canAccessDashboard,

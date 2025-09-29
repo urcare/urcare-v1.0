@@ -52,10 +52,14 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Handler for Get Started button
+  // Handler for Get Started button - TEMPORARILY BYPASS AUTH
   const handleGetStarted = () => {
-    setAuthMode("signup");
-    setShowAuth(true);
+    // TEMPORARY: Bypass authentication and go directly to onboarding
+    navigate("/onboarding");
+    
+    // Original code (commented out for temporary bypass):
+    // setAuthMode("signup");
+    // setShowAuth(true);
   };
   // Handler for I'm already a member button
   const handleAlreadyMember = () => {
