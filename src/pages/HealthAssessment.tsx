@@ -191,6 +191,17 @@ const HealthAssessment: React.FC = () => {
     navigate("/health-plan-generation");
   };
 
+  // If analysis is complete, redirect to health plan generation
+  useEffect(() => {
+    if (analysisComplete) {
+      const timer = setTimeout(() => {
+        navigate("/health-plan-generation");
+      }, 3000); // Wait 3 seconds to show the analysis, then redirect
+      
+      return () => clearTimeout(timer);
+    }
+  }, [analysisComplete, navigate]);
+
   // Show loading screen
   if ((!isInitialized || (!user && loading)) && !forceShow && !(user && profile)) {
     return (

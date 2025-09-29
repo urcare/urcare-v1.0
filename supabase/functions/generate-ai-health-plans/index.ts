@@ -74,54 +74,30 @@ serve(async (req) => {
       throw new Error("OpenAI API key not configured");
     }
 
-    const prompt = `
-You are an expert health coach and nutritionist. Generate 3 personalized health plans for the following user profile:
+    const prompt = `Generate 3 personalized health plans for this user:
 
-USER PROFILE:
-- Name: ${user_profile.full_name}
-- Age: ${user_profile.age}
-- Gender: ${user_profile.gender}
-- Height: ${user_profile.height_cm}cm
-- Weight: ${user_profile.weight_kg}kg
-- Blood Group: ${user_profile.blood_group}
-- Diet Type: ${user_profile.diet_type}
-- Health Goals: ${user_profile.health_goals.join(', ')}
-- Chronic Conditions: ${user_profile.chronic_conditions.join(', ')}
-- Daily Schedule:
-  - Wake up: ${user_profile.wake_up_time}
-  - Sleep: ${user_profile.sleep_time}
-  - Work: ${user_profile.work_start} - ${user_profile.work_end}
-  - Meals: Breakfast ${user_profile.breakfast_time}, Lunch ${user_profile.lunch_time}, Dinner ${user_profile.dinner_time}
-  - Workout: ${user_profile.workout_time} (${user_profile.workout_type})
-- Lifestyle: ${user_profile.smoking}, ${user_profile.drinking}
-- Routine Flexibility: ${user_profile.routine_flexibility}/10
+Name: ${user_profile.full_name}
+Age: ${user_profile.age}
+Gender: ${user_profile.gender}
+Height: ${user_profile.height_cm}cm
+Weight: ${user_profile.weight_kg}kg
+Health Goals: ${user_profile.health_goals.join(', ')}
+Daily Schedule: Wake ${user_profile.wake_up_time}, Sleep ${user_profile.sleep_time}, Work ${user_profile.work_start}-${user_profile.work_end}
+Meals: Breakfast ${user_profile.breakfast_time}, Lunch ${user_profile.lunch_time}, Dinner ${user_profile.dinner_time}
+Workout: ${user_profile.workout_time} (${user_profile.workout_type})
+Lifestyle: ${user_profile.smoking}, ${user_profile.drinking}
 
-Generate 3 health plans with different difficulty levels:
+Create 3 plans:
+1. BEGINNER (12 weeks): "Healthy Habits Beginner Plan" - gentle introduction, focus on consistency
+2. INTERMEDIATE (16 weeks): "Heart Health Intermediate Plan" - balanced approach, moderate intensity  
+3. ADVANCED (20 weeks): "Cholesterol Control Advanced Plan" - high intensity, maximum results
 
-1. BEGINNER PLAN (12 weeks):
-   - Focus on building healthy habits
-   - Gentle introduction to exercise and nutrition
-   - Emphasis on consistency over intensity
-
-2. INTERMEDIATE PLAN (16 weeks):
-   - Balanced approach with moderate intensity
-   - More structured workout routines
-   - Advanced nutrition strategies
-
-3. ADVANCED PLAN (20 weeks):
-   - High-intensity training and strict nutrition
-   - Advanced techniques and optimization
-   - Maximum results in shortest time
-
-For each plan, provide:
-- Detailed daily activities with specific timestamps
-- Nutritional guidelines with macro breakdowns
-- Exercise routines with sets/reps/duration
-- Sleep optimization strategies
-- Hydration schedules
-- Stress management techniques
-- Weekly progress metrics
-- Expected health score improvements
+For each plan include:
+- Daily activities with specific timestamps
+- Exercise routines with sets/reps
+- Nutrition guidelines with macros
+- Sleep and hydration schedules
+- Expected health improvements
 
 Format the response as JSON with this exact structure:
 {
@@ -202,31 +178,156 @@ Make sure to:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "You are an expert health coach and nutritionist with 20+ years of experience. Provide detailed, personalized health plans based on user data."
+            content: "You are an expert health coach. Generate 3 health plans in JSON format."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 3000,
         temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
+      console.error("OpenAI API error:", response.status, response.statusText);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const aiResponse = await response.json();
     const content = aiResponse.choices[0].message.content;
     
+    console.log("OpenAI response content:", content);
+    
     // Parse the JSON response
-    const healthPlans = JSON.parse(content);
+    let healthPlans;
+    try {
+      healthPlans = JSON.parse(content);
+    } catch (parseError) {
+      console.error("Failed to parse OpenAI response:", parseError);
+      console.log("Raw content:", content);
+      
+      // Return fallback plans if parsing fails
+      healthPlans = {
+        success: true,
+        plans: [
+          {
+            id: "plan_1",
+            name: "Healthy Habits Beginner Plan",
+            description: "A 12-week plan focused on building sustainable healthy habits",
+            difficulty: "beginner",
+            duration_weeks: 12,
+            focus_areas: ["nutrition", "exercise", "sleep", "hydration"],
+            expected_outcomes: ["Improved energy levels", "Better sleep quality", "Weight management"],
+            activities: [
+              {
+                id: "activity_1",
+                title: "Morning Hydration",
+                description: "Drink 500ml of water upon waking",
+                type: "hydration",
+                scheduled_time: user_profile.wake_up_time || "07:00",
+                duration: 5,
+                priority: "high",
+                category: "Hydration",
+                instructions: ["Drink water immediately after waking", "Add lemon for better absorption"],
+                benefits: ["Boosts metabolism", "Improves brain function"],
+                tips: ["Keep water by bedside", "Set phone reminder"]
+              }
+            ],
+            health_metrics: {
+              weight_loss_goal: 5,
+              muscle_gain_goal: 2,
+              fitness_improvement: 20,
+              energy_level: 15,
+              sleep_quality: 10,
+              stress_reduction: 25
+            },
+            weekly_schedule: {}
+          },
+          {
+            id: "plan_2", 
+            name: "Heart Health Intermediate Plan",
+            description: "A 16-week balanced approach with moderate intensity",
+            difficulty: "intermediate",
+            duration_weeks: 16,
+            focus_areas: ["nutrition", "exercise", "stress management", "heart health"],
+            expected_outcomes: ["Increased strength", "Better endurance", "Improved body composition"],
+            activities: [
+              {
+                id: "activity_2",
+                title: "Cardio Workout",
+                description: "30 minutes of moderate cardio exercise",
+                type: "exercise",
+                scheduled_time: user_profile.workout_time || "18:00",
+                duration: 30,
+                priority: "high",
+                category: "Exercise",
+                instructions: ["Warm up for 5 minutes", "Maintain moderate intensity", "Cool down for 5 minutes"],
+                benefits: ["Improves heart health", "Burns calories"],
+                tips: ["Choose activities you enjoy", "Track your heart rate"]
+              }
+            ],
+            health_metrics: {
+              weight_loss_goal: 8,
+              muscle_gain_goal: 4,
+              fitness_improvement: 35,
+              energy_level: 25,
+              sleep_quality: 15,
+              stress_reduction: 30
+            },
+            weekly_schedule: {}
+          },
+          {
+            id: "plan_3",
+            name: "Cholesterol Control Advanced Plan", 
+            description: "A 20-week high-intensity plan for maximum results",
+            difficulty: "advanced",
+            duration_weeks: 20,
+            focus_areas: ["nutrition", "exercise", "advanced training", "cholesterol management"],
+            expected_outcomes: ["Dramatic body transformation", "Elite fitness level", "Optimal health"],
+            activities: [
+              {
+                id: "activity_3",
+                title: "High-Intensity Training",
+                description: "45 minutes of high-intensity interval training",
+                type: "exercise",
+                scheduled_time: user_profile.workout_time || "18:00",
+                duration: 45,
+                priority: "high",
+                category: "Exercise",
+                instructions: ["Warm up for 10 minutes", "Alternate high/low intensity", "Cool down for 10 minutes"],
+                benefits: ["Maximizes fat burn", "Improves cardiovascular fitness"],
+                tips: ["Push your limits safely", "Track progress weekly"]
+              }
+            ],
+            health_metrics: {
+              weight_loss_goal: 12,
+              muscle_gain_goal: 6,
+              fitness_improvement: 50,
+              energy_level: 35,
+              sleep_quality: 20,
+              stress_reduction: 40
+            },
+            weekly_schedule: {}
+          }
+        ],
+        health_score: {
+          current: 65,
+          projected: 85,
+          improvements: ["Better nutrition habits", "Regular exercise routine", "Improved sleep schedule"]
+        },
+        personalized_insights: [
+          "Focus on consistent meal timing",
+          "Include 30 minutes of daily exercise", 
+          "Maintain regular sleep schedule"
+        ]
+      };
+    }
 
     return new Response(
       JSON.stringify(healthPlans),

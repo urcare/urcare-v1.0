@@ -29,6 +29,9 @@ import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import TasksDemo from "./pages/TasksDemo";
 import Workout from "./pages/Workout";
+import WorkoutDashboard from "./pages/WorkoutDashboard";
+import WorkoutActivity from "./pages/WorkoutActivity";
+import AdminPanel from "./pages/AdminPanel";
 
 import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -139,6 +142,21 @@ function App() {
                 <HealthPlanGeneration />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/workout-dashboard"
+            element={<WorkoutDashboard />}
+          />
+
+          <Route
+            path="/workout-activity"
+            element={<WorkoutActivity />}
+          />
+
+          <Route
+            path="/arshadmin"
+            element={<AdminPanel />}
           />
 
           <Route

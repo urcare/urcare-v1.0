@@ -810,10 +810,10 @@ export const HealthContentNew = () => {
       </div>
 
       {/* Scrollable Content Area - with top padding to account for fixed header */}
-      <div className="flex-1 bg-green-500 overflow-y-auto pt-24 px-4">
-        {/* Health Dashboard Card - Teal with Health Score & Weekly View */}
+      <div className="flex-1 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 overflow-y-auto pt-24 px-4">
+        {/* Health Dashboard Card - Modern Slate/Blue with Health Score & Weekly View */}
         <div className="py-4">
-          <div className="bg-emerald-500 rounded-[3rem] p-8 w-full">
+          <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-[3rem] p-8 w-full shadow-xl">
             <div className="flex flex-col">
               {/* Headers Row - HEALTH SCORE */}
               <div className="flex items-center gap-8 mb-3">

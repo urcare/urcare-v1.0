@@ -105,47 +105,47 @@
     /* Safari iOS viewport fix */
     --vh: 1vh;
 
-    /* Light Mode Colors - Specified Palette */
-    --background: 210 17% 98%; /* #F8F9FA */
-    --foreground: 0 0% 0%; /* #000000 */
-    --card: 157 100% 18%; /* #005E3D */
-    --card-foreground: 51 100% 50%; /* #FFD700 */
-    --popover: 210 17% 98%; /* #F8F9FA */
-    --popover-foreground: 0 0% 0%; /* #000000 */
+    /* Light Mode Colors - Modern Slate/Blue Theme */
+    --background: 210 40% 98%; /* #F8FAFC */
+    --foreground: 222 84% 5%; /* #0F172A */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 222 84% 5%; /* #0F172A */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 222 84% 5%; /* #0F172A */
 
-    /* Primary/Secondary/Accent */
-    --primary: 157 100% 18%; /* Deep Emerald Green */
-    --primary-foreground: 51 100% 50%; /* Gold */
-    --secondary: 226 43% 21%; /* #1E2A4B */
-    --secondary-foreground: 51 100% 50%; /* Gold */
-    --accent: 51 100% 50%; /* Gold */
-    --accent-foreground: 0 0% 0%; /* Black */
+    /* Primary/Secondary/Accent - Slate/Blue Theme */
+    --primary: 222 84% 5%; /* Slate 900 */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 210 40% 96%; /* Slate 100 */
+    --secondary-foreground: 222 84% 5%; /* Slate 900 */
+    --accent: 217 91% 60%; /* Blue 500 */
+    --accent-foreground: 0 0% 100%; /* White */
 
     /* Status */
-    --success: 157 100% 18%; /* Emerald */
-    --success-foreground: 51 100% 50%; /* Gold */
-    --warning: 51 100% 50%; /* Gold */
+    --success: 142 76% 36%; /* Green 600 */
+    --success-foreground: 0 0% 100%; /* White */
+    --warning: 38 92% 50%; /* Amber 500 */
     --warning-foreground: 0 0% 0%; /* Black */
-    --destructive: 0 84% 60%; /* Red */
+    --destructive: 0 84% 60%; /* Red 500 */
     --destructive-foreground: 0 0% 100%; /* White */
 
     /* Neutral */
-    --muted: 210 9% 46%; /* #6C757D */
-    --muted-foreground: 0 0% 0%; /* Black */
-    --border: 51 100% 50%; /* Gold */
-    --input: 210 17% 98%; /* White Smoke */
-    --ring: 51 100% 50%; /* Gold */
+    --muted: 210 40% 96%; /* Slate 100 */
+    --muted-foreground: 215 16% 47%; /* Slate 500 */
+    --border: 214 32% 91%; /* Slate 200 */
+    --input: 214 32% 91%; /* Slate 200 */
+    --ring: 217 91% 60%; /* Blue 500 */
 
     /* Background Variations */
-    --background-secondary: 210 17% 98%;
-    --background-tertiary: 210 17% 98%;
-    --text-secondary: 210 9% 46%; /* Davy's Gray */
-    --text-tertiary: 210 9% 46%;
-    --border-medium: 51 100% 50%;
+    --background-secondary: 210 40% 98%; /* Slate 50 */
+    --background-tertiary: 210 40% 96%; /* Slate 100 */
+    --text-secondary: 215 16% 47%; /* Slate 500 */
+    --text-tertiary: 215 20% 65%; /* Slate 400 */
+    --border-medium: 214 32% 91%; /* Slate 200 */
 
     /* Progress bar colors */
-    --progress-track: 210 9% 46%; /* #6C757D - grey track */
-    --progress-fill: 157 100% 18%; /* Primary emerald green fill */
+    --progress-track: 215 20% 65%; /* Slate 400 - grey track */
+    --progress-fill: 217 91% 60%; /* Blue 500 fill */
 
     --radius: 1rem;
   }

@@ -34,8 +34,8 @@ export const HealthScoreDisplay: React.FC<HealthScoreDisplayProps> = ({
   const improvementPercentage = Math.round((improvement / healthScore.current) * 100);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald-600";
-    if (score >= 60) return "text-yellow-600";
+    if (score >= 80) return "text-blue-600";
+    if (score >= 60) return "text-amber-600";
     if (score >= 40) return "text-orange-600";
     return "text-red-600";
   };
@@ -48,8 +48,8 @@ export const HealthScoreDisplay: React.FC<HealthScoreDisplayProps> = ({
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 80) return "bg-emerald-100 text-emerald-800 border-emerald-200";
-    if (score >= 60) return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    if (score >= 80) return "bg-blue-100 text-blue-800 border-blue-200";
+    if (score >= 60) return "bg-amber-100 text-amber-800 border-amber-200";
     if (score >= 40) return "bg-orange-100 text-orange-800 border-orange-200";
     return "bg-red-100 text-red-800 border-red-200";
   };

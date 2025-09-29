@@ -237,36 +237,36 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-green-500 min-h-screen">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
       <ThemeWrapper>
         <div className="space-y-2">
           {/* Header with Health Score */}
-          <div className="bg-white rounded-[3rem] p-6 shadow-lg">
+          <div className="bg-white/80 backdrop-blur-sm rounded-[3rem] p-6 shadow-xl border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                   Hi {getFirstName()}! 👋
                 </h1>
                 {healthScore && (
                   <div className="flex items-center gap-4 mt-2">
                     <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-emerald-600" />
-                      <span className="text-sm text-gray-600">Health Score:</span>
-                      <span className="text-2xl font-bold text-emerald-600">
+                      <Target className="w-5 h-5 text-blue-600" />
+                      <span className="text-sm text-slate-600">Health Score:</span>
+                      <span className="text-2xl font-bold text-blue-600">
                         {healthScore.current}
                       </span>
-                      <span className="text-sm text-gray-500">→ {healthScore.projected}</span>
+                      <span className="text-sm text-slate-500">→ {healthScore.projected}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm text-emerald-600">+{healthScore.projected - healthScore.current} points</span>
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm text-blue-600">+{healthScore.projected - healthScore.current} points</span>
                     </div>
                   </div>
                 )}
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500">Current Plan</div>
-                <div className="text-lg font-semibold text-gray-900">
+                <div className="text-sm text-slate-500">Current Plan</div>
+                <div className="text-lg font-semibold text-slate-800">
                   {selectedPlan ? selectedPlan.name : "No Plan Selected"}
                 </div>
               </div>
