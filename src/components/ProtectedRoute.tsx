@@ -104,8 +104,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // TEMPORARY: Allow access to onboarding without authentication
-  if (!user && location.pathname !== "/onboarding") {
+  if (!user) {
     return <Navigate to="/welcome-screen" state={{ from: location }} replace />;
   }
 
