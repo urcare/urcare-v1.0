@@ -1,16 +1,25 @@
+import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminProvider } from "./contexts/AdminContext";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
+import AdminLogin from "./pages/AdminLogin";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
 import Diet from "./pages/Diet";
+import EmailAuth from "./pages/EmailAuth";
+import EmailSignIn from "./pages/EmailSignIn";
+import EmailVerification from "./pages/EmailVerification";
 import Goals from "./pages/Goals";
 import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
+import HealthPlanGeneration from "./pages/HealthPlanGeneration";
+import CustomPlan from "./pages/CustomPlan";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import PaymentWall from "./pages/PaymentWall";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
 import PlanDetails from "./pages/Calendar";
 import Planner from "./pages/Planner";
@@ -27,6 +36,7 @@ import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   // Apply Safari mobile fixes
@@ -34,16 +44,22 @@ function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <DevRedirectHandler />
-        <InitialRouteHandler />
-        <Routes>
+      <AdminProvider>
+        <BrowserRouter>
+          <DevRedirectHandler />
+          <InitialRouteHandler />
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<AuthCallback />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/legal" element={<Legal />} />
+          <Route path="/my-admin" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/email-auth" element={<EmailAuth />} />
+          <Route path="/email-signin" element={<EmailSignIn />} />
+          <Route path="/email-verification" element={<EmailVerification />} />
 
           {/* Protected Routes */}
           <Route
@@ -82,6 +98,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/payment-wall"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <PaymentWall />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/payment/phonepe/success" element={<PhonePeSuccess />} />
 
           <Route
@@ -113,6 +138,30 @@ function App() {
                 requireSubscription={true}
               >
                 <HealthPlan />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/health-plan-generation"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={false}
+              >
+                <HealthPlanGeneration />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/custom-plan"
+            element={
+              <ProtectedRoute
+                requireOnboardingComplete={true}
+                requireSubscription={false}
+              >
+                <CustomPlan />
               </ProtectedRoute>
             }
           />
@@ -232,7 +281,8 @@ function App() {
           {/* Catch all route */}
           <Route path="*" element={<Landing />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </AdminProvider>
     </AuthProvider>
   );
 }

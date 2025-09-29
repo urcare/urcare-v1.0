@@ -37,17 +37,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
 
       try {
-        // Add timeout to prevent hanging - increased to 10 seconds for better reliability
+        // Add timeout to prevent hanging - reduced to 3 seconds for better responsiveness
         const timeoutPromise = new Promise<boolean>((_, reject) => {
           setTimeout(
             () => reject(new Error("Route access check timeout")),
-            10000
+            3000
           );
         });
 
         const accessPromise = authFlowService.canAccessRoute(
           user,
-          location.pathname
+          location.pathname,
+          profile
         );
         const hasAccess = await Promise.race([accessPromise, timeoutPromise]);
 
@@ -56,21 +57,27 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
           if (!hasAccess) {
             try {
-              const redirect = await authFlowService.getRedirectRoute(user);
+              const redirect = await authFlowService.getRedirectRoute(user, profile);
               setRedirectRoute(redirect);
             } catch (redirectError) {
               console.error("Error getting redirect route:", redirectError);
-              // Fallback to onboarding if redirect fails
-              setRedirectRoute("/onboarding");
+              // Fallback to health assessment if redirect fails
+              setRedirectRoute("/health-assessment");
             }
           }
         }
       } catch (error) {
         console.error("Error checking route access:", error);
         if (isMounted) {
-          // Treat timeout and other errors as access denial for security
-          setCanAccess(false);
-          setRedirectRoute("/onboarding");
+          // If there's a timeout but user has completed onboarding, allow access to dashboard
+          if (profile?.onboarding_completed && location.pathname === "/dashboard") {
+            console.log("Timeout but allowing dashboard access - user completed onboarding");
+            setCanAccess(true);
+          } else {
+            // Treat other errors as access denial for security
+            setCanAccess(false);
+            setRedirectRoute("/health-assessment");
+          }
         }
       }
     };

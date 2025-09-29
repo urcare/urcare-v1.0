@@ -5,6 +5,8 @@ interface EnvironmentConfig {
   NODE_ENV: "development" | "production" | "test";
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  RAZORPAY_KEY_ID?: string;
+  RAZORPAY_KEY_SECRET?: string;
 }
 
 // Safe environment variable access
@@ -37,6 +39,8 @@ export const env: EnvironmentConfig = {
   NODE_ENV: (getEnvVar("NODE_ENV") as any) || "development",
   SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
   SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
+  RAZORPAY_KEY_ID: getEnvVar("VITE_RAZORPAY_KEY_ID"),
+  RAZORPAY_KEY_SECRET: getEnvVar("VITE_RAZORPAY_KEY_SECRET"),
 };
 
 // Environment check utilities
@@ -61,6 +65,10 @@ export const getApiConfig = () => ({
     url: env.SUPABASE_URL,
     anonKey: env.SUPABASE_ANON_KEY,
   },
+  razorpay: {
+    keyId: env.RAZORPAY_KEY_ID,
+    keySecret: env.RAZORPAY_KEY_SECRET,
+  },
 });
 
 // Log environment info in development
@@ -68,6 +76,7 @@ if (isDevelopment()) {
   console.log("Environment Configuration:", {
     NODE_ENV: env.NODE_ENV,
     hasSupabase: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY),
+    hasRazorpay: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET),
     debugMode: isDebugMode(),
   });
 }

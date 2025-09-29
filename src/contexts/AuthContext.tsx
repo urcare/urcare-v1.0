@@ -75,6 +75,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithEmail: () => Promise<void>;
+  signInWithEmailVerification: (email: string, password: string, fullName: string, city: string) => Promise<User | undefined>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -467,7 +468,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
-      toast.info("Email sign-in feature coming soon!");
+      // Redirect to email authentication page
+      window.location.href = '/email-auth';
     } catch (error) {
       console.error("Email sign-in error:", error);
       const errorMessage =
@@ -475,6 +477,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           ? error.message
           : "Failed to initialize email sign-in";
       toast.error("Email sign-in failed", { description: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signInWithEmailVerification = useCallback(async (email: string, password: string, fullName: string, city: string) => {
+    setLoading(true);
+    try {
+      // Create user with email and password
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            city: city
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from("user_profiles")
+          .upsert([
+            {
+              id: authData.user.id,
+              full_name: fullName,
+              email: email,
+              city: city,
+              onboarding_completed: false,
+              status: "active"
+            }
+          ]);
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+        }
+
+        setUser(authData.user);
+        toast.success("Account created successfully!");
+        return authData.user;
+      }
+    } catch (error) {
+      console.error("Email verification sign-in error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create account";
+      toast.error("Account creation failed", { description: errorMessage });
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -570,6 +623,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signInWithGoogle,
       signInWithApple,
       signInWithEmail,
+      signInWithEmailVerification,
       isOnboardingComplete,
     }),
     [
@@ -585,6 +639,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signInWithGoogle,
       signInWithApple,
       signInWithEmail,
+      signInWithEmailVerification,
       isOnboardingComplete,
     ]
   );
