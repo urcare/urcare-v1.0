@@ -259,11 +259,12 @@ const Onboarding = () => {
     return null;
   };
 
-  // Show auth popup if not authenticated
-  useEffect(() => {
-    if (!user) setShowAuth(true);
-    else setShowAuth(false);
-  }, [user]);
+  // TEMPORARY: Skip auth requirement for onboarding
+  // Show auth popup if not authenticated (commented out for temporary bypass)
+  // useEffect(() => {
+  //   if (!user) setShowAuth(true);
+  //   else setShowAuth(false);
+  // }, [user]);
 
   // Immediate redirect if onboarding is already completed
   useEffect(() => {
@@ -385,9 +386,16 @@ const Onboarding = () => {
         data
       );
 
+      // TEMPORARY: Handle case where there's no user (bypass mode)
       if (!user) {
-        console.error("No user found for onboarding completion");
-        toast.error("User not found", { description: "Please log in again." });
+        console.log("No user found - in bypass mode, storing data locally");
+        // Store onboarding data in localStorage for later use
+        localStorage.setItem("pendingOnboardingData", JSON.stringify(data));
+        toast.success("Onboarding completed successfully!", {
+          description: "Your progress has been saved locally.",
+        });
+        // Set onboarding step to complete to show the completion screen
+        setOnboardingStep("complete");
         return;
       }
 
@@ -773,7 +781,14 @@ const Onboarding = () => {
           <div className="space-y-3">
             <button
               onClick={() => {
-                // Redirect immediately to health assessment
+                // TEMPORARY: In bypass mode, always go to paywall
+                if (!user) {
+                  console.log("Continue button clicked - redirecting to paywall (bypass mode)");
+                  navigate("/paywall", { replace: true });
+                  return;
+                }
+                
+                // Redirect immediately to health assessment for authenticated users
                 console.log("Continue button clicked - redirecting to health-assessment immediately");
                 hasRedirectedRef.current = true; // Mark that we're redirecting
                 navigate("/health-assessment", { replace: true });
