@@ -7,13 +7,11 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // PhonePe configuration
-const PHONEPE_MERCHANT_ID =
-  Deno.env.get("PHONEPE_MERCHANT_ID") || "PHONEPEPGUAT";
-const PHONEPE_SALT_KEY =
-  Deno.env.get("PHONEPE_SALT_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
-const PHONEPE_BASE_URL =
-  Deno.env.get("PHONEPE_BASE_URL") ||
-  "https://api-preprod.phonepe.com/apis/pg-sandbox";
+const PHONEPE_MID = Deno.env.get("PHONEPE_MID") || "PHONEPEPGUAT";
+const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
+const PHONEPE_API_KEY = Deno.env.get("PHONEPE_API_KEY") || "";
+const PHONEPE_BASE_URL = Deno.env.get("PHONEPE_BASE_URL") || "https://api-preprod.phonepe.com/apis/pg-sandbox";
+const IS_PRODUCTION = Deno.env.get("PHONEPE_ENVIRONMENT") === "production";
 
 interface StatusRequest {
   merchant_transaction_id: string;
@@ -26,9 +24,22 @@ interface PhonePeStatusRequest {
   transactionId?: string;
 }
 
-function generateChecksum(payload: string, saltKey: string): string {
-  const crypto = require("crypto");
-  return crypto.createHmac("sha256", saltKey).update(payload).digest("hex");
+async function generateChecksum(payload: string, saltKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(saltKey);
+  const messageData = encoder.encode(payload);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function base64Encode(str: string): string {
@@ -79,7 +90,7 @@ serve(async (req) => {
 
     // Prepare PhonePe status check request
     const phonepeRequest: PhonePeStatusRequest = {
-      merchantId: PHONEPE_MERCHANT_ID,
+      merchantId: PHONEPE_MID,
       merchantTransactionId: merchant_transaction_id,
       transactionId: transaction_id || payment.phonepe_transaction_id,
     };
@@ -88,9 +99,9 @@ serve(async (req) => {
     const encodedRequest = base64Encode(JSON.stringify(phonepeRequest));
 
     // Generate checksum
-    const checksum = generateChecksum(
-      encodedRequest + "/pg/v1/status" + PHONEPE_SALT_KEY,
-      PHONEPE_SALT_KEY
+    const checksum = await generateChecksum(
+      encodedRequest + "/pg/v1/status" + PHONEPE_KEY,
+      PHONEPE_KEY
     );
 
     // Prepare the final payload
@@ -101,14 +112,15 @@ serve(async (req) => {
 
     // Make request to PhonePe
     const phonepeResponse = await fetch(
-      `${PHONEPE_BASE_URL}/pg/v1/status/${PHONEPE_MERCHANT_ID}/${merchant_transaction_id}`,
+      `${PHONEPE_BASE_URL}/pg/v1/status/${PHONEPE_MID}/${merchant_transaction_id}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "X-VERIFY": checksum,
-          "X-MERCHANT-ID": PHONEPE_MERCHANT_ID,
-          accept: "application/json",
+          "X-MERCHANT-ID": PHONEPE_MID,
+          "accept": "application/json",
+          ...(PHONEPE_API_KEY && { "Authorization": `Bearer ${PHONEPE_API_KEY}` }),
         },
       }
     );

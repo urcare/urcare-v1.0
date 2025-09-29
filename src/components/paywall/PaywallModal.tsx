@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Crown, Star, X, Zap } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import PhonePePaywallModal from "./PhonePePaywallModal";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -18,6 +19,26 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
   featureName,
   currentPlan = "Free",
 }) => {
+  const [showPhonePeModal, setShowPhonePeModal] = useState(false);
+
+  const handlePhonePeUpgrade = () => {
+    setShowPhonePeModal(true);
+  };
+
+  const handlePhonePeClose = () => {
+    setShowPhonePeModal(false);
+  };
+
+  const handlePhonePeSuccess = (paymentData: any) => {
+    setShowPhonePeModal(false);
+    onUpgrade(); // Trigger the original upgrade flow
+  };
+
+  const handlePhonePeError = (error: string) => {
+    console.error("PhonePe payment error:", error);
+    // You can show a toast or error message here
+  };
+
   if (!isOpen) return null;
 
   const benefits = [
@@ -89,7 +110,7 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
 
           <div className="space-y-3">
             <Button
-              onClick={onUpgrade}
+              onClick={handlePhonePeUpgrade}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
             >
               <Zap className="h-5 w-5 mr-2" />
@@ -107,6 +128,17 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* PhonePe Payment Modal */}
+      <PhonePePaywallModal
+        isOpen={showPhonePeModal}
+        onClose={handlePhonePeClose}
+        onUpgrade={onUpgrade}
+        featureName={featureName}
+        currentPlan={currentPlan}
+        onPaymentSuccess={handlePhonePeSuccess}
+        onPaymentError={handlePhonePeError}
+      />
     </div>
   );
 };

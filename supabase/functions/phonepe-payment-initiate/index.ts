@@ -7,14 +7,14 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // PhonePe configuration
-const PHONEPE_MERCHANT_ID =
-  Deno.env.get("PHONEPE_MERCHANT_ID") || "PHONEPEPGUAT";
+const PHONEPE_MID = Deno.env.get("PHONEPE_MID") || "PHONEPEPGUAT";
 const PHONEPE_KEY_INDEX = Deno.env.get("PHONEPE_KEY_INDEX") || "1";
-const PHONEPE_SALT_KEY =
-  Deno.env.get("PHONEPE_SALT_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
-const PHONEPE_BASE_URL =
-  Deno.env.get("PHONEPE_BASE_URL") ||
-  "https://api-preprod.phonepe.com/apis/pg-sandbox";
+const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
+const PHONEPE_API_KEY = Deno.env.get("PHONEPE_API_KEY") || "";
+const PHONEPE_BASE_URL = Deno.env.get("PHONEPE_BASE_URL") || "https://api-preprod.phonepe.com/apis/pg-sandbox";
+
+// Environment toggle
+const IS_PRODUCTION = Deno.env.get("PHONEPE_ENVIRONMENT") === "production";
 
 interface PaymentRequest {
   user_id: string;
@@ -49,15 +49,34 @@ interface PhonePePayRequest {
       cvv: string;
     };
   };
+  deviceContext?: {
+    deviceOS: string;
+    deviceOSVersion: string;
+    deviceName: string;
+    deviceType: string;
+  };
 }
 
 function generateMerchantTransactionId(): string {
   return `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function generateChecksum(payload: string, saltKey: string): string {
-  const crypto = require("crypto");
-  return crypto.createHmac("sha256", saltKey).update(payload).digest("hex");
+async function generateChecksum(payload: string, saltKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(saltKey);
+  const messageData = encoder.encode(payload);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function base64Encode(str: string): string {
@@ -163,7 +182,7 @@ serve(async (req) => {
 
     // Prepare PhonePe payment request
     const phonepeRequest: PhonePePayRequest = {
-      merchantId: PHONEPE_MERCHANT_ID,
+      merchantId: PHONEPE_MID,
       merchantTransactionId,
       merchantUserId: user_id,
       amount: amount * 100, // PhonePe expects amount in paise
@@ -177,15 +196,21 @@ serve(async (req) => {
       paymentInstrument: {
         type: payment_method.toUpperCase(),
       },
+      deviceContext: {
+        deviceOS: "Web",
+        deviceOSVersion: "1.0",
+        deviceName: "URCare Web App",
+        deviceType: "WEB",
+      },
     };
 
     // Encode the request
     const encodedRequest = base64Encode(JSON.stringify(phonepeRequest));
 
     // Generate checksum
-    const checksum = generateChecksum(
-      encodedRequest + "/pg/v1/pay" + PHONEPE_SALT_KEY,
-      PHONEPE_SALT_KEY
+    const checksum = await generateChecksum(
+      encodedRequest + "/pg/v1/pay" + PHONEPE_KEY,
+      PHONEPE_KEY
     );
 
     // Prepare the final payload
@@ -200,7 +225,9 @@ serve(async (req) => {
       headers: {
         "Content-Type": "application/json",
         "X-VERIFY": checksum,
-        accept: "application/json",
+        "X-MERCHANT-ID": PHONEPE_MID,
+        "accept": "application/json",
+        ...(PHONEPE_API_KEY && { "Authorization": `Bearer ${PHONEPE_API_KEY}` }),
       },
       body: JSON.stringify(payload),
     });
