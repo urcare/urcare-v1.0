@@ -7,8 +7,8 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // PhonePe configuration
-const PHONEPE_SALT_KEY =
-  Deno.env.get("PHONEPE_SALT_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
+const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
+const IS_PRODUCTION = Deno.env.get("PHONEPE_ENVIRONMENT") === "production";
 
 interface PhonePeCallbackData {
   response: string;
@@ -38,21 +38,34 @@ interface PhonePeResponse {
   };
 }
 
-function generateChecksum(payload: string, saltKey: string): string {
-  const crypto = require("crypto");
-  return crypto.createHmac("sha256", saltKey).update(payload).digest("hex");
+async function generateChecksum(payload: string, saltKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(saltKey);
+  const messageData = encoder.encode(payload);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function base64Decode(str: string): string {
   return atob(str);
 }
 
-function verifyChecksum(
+async function verifyChecksum(
   response: string,
   checksum: string,
   saltKey: string
-): boolean {
-  const expectedChecksum = generateChecksum(
+): Promise<boolean> {
+  const expectedChecksum = await generateChecksum(
     response + "/pg/v1/status" + saltKey,
     saltKey
   );
@@ -69,7 +82,7 @@ serve(async (req) => {
     const { response, checksum }: PhonePeCallbackData = await req.json();
 
     // Verify checksum
-    if (!verifyChecksum(response, checksum, PHONEPE_SALT_KEY)) {
+    if (!(await verifyChecksum(response, checksum, PHONEPE_KEY))) {
       console.error("Invalid checksum in callback");
       return new Response(JSON.stringify({ error: "Invalid checksum" }), {
         status: 400,

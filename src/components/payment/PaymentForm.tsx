@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { paymentService } from "@/services/paymentService";
+import { PhonePeService, PhonePeUtils } from "@/services/phonepeService";
 import { ArrowLeft, CheckCircle, Loader2, XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -23,7 +23,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [selectedMethod, setSelectedMethod] = useState("PAY_PAGE");
+  const [selectedMethod, setSelectedMethod] = useState<"PAY_PAGE" | "UPI_INTENT" | "UPI_COLLECT" | "UPI_QR" | "CARD" | "NET_BANKING">("PAY_PAGE");
   const [paymentDetails, setPaymentDetails] = useState<any>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -36,15 +36,17 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     if (paymentId && paymentStatus === "processing") {
       const interval = setInterval(async () => {
         try {
-          const status = await paymentService.checkPaymentStatus(paymentId);
-          setPaymentStatus(status.status as any);
+          const status = await PhonePeService.checkPaymentStatus({
+            merchant_transaction_id: paymentId,
+          });
+          setPaymentStatus(status.payment.status as any);
 
-          if (status.status === "completed") {
+          if (status.payment.status === "completed") {
             toast.success(
               "Payment successful! Your subscription is now active."
             );
             navigate("/dashboard");
-          } else if (status.status === "failed") {
+          } else if (status.payment.status === "failed") {
             toast.error("Payment failed. Please try again.");
             setIsProcessing(false);
           }
@@ -67,34 +69,38 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     setPaymentStatus("processing");
 
     try {
-      const result = await paymentService.initiatePayment({
-        userId: profile.id,
-        planId,
-        billingCycle,
-        paymentMethod: selectedMethod as any,
-        userEmail: profile.email,
-        userPhone: profile.phone,
+      const result = await PhonePeService.initiatePayment({
+        user_id: profile.id,
+        plan_id: planId,
+        billing_cycle: billingCycle,
+        amount: amount,
+        currency: "INR",
+        payment_method: selectedMethod,
+        redirect_url: `${window.location.origin}/payment/success`,
+        callback_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phonepe-payment-callback`,
+        user_email: profile.email,
+        user_phone: profile.phone,
         ...paymentDetails,
       });
 
       if (result.success) {
-        setPaymentId(result.paymentId || null);
+        setPaymentId(result.merchant_transaction_id);
 
-        if (result.redirectUrl) {
+        if (result.payment_url) {
           // Redirect to PhonePe payment page
-          window.location.href = result.redirectUrl;
+          window.location.href = result.payment_url;
         } else {
           // For UPI Intent, show success message
           toast.success("Payment initiated successfully!");
         }
       } else {
-        toast.error(result.error || "Payment initiation failed");
+        toast.error(result.message || "Payment initiation failed");
         setIsProcessing(false);
         setPaymentStatus("pending");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      toast.error(error.message || "Payment failed. Please try again.");
       setIsProcessing(false);
       setPaymentStatus("pending");
     }

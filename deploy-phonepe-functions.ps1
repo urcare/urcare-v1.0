@@ -1,94 +1,75 @@
-# PhonePe Integration Deployment Script for Windows PowerShell
-# This script deploys all PhonePe-related Supabase Edge Functions
+# PhonePe Functions Deployment Script for Windows PowerShell
+# This script deploys all PhonePe-related Edge Functions to Supabase
 
-Write-Host "🚀 Starting PhonePe Integration Deployment..." -ForegroundColor Green
+Write-Host "🚀 Starting PhonePe Functions Deployment..." -ForegroundColor Green
 
-# Check if Supabase CLI is installed
+# Check if supabase CLI is installed
 try {
-    $supabaseVersion = supabase --version
-    Write-Host "✅ Supabase CLI found: $supabaseVersion" -ForegroundColor Green
+    supabase --version | Out-Null
 } catch {
-    Write-Host "❌ Supabase CLI is not installed. Please install it first:" -ForegroundColor Red
-    Write-Host "npm install -g supabase" -ForegroundColor Yellow
+    Write-Host "❌ Supabase CLI is not installed. Please install it first." -ForegroundColor Red
+    Write-Host "   Visit: https://supabase.com/docs/guides/cli" -ForegroundColor Yellow
     exit 1
 }
 
-# Check if user is logged in to Supabase
+# Check if user is logged in
 try {
-    supabase status | Out-Null
-    Write-Host "✅ Logged in to Supabase" -ForegroundColor Green
+    supabase projects list | Out-Null
 } catch {
-    Write-Host "❌ Not logged in to Supabase. Please run: supabase login" -ForegroundColor Red
+    Write-Host "❌ Please login to Supabase CLI first:" -ForegroundColor Red
+    Write-Host "   supabase login" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "📦 Deploying Supabase Edge Functions..." -ForegroundColor Blue
+Write-Host "📦 Deploying PhonePe Edge Functions..." -ForegroundColor Blue
 
-# Deploy each function
-$functions = @(
-    "phonepe-payment-initiate",
-    "phonepe-payment-callback",
-    "phonepe-payment-status",
-    "phonepe-refund",
-    "phonepe-refund-callback",
-    "phonepe-vpa-validate",
-    "phonepe-payment-options"
-)
+# Deploy payment initiation function
+Write-Host "  📤 Deploying phonepe-payment-initiate..." -ForegroundColor Cyan
+supabase functions deploy phonepe-payment-initiate
 
-foreach ($func in $functions) {
-    Write-Host "Deploying $func..." -ForegroundColor Yellow
-    try {
-        supabase functions deploy $func
-        Write-Host "✅ $func deployed successfully" -ForegroundColor Green
-    } catch {
-        Write-Host "❌ Failed to deploy $func" -ForegroundColor Red
-        exit 1
-    }
-}
+# Deploy payment callback function
+Write-Host "  📤 Deploying phonepe-payment-callback..." -ForegroundColor Cyan
+supabase functions deploy phonepe-payment-callback
 
-Write-Host "🗄️ Running database migrations..." -ForegroundColor Blue
+# Deploy payment status function
+Write-Host "  📤 Deploying phonepe-payment-status..." -ForegroundColor Cyan
+supabase functions deploy phonepe-payment-status
 
-# Run the PhonePe functions migration
-try {
-    supabase db push
-    Write-Host "✅ Database migrations completed successfully" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Database migration failed" -ForegroundColor Red
-    exit 1
-}
+# Deploy refund function
+Write-Host "  📤 Deploying phonepe-refund..." -ForegroundColor Cyan
+supabase functions deploy phonepe-refund
 
-Write-Host "🔧 Setting up environment variables..." -ForegroundColor Blue
+# Deploy refund callback function
+Write-Host "  📤 Deploying phonepe-refund-callback..." -ForegroundColor Cyan
+supabase functions deploy phonepe-refund-callback
 
-# Check if .env.local file exists
-if (!(Test-Path ".env.local")) {
-    Write-Host "Creating .env.local file..." -ForegroundColor Yellow
-    $envContent = @"
-# PhonePe Configuration
-VITE_PHONEPE_MERCHANT_ID=PHONEPEPGUAT
-VITE_PHONEPE_KEY_INDEX=1
-VITE_PHONEPE_SALT_KEY=c817ffaf-8471-48b5-a7e2-a27e5b7efbd3
-VITE_PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+# Deploy VPA validation function
+Write-Host "  📤 Deploying phonepe-vpa-validate..." -ForegroundColor Cyan
+supabase functions deploy phonepe-vpa-validate
 
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
-VITE_FRONTEND_URL=http://localhost:3000
-"@
-    $envContent | Out-File -FilePath ".env.local" -Encoding UTF8
-    Write-Host "📝 Please update .env.local with your actual Supabase credentials" -ForegroundColor Yellow
-}
+# Deploy payment options function
+Write-Host "  📤 Deploying phonepe-payment-options..." -ForegroundColor Cyan
+supabase functions deploy phonepe-payment-options
 
-Write-Host "📋 Next steps:" -ForegroundColor Cyan
-Write-Host "1. Update your .env.local file with correct Supabase credentials" -ForegroundColor White
-Write-Host "2. Set environment variables in Supabase dashboard:" -ForegroundColor White
-Write-Host "   - PHONEPE_MERCHANT_ID=PHONEPEPGUAT" -ForegroundColor White
-Write-Host "   - PHONEPE_KEY_INDEX=1" -ForegroundColor White
-Write-Host "   - PHONEPE_SALT_KEY=c817ffaf-8471-48b5-a7e2-a27e5b7efbd3" -ForegroundColor White
-Write-Host "   - PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox" -ForegroundColor White
-Write-Host "   - FRONTEND_URL=your_frontend_url" -ForegroundColor White
-Write-Host "3. Test the integration using the test credentials provided in the documentation" -ForegroundColor White
-Write-Host "4. Update to production credentials when ready to go live" -ForegroundColor White
+Write-Host "✅ All PhonePe functions deployed successfully!" -ForegroundColor Green
 
 Write-Host ""
-Write-Host "🎉 PhonePe integration deployment completed!" -ForegroundColor Green
-Write-Host "📖 Check PHONEPE_INTEGRATION_GUIDE.md for detailed usage instructions" -ForegroundColor Cyan
+Write-Host "🔧 Next Steps:" -ForegroundColor Yellow
+Write-Host "1. Set environment variables in your Supabase project:" -ForegroundColor White
+Write-Host "   - Go to Settings > Edge Functions" -ForegroundColor Gray
+Write-Host "   - Add the required environment variables" -ForegroundColor Gray
+Write-Host ""
+Write-Host "2. Test the integration:" -ForegroundColor White
+Write-Host "   - Start your development server: npm run dev" -ForegroundColor Gray
+Write-Host "   - Navigate to the subscription page" -ForegroundColor Gray
+Write-Host "   - Test with UAT credentials" -ForegroundColor Gray
+Write-Host ""
+Write-Host "3. For production:" -ForegroundColor White
+Write-Host "   - Update environment variables with production credentials" -ForegroundColor Gray
+Write-Host "   - Set PHONEPE_ENVIRONMENT=production" -ForegroundColor Gray
+Write-Host ""
+Write-Host "📚 Documentation:" -ForegroundColor Yellow
+Write-Host "   - Setup Guide: PHONEPE_SETUP_GUIDE.md" -ForegroundColor Gray
+Write-Host "   - Integration Guide: PHONEPE_INTEGRATION_GUIDE.md" -ForegroundColor Gray
+Write-Host ""
+Write-Host "🎉 PhonePe integration is ready!" -ForegroundColor Green
