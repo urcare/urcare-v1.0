@@ -27,17 +27,32 @@ export default function PhonePeCheckout({
     if (!user) return onError("Not authenticated");
     setLoading(true);
     try {
+      // First, get the actual plan ID from the database using the slug
+      const { data: plan, error: planError } = await supabase
+        .from('subscription_plans')
+        .select('id, price_monthly, price_annual')
+        .eq('slug', planSlug)
+        .eq('is_active', true)
+        .single();
+
+      if (planError || !plan) {
+        console.error('Plan not found:', planError);
+        onError('Subscription plan not found');
+        setLoading(false);
+        return;
+      }
+
       const merchantTransactionId = `${user.id}-${Date.now()}`;
 
-      // Use fixed INR prices and convert to paise
-      const priceINR = billingCycle === "monthly" ? 849 : 4999;
+      // Use the plan's actual pricing
+      const priceINR = billingCycle === "monthly" ? plan.price_monthly : plan.price_annual;
       const amountPaise = priceINR * 100; // Convert INR to paise
 
       const redirectUrl = `${window.location.origin}/payment/phonepe/success?tx=${merchantTransactionId}&plan=${planSlug}&cycle=${billingCycle}`;
 
       const requestBody = {
         user_id: user.id,
-        plan_id: planSlug,
+        plan_id: plan.id, // Use the actual UUID from database
         billing_cycle: billingCycle,
         amount: priceINR, // Send amount in INR, not paise
         currency: "INR",
