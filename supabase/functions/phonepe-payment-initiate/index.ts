@@ -133,18 +133,41 @@ serve(async (req) => {
       );
     }
 
-    // Get user details
-    const { data: user, error: userError } = await supabase
+    // Get user details from user_profiles or create a basic profile
+    let { data: user, error: userError } = await supabase
       .from("user_profiles")
       .select("*")
       .eq("id", user_id)
       .single();
 
+    // If user not found in user_profiles, create a basic profile
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.log("User not found in user_profiles, creating basic profile");
+      
+      // Create a basic user profile
+      const { data: newUser, error: createError } = await supabase
+        .from("user_profiles")
+        .insert({
+          id: user_id,
+          full_name: "User",
+          onboarding_completed: true,
+          status: "active"
+        })
+        .select()
+        .single();
+
+      if (createError || !newUser) {
+        console.error("Failed to create user profile:", createError);
+        return new Response(JSON.stringify({ 
+          error: "Failed to create user profile",
+          details: createError?.message 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      user = newUser;
     }
 
     // Generate merchant transaction ID
