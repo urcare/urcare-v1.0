@@ -1,6 +1,8 @@
 import { HealthContentNew } from "@/components/HealthContentNew";
 import { ThemeWrapper } from "@/components/ThemeWrapper";
-import { useLocation } from "react-router-dom";
+import { HealthPlanComparison } from "@/components/HealthPlanComparison";
+import { HealthScoreDisplay } from "@/components/HealthScoreDisplay";
+import { useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +11,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Target, TrendingUp, Users } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  CheckCircle, 
+  Clock, 
+  Target, 
+  TrendingUp, 
+  Users, 
+  Sparkles, 
+  Calendar,
+  Activity,
+  Heart,
+  Zap,
+  ArrowRight,
+  Plus,
+  Settings,
+  BarChart3
+} from "lucide-react";
 
 interface HealthPlan {
   id: string;
@@ -35,11 +54,14 @@ interface HealthPlan {
 
 const Dashboard: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [healthPlans, setHealthPlans] = useState<HealthPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<HealthPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [healthScore, setHealthScore] = useState<{current: number, projected: number, improvements: string[]} | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [savedPlans, setSavedPlans] = useState<HealthPlan[]>([]);
 
   useEffect(() => {
     // Check if user came from health plan generation
@@ -52,9 +74,10 @@ const Dashboard: React.FC = () => {
       });
     }
     
-    // Load health plans if not already loaded
-    if (user && profile && healthPlans.length === 0) {
+    // Load health plans and saved plans
+    if (user && profile) {
       loadHealthPlans();
+      loadSavedPlans();
     }
   }, [location.state, user, profile]);
 
@@ -177,6 +200,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const loadSavedPlans = async () => {
+    if (!user) return;
+    
+    try {
+      const savedPlans = await aiHealthPlanService.getUserHealthPlans(user.id);
+      setSavedPlans(savedPlans);
+      
+      // Set the most recent plan as selected if available
+      if (savedPlans.length > 0) {
+        setSelectedPlan(savedPlans[0]);
+      }
+    } catch (error) {
+      console.error("Error loading saved plans:", error);
+    }
+  };
+
   const handleSelectPlan = async (plan: HealthPlan) => {
     if (!user) return;
 
@@ -209,12 +248,19 @@ const Dashboard: React.FC = () => {
       await aiHealthPlanService.saveHealthPlan(user.id, plan);
       setSelectedPlan(plan);
       toast.success("Health plan selected and saved!");
+      
+      // Refresh saved plans
+      await loadSavedPlans();
     } catch (error) {
       console.error("Error saving health plan:", error);
       toast.error("Failed to save health plan. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGenerateNewPlans = () => {
+    navigate("/health-plan-generation");
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -237,158 +283,220 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+    <div className="bg-gradient-to-br from-emerald-50 to-blue-50 min-h-screen">
       <ThemeWrapper>
-        <div className="space-y-2">
-          {/* Header with Health Score */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-[3rem] p-6 shadow-xl border border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+          {/* Header Section */}
+          <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  Hi {getFirstName()}! 👋
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  Welcome back, {getFirstName()}! 👋
                 </h1>
-                {healthScore && (
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm text-slate-600">Health Score:</span>
-                      <span className="text-2xl font-bold text-blue-600">
-                        {healthScore.current}
-                      </span>
-                      <span className="text-sm text-slate-500">→ {healthScore.projected}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm text-blue-600">+{healthScore.projected - healthScore.current} points</span>
-                    </div>
-                  </div>
-                )}
+                <p className="text-gray-600 text-lg">
+                  Your personalized health journey starts here
+                </p>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-slate-500">Current Plan</div>
-                <div className="text-lg font-semibold text-slate-800">
-                  {selectedPlan ? selectedPlan.name : "No Plan Selected"}
-                </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={handleGenerateNewPlans}
+                  className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl shadow-lg"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Generate New Plans
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Settings className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Health Plans Section */}
-          <div className="bg-white rounded-[3rem] p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Choose Your Health Plan</h2>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-gray-500" />
-                <span className="text-sm text-gray-500">3 Plans Available</span>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse"></div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {healthPlans.map((plan, index) => (
-                  <Card 
-                    key={plan.id} 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                      selectedPlan?.id === plan.id 
-                        ? 'ring-2 ring-emerald-500 bg-emerald-50' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => handleSelectPlan(plan)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CardTitle className="text-xl">{plan.name}</CardTitle>
-                            <Badge className={getDifficultyColor(plan.difficulty)}>
-                              {plan.difficulty.charAt(0).toUpperCase() + plan.difficulty.slice(1)}
-                            </Badge>
-                          </div>
-                          <CardDescription className="text-base">
-                            {plan.description}
-                          </CardDescription>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm text-gray-500 mb-1">
-                            <Clock className="w-4 h-4" />
-                            {plan.duration_weeks} weeks
-                          </div>
-                          {selectedPlan?.id === plan.id && (
-                            <div className="flex items-center gap-1 text-emerald-600 text-sm">
-                              <CheckCircle className="w-4 h-4" />
-                              Selected
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="text-sm font-medium text-gray-700 mb-1">Focus Areas</div>
-                          <div className="flex flex-wrap gap-1">
-                            {plan.focus_areas.slice(0, 2).map((area, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {area}
-                              </Badge>
-                            ))}
-                            {plan.focus_areas.length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{plan.focus_areas.length - 2} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-700 mb-1">Expected Results</div>
-                          <div className="text-sm text-gray-600">
-                            {plan.health_metrics.weight_loss_goal}kg weight loss
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            +{plan.health_metrics.fitness_improvement}% fitness
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-500">
-                          {plan.activities.length} activities planned
-                        </div>
-                        <Button 
-                          variant={selectedPlan?.id === plan.id ? "default" : "outline"}
-                          size="sm"
-                          className="min-w-[100px]"
-                        >
-                          {selectedPlan?.id === plan.id ? "Selected" : "Select Plan"}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Health Insights (if no plan selected) */}
-          {!selectedPlan && healthScore && (
-            <div className="bg-white rounded-[3rem] p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Health Insights</h3>
-              <div className="space-y-3">
-                {healthScore.improvements.map((improvement, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl">
-                    <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                    <span className="text-gray-700">{improvement}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Health Score Section */}
+          {healthScore && (
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+              <HealthScoreDisplay healthScore={healthScore} />
             </div>
           )}
+
+          {/* Main Content Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-white rounded-2xl p-2 shadow-lg">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="plans" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Health Plans
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Progress
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* Current Plan Status */}
+              {selectedPlan ? (
+                <Card className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0 shadow-xl">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-2xl text-white flex items-center gap-2">
+                          <CheckCircle className="w-6 h-6" />
+                          Active Health Plan
+                        </CardTitle>
+                        <CardDescription className="text-emerald-100 text-lg">
+                          {selectedPlan.name}
+                        </CardDescription>
+                      </div>
+                      <Badge className="bg-white/20 text-white border-white/30">
+                        {selectedPlan.difficulty.charAt(0).toUpperCase() + selectedPlan.difficulty.slice(1)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-white/10 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-5 h-5" />
+                          <span className="font-semibold">Duration</span>
+                        </div>
+                        <p className="text-2xl font-bold">{selectedPlan.duration_weeks} weeks</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Activity className="w-5 h-5" />
+                          <span className="font-semibold">Activities</span>
+                        </div>
+                        <p className="text-2xl font-bold">{selectedPlan.activities.length}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="w-5 h-5" />
+                          <span className="font-semibold">Focus Areas</span>
+                        </div>
+                        <p className="text-2xl font-bold">{selectedPlan.focus_areas.length}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <Button 
+                        onClick={() => navigate("/health-plan")}
+                        className="bg-white text-emerald-600 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl"
+                      >
+                        View Plan Details
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-gradient-to-r from-gray-100 to-gray-200 border-0 shadow-lg">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-gray-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Active Health Plan</h3>
+                    <p className="text-gray-600 mb-6">Generate a personalized health plan to start your journey</p>
+                    <Button 
+                      onClick={handleGenerateNewPlans}
+                      className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Generate Health Plans
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-white shadow-lg border border-gray-100">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Heart className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Health Score</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {healthScore?.current || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white shadow-lg border border-gray-100">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <Zap className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Active Plans</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {savedPlans.length}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white shadow-lg border border-gray-100">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Days Active</p>
+                        <p className="text-2xl font-bold text-gray-900">7</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Health Plans Tab */}
+            <TabsContent value="plans" className="space-y-6">
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-48 bg-gray-100 rounded-2xl animate-pulse"></div>
+                  ))}
+                </div>
+              ) : (
+                <HealthPlanComparison
+                  plans={healthPlans}
+                  onSelectPlan={handleSelectPlan}
+                  selectedPlanId={selectedPlan?.id}
+                />
+              )}
+            </TabsContent>
+
+            {/* Progress Tab */}
+            <TabsContent value="progress" className="space-y-6">
+              <Card className="bg-white shadow-lg border border-gray-100">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Your Progress</CardTitle>
+                  <CardDescription>Track your health journey and achievements</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BarChart3 className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">Progress Tracking Coming Soon</h3>
+                    <p className="text-gray-600">Detailed progress analytics will be available once you start your health plan</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </ThemeWrapper>
     </div>

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { HealthPlanDetailedView } from "@/components/HealthPlanDetailedView";
 import { 
   Clock, 
   Target, 
@@ -101,153 +102,36 @@ export const HealthPlanComparison: React.FC<HealthPlanComparisonProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">
           Choose Your Health Plan
         </h2>
-        <p className="text-gray-600">
-          Select the plan that best fits your lifestyle and goals
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Select the plan that best fits your lifestyle and goals. Each plan is AI-generated and personalized for you.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Detailed Plan Cards */}
+      <div className="space-y-6">
         {plans.map((plan, index) => (
-          <Card 
-            key={plan.id} 
-            className={`relative transition-all duration-200 hover:shadow-lg ${
-              selectedPlanId === plan.id 
-                ? 'ring-2 ring-emerald-500 shadow-lg' 
-                : 'hover:shadow-md'
-            }`}
-          >
-            {/* Difficulty Badge */}
-            <div className="absolute -top-3 left-4">
-              <Badge 
-                className={`${difficultyColors[plan.difficulty]} border font-medium`}
-              >
-                {difficultyIcons[plan.difficulty]} {getDifficultyLabel(plan.difficulty)}
-              </Badge>
-            </div>
-
-            {/* Popular Badge for Intermediate */}
-            {plan.difficulty === 'intermediate' && (
-              <div className="absolute -top-3 right-4">
-                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
-                  <Star className="w-3 h-3 mr-1" />
-                  Most Popular
-                </Badge>
-              </div>
-            )}
-
-            <CardHeader className="pt-6">
-              <CardTitle className="text-xl font-bold text-gray-900">
-                {plan.name}
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                {plan.description}
-              </CardDescription>
-              
-              {/* Duration */}
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span>{plan.duration_weeks} weeks</span>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              {/* Focus Areas */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Focus Areas</h4>
-                <div className="flex flex-wrap gap-1">
-                  {plan.focus_areas.map((area, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      {area}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Health Metrics */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Expected Improvements</h4>
-                <div className="space-y-2">
-                  {Object.entries(plan.health_metrics).map(([metric, value]) => (
-                    <div key={metric} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getMetricIcon(metric)}
-                        <span className="text-sm text-gray-600">
-                          {getMetricLabel(metric)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Progress 
-                          value={Math.min(value, 100)} 
-                          className="w-16 h-2"
-                        />
-                        <span className="text-sm font-medium text-gray-900">
-                          +{value}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Daily Activities Preview */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Daily Activities</h4>
-                <div className="space-y-1">
-                  {plan.activities.slice(0, 3).map((activity, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                      {getActivityTypeIcon(activity.type)}
-                      <span className="truncate">{activity.title}</span>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-gray-400">{activity.scheduled_time}</span>
-                    </div>
-                  ))}
-                  {plan.activities.length > 3 && (
-                    <div className="text-sm text-gray-500">
-                      +{plan.activities.length - 3} more activities
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Expected Outcomes */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Expected Outcomes</h4>
-                <ul className="space-y-1">
-                  {plan.expected_outcomes.slice(0, 3).map((outcome, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                      <span>{outcome}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Select Button */}
-              <Button
-                onClick={() => onSelectPlan(plan)}
-                className={`w-full ${
-                  selectedPlanId === plan.id
-                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'bg-gray-900 hover:bg-gray-800'
-                }`}
-              >
-                {selectedPlanId === plan.id ? 'Selected' : 'Select This Plan'}
-              </Button>
-            </CardContent>
-          </Card>
+          <HealthPlanDetailedView
+            key={plan.id}
+            plan={plan}
+            onStartPlan={onSelectPlan}
+            isSelected={selectedPlanId === plan.id}
+          />
         ))}
       </div>
 
       {/* Comparison Table */}
-      <Card>
+      <Card className="bg-white shadow-lg border border-gray-100">
         <CardHeader>
-          <CardTitle>Plan Comparison</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Target className="w-6 h-6 text-emerald-600" />
+            Plan Comparison
+          </CardTitle>
+          <CardDescription className="text-lg">
             Compare key features across all plans
           </CardDescription>
         </CardHeader>
@@ -255,47 +139,63 @@ export const HealthPlanComparison: React.FC<HealthPlanComparisonProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Feature</th>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="text-left py-4 font-semibold text-gray-900">Feature</th>
                   {plans.map((plan) => (
-                    <th key={plan.id} className="text-center py-2 font-medium">
+                    <th key={plan.id} className="text-center py-4 font-semibold text-gray-900">
                       {plan.name}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                <tr className="border-b">
-                  <td className="py-2 font-medium">Difficulty</td>
+              <tbody className="divide-y divide-gray-100">
+                <tr>
+                  <td className="py-4 font-medium text-gray-700">Difficulty</td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="text-center py-2">
+                    <td key={plan.id} className="text-center py-4">
                       <Badge className={difficultyColors[plan.difficulty]}>
                         {getDifficultyLabel(plan.difficulty)}
                       </Badge>
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-medium">Duration</td>
+                <tr>
+                  <td className="py-4 font-medium text-gray-700">Duration</td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="text-center py-2">
+                    <td key={plan.id} className="text-center py-4 text-gray-600">
                       {plan.duration_weeks} weeks
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-medium">Daily Activities</td>
+                <tr>
+                  <td className="py-4 font-medium text-gray-700">Daily Activities</td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="text-center py-2">
+                    <td key={plan.id} className="text-center py-4 text-gray-600">
                       {plan.activities.length}
                     </td>
                   ))}
                 </tr>
                 <tr>
-                  <td className="py-2 font-medium">Focus Areas</td>
+                  <td className="py-4 font-medium text-gray-700">Focus Areas</td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="text-center py-2">
+                    <td key={plan.id} className="text-center py-4 text-gray-600">
                       {plan.focus_areas.length}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="py-4 font-medium text-gray-700">Weight Loss Goal</td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="text-center py-4 text-gray-600">
+                      {plan.health_metrics.weight_loss_goal}kg
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="py-4 font-medium text-gray-700">Fitness Improvement</td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="text-center py-4 text-gray-600">
+                      +{plan.health_metrics.fitness_improvement}%
                     </td>
                   ))}
                 </tr>
