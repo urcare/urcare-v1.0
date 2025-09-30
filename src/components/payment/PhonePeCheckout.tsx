@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   planSlug?: string;
@@ -21,13 +22,15 @@ export default function PhonePeCheckout({
   className,
 }: Props) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const startCheckout = useCallback(async () => {
     if (!user) return onError("Not authenticated");
     setLoading(true);
+    
     try {
-      // First, get the actual plan ID from the database using the slug
+      // Get the actual plan ID from the database using the slug
       const { data: plan, error: planError } = await supabase
         .from('subscription_plans')
         .select('id, price_monthly, price_annual')
@@ -42,50 +45,30 @@ export default function PhonePeCheckout({
         return;
       }
 
-      const merchantTransactionId = `${user.id}-${Date.now()}`;
-
-      // Use the plan's actual pricing
       const priceINR = billingCycle === "monthly" ? plan.price_monthly : plan.price_annual;
-      const amountPaise = priceINR * 100; // Convert INR to paise
+      
+      console.log("Redirecting to payment page with data:", {
+        planSlug,
+        billingCycle,
+        amount: priceINR
+      });
 
-      const redirectUrl = `${window.location.origin}/payment/phonepe/success?tx=${merchantTransactionId}&plan=${planSlug}&cycle=${billingCycle}`;
-
-      const requestBody = {
-        user_id: user.id,
-        plan_id: plan.id, // Use the actual UUID from database
-        billing_cycle: billingCycle,
-        amount: priceINR, // Send amount in INR, not paise
-        currency: "INR",
-        payment_method: "card", // Default payment method
-        redirect_url: redirectUrl,
-        callback_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phonepe-payment-callback`,
-      };
-
-      console.log("Sending PhonePe request:", requestBody);
-
-      const { data, error } = await supabase.functions.invoke(
-        "phonepe-payment-initiate",
-        {
-          body: requestBody,
+      // Navigate to the payment page with the plan data
+      navigate("/paymentpage", {
+        state: {
+          planSlug: planSlug,
+          billingCycle: billingCycle,
+          amount: priceINR
         }
-      );
-      if (error) {
-        console.error("PhonePe function error:", error);
-        throw new Error(error.message || "PhonePe payment failed");
-      }
-
-      const url: string | undefined = data?.redirect_url || data?.payment_url;
-      if (!url) {
-        console.error("PhonePe response:", data);
-        throw new Error("Unable to start PhonePe payment - no redirect URL received");
-      }
-
-      window.location.href = url;
+      });
+      
+      setLoading(false);
     } catch (e: any) {
+      console.error("Payment initiation error:", e);
       onError(e?.message || "Payment failed");
       setLoading(false);
     }
-  }, [user, planSlug, billingCycle]);
+  }, [user, planSlug, billingCycle, onError, navigate]);
 
   return (
     <div className="space-y-4">

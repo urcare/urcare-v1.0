@@ -56,6 +56,7 @@ interface CheckDashboardModalProps {
   energyLevel: number;
   recommendations: string[];
   missingActivities: string[];
+  weeklyProgress?: any[];
 }
 
 export const CheckDashboardModal: React.FC<CheckDashboardModalProps> = ({
@@ -67,7 +68,8 @@ export const CheckDashboardModal: React.FC<CheckDashboardModalProps> = ({
   totalActivities,
   energyLevel,
   recommendations,
-  missingActivities
+  missingActivities,
+  weeklyProgress = []
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -105,7 +107,7 @@ export const CheckDashboardModal: React.FC<CheckDashboardModalProps> = ({
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 border-0 shadow-2xl">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            Check Dashboard
+            {activities.length > 0 ? `${activities[0]?.time || getDayName()}'s Workout Plan` : 'Check Dashboard'}
           </DialogTitle>
           <DialogDescription className="text-slate-600 text-lg">
             Your personalized health insights and recommendations for {getDayName()}
@@ -285,7 +287,7 @@ export const CheckDashboardModal: React.FC<CheckDashboardModalProps> = ({
             </Card>
           )}
 
-          {/* Weekly Progress Chart Placeholder */}
+          {/* Weekly Progress Chart */}
           <Card className="bg-gradient-to-br from-white to-slate-50 border-0 shadow-xl">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -294,11 +296,41 @@ export const CheckDashboardModal: React.FC<CheckDashboardModalProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48 bg-gradient-to-r from-slate-100 to-slate-200 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                  <div className="text-slate-500">Progress chart coming soon</div>
-                </div>
+              <div className="space-y-4">
+                {weeklyProgress.length > 0 ? (
+                  <div className="space-y-3">
+                    {weeklyProgress.map((day, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
+                            {day.day}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-slate-700">
+                              {day.completedCount}/{day.totalCount} activities
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {day.completionRate.toFixed(0)}% complete
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+                            style={{ width: `${day.completionRate}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-32 bg-gradient-to-r from-slate-100 to-slate-200 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <BarChart3 className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-500 text-sm">No progress data available</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

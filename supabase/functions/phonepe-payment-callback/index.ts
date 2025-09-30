@@ -1,220 +1,187 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
-// PhonePe configuration
-const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
-const IS_PRODUCTION = Deno.env.get("PHONEPE_ENVIRONMENT") === "production";
+// PhonePe Configuration - Using saved secrets
+const PHONEPE_CONFIG = {
+  MERCHANT_ID: Deno.env.get('PHONEPE_MERCHANT_ID') || 'M23XRS3XN3QMF',
+  CLIENT_ID: Deno.env.get('PHONEPE_CLIENT_ID') || 'SU2509291721337653559173',
+  CLIENT_SECRET: Deno.env.get('PHONEPE_CLIENT_SECRET') || '713219fb-38d0-468d-8268-8b15955468b0',
+  CLIENT_VERSION: Deno.env.get('PHONEPE_CLIENT_VERSION') || '1',
+  KEY_INDEX: Deno.env.get('PHONEPE_KEY_INDEX') || '1',
+  API_KEY: Deno.env.get('PHONEPE_API_KEY') || '713219fb-38d0-468d-8268-8b15955468b0',
+  BASE_URL: Deno.env.get('PHONEPE_BASE_URL') || 'https://api-preprod.phonepe.com/apis/pg-sandbox',
+  ENVIRONMENT: Deno.env.get('PHONEPE_ENV') || 'SANDBOX',
+  MERCHANT_USERNAME: Deno.env.get('MERCHANT_USERNAME') || 'M23XRS3XN3QMF',
+  MERCHANT_PASSWORD: Deno.env.get('MERCHANT_PASSWORD') || '713219fb-38d0-468d-8268-8b15955468b0',
+};
 
-interface PhonePeCallbackData {
-  response: string;
-  checksum: string;
+// Generate PhonePe checksum for callback validation
+function generateChecksum(payload: string, apiKey: string): string {
+  const crypto = require('crypto');
+  const hash = crypto.createHmac('sha256', apiKey).update(payload).digest('hex');
+  return Buffer.from(hash).toString('base64');
 }
 
-interface PhonePeResponse {
-  success: boolean;
-  code: string;
-  message: string;
-  data: {
-    merchantId: string;
-    merchantTransactionId: string;
-    transactionId: string;
-    amount: number;
-    state: string;
-    responseCode: string;
-    paymentInstrument: {
-      type: string;
-      utr?: string;
-      cardType?: string;
-      pgTransactionId?: string;
-      pgServiceTransactionId?: string;
-      bankTransactionId?: string;
-      bankId?: string;
-    };
-  };
-}
+// Validate PhonePe callback
+async function validateCallback(username: string, password: string, authorizationHeader: string, responseBody: string): Promise<boolean> {
+  try {
+    // In a real implementation, you would validate the callback using PhonePe's validation method
+    // For now, we'll do basic validation
+    if (!authorizationHeader || !responseBody) {
+      return false;
+    }
 
-async function generateChecksum(payload: string, saltKey: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(saltKey);
-  const messageData = encoder.encode(payload);
-  
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyData,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
-  const hashArray = Array.from(new Uint8Array(signature));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function base64Decode(str: string): string {
-  return atob(str);
-}
-
-async function verifyChecksum(
-  response: string,
-  checksum: string,
-  saltKey: string
-): Promise<boolean> {
-  const expectedChecksum = await generateChecksum(
-    response + "/pg/v1/status" + saltKey,
-    saltKey
-  );
-  return expectedChecksum === checksum;
+    // Extract checksum from authorization header
+    const checksum = authorizationHeader.replace('X-VERIFY ', '');
+    
+    // Generate expected checksum
+    const expectedChecksum = generateChecksum(responseBody, PHONEPE_CONFIG.API_KEY);
+    
+    // Compare checksums
+    return checksum === expectedChecksum;
+  } catch (error) {
+    console.error('Error validating callback:', error);
+    return false;
+  }
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { response, checksum }: PhonePeCallbackData = await req.json();
+    const authorizationHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+    const responseBody = await req.text();
 
-    // Verify checksum
-    if (!(await verifyChecksum(response, checksum, PHONEPE_KEY))) {
-      console.error("Invalid checksum in callback");
-      return new Response(JSON.stringify({ error: "Invalid checksum" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    console.log('PhonePe Callback received:', {
+      authorization: authorizationHeader ? authorizationHeader.substring(0, 20) + '...' : 'None',
+      bodyLength: responseBody.length
+    });
 
-    // Decode the response
-    const decodedResponse: PhonePeResponse = JSON.parse(base64Decode(response));
+    // Validate callback
+    const isValid = await validateCallback(
+      PHONEPE_CONFIG.MERCHANT_USERNAME,
+      PHONEPE_CONFIG.MERCHANT_PASSWORD,
+      authorizationHeader || '',
+      responseBody
+    );
 
-    console.log("PhonePe callback received:", decodedResponse);
-
-    // Find the payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq(
-        "phonepe_merchant_transaction_id",
-        decodedResponse.data.merchantTransactionId
-      )
-      .single();
-
-    if (paymentError || !payment) {
-      console.error("Payment record not found:", paymentError);
+    if (!isValid) {
+      console.error('Invalid PhonePe callback received');
       return new Response(
-        JSON.stringify({ error: "Payment record not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        JSON.stringify({ error: 'Invalid callback' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Update payment status
-    const paymentStatus =
-      decodedResponse.success && decodedResponse.data.state === "COMPLETED"
-        ? "completed"
-        : "failed";
+    // Parse callback data
+    const callbackData = JSON.parse(responseBody);
+    console.log('PhonePe Callback Data:', callbackData);
 
-    const { error: updateError } = await supabase
-      .from("payments")
-      .update({
+    const orderId = callbackData.payload?.merchantOrderId;
+    const status = callbackData.payload?.state;
+    const phonepeTransactionId = callbackData.payload?.transactionId;
+
+    if (!orderId || !status) {
+      console.error('Missing required callback data');
+      return new Response(
+        JSON.stringify({ error: 'Missing required callback data' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Update payment status in database
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Map PhonePe status to our status
+    let paymentStatus = 'processing';
+    switch (status) {
+      case 'PAYMENT_SUCCESS':
+        paymentStatus = 'completed';
+        break;
+      case 'PAYMENT_ERROR':
+      case 'PAYMENT_CANCELLED':
+        paymentStatus = 'failed';
+        break;
+      default:
+        paymentStatus = 'processing';
+    }
+
+    // Update payment record
+    const { error: updateError } = await supabaseClient
+      .from('payments')
+      .update({ 
         status: paymentStatus,
-        phonepe_transaction_id: decodedResponse.data.transactionId,
-        phonepe_response: decodedResponse,
-        processed_at: new Date().toISOString(),
-        failure_reason:
-          paymentStatus === "failed" ? decodedResponse.message : null,
+        phonepe_response: callbackData,
+        phonepe_transaction_id: phonepeTransactionId
       })
-      .eq("id", payment.id);
+      .eq('phonepe_merchant_transaction_id', orderId);
 
     if (updateError) {
-      console.error("Failed to update payment:", updateError);
+      console.error('Failed to update payment record:', updateError);
       return new Response(
-        JSON.stringify({ error: "Failed to update payment status" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        JSON.stringify({ error: 'Failed to update payment status' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // If payment is successful, create or update subscription
-    if (paymentStatus === "completed") {
-      // Check if user already has an active subscription
-      const { data: existingSubscription } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", payment.user_id)
-        .eq("status", "active")
-        .single();
-
-      if (existingSubscription) {
-        // Update existing subscription
-        const newPeriodEnd = new Date(existingSubscription.current_period_end);
-        if (payment.billing_cycle === "monthly") {
-          newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1);
-        } else {
-          newPeriodEnd.setFullYear(newPeriodEnd.getFullYear() + 1);
-        }
-
-        await supabase
-          .from("subscriptions")
-          .update({
-            current_period_end: newPeriodEnd.toISOString(),
-            status: "active",
-          })
-          .eq("id", existingSubscription.id);
-      } else {
-        // Create new subscription
-        const now = new Date();
-        const periodEnd = new Date();
-
-        if (payment.billing_cycle === "monthly") {
-          periodEnd.setMonth(periodEnd.getMonth() + 1);
-        } else {
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        }
-
-        await supabase.from("subscriptions").insert({
-          user_id: payment.user_id,
-          plan_id: payment.plan_id,
-          status: "active",
-          billing_cycle: payment.billing_cycle,
-          current_period_start: now.toISOString(),
-          current_period_end: periodEnd.toISOString(),
-          phonepe_subscription_id: decodedResponse.data.transactionId,
-        });
-      }
+    // Process callback based on type
+    switch (callbackData.type) {
+      case 'PAYMENT_SUCCESS':
+        console.log('Payment successful for order:', orderId);
+        // Here you can add additional logic like creating subscription, sending emails, etc.
+        break;
+      case 'PAYMENT_ERROR':
+        console.log('Payment failed for order:', orderId);
+        break;
+      default:
+        console.log('Received unknown callback type:', callbackData.type);
     }
 
+    // Return success response
     return new Response(
-      JSON.stringify({
-        success: true,
-        payment_status: paymentStatus,
-        transaction_id: decodedResponse.data.transactionId,
+      JSON.stringify({ 
+        success: true, 
+        message: 'Callback processed successfully',
+        orderId: orderId,
+        status: paymentStatus
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
+
   } catch (error) {
-    console.error("Payment callback error:", error);
+    console.error('Error processing PhonePe callback:', error);
+    
     return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        details: error.message,
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        success: false 
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }

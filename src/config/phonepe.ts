@@ -53,13 +53,13 @@ export interface PaymentMethodConfig {
 // Environment detection
 const isProduction = import.meta.env.VITE_PHONEPE_ENVIRONMENT === "production";
 
-// UAT Configuration
+// UAT Configuration - Updated with correct test credentials
 const uatConfig: PhonePeConfig = {
   environment: "uat",
   baseUrl: "https://api-preprod.phonepe.com/apis/pg-sandbox",
-  merchantId: "PHONEPEPGUAT",
+  merchantId: "PGTESTPAYUAT",
   keyIndex: "1",
-  key: "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3",
+  key: "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399",
   frontendUrl: import.meta.env.VITE_FRONTEND_URL || "http://localhost:3000",
   callbackUrl: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phonepe-payment-callback`,
   redirectUrl: `${import.meta.env.VITE_FRONTEND_URL || "http://localhost:3000"}/payment/success`,
@@ -78,14 +78,14 @@ const productionConfig: PhonePeConfig = {
   redirectUrl: `${import.meta.env.VITE_FRONTEND_URL}/payment/success`,
 };
 
-// Test credentials for UAT environment
+// Test credentials for UAT environment - Updated with correct PhonePe test data
 export const testCredentials: TestCredentials = {
   card: {
     number: "4622943126146407",
     type: "DEBIT_CARD",
     issuer: "VISA",
     expiryMonth: 12,
-    expiryYear: 2023,
+    expiryYear: 2025,
     cvv: "936",
     bankPageOTP: "123456",
   },

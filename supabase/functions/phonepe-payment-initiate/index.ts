@@ -6,10 +6,10 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// PhonePe configuration
-const PHONEPE_MID = Deno.env.get("PHONEPE_MID") || "PHONEPEPGUAT";
+// PhonePe configuration - Using correct UAT test credentials
+const PHONEPE_MID = Deno.env.get("PHONEPE_MID") || "PGTESTPAYUAT";
 const PHONEPE_KEY_INDEX = Deno.env.get("PHONEPE_KEY_INDEX") || "1";
-const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "c817ffaf-8471-48b5-a7e2-a27e5b7efbd3";
+const PHONEPE_KEY = Deno.env.get("PHONEPE_KEY") || "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
 const PHONEPE_API_KEY = Deno.env.get("PHONEPE_API_KEY") || "";
 const PHONEPE_BASE_URL = Deno.env.get("PHONEPE_BASE_URL") || "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
@@ -209,8 +209,7 @@ serve(async (req) => {
       merchantTransactionId,
       merchantUserId: user_id,
       amount: amount * 100, // PhonePe expects amount in paise
-      redirectUrl:
-        redirect_url || `${Deno.env.get("FRONTEND_URL")}/payment/success`,
+      redirectUrl: redirect_url || `${Deno.env.get("FRONTEND_URL")}/payment/phonepe/success`,
       redirectMode: "POST",
       callbackUrl:
         callback_url ||
@@ -230,11 +229,12 @@ serve(async (req) => {
     // Encode the request
     const encodedRequest = base64Encode(JSON.stringify(phonepeRequest));
 
-    // Generate checksum
-    const checksum = await generateChecksum(
-      encodedRequest + "/pg/v1/pay" + PHONEPE_KEY,
-      PHONEPE_KEY
-    );
+    // Generate checksum - PhonePe expects SHA256 hash
+    const checksumString = encodedRequest + "/pg/v1/pay" + PHONEPE_KEY;
+    const checksum = await generateChecksum(checksumString, PHONEPE_KEY);
+    
+    console.log("Checksum string:", checksumString);
+    console.log("Generated checksum:", checksum);
 
     // Prepare the final payload
     const payload = {
@@ -243,6 +243,9 @@ serve(async (req) => {
     };
 
     // Make request to PhonePe
+    console.log("Making PhonePe request to:", `${PHONEPE_BASE_URL}/pg/v1/pay`);
+    console.log("Request payload:", JSON.stringify(payload, null, 2));
+    
     const phonepeResponse = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
       method: "POST",
       headers: {
@@ -255,7 +258,11 @@ serve(async (req) => {
       body: JSON.stringify(payload),
     });
 
+    console.log("PhonePe response status:", phonepeResponse.status);
+    console.log("PhonePe response headers:", Object.fromEntries(phonepeResponse.headers.entries()));
+    
     const phonepeData = await phonepeResponse.json();
+    console.log("PhonePe response data:", phonepeData);
 
     // Update payment record with PhonePe response
     await supabase

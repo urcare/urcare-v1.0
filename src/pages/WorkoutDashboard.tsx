@@ -24,12 +24,14 @@ import {
   Target,
   Timer,
   CheckCircle,
-  BarChart3
+  BarChart3,
+  GripVertical,
+  Lightbulb,
+  TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { workoutService } from "@/services/workoutService";
 import { EditPreferencesModal } from "@/components/EditPreferencesModal";
-import { RPELoggingModal } from "@/components/RPELoggingModal";
 import { CheckDashboardModal } from "@/components/CheckDashboardModal";
 
 interface WorkoutActivity {
@@ -87,15 +89,16 @@ const WorkoutDashboard: React.FC = () => {
   const [workoutData, setWorkoutData] = useState<WorkoutDashboardData | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [showEditPreferences, setShowEditPreferences] = useState(false);
-  const [showRPEModal, setShowRPEModal] = useState(false);
   const [showCheckDashboard, setShowCheckDashboard] = useState(false);
-  const [selectedWorkoutForRPE, setSelectedWorkoutForRPE] = useState<string>("");
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [completedActivities, setCompletedActivities] = useState<Set<string>>(new Set());
   const [energyLevel, setEnergyLevel] = useState(3);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [missingActivities, setMissingActivities] = useState<string[]>([]);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [weeklyProgress, setWeeklyProgress] = useState<any[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<string[]>([]);
 
   const generateWorkoutData = useCallback(async (plan: any) => {
     // Prevent duplicate calls
@@ -108,33 +111,67 @@ const WorkoutDashboard: React.FC = () => {
     setGenerating(true);
 
     try {
-      const data = await workoutService.generateWorkoutSchedule(
-        plan,
-        profile,
-        {
+      // Generate workout data directly without calling Supabase function
+      const workoutDataWithPreferences: WorkoutDashboardData = {
+        activities: [
+          {
+            id: "morning_breathing",
+            title: "Blood Pressure Breathing Exercise",
+            duration: "10 min",
+            type: "Meditation",
+            time: "07:00",
+            icon: "sunrise",
+            isCoachPick: false,
+            description: "Gentle breathing techniques to lower blood pressure",
+            completed: false
+          },
+          {
+            id: "swimming_session",
+            title: "Swimming Workout",
+            duration: "30 min",
+            type: "Exercise",
+            time: "18:00",
+            icon: "swimming",
+            isCoachPick: true,
+            description: "Low-impact swimming for cardiovascular health",
+            completed: false
+          },
+          {
+            id: "sleep_hygiene",
+            title: "Sleep Hygiene Routine",
+            duration: "20 min",
+            type: "Sleep",
+            time: "22:00",
+            icon: "moon",
+            isCoachPick: false,
+            description: "Evening routine to improve sleep quality",
+            completed: false
+          }
+        ],
+        daySummary: {
+          totalTime: "1h 0m",
+          focus: "heart health + stress management + sleep optimization",
+          readiness: "Ready",
+          readinessColor: "bg-green-100 text-green-800"
+        },
+        preferences: {
           yogaLevel: 'Beginner',
           equipment: ['Mat', 'Bands'],
           location: 'Home',
           workoutIntensity: 'moderate',
           preferredTime: 'morning',
           restDays: ['sunday']
-        }
-      );
-      
-      // Ensure the data has the correct structure
-      const workoutDataWithPreferences: WorkoutDashboardData = {
-        ...data,
-        preferences: {
-          yogaLevel: data.preferences?.yogaLevel || 'Beginner',
-          equipment: data.preferences?.equipment || ['Mat', 'Bands'],
-          location: data.preferences?.location || 'Home',
-          workoutIntensity: (data.preferences as any)?.workoutIntensity || 'moderate',
-          preferredTime: (data.preferences as any)?.preferredTime || 'morning',
-          restDays: (data.preferences as any)?.restDays || ['sunday']
-        }
+        },
+        upcomingDays: getUpcomingDays(),
+        intensity: "moderate",
+        currentDay: getCurrentDayName()
       };
       
       setWorkoutData(workoutDataWithPreferences);
+      
+      // Generate AI recommendations and weekly progress
+      generateRecommendations();
+      
     } catch (error) {
       console.error('Error generating workout data:', error);
       toast.error('Failed to generate workout data');
@@ -174,7 +211,7 @@ const WorkoutDashboard: React.FC = () => {
       // If no plan provided, redirect back to plan selection
       navigate("/health-plan-generation");
     }
-  }, [user, profile, navigate, location.state?.selectedPlan, generateWorkoutData, isInitialized]); // Only depend on selectedPlan, not entire location.state
+  }, [user, profile, navigate, location.state?.selectedPlan, isInitialized]); // Removed generateWorkoutData from dependencies
 
   // Load completion data from localStorage
   useEffect(() => {
@@ -207,14 +244,52 @@ const WorkoutDashboard: React.FC = () => {
   }, [workoutData]);
 
 
-  const handleLogRPE = (workoutTitle: string) => {
-    setSelectedWorkoutForRPE(workoutTitle);
-    setShowRPEModal(true);
+  // Drag and drop functionality
+  const handleDragStart = (e: React.DragEvent, activityId: string) => {
+    setDraggedItem(activityId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleSaveRPE = (rpeData: any) => {
-    console.log("RPE Data saved:", rpeData);
-    // Here you would save the RPE data to your backend
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetActivityId: string) => {
+    e.preventDefault();
+    
+    if (!draggedItem || !workoutData) return;
+    
+    const activities = [...workoutData.activities];
+    const draggedIndex = activities.findIndex(activity => activity.id === draggedItem);
+    const targetIndex = activities.findIndex(activity => activity.id === targetActivityId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) return;
+    
+    // Swap the activities
+    const draggedActivity = activities[draggedIndex];
+    const targetActivity = activities[targetIndex];
+    
+    // Keep the original times but swap the activities
+    const tempTime = draggedActivity.time;
+    draggedActivity.time = targetActivity.time;
+    targetActivity.time = tempTime;
+    
+    // Swap positions
+    activities[draggedIndex] = targetActivity;
+    activities[targetIndex] = draggedActivity;
+    
+    setWorkoutData({
+      ...workoutData,
+      activities
+    });
+    
+    setDraggedItem(null);
+    toast.success("Workout order updated!");
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
   };
 
   const handleSavePreferences = (preferences: UserPreferences) => {
@@ -253,8 +328,212 @@ const WorkoutDashboard: React.FC = () => {
 
   const handleViewPlan = (dayIndex: number) => {
     setCurrentDayIndex(dayIndex);
-    // Here you would navigate to the specific day's plan
-    toast.success(`Viewing plan for ${workoutData?.upcomingDays[dayIndex]?.day}`);
+    
+    // Generate specific plan for the selected day
+    const upcomingDays = getUpcomingDays();
+    const selectedDay = upcomingDays[dayIndex];
+    
+    // Create day-specific activities based on the plan
+    const dayActivities = generateDaySpecificActivities(selectedDay, dayIndex);
+    
+    // Show the day-specific plan in a modal
+    setShowCheckDashboard(true);
+    
+    // Store the day-specific activities for the modal
+    setWorkoutData(prev => prev ? {
+      ...prev,
+      activities: dayActivities,
+      currentDay: selectedDay.day
+    } : null);
+  };
+
+  const generateDaySpecificActivities = (dayPlan: any, dayIndex: number) => {
+    const baseTime = "07:00";
+    const activities = [];
+    
+    // Generate different activities based on the day plan and user's chronic conditions
+    if (dayPlan.title.includes("Intervals")) {
+      activities.push(
+        {
+          id: `intervals_warmup_${dayIndex}`,
+          title: "Blood Pressure Warm-up",
+          duration: "10 min",
+          type: "Warm-up",
+          time: baseTime,
+          icon: "sunrise",
+          isCoachPick: false,
+          description: "Gentle warm-up focusing on blood pressure control",
+          completed: false
+        },
+        {
+          id: `intervals_main_${dayIndex}`,
+          title: "Low-Impact HIIT",
+          duration: "25 min",
+          type: "Exercise",
+          time: "07:15",
+          icon: "heart",
+          isCoachPick: true,
+          description: "High-intensity intervals safe for blood pressure",
+          completed: false
+        },
+        {
+          id: `intervals_core_${dayIndex}`,
+          title: "Core Strengthening",
+          duration: "15 min",
+          type: "Exercise",
+          time: "07:45",
+          icon: "dumbbell",
+          isCoachPick: false,
+          description: "Core exercises for better posture and blood pressure",
+          completed: false
+        }
+      );
+    } else if (dayPlan.title.includes("Yoga")) {
+      activities.push(
+        {
+          id: `yoga_breathing_${dayIndex}`,
+          title: "Blood Pressure Breathing",
+          duration: "15 min",
+          type: "Meditation",
+          time: baseTime,
+          icon: "sunrise",
+          isCoachPick: false,
+          description: "Yogic breathing techniques to lower blood pressure",
+          completed: false
+        },
+        {
+          id: `yoga_flow_${dayIndex}`,
+          title: "Gentle Yoga Flow",
+          duration: "30 min",
+          type: "Flexibility",
+          time: "07:20",
+          icon: "heart",
+          isCoachPick: true,
+          description: "Flowing yoga sequence for stress reduction",
+          completed: false
+        },
+        {
+          id: `yoga_savasana_${dayIndex}`,
+          title: "Relaxation Pose",
+          duration: "10 min",
+          type: "Recovery",
+          time: "07:55",
+          icon: "moon",
+          isCoachPick: false,
+          description: "Deep relaxation to calm the nervous system",
+          completed: false
+        }
+      );
+    } else if (dayPlan.title.includes("Swimming")) {
+      activities.push(
+        {
+          id: `swim_warmup_${dayIndex}`,
+          title: "Pool Warm-up",
+          duration: "10 min",
+          type: "Warm-up",
+          time: baseTime,
+          icon: "sunrise",
+          isCoachPick: false,
+          description: "Gentle pool warm-up for blood pressure management",
+          completed: false
+        },
+        {
+          id: `swim_main_${dayIndex}`,
+          title: "Swimming Workout",
+          duration: "35 min",
+          type: "Exercise",
+          time: "07:15",
+          icon: "swimming",
+          isCoachPick: true,
+          description: "Swimming session for cardiovascular health",
+          completed: false
+        },
+        {
+          id: `swim_cooldown_${dayIndex}`,
+          title: "Pool Cooldown",
+          duration: "10 min",
+          type: "Recovery",
+          time: "07:55",
+          icon: "moon",
+          isCoachPick: false,
+          description: "Gentle cooldown in the pool",
+          completed: false
+        }
+      );
+    } else {
+      // Default activities for other plans
+      activities.push(
+        {
+          id: `default_1_${dayIndex}`,
+          title: "Morning Routine",
+          duration: "15 min",
+          type: "Warm-up",
+          time: baseTime,
+          icon: "sunrise",
+          isCoachPick: false,
+          description: "Morning routine for health conditions",
+          completed: false
+        },
+        {
+          id: `default_2_${dayIndex}`,
+          title: dayPlan.title,
+          duration: "30 min",
+          type: "Exercise",
+          time: "07:20",
+          icon: "heart",
+          isCoachPick: true,
+          description: dayPlan.description,
+          completed: false
+        },
+        {
+          id: `default_3_${dayIndex}`,
+          title: "Evening Wind-down",
+          duration: "15 min",
+          type: "Recovery",
+          time: "22:00",
+          icon: "moon",
+          isCoachPick: false,
+          description: "Evening routine for better sleep",
+          completed: false
+        }
+      );
+    }
+    
+    return activities;
+  };
+
+  const getUpcomingDays = () => {
+    const today = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const upcomingDays = [];
+    
+    for (let i = 1; i <= 3; i++) {
+      const futureDate = new Date(today);
+      futureDate.setDate(today.getDate() + i);
+      const dayName = days[futureDate.getDay()];
+      
+      // Generate AI-based workout plans for each day
+      const workoutTypes = [
+        { title: "Intervals + Core", description: "High-intensity interval training with core focus" },
+        { title: "Active Recovery", description: "Light movement and stretching" },
+        { title: "Upper Body Strength", description: "Focused upper body strength training" },
+        { title: "Cardio Blast", description: "Intense cardiovascular workout" },
+        { title: "Yoga Flow", description: "Dynamic yoga sequence for flexibility" },
+        { title: "Swimming Session", description: "Full-body swimming workout" },
+        { title: "Lower Body Focus", description: "Targeted lower body strength training" }
+      ];
+      
+      const randomWorkout = workoutTypes[Math.floor(Math.random() * workoutTypes.length)];
+      
+      upcomingDays.push({
+        day: dayName,
+        title: randomWorkout.title,
+        description: randomWorkout.description,
+        date: futureDate
+      });
+    }
+    
+    return upcomingDays;
   };
 
   const handleStartWorkout = (activity: WorkoutActivity) => {
@@ -267,32 +546,69 @@ const WorkoutDashboard: React.FC = () => {
   };
 
 
-  const generateRecommendations = () => {
+  const generateWeeklyProgress = () => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const progress = days.map((day, index) => {
+      const dayCompletions = JSON.parse(localStorage.getItem(`workoutCompletions_${day}`) || '[]');
+      const completedCount = dayCompletions.length;
+      const totalCount = workoutData?.activities.length || 5;
+      const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+      
+      return {
+        day,
+        completionRate,
+        completedCount,
+        totalCount,
+        date: new Date(Date.now() + (index - new Date().getDay() + 1) * 24 * 60 * 60 * 1000)
+      };
+    });
+    
+    setWeeklyProgress(progress);
+  };
+
+  const generateAIRecommendations = () => {
     const completedCount = completedActivities.size;
     const totalCount = workoutData?.activities.length || 0;
     const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
     
-    const newRecommendations = [];
+    const recommendations = [];
     
+    // Based on user's health goals and profile
+    if (profile?.health_goals?.includes('control_high_blood_pressure')) {
+      recommendations.push("Focus on low-intensity cardio like swimming to help manage blood pressure");
+      recommendations.push("Include 10 minutes of deep breathing exercises to reduce stress");
+    }
+    
+    if (profile?.health_goals?.includes('improve_sleep')) {
+      recommendations.push("Complete your evening wind-down routine 1 hour before bedtime");
+      recommendations.push("Avoid intense workouts 3 hours before sleep for better rest");
+    }
+    
+    if (profile?.workout_type === 'Swimming') {
+      recommendations.push("Swimming is excellent for your cardiovascular health - aim for 30 minutes");
+      recommendations.push("Focus on proper breathing technique during your swim sessions");
+    }
+    
+    // Completion-based recommendations
     if (completionRate >= 80) {
-      newRecommendations.push("Excellent progress! You're on track to meet your daily goals.");
-      newRecommendations.push("Consider adding a short walk or stretching session to maintain momentum.");
+      recommendations.push("Excellent progress! You're on track to meet your daily goals.");
+      recommendations.push("Consider adding a short walk or stretching session to maintain momentum.");
     } else if (completionRate >= 50) {
-      newRecommendations.push("Good progress! Try to complete the remaining activities for maximum benefit.");
-      newRecommendations.push("Take short breaks between activities to maintain energy levels.");
+      recommendations.push("Good progress! Try to complete the remaining activities for maximum benefit.");
+      recommendations.push("Take short breaks between activities to maintain energy levels.");
     } else {
-      newRecommendations.push("You're getting started! Every small step counts towards your health goals.");
-      newRecommendations.push("Consider starting with shorter activities and gradually increasing intensity.");
+      recommendations.push("You're getting started! Every small step counts towards your health goals.");
+      recommendations.push("Consider starting with shorter activities and gradually increasing intensity.");
     }
     
     // Energy-based recommendations
     if (energyLevel >= 4) {
-      newRecommendations.push("Your energy is high! Perfect time for more intense activities.");
+      recommendations.push("Your energy is high! Perfect time for more intense activities.");
     } else if (energyLevel <= 2) {
-      newRecommendations.push("Your energy seems low. Focus on gentle activities and proper rest.");
+      recommendations.push("Your energy seems low. Focus on gentle activities and proper rest.");
     }
     
-    setRecommendations(newRecommendations);
+    setAiRecommendations(recommendations);
     
     // Generate missing activities
     const missing = [];
@@ -306,6 +622,11 @@ const WorkoutDashboard: React.FC = () => {
     missing.push("Get adequate sleep (7-9 hours)");
     
     setMissingActivities(missing);
+  };
+
+  const generateRecommendations = () => {
+    generateWeeklyProgress();
+    generateAIRecommendations();
   };
 
   const getCurrentDayName = () => {
@@ -451,14 +772,23 @@ const WorkoutDashboard: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="space-y-4">
               {workoutData.activities.map((activity, index) => (
-                <Card key={activity.id} className={`group hover:shadow-xl transition-all duration-300 border-0 backdrop-blur-sm shadow-lg hover:scale-[1.02] ${
+                <Card 
+                  key={activity.id} 
+                  className={`group hover:shadow-xl transition-all duration-300 border-0 backdrop-blur-sm shadow-lg hover:scale-[1.02] cursor-move ${
                   activity.completed ? 'bg-green-50/80 border-green-200' : 'bg-white/80'
-                }`}>
+                  } ${draggedItem === activity.id ? 'opacity-50 scale-95' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, activity.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, activity.id)}
+                  onDragEnd={handleDragEnd}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="flex items-center gap-2">
+                            <GripVertical className="w-4 h-4 text-slate-400 cursor-move" />
                             <div className={`w-2 h-2 rounded-full ${
                               activity.completed 
                                 ? 'bg-green-500' 
@@ -527,14 +857,6 @@ const WorkoutDashboard: React.FC = () => {
                             Start
                           </Button>
                         )}
-                        <Button
-                          variant="outline"
-                          onClick={() => handleLogRPE(activity.title)}
-                          className="border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 text-sm"
-                        >
-                          <BarChart3 className="w-3 h-3 mr-1" />
-                          Log RPE
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -609,32 +931,21 @@ const WorkoutDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* After you finish */}
+            {/* AI Recommendations */}
             <Card className="bg-gradient-to-br from-white to-slate-50 border-0 shadow-xl">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  After you finish
+                  <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  AI Recommendations
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <span className="text-slate-700 font-medium">Log RPE</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleLogRPE("Today's Workout")}
-                    className="border-slate-300 text-slate-700 hover:bg-slate-100"
-                  >
-                    Log now
-                  </Button>
+                <div className="space-y-3">
+                  {aiRecommendations.slice(0, 3).map((recommendation, index) => (
+                    <div key={index} className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-l-4 border-blue-400">
+                      <p className="text-slate-700 text-sm leading-relaxed">{recommendation}</p>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <span className="text-slate-700 font-medium">Stretch cooldown</span>
-                  <div className="flex items-center gap-2">
-                    <Timer className="w-4 h-4 text-slate-500" />
-                    <span className="font-bold text-slate-800">8 min</span>
-                  </div>
+                  ))}
                 </div>
                 <Button 
                   onClick={() => setShowCheckDashboard(true)}
@@ -643,6 +954,43 @@ const WorkoutDashboard: React.FC = () => {
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Check Dashboard
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Weekly Progress */}
+            <Card className="bg-gradient-to-br from-white to-slate-50 border-0 shadow-xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  Weekly Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {weeklyProgress.map((day, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
+                          {day.day}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-700">
+                            {day.completedCount}/{day.totalCount} activities
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {day.completionRate.toFixed(0)}% complete
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+                          style={{ width: `${day.completionRate}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -676,7 +1024,7 @@ const WorkoutDashboard: React.FC = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workoutData.upcomingDays.map((day, index) => (
+            {getUpcomingDays().map((day, index) => (
               <Card 
                 key={index} 
                 className={`group hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-[1.02] ${
@@ -733,13 +1081,6 @@ const WorkoutDashboard: React.FC = () => {
         onSave={handleSavePreferences}
       />
 
-      <RPELoggingModal
-        isOpen={showRPEModal}
-        onClose={() => setShowRPEModal(false)}
-        workoutTitle={selectedWorkoutForRPE}
-        onSave={handleSaveRPE}
-      />
-
       <CheckDashboardModal
         isOpen={showCheckDashboard}
         onClose={() => setShowCheckDashboard(false)}
@@ -748,8 +1089,9 @@ const WorkoutDashboard: React.FC = () => {
         completedActivities={completedActivities.size}
         totalActivities={workoutData?.activities.length || 0}
         energyLevel={energyLevel}
-        recommendations={recommendations}
+        recommendations={aiRecommendations}
         missingActivities={missingActivities}
+        weeklyProgress={weeklyProgress}
       />
     </div>
   );

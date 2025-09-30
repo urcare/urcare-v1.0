@@ -1,5 +1,5 @@
 // import RazorpayPaymentButton from "@/components/payment/RazorpayPaymentButton";
-import PhonePeCheckout from "@/components/payment/PhonePeCheckout";
+// import PhonePeCheckout from "@/components/payment/PhonePeCheckout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscriptionService } from "@/services/subscriptionService";
@@ -14,7 +14,7 @@ const Paywall: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
   );
-  const [showPaymentButton, setShowPaymentButton] = useState(false);
+  // const [showPaymentButton, setShowPaymentButton] = useState(false);
   const [priceMonthly, setPriceMonthly] = useState<number | null>(9.57);
   const [priceAnnual, setPriceAnnual] = useState<number | null>(56.36);
   const [originalMonthly, setOriginalMonthly] = useState<number | null>(19.99);
@@ -33,24 +33,6 @@ const Paywall: React.FC = () => {
     return `₹${amount.toLocaleString()}`;
   };
 
-  // Handle payment success redirect
-  useEffect(() => {
-    const handlePaymentSuccess = () => {
-      // Check if user came back from successful payment
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentSuccess = urlParams.get("payment_success");
-
-      if (paymentSuccess === "true") {
-        toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
-        // Redirect to health plan generation after successful payment
-        setTimeout(() => {
-          window.location.href = "/health-plan-generation";
-        }, 2000);
-      }
-    };
-
-    handlePaymentSuccess();
-  }, []);
 
   // Load live pricing so cards match checkout
   useEffect(() => {
@@ -98,9 +80,16 @@ const Paywall: React.FC = () => {
       return;
     }
 
-    console.log("Subscribe button clicked, showing payment button");
-    // Show payment button
-    setShowPaymentButton(true);
+    console.log("Subscribe button clicked, navigating to PhonePe checkout");
+    // Navigate to PhonePe checkout page
+    const amount = billingCycle === "monthly" ? priceMonthlyINR : priceAnnualINR;
+    navigate("/phonecheckout", {
+      state: {
+        planSlug: "basic",
+        billingCycle: billingCycle,
+        amount: amount
+      }
+    });
   };
 
   const handlePaymentSuccess = () => {
@@ -373,40 +362,13 @@ const Paywall: React.FC = () => {
           </div>
         </div>
 
-        {/* CTA Button or Payment Button */}
-        {showPaymentButton ? (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Complete Your Subscription
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Secure payment powered by PhonePe
-              </p>
-            </div>
-            <PhonePeCheckout
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-              onCancel={handlePaymentCancel}
-              billingCycle={billingCycle}
-              className="w-full"
-            />
-            <Button
-              onClick={() => setShowPaymentButton(false)}
-              variant="outline"
-              className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-50"
-            >
-              Back to Plans
-            </Button>
-          </div>
-        ) : (
-          <Button
-            onClick={handleSubscribe}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-          >
-            Subscribe Now
-          </Button>
-        )}
+        {/* CTA Button */}
+        <Button
+          onClick={handleSubscribe}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+        >
+          Subscribe Now
+        </Button>
 
         {/* Fine Print */}
         <div className="text-center mt-4 space-y-1">

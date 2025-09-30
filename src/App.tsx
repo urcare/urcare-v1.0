@@ -19,7 +19,12 @@ import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
+import PaymentPage from "./pages/PaymentPage";
 import PaymentWall from "./pages/PaymentWall";
+import PhonePeCheckout from "./pages/PhonePeCheckout";
+import PaymentResult from "./pages/PaymentResult";
+import PhonePeTest from "./pages/PhonePeTest";
+import PhonePeCheckoutSimple from "./pages/PhonePeCheckoutSimple";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
 import PlanDetails from "./pages/Calendar";
 import Planner from "./pages/Planner";
@@ -109,6 +114,64 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/paymentpage"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <PaymentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/phonecheckout"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <PhonePeCheckout />
+              </ProtectedRoute>
+            }
+          />
+
+                  <Route
+                    path="/phonecheckout/result"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={true}>
+                        <PaymentResult />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Test route for PhonePe page - remove in production */}
+                  <Route
+                    path="/test-phonepe"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={true}>
+                        <PhonePeCheckout />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/phonepe-test"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={false}>
+                        <PhonePeTest />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Test route without onboarding requirement */}
+                  <Route
+                    path="/phonepe-test-no-auth"
+                    element={<PhonePeTest />}
+                  />
+
+                  {/* Simple PhonePe checkout without auth */}
+                  <Route
+                    path="/phonepe-simple"
+                    element={<PhonePeCheckoutSimple />}
+                  />
 
           <Route path="/payment/phonepe/success" element={<PhonePeSuccess />} />
 

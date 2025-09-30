@@ -297,7 +297,11 @@ class AuthFlowService {
         "/settings",
         "/profile-management",
         "/camera",
-        "/dashboard" // Add dashboard to quick bypass
+        "/dashboard", // Add dashboard to quick bypass
+        "/phonecheckout", // Add PhonePe checkout routes
+        "/phonecheckout/result",
+        "/test-phonepe",
+        "/phonepe-test"
       ];
       
       if (postOnboardingRoutes.includes(route)) {
@@ -318,6 +322,10 @@ class AuthFlowService {
       "/planner": profile?.onboarding_completed || false,
       "/plan-details": profile?.onboarding_completed || false,
       "/subscription": profile?.onboarding_completed || false,
+      "/phonecheckout": profile?.onboarding_completed || false,
+      "/phonecheckout/result": profile?.onboarding_completed || false,
+      "/test-phonepe": profile?.onboarding_completed || false,
+      "/phonepe-test": profile?.onboarding_completed || false,
       "/welcome-screen": true, // Always accessible for authenticated users
     };
 
