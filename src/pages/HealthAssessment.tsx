@@ -188,15 +188,15 @@ const HealthAssessment: React.FC = () => {
   }, [profile, isAnalyzing, analysisComplete]);
 
   const handleGetSolution = () => {
-    navigate("/health-plan-generation");
+    navigate("/paywall");
   };
 
-  // If analysis is complete, redirect to health plan generation
+  // If analysis is complete, redirect to paywall
   useEffect(() => {
     if (analysisComplete) {
       const timer = setTimeout(() => {
-        navigate("/health-plan-generation");
-      }, 3000); // Wait 3 seconds to show the analysis, then redirect
+        navigate("/paywall");
+      }, 3000); // Wait 3 seconds to show the analysis, then redirect to paywall
       
       return () => clearTimeout(timer);
     }

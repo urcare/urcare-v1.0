@@ -42,9 +42,9 @@ const Paywall: React.FC = () => {
 
       if (paymentSuccess === "true") {
         toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
-        // Redirect to dashboard with access unlocked
+        // Redirect to health plan generation after successful payment
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = "/health-plan-generation";
         }, 2000);
       }
     };
@@ -107,10 +107,10 @@ const Paywall: React.FC = () => {
     toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
     console.log("Payment success callback triggered");
 
-    // Redirect to dashboard with access unlocked
+    // Redirect to health plan generation after successful payment
     setTimeout(() => {
-      console.log("Redirecting to dashboard after successful payment");
-      window.location.href = "/dashboard";
+      console.log("Redirecting to health plan generation after successful payment");
+      window.location.href = "/health-plan-generation";
     }, 2000);
   };
 

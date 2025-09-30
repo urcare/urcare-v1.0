@@ -36,15 +36,20 @@ export default function PhonePeCheckout({
       const redirectUrl = `${window.location.origin}/payment/phonepe/success?tx=${merchantTransactionId}&plan=${planSlug}&cycle=${billingCycle}`;
 
       const requestBody = {
-        amount: amountPaise,
-        merchantTransactionId,
-        redirectUrl,
+        user_id: user.id,
+        plan_id: planSlug,
+        billing_cycle: billingCycle,
+        amount: priceINR, // Send amount in INR, not paise
+        currency: "INR",
+        payment_method: "card", // Default payment method
+        redirect_url: redirectUrl,
+        callback_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phonepe-payment-callback`,
       };
 
       console.log("Sending PhonePe request:", requestBody);
 
       const { data, error } = await supabase.functions.invoke(
-        "create-phonepe-payment",
+        "phonepe-payment-initiate",
         {
           body: requestBody,
         }
@@ -54,9 +59,11 @@ export default function PhonePeCheckout({
         throw new Error(error.message || "PhonePe payment failed");
       }
 
-      const url: string | undefined =
-        data?.data?.instrumentResponse?.redirectInfo?.url;
-      if (!url) throw new Error("Unable to start PhonePe payment");
+      const url: string | undefined = data?.redirect_url || data?.payment_url;
+      if (!url) {
+        console.error("PhonePe response:", data);
+        throw new Error("Unable to start PhonePe payment - no redirect URL received");
+      }
 
       window.location.href = url;
     } catch (e: any) {
