@@ -1,24 +1,36 @@
 // Vercel API route for PhonePe payment creation
 export default async function handler(req, res) {
+  console.log('📥 Vercel API received request:', {
+    method: req.method,
+    url: req.url,
+    headers: req.headers
+  });
+
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
+    console.log('📤 Handling OPTIONS request');
     res.status(200).end();
     return;
   }
 
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    console.log('❌ Method not allowed:', req.method);
+    res.status(405).json({ 
+      error: 'Method not allowed',
+      receivedMethod: req.method,
+      expectedMethod: 'POST'
+    });
     return;
   }
 
   try {
     const { orderId, amount, userId, planSlug, billingCycle } = req.body;
 
-    console.log('📥 Vercel API received request:', { orderId, amount, userId, planSlug, billingCycle });
+    console.log('📥 Vercel API processing payment request:', { orderId, amount, userId, planSlug, billingCycle });
 
     // PhonePe live credentials
     const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';

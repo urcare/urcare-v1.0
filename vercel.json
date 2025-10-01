@@ -3,6 +3,12 @@
   "functions": {
     "api/generate-plan.js": {
       "maxDuration": 30
+    },
+    "api/phonepe/pay.js": {
+      "maxDuration": 30
+    },
+    "api/phonepe/status.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
