@@ -33,6 +33,17 @@ module.exports = async function handler(req, res) {
     const { orderId, amount, userId, planSlug, billingCycle } = req.body;
 
     console.log('🚀 Creating Razorpay order:', { orderId, amount, userId, planSlug, billingCycle });
+    console.log('🔑 Using Key ID:', RAZORPAY_KEY_ID);
+    console.log('🔑 Using Key Secret:', RAZORPAY_KEY_SECRET ? 'Present' : 'Missing');
+
+    // Check if API keys are properly configured
+    if (RAZORPAY_KEY_ID === 'rzp_test_1234567890' || RAZORPAY_KEY_SECRET === 'your_secret_key') {
+      console.error('❌ Razorpay API keys not configured properly');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Razorpay API keys not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Vercel environment variables.' 
+      });
+    }
 
     if (!orderId || !amount || !userId) {
       return res.status(400).json({ success: false, error: 'Missing required fields: orderId, amount, userId' });

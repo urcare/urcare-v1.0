@@ -1,6 +1,7 @@
 import { AuthOptions } from "@/components/auth/AuthOptions";
 import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
 import { SplashScreen } from "@/components/ui/SplashScreen";
+import AdminLoginPopup from "@/components/AdminLoginPopup";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,7 +11,7 @@ const Landing = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
   const navigate = useNavigate();
-  const { user, profile, isInitialized, loading } = useAuth();
+  const { user, profile, isInitialized, loading, showAdminPopup, setShowAdminPopup } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
@@ -109,6 +110,16 @@ const Landing = () => {
           </div>
         </div>
       )}
+      
+      {/* Admin Login Popup */}
+      <AdminLoginPopup
+        isOpen={showAdminPopup}
+        onClose={() => setShowAdminPopup(false)}
+        onSuccess={() => {
+          setShowAdminPopup(false);
+          // Admin login success - user will be redirected to onboarding by the popup component
+        }}
+      />
     </div>
   );
 };

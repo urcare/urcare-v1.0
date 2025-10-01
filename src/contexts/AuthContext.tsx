@@ -70,6 +70,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   isInitialized: boolean;
+  showAdminPopup: boolean;
+  setShowAdminPopup: (show: boolean) => void;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -140,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showAdminPopup, setShowAdminPopup] = useState(false);
 
   // Track if auth listener is initialized
   const authListenerRef = useRef<boolean>(false);
@@ -487,8 +490,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
-      // Redirect to email authentication page
-      window.location.href = '/email-auth';
+      // Show admin login popup instead of redirecting
+      setShowAdminPopup(true);
     } catch (error) {
       console.error("Email sign-in error:", error);
       const errorMessage =
@@ -634,6 +637,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       profile,
       loading,
       isInitialized,
+      showAdminPopup,
+      setShowAdminPopup,
       signUp,
       signIn,
       signOut,
@@ -650,6 +655,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       profile,
       loading,
       isInitialized,
+      showAdminPopup,
+      setShowAdminPopup,
       signUp,
       signIn,
       signOut,
