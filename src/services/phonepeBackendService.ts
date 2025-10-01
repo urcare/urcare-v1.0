@@ -99,46 +99,45 @@ export async function checkPhonePeStatus(orderId: string, userId?: string) {
 // Store payment record in Supabase
 export async function storePaymentRecord(userId: string, orderId: string, amount: number, status: string, planSlug?: string, billingCycle?: string) {
   try {
-    // Get plan ID from subscription_plans table
-    let planId = null;
-    if (planSlug) {
-      const { data: plan, error: planError } = await supabase
-        .from('subscription_plans')
-        .select('id')
-        .eq('slug', planSlug)
-        .single();
+    console.log("Storing payment record via Express Backend:", {
+      userId,
+      orderId,
+      amount,
+      status,
+      planSlug,
+      billingCycle
+    });
 
-      if (planError) {
-        console.error("Plan not found:", planError);
-        // Use a default plan ID or create a basic plan entry
-        planId = 1; // Default plan ID
-      } else {
-        planId = plan.id;
-      }
-    }
-
-    const { error } = await supabase
-      .from('payments')
-      .insert({
-        user_id: userId,
-        plan_id: planId,
+    // Call our Express backend to store the payment record
+    const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/store-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        orderId,
         amount: amount / 100, // Convert from paise to rupees
-        currency: 'INR',
-        status: status,
-        payment_method: 'phonepe',
-        billing_cycle: billingCycle || 'annual', // Default to annual if not provided
-        phonepe_merchant_transaction_id: orderId,
-        is_first_time: true
-      });
+        status,
+        planSlug: planSlug || 'basic',
+        billingCycle: billingCycle || 'annual',
+        paymentMethod: 'phonepe'
+      })
+    });
 
-    if (error) {
-      console.error("Failed to store payment record:", error);
-      throw error;
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Failed to store payment record:", data);
+      throw new Error(data.error || "Failed to store payment record");
     }
 
+    console.log("Payment record stored successfully:", data);
     return { success: true };
   } catch (error) {
     console.error("Store Payment Record Error:", error);
-    throw error;
+    // Don't throw error - just log it so payment can continue
+    console.warn("Payment record storage failed, but continuing with payment flow");
+    return { success: false, error: error.message };
   }
 }

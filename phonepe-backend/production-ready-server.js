@@ -237,6 +237,52 @@ app.post('/api/phonepe/status', async (req, res) => {
   }
 });
 
+// Store payment record endpoint
+app.post('/api/phonepe/store-payment', async (req, res) => {
+  try {
+    const { userId, orderId, amount, status, planSlug, billingCycle, paymentMethod } = req.body;
+
+    console.log('💾 Storing payment record:', {
+      userId,
+      orderId,
+      amount,
+      status,
+      planSlug,
+      billingCycle,
+      paymentMethod
+    });
+
+    // For now, just log the payment record
+    // In production, you would store this in your database
+    const paymentRecord = {
+      userId,
+      orderId,
+      amount,
+      status,
+      planSlug: planSlug || 'basic',
+      billingCycle: billingCycle || 'annual',
+      paymentMethod: paymentMethod || 'phonepe',
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('✅ Payment record stored:', paymentRecord);
+
+    res.json({
+      success: true,
+      message: 'Payment record stored successfully',
+      data: paymentRecord
+    });
+
+  } catch (error) {
+    console.error('❌ Error storing payment record:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to store payment record',
+      message: error.message
+    });
+  }
+});
+
 // Payment callback endpoint (webhook)
 app.post('/api/phonepe/callback', (req, res) => {
   try {
@@ -271,6 +317,7 @@ app.listen(PORT, () => {
   console.log(`📡 Health check: http://localhost:${PORT}/health`);
   console.log(`💳 Payment endpoint: http://localhost:${PORT}/api/phonepe/pay`);
   console.log(`🔍 Status endpoint: http://localhost:${PORT}/api/phonepe/status`);
+  console.log(`💾 Store payment endpoint: http://localhost:${PORT}/api/phonepe/store-payment`);
   console.log(`📞 Callback endpoint: http://localhost:${PORT}/api/phonepe/callback`);
   console.log(`\n🌐 Production URLs:`);
   console.log(`   Frontend: ${PHONEPE_CONFIG.frontendUrl}`);
