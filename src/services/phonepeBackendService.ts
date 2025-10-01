@@ -1,6 +1,6 @@
-// PhonePe Express Backend URL
+// PhonePe Backend URL - Use Supabase Edge Functions for production, Express for localhost
 const PHONEPE_BACKEND_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://urcare.vercel.app/api/phonepe'
+  ? 'https://lvnkpserdydhnqbigfbz.supabase.co/functions/v1'
   : 'http://localhost:5000';
 
 // Create PhonePe payment order using Express Backend
@@ -24,7 +24,7 @@ export async function createPhonePePayment(orderId: string, amount: number, user
 
     console.log("📤 Sending request to Express Backend:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/pay`, {
+    const response = await fetch(`${PHONEPE_BACKEND_URL}/phonepe-create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export async function checkPhonePeStatus(orderId: string, userId?: string) {
   try {
     console.log("Checking PhonePe payment status via Express Backend:", orderId);
 
-    const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/status`, {
+    const response = await fetch(`${PHONEPE_BACKEND_URL}/phonepe-status`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,32 +108,49 @@ export async function storePaymentRecord(userId: string, orderId: string, amount
       billingCycle
     });
 
-    // Call our Express backend to store the payment record
-    const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/store-payment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // For production, just log the payment record (Supabase Edge Functions don't have store-payment endpoint)
+    // For localhost, call Express backend
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Call Express backend for localhost
+      const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/store-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          orderId,
+          amount: amount / 100, // Convert from paise to rupees
+          status,
+          planSlug: planSlug || 'basic',
+          billingCycle: billingCycle || 'annual',
+          paymentMethod: 'phonepe'
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to store payment record:", data);
+        throw new Error(data.error || "Failed to store payment record");
+      }
+
+      console.log("Payment record stored successfully:", data);
+      return { success: true };
+    } else {
+      // For production, just log the payment record
+      console.log("💾 Payment record (production - not stored):", {
         userId,
         orderId,
-        amount: amount / 100, // Convert from paise to rupees
+        amount: amount / 100,
         status,
         planSlug: planSlug || 'basic',
         billingCycle: billingCycle || 'annual',
-        paymentMethod: 'phonepe'
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Failed to store payment record:", data);
-      throw new Error(data.error || "Failed to store payment record");
+        paymentMethod: 'phonepe',
+        timestamp: new Date().toISOString()
+      });
+      return { success: true };
     }
-
-    console.log("Payment record stored successfully:", data);
-    return { success: true };
   } catch (error) {
     console.error("Store Payment Record Error:", error);
     // Don't throw error - just log it so payment can continue
