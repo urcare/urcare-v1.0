@@ -4,6 +4,8 @@ import { loadScript } from './loadScript';
 // Razorpay Configuration
 const RAZORPAY_KEY_ID = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_1234567890'; // Replace with your actual key
 
+console.log('🔑 Frontend Razorpay Key ID:', RAZORPAY_KEY_ID ? 'Configured' : 'Not configured');
+
 console.log('🔧 Razorpay Service initialized with Key ID:', RAZORPAY_KEY_ID);
 
 // Load Razorpay script dynamically

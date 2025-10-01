@@ -2,7 +2,9 @@
 const crypto = require('crypto');
 
 // Razorpay Configuration
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'your_secret_key'; // Replace with your actual secret
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'your_secret_key';
+
+console.log('🔑 Razorpay Key Secret:', RAZORPAY_KEY_SECRET ? 'Configured' : 'Not configured');
 
 module.exports = async function handler(req, res) {
   // Enable CORS

@@ -2,8 +2,11 @@
 const Razorpay = require('razorpay');
 
 // Razorpay Configuration
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_1234567890'; // Replace with your actual key
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'your_secret_key'; // Replace with your actual secret
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_1234567890';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'your_secret_key';
+
+console.log('🔑 Razorpay Key ID:', RAZORPAY_KEY_ID ? 'Configured' : 'Not configured');
+console.log('🔑 Razorpay Key Secret:', RAZORPAY_KEY_SECRET ? 'Configured' : 'Not configured');
 
 const razorpay = new Razorpay({
   key_id: RAZORPAY_KEY_ID,
