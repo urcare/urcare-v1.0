@@ -18,6 +18,8 @@ export default async function handler(req, res) {
   try {
     const { orderId, amount, userId, planSlug, billingCycle } = req.body;
 
+    console.log('📥 Vercel API received request:', { orderId, amount, userId, planSlug, billingCycle });
+
     // PhonePe live credentials
     const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
     const PHONEPE_SALT_KEY = '713219fb-38d0-468d-8268-8b15955468b0';
@@ -82,10 +84,22 @@ export default async function handler(req, res) {
       });
     } else {
       console.error('❌ Live PhonePe payment failed:', data);
+      console.error('❌ Response status:', response.status);
+      console.error('❌ Response headers:', response.headers);
+      
+      // Return detailed error information
       res.status(400).json({
         success: false,
         error: data.message || 'Live PhonePe payment initiation failed',
-        data: data
+        code: data.code,
+        data: data,
+        debug: {
+          responseStatus: response.status,
+          hasData: !!data.data,
+          hasInstrumentResponse: !!data.data?.instrumentResponse,
+          hasRedirectInfo: !!data.data?.instrumentResponse?.redirectInfo,
+          hasUrl: !!data.data?.instrumentResponse?.redirectInfo?.url
+        }
       });
     }
 

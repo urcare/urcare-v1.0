@@ -216,6 +216,9 @@ export async function createPhonePePayment(orderId: string, amount: number, user
       
       try {
         // Call Vercel API route that handles PhonePe API calls
+        console.log("🌐 Calling Vercel API:", `${PHONEPE_BACKEND_URL}/pay`);
+        console.log("📤 Request body:", JSON.stringify(requestBody, null, 2));
+        
         const response = await fetch(`${PHONEPE_BACKEND_URL}/pay`, {
           method: 'POST',
           headers: {
@@ -224,14 +227,14 @@ export async function createPhonePePayment(orderId: string, amount: number, user
           body: JSON.stringify(requestBody)
         });
         
+        console.log("📨 Vercel API response status:", response.status);
         const data = await response.json();
+        console.log("📨 Vercel API response data:", JSON.stringify(data, null, 2));
 
         if (!response.ok) {
           console.error("Vercel API error:", data);
           throw new Error(data.error || "Failed to create payment order");
         }
-
-        console.log("Vercel API response:", data);
 
         if (data && data.success && data.redirectUrl) {
           return {
