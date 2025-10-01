@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, User, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminLoginPopupProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({ isOpen, onClose, onSu
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { setUser, setProfile } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setCredentials(prev => ({ ...prev, [field]: value }));
@@ -42,6 +44,60 @@ const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({ isOpen, onClose, onSu
     try {
       // Check admin credentials
       if (credentials.username === 'admin' && credentials.password === 'admin') {
+        // Create mock user session for admin
+        const mockUser = {
+          id: 'admin-user-123',
+          email: 'admin@urcare.com',
+          user_metadata: {
+            full_name: 'Admin User',
+            avatar_url: null,
+            picture: null
+          },
+          app_metadata: {},
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const mockProfile = {
+          id: 'admin-user-123',
+          full_name: 'Admin User',
+          onboarding_completed: false,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          age: null,
+          date_of_birth: null,
+          gender: null,
+          unit_system: null,
+          height_feet: null,
+          height_inches: null,
+          height_cm: null,
+          weight_lb: null,
+          weight_kg: null,
+          wake_up_time: null,
+          sleep_time: null,
+          work_start: null,
+          work_end: null,
+          chronic_conditions: null,
+          takes_medications: null,
+          medications: null,
+          has_surgery: null,
+          surgery_details: null,
+          health_goals: null,
+          diet_type: null,
+          blood_group: null,
+          breakfast_time: null,
+          lunch_time: null,
+          dinner_time: null,
+          workout_time: null,
+          city: null
+        };
+
+        // Set mock user and profile in context
+        setUser(mockUser as any);
+        setProfile(mockProfile);
+
         toast.success('Admin login successful!', {
           description: 'Redirecting to onboarding...'
         });
@@ -153,6 +209,20 @@ const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({ isOpen, onClose, onSu
               )}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500">
+              Enter "admin" for both username and password
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AdminLoginPopup;
+
           
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-500">

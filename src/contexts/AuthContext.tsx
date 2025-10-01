@@ -72,6 +72,8 @@ interface AuthContextType {
   isInitialized: boolean;
   showAdminPopup: boolean;
   setShowAdminPopup: (show: boolean) => void;
+  setUser: (user: User | null) => void;
+  setProfile: (profile: UserProfile | null) => void;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -639,6 +641,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isInitialized,
       showAdminPopup,
       setShowAdminPopup,
+      setUser,
+      setProfile,
       signUp,
       signIn,
       signOut,
@@ -657,6 +661,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isInitialized,
       showAdminPopup,
       setShowAdminPopup,
+      setUser,
+      setProfile,
       signUp,
       signIn,
       signOut,
