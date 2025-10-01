@@ -256,6 +256,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const initializeAuth = async () => {
       try {
+        // For localhost development, skip auth checks to prevent 403 errors
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          console.log("🔓 Localhost development mode - skipping auth checks");
+          if (mounted) {
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            setIsInitialized(true);
+          }
+          return;
+        }
+
         const {
           data: { user },
           error,
@@ -303,24 +315,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!authListenerRef.current) {
       authListenerRef.current = true;
 
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (!mounted) return;
+      // Skip auth listener for localhost development
+      let subscription: any = null;
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        const {
+          data: { subscription: authSubscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (!mounted) return;
 
-        // Skip auth state changes during initialization to prevent duplicate calls
-        if (isInitializing) {
-          return;
-        }
+          // Skip auth state changes during initialization to prevent duplicate calls
+          if (isInitializing) {
+            return;
+          }
 
-        if (event === "SIGNED_IN") {
-          await handleUserAuth(session?.user || null);
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-          setProfile(null);
-          profileCache.clear();
-        }
-      });
+          if (event === "SIGNED_IN") {
+            await handleUserAuth(session?.user || null);
+          } else if (event === "SIGNED_OUT") {
+            setUser(null);
+            setProfile(null);
+            profileCache.clear();
+          }
+        });
+        subscription = authSubscription;
+      }
 
       // Initialize auth after setting up listener
       initializeAuth();
@@ -328,7 +345,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return () => {
         mounted = false;
         authListenerRef.current = false;
-        subscription.unsubscribe();
+        if (subscription) {
+          subscription.unsubscribe();
+        }
       };
     }
 

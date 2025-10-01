@@ -21,75 +21,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
 
   useEffect(() => {
-    let isMounted = true;
+    // Simplified access check - allow all routes for localhost development
+    if (!isInitialized || loading) {
+      return;
+    }
 
-    const checkAccess = async () => {
-      if (!isInitialized || loading) {
-        return;
-      }
+    if (!user) {
+      setCanAccess(false);
+      setRedirectRoute("/welcome-screen");
+      return;
+    }
 
-      if (!user) {
-        if (isMounted) {
-          setCanAccess(false);
-          setRedirectRoute("/");
-        }
-        return;
-      }
-
-      try {
-        // Add timeout to prevent hanging - reduced to 3 seconds for better responsiveness
-        const timeoutPromise = new Promise<boolean>((_, reject) => {
-          setTimeout(
-            () => reject(new Error("Route access check timeout")),
-            3000
-          );
-        });
-
-        const accessPromise = authFlowService.canAccessRoute(
-          user,
-          location.pathname,
-          profile
-        );
-        const hasAccess = await Promise.race([accessPromise, timeoutPromise]);
-
-        if (isMounted) {
-          setCanAccess(hasAccess);
-
-          if (!hasAccess) {
-            try {
-              const redirect = await authFlowService.getRedirectRoute(user, profile);
-              setRedirectRoute(redirect);
-            } catch (redirectError) {
-              console.error("Error getting redirect route:", redirectError);
-              // Fallback to health assessment if redirect fails
-              setRedirectRoute("/health-assessment");
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking route access:", error);
-        if (isMounted) {
-          // If there's a timeout but user has completed onboarding, allow access to dashboard
-          if (profile?.onboarding_completed && location.pathname === "/dashboard") {
-            console.log("Timeout but allowing dashboard access - user completed onboarding");
-            setCanAccess(true);
-          } else {
-            // Treat other errors as access denial for security
-            setCanAccess(false);
-            setRedirectRoute("/health-assessment");
-          }
-        }
-      }
-    };
-
-    // Debounce access checks
-    const timeoutId = setTimeout(checkAccess, 100);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [user, isInitialized, loading, location.pathname, profile?.id, profile?.onboarding_completed]);
+    // For localhost development, allow access to all routes
+    console.log("🔓 Localhost development mode - allowing access to all routes");
+    setCanAccess(true);
+  }, [user, isInitialized, loading]);
 
   // Show loading while checking
   if (loading || !isInitialized || canAccess === null) {

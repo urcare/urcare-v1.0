@@ -23,6 +23,19 @@ class AuthFlowService {
    * Get the current authentication flow state for a user
    */
   async getAuthFlowState(user: User | null, profile?: any): Promise<AuthFlowState> {
+    // Development mode bypass for localhost
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      console.log("🔓 Development mode - allowing all access");
+      return {
+        isAuthenticated: true,
+        isOnboardingComplete: true,
+        hasActiveSubscription: true,
+        shouldShowPaywall: false,
+        nextRoute: "/dashboard",
+        canAccessDashboard: true,
+      };
+    }
+
     if (!user) {
       return {
         isAuthenticated: false,
@@ -280,6 +293,12 @@ class AuthFlowService {
    * Check if user can access a specific route
    */
   async canAccessRoute(user: User | null, route: string, profile?: any): Promise<boolean> {
+    // Development mode bypass for localhost
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      console.log("🔓 Development mode - allowing access to route:", route);
+      return true;
+    }
+
     if (!user) {
       // Public routes
       const publicRoutes = ["/", "/auth", "/auth/callback"];
@@ -300,6 +319,8 @@ class AuthFlowService {
         "/dashboard", // Add dashboard to quick bypass
         "/phonecheckout", // Add PhonePe checkout routes
         "/phonecheckout/result",
+        "/payment/success",
+        "/payment/failure",
         "/test-phonepe",
         "/phonepe-test"
       ];
@@ -314,7 +335,7 @@ class AuthFlowService {
     const routeAccessRules: Record<string, boolean> = {
       "/onboarding": !profile?.onboarding_completed,
       "/health-assessment": profile?.onboarding_completed || false,
-      "/paywall": profile?.onboarding_completed || false,
+      "/paywall": true, // Always accessible - user can pay before onboarding
       "/dashboard": profile?.onboarding_completed || false,
       "/health-plan": profile?.onboarding_completed || false,
       "/diet": profile?.onboarding_completed || false,
@@ -322,8 +343,10 @@ class AuthFlowService {
       "/planner": profile?.onboarding_completed || false,
       "/plan-details": profile?.onboarding_completed || false,
       "/subscription": profile?.onboarding_completed || false,
-      "/phonecheckout": profile?.onboarding_completed || false,
-      "/phonecheckout/result": profile?.onboarding_completed || false,
+      "/phonecheckout": true, // Always accessible - payment page
+      "/phonecheckout/result": true, // Always accessible - payment result
+      "/payment/success": true, // Always accessible - payment success
+      "/payment/failure": true, // Always accessible - payment failure
       "/test-phonepe": profile?.onboarding_completed || false,
       "/phonepe-test": profile?.onboarding_completed || false,
       "/welcome-screen": true, // Always accessible for authenticated users
