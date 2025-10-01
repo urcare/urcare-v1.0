@@ -20,7 +20,7 @@ const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU3MzQ0MzgsImV4cCI6MjA1MTMxMDQzOH0.bb62b7c1fe2d9c22a670bbcdaad3930828e5c296e97d35109534d46b7c614adf';
 
 console.log('🔧 PhonePe Backend URL configured:', PHONEPE_BACKEND_URL);
-console.log('📦 PhonePe Service Version: 4.0.0 - Live PhonePe Integration');
+console.log('📦 PhonePe Service Version: 5.0.0 - Vercel API Integration');
 
 // Live PhonePe API configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
@@ -211,13 +211,43 @@ export async function createPhonePePayment(orderId: string, amount: number, user
         throw new Error(data?.error || data?.message || "Payment initiation failed");
       }
     } else {
-      // For production, use live PhonePe API directly
-      console.log("🌐 Production mode - using live PhonePe API");
+      // For production, use Vercel API routes for live PhonePe integration
+      console.log("🌐 Production mode - using Vercel API for live PhonePe");
       
       try {
-        // Call live PhonePe API directly from frontend
-        const phonepeResponse = await createPhonePePaymentDirect(requestBody);
-        return phonepeResponse;
+        // Call Vercel API route that handles PhonePe API calls
+        const response = await fetch(`${PHONEPE_BACKEND_URL}/pay`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Vercel API error:", data);
+          throw new Error(data.error || "Failed to create payment order");
+        }
+
+        console.log("Vercel API response:", data);
+
+        if (data && data.success && data.redirectUrl) {
+          return {
+            success: true,
+            redirectUrl: data.redirectUrl,
+            orderId: data.orderId,
+            transactionId: data.transactionId,
+            merchantId: data.merchantId,
+            amount: data.amount,
+            planSlug: data.planSlug,
+            billingCycle: data.billingCycle
+          };
+        } else {
+          console.error("Payment initiation failed:", data);
+          throw new Error(data?.error || data?.message || "Payment initiation failed");
+        }
       } catch (error) {
         console.error("Live PhonePe API error:", error);
         // Fallback to mock payment if live API fails
@@ -273,12 +303,33 @@ export async function checkPhonePeStatus(orderId: string, userId?: string) {
         data: data.data
       };
     } else {
-      // For production, use live PhonePe API for status check
-      console.log("🌐 Production mode - using live PhonePe status check");
+      // For production, use Vercel API for status check
+      console.log("🌐 Production mode - using Vercel API for status check");
       
       try {
-        const statusResponse = await checkPhonePeStatusDirect(orderId);
-        return statusResponse;
+        const response = await fetch(`${PHONEPE_BACKEND_URL}/status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            transactionId: orderId
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Vercel status API error:", data);
+          throw new Error(data.error || "Failed to check payment status");
+        }
+
+        console.log("Vercel status API response:", data);
+
+        return {
+          success: data.success || false,
+          data: data.data
+        };
       } catch (error) {
         console.error("Live PhonePe status check error:", error);
         // Fallback to mock status if live API fails
