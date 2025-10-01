@@ -19,7 +19,8 @@ import {
   Moon,
   Sun,
   Eye,
-  Activity
+  Activity,
+  Shield
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -651,6 +652,23 @@ const Dashboard: React.FC = () => {
                       />
                     </button>
                   </div>
+
+                  {/* Admin Access */}
+                  {user && user.email === 'admin@urcare.com' && (
+                    <button
+                      onClick={() => navigate('/my-admin')}
+                      className={`w-full flex items-center space-x-3 p-4 rounded-lg transition-colors duration-300 ${
+                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Shield className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                      <span className={`font-medium transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`}>
+                        Admin Panel
+                      </span>
+                    </button>
+                  )}
 
                   {/* View Plan Details */}
                   {selectedPlan && (

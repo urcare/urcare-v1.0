@@ -249,7 +249,7 @@ function App() {
           />
 
           <Route
-            path="/admin"
+            path="/my-admin"
             element={<AdminPanel />}
           />
 

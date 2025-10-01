@@ -411,8 +411,8 @@ const AdminPanel: React.FC = () => {
             <div className="flex items-center space-x-4">
               <Shield className="w-8 h-8 text-blue-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-600">Manage users, payments, and system performance</p>
+                <h1 className="text-2xl font-bold text-gray-900">My Admin Panel</h1>
+                <p className="text-sm text-gray-600">Complete admin control - users, payments, chat, and performance monitoring</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
