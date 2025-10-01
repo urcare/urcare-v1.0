@@ -213,31 +213,42 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       timestamp: new Date().toISOString()
     };
 
-    // Try to call the health plan generation API
-    try {
-      const response = await fetch('https://urcare-server.vercel.app/api/health-plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(planData)
-      });
+    // Try localhost first, then production
+    const apiUrls = [
+      'http://localhost:3000/api/health-plans',
+      'https://urcare-server.vercel.app/api/health-plans'
+    ];
 
-      if (!response.ok) {
-        throw new Error(`Health plan API error: ${response.status}`);
+    for (const apiUrl of apiUrls) {
+      try {
+        console.log(`🔍 Trying API: ${apiUrl}`);
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(planData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Health plan API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Health plans generated via API:', result);
+
+        return {
+          success: true,
+          plans: result.plans
+        };
+      } catch (apiError) {
+        console.log(`❌ API failed: ${apiUrl}`, apiError.message);
+        continue; // Try next URL
       }
-
-      const result = await response.json();
-      console.log('✅ Health plans generated:', result);
-
-      return {
-        success: true,
-        plans: result.plans
-      };
-    } catch (apiError) {
-      console.log('🔄 API not available, using fallback generation');
-      throw apiError; // This will trigger the fallback
     }
+
+    // If all APIs fail, throw error to trigger fallback
+    throw new Error('All API endpoints failed');
 
     } catch (error) {
     console.error('❌ Health plan generation error:', error);

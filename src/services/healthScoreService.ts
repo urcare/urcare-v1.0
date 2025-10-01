@@ -150,33 +150,44 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       timestamp: new Date().toISOString()
     };
 
-    // Try to call the health score generation API
-    try {
-      const response = await fetch('https://urcare-server.vercel.app/api/health-score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(healthData)
-      });
+    // Try localhost first, then production
+    const apiUrls = [
+      'http://localhost:3000/api/health-score',
+      'https://urcare-server.vercel.app/api/health-score'
+    ];
 
-      if (!response.ok) {
-        throw new Error(`Health score API error: ${response.status}`);
+    for (const apiUrl of apiUrls) {
+      try {
+        console.log(`🔍 Trying API: ${apiUrl}`);
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(healthData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Health score API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Health score calculated via API:', result);
+
+        return {
+          success: true,
+          healthScore: result.healthScore,
+          analysis: result.analysis,
+          recommendations: result.recommendations
+        };
+      } catch (apiError) {
+        console.log(`❌ API failed: ${apiUrl}`, apiError.message);
+        continue; // Try next URL
       }
-
-      const result = await response.json();
-      console.log('✅ Health score calculated:', result);
-
-      return {
-        success: true,
-        healthScore: result.healthScore,
-        analysis: result.analysis,
-        recommendations: result.recommendations
-      };
-    } catch (apiError) {
-      console.log('🔄 API not available, using fallback calculation');
-      throw apiError; // This will trigger the fallback
     }
+
+    // If all APIs fail, throw error to trigger fallback
+    throw new Error('All API endpoints failed');
 
   } catch (error) {
     console.error('❌ Health score calculation error:', error);

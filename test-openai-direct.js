@@ -6,7 +6,7 @@ const openai = new OpenAI({
 
 async function testOpenAI() {
   try {
-    console.log('🔍 Testing OpenAI API...');
+    console.log('🔍 Testing OpenAI API with provided key...');
     
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
@@ -37,7 +37,7 @@ async function testOpenAI() {
     
   } catch (error) {
     console.error('❌ OpenAI Error:', error.message);
-    console.error('❌ Error details:', error);
+    console.error('❌ Full error:', error);
   }
 }
 
