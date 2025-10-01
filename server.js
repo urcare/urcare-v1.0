@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -10,9 +10,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY || "",
+// Initialize Groq
+const groq = new Groq({
+  apiKey: process.env.VITE_GROQ_API_KEY || "",
 });
 
 // Initialize Supabase
@@ -28,10 +28,10 @@ app.post('/api/health-score', async (req, res) => {
 
     console.log('🔍 Generating health score for user:', userProfile?.id);
 
-    if (!process.env.VITE_OPENAI_API_KEY) {
+    if (!GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'OpenAI API key not configured'
+        error: 'Groq API key not configured'
       });
     }
 
@@ -70,8 +70,8 @@ Respond in JSON format:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -86,8 +86,8 @@ Respond in JSON format:
       temperature: 0.7
     });
 
-    const response = completion.choices[0].message.content;
-    console.log('📨 OpenAI Response:', response);
+    const response = chatCompletion.choices[0].message.content;
+    console.log('📨 Groq Response:', response);
 
     // Parse the JSON response
     let healthData;
@@ -123,16 +123,16 @@ Respond in JSON format:
     if (error.code === 'insufficient_quota') {
       return res.status(429).json({ 
         success: false, 
-        error: 'OpenAI quota exceeded. Please check your billing details.', 
-        details: 'You have exceeded your current OpenAI usage limit. Please upgrade your plan or wait for quota reset.'
+        error: 'Groq quota exceeded. Please check your billing details.',
+        details: 'You have exceeded your current Groq usage limit. Please upgrade your plan or wait for quota reset.'
       });
     }
     
     if (error.code === 'model_not_found') {
       return res.status(400).json({ 
         success: false, 
-        error: 'OpenAI model not available', 
-        details: 'The requested model is not available with your current OpenAI plan.'
+        error: 'Groq model not available',
+        details: 'The requested model is not available with your current Groq plan.'
       });
     }
     
@@ -159,10 +159,10 @@ app.post('/api/health-plans', async (req, res) => {
 
     console.log('🔍 Generating health plans for user:', userProfile?.id);
 
-    if (!process.env.VITE_OPENAI_API_KEY) {
+    if (!GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'OpenAI API key not configured'
+        error: 'Groq API key not configured'
       });
     }
 
@@ -248,8 +248,8 @@ Respond in JSON format:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -264,8 +264,8 @@ Respond in JSON format:
       temperature: 0.8
     });
 
-    const response = completion.choices[0].message.content;
-    console.log('📨 OpenAI Response:', response);
+    const response = chatCompletion.choices[0].message.content;
+    console.log('📨 Groq Response:', response);
 
     // Parse the JSON response
     let planData;
@@ -325,16 +325,16 @@ Respond in JSON format:
     if (error.code === 'insufficient_quota') {
       return res.status(429).json({ 
         success: false, 
-        error: 'OpenAI quota exceeded. Please check your billing details.', 
-        details: 'You have exceeded your current OpenAI usage limit. Please upgrade your plan or wait for quota reset.'
+        error: 'Groq quota exceeded. Please check your billing details.',
+        details: 'You have exceeded your current Groq usage limit. Please upgrade your plan or wait for quota reset.'
       });
     }
     
     if (error.code === 'model_not_found') {
       return res.status(400).json({ 
         success: false, 
-        error: 'OpenAI model not available', 
-        details: 'The requested model is not available with your current OpenAI plan.'
+        error: 'Groq model not available',
+        details: 'The requested model is not available with your current Groq plan.'
       });
     }
     
@@ -353,10 +353,10 @@ app.post('/api/plan-activities', async (req, res) => {
 
     console.log('🔍 Generating activities for plan:', selectedPlan?.title);
 
-    if (!process.env.VITE_OPENAI_API_KEY) {
+    if (!GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'OpenAI API key not configured'
+        error: 'Groq API key not configured'
       });
     }
 
@@ -409,8 +409,8 @@ Respond in JSON format:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -425,8 +425,8 @@ Respond in JSON format:
       temperature: 0.7
     });
 
-    const response = completion.choices[0].message.content;
-    console.log('📨 OpenAI Response:', response);
+    const response = chatCompletion.choices[0].message.content;
+    console.log('📨 Groq Response:', response);
 
     // Parse the JSON response
     let activityData;

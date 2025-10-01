@@ -1,7 +1,7 @@
 // Start local server for development
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 
 const app = express();
 const PORT = 3000;
@@ -10,9 +10,9 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY || "",
+// Initialize Groq
+const groq = new Groq({
+  apiKey: process.env.VITE_GROQ_API_KEY || "",
 });
 
 // Health Score Generation API
@@ -22,10 +22,10 @@ app.post('/api/health-score', async (req, res) => {
 
     console.log('🔍 Generating health score for user:', userProfile?.id);
 
-    if (!process.env.VITE_OPENAI_API_KEY) {
+    if (!process.env.VITE_GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'OpenAI API key not configured. Please set VITE_OPENAI_API_KEY environment variable.'
+        error: 'Groq API key not configured. Please set VITE_OPENAI_API_KEY environment variable.'
       });
     }
 
@@ -64,8 +64,8 @@ Respond in JSON format:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -80,8 +80,8 @@ Respond in JSON format:
       temperature: 0.7
     });
 
-    const response = completion.choices[0].message.content;
-    console.log('📨 OpenAI Response:', response);
+    const response = chatCompletion.choices[0].message.content;
+    console.log('📨 Groq Response:', response);
 
     // Parse the JSON response
     let healthData;
@@ -135,10 +135,10 @@ app.post('/api/health-plans', async (req, res) => {
 
     console.log('🔍 Generating health plans for user:', userProfile?.id);
 
-    if (!process.env.VITE_OPENAI_API_KEY) {
+    if (!process.env.VITE_GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'OpenAI API key not configured. Please set VITE_OPENAI_API_KEY environment variable.'
+        error: 'Groq API key not configured. Please set VITE_OPENAI_API_KEY environment variable.'
       });
     }
 
@@ -224,8 +224,8 @@ Respond in JSON format:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -240,8 +240,8 @@ Respond in JSON format:
       temperature: 0.8
     });
 
-    const response = completion.choices[0].message.content;
-    console.log('📨 OpenAI Response:', response);
+    const response = chatCompletion.choices[0].message.content;
+    console.log('📨 Groq Response:', response);
 
     // Parse the JSON response
     let planData;
