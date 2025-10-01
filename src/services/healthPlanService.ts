@@ -1,132 +1,113 @@
-// Health Plan Service
-// This service manages health plans and their progress
+// Health Plan Generation Service using OpenAI
+import { supabase } from '@/integrations/supabase/client';
 
-export interface HealthPlanRecord {
+interface HealthPlanRequest {
+  userProfile: any;
+  healthScore: number;
+  analysis: string;
+  recommendations: string[];
+  userInput?: string;
+  uploadedFiles?: string[];
+  voiceTranscript?: string;
+}
+
+interface HealthPlan {
   id: string;
-  plan_name: string;
-  primary_goal: string;
-  duration_weeks: number;
-  difficulty: string;
-  plan_start_date: string;
-  created_at: string;
-  updated_at: string;
+  title: string;
+  description: string;
+  duration: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  focusAreas: string[];
+  estimatedCalories: number;
+  equipment: string[];
+  benefits: string[];
 }
 
-export interface DayProgress {
-  [activityId: string]: boolean;
+interface HealthPlanResponse {
+  success: boolean;
+  plans?: HealthPlan[];
+  error?: string;
 }
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  // Add other profile fields as needed
-}
+export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
+  try {
+    console.log('🔍 Generating health plans with data:', request);
 
-class HealthPlanService {
-  // Get all health plans for the current user
-  async getAllPlans(): Promise<HealthPlanRecord[]> {
-    try {
-      // This would typically fetch from your backend
-      console.log("Fetching all health plans...");
-      return [];
-    } catch (error) {
-      console.error("Error fetching health plans:", error);
-      return [];
+    // Prepare the data for OpenAI
+    const planData = {
+      userProfile: request.userProfile,
+      healthScore: request.healthScore,
+      analysis: request.analysis,
+      recommendations: request.recommendations,
+      userInput: request.userInput || '',
+      uploadedFiles: request.uploadedFiles || [],
+      voiceTranscript: request.voiceTranscript || '',
+      timestamp: new Date().toISOString()
+    };
+
+    // Call the health plan generation API
+    const response = await fetch('/api/generate-health-plans', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(planData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Health plan API error: ${response.status}`);
     }
-  }
 
-  // Get the current active health plan
-  async getCurrentPlan(): Promise<HealthPlanRecord | null> {
-    try {
-      console.log("Fetching current health plan...");
-      // This would typically fetch from your backend
-      return null;
-    } catch (error) {
-      console.error("Error fetching current plan:", error);
-      return null;
-    }
-  }
+    const result = await response.json();
+    console.log('✅ Health plans generated:', result);
 
-  // Get user profile
-  async getUserProfile(): Promise<UserProfile | null> {
-    try {
-      console.log("Fetching user profile...");
-      // This would typically fetch from your backend
-      return null;
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      return null;
-    }
-  }
+    return {
+      success: true,
+      plans: result.plans
+    };
 
-  // Get progress for a specific day
-  async getDayProgress(planId: string, day: number): Promise<DayProgress> {
-    try {
-      console.log(`Fetching progress for plan ${planId}, day ${day}...`);
-      // This would typically fetch from your backend
-      return {};
-    } catch (error) {
-      console.error("Error fetching day progress:", error);
-      return {};
-    }
+  } catch (error) {
+    console.error('❌ Health plan generation error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate health plans'
+    };
   }
+};
 
-  // Check and generate next plan if needed
-  async checkAndGenerateNextPlan(): Promise<HealthPlanRecord | null> {
-    try {
-      console.log("Checking if next plan is needed...");
-      // This would typically check if current plan is complete and generate next
-      return null;
-    } catch (error) {
-      console.error("Error checking/generating next plan:", error);
-      return null;
-    }
+// Save selected health plan
+export const saveSelectedHealthPlan = async (userId: string, plan: HealthPlan) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_health_plans')
+      .insert({
+        user_id: userId,
+        plan_id: plan.id,
+        plan_title: plan.title,
+        plan_description: plan.description,
+        duration: plan.duration,
+        difficulty: plan.difficulty,
+        focus_areas: plan.focusAreas,
+        estimated_calories: plan.estimatedCalories,
+        equipment: plan.equipment,
+        benefits: plan.benefits,
+        selected_at: new Date().toISOString(),
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      plan: data
+    };
+  } catch (error) {
+    console.error('❌ Error saving health plan:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to save health plan'
+    };
   }
-
-  // Generate a new health plan
-  async generateHealthPlan(): Promise<HealthPlanRecord | null> {
-    try {
-      console.log("Generating new health plan...");
-      // This would typically generate a new plan based on user profile
-      return null;
-    } catch (error) {
-      console.error("Error generating health plan:", error);
-      return null;
-    }
-  }
-
-  // Generate next plan in sequence
-  async generateNextPlan(): Promise<HealthPlanRecord | null> {
-    try {
-      console.log("Generating next plan in sequence...");
-      // This would typically generate the next plan in a sequence
-      return null;
-    } catch (error) {
-      console.error("Error generating next plan:", error);
-      return null;
-    }
-  }
-
-  // Mark an activity as completed
-  async markActivityCompleted(planId: string, activityId: string, day: number): Promise<void> {
-    try {
-      console.log(`Marking activity ${activityId} as completed for plan ${planId}, day ${day}`);
-      // This would typically update the backend
-    } catch (error) {
-      console.error("Error marking activity completed:", error);
-    }
-  }
-
-  // Mark a day as completed
-  async markDayCompleted(planId: string, day: number): Promise<void> {
-    try {
-      console.log(`Marking day ${day} as completed for plan ${planId}`);
-      // This would typically update the backend
-    } catch (error) {
-      console.error("Error marking day completed:", error);
-    }
-  }
-}
-
-export const healthPlanService = new HealthPlanService();
+};

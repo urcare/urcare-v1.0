@@ -11,10 +11,17 @@ const Onboarding: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
-  // Show auth if no user
+  // Check for admin mode (when coming from admin login)
   useEffect(() => {
-    if (!user) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminMode = urlParams.get('admin') === 'true';
+    
+    if (adminMode) {
+      setIsAdminMode(true);
+      setShowAuth(false);
+    } else if (!user) {
       setShowAuth(true);
     } else {
       setShowAuth(false);
@@ -30,38 +37,45 @@ const Onboarding: React.FC = () => {
   }, [profile, navigate]);
 
   const handleOnboardingComplete = async (data: OnboardingData) => {
-    if (!user) {
+    if (!isAdminMode && !user) {
       toast.error("User not found. Please log in again.");
       return;
     }
 
-      setLoading(true);
+    setLoading(true);
 
-      try {
+    try {
       console.log("Completing onboarding with data:", data);
       
-      const result = await onboardingService.saveOnboardingData(user, data);
-      
-      if (result.success) {
-        toast.success("Onboarding completed successfully!");
-        
-        // Refresh profile to update the context
-        await refreshProfile();
-        
-        // Navigate to dashboard
+      if (isAdminMode) {
+        // For admin mode, just show success and redirect to dashboard
+        toast.success("Onboarding completed successfully! (Admin Mode)");
         navigate("/dashboard", { replace: true });
-                    } else {
-        toast.error("Failed to save onboarding data", {
-          description: result.error || "Please try again."
-        });
+      } else {
+        // Normal flow - save onboarding data
+        const result = await onboardingService.saveOnboardingData(user!, data);
+        
+        if (result.success) {
+          toast.success("Onboarding completed successfully!");
+          
+          // Refresh profile to update the context
+          await refreshProfile();
+          
+          // Navigate to dashboard
+          navigate("/dashboard", { replace: true });
+        } else {
+          toast.error("Failed to save onboarding data", {
+            description: result.error || "Please try again."
+          });
+        }
       }
-      } catch (error) {
-        console.error("Error completing onboarding:", error);
-        toast.error("Failed to complete onboarding", {
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      toast.error("Failed to complete onboarding", {
         description: error instanceof Error ? error.message : "Please try again."
-        });
-      } finally {
-        setLoading(false);
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,8 +89,8 @@ const Onboarding: React.FC = () => {
     );
   }
 
-  // Show loading if checking auth state
-  if (!user || loading) {
+  // Show loading if checking auth state (but not in admin mode)
+  if ((!isAdminMode && !user) || loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">

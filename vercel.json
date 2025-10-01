@@ -9,11 +9,19 @@
     },
     "api/generate-plan.js": {
       "maxDuration": 30
+    },
+    "api/generate-health-score.js": {
+      "maxDuration": 30
+    },
+    "api/generate-health-plans.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
     { "source": "/api/razorpay/create-order", "destination": "/api/razorpay-create-order.js" },
     { "source": "/api/razorpay/verify-payment", "destination": "/api/razorpay-verify-payment.js" },
+    { "source": "/api/generate-health-score", "destination": "/api/generate-health-score.js" },
+    { "source": "/api/generate-health-plans", "destination": "/api/generate-health-plans.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
