@@ -9,6 +9,7 @@ import QRCodeModal from "@/components/payment/QRCodeModal";
 import PaymentSuccessModal from "@/components/payment/PaymentSuccessModal";
 
 export default function PhonePeCheckoutSimple() {
+  console.log("❌ PhonePeCheckoutSimple rendered - OLD COMPONENT WITH MULTIPLE BUTTONS");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

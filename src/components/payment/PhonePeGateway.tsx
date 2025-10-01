@@ -18,7 +18,7 @@ export default function PhonePeGateway({ amount, userId, planSlug, billingCycle 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("PhonePeGateway mounted/rendered", {
+  console.log("🚀 PhonePeGateway mounted/rendered - CORRECT COMPONENT", {
     amount,
     userId,
     planSlug,
