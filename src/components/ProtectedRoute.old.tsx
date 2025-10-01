@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/authService";
 import { MobileLoadingScreen } from "@/components/MobileLoadingScreen";
+import { useAuth } from "@/contexts/AuthContext";
+import { authFlowService } from "@/services/authFlowService";
+import { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,24 +21,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
 
   useEffect(() => {
-    if (!isInitialized || loading) {
-      return;
-    }
+    let isMounted = true;
 
-    // Simple access check without async calls
-    if (!user) {
-      setCanAccess(false);
-      setRedirectRoute("/welcome-screen");
-      return;
-    }
+    const checkAccess = async () => {
+      if (!isInitialized || loading) {
+        return;
+      }
 
-    if (!profile?.onboarding_completed && location.pathname !== "/onboarding") {
-      setCanAccess(false);
-      setRedirectRoute("/onboarding");
-      return;
-    }
+      if (!user) {
+        if (isMounted) {
+          setCanAccess(false);
+          setRedirectRoute("/");
+        }
+        return;
+      }
 
-<<<<<<< HEAD
       try {
         // Add timeout to prevent hanging - reduced to 3 seconds for better responsiveness
         const timeoutPromise = new Promise<boolean>((_, reject) => {
@@ -92,24 +89,25 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [user, isInitialized, loading, location.pathname, profile?.id, profile?.onboarding_completed]);
+  }, [user, isInitialized, loading, location.pathname]);
 
-  // Show loading while checking
   if (loading || !isInitialized || canAccess === null) {
     return (
       <MobileLoadingScreen
-        message={loading ? "Loading..." : "Checking access..."}
+        message={
+          loading
+            ? "Loading..."
+            : "Checking access..."
+        }
         submessage="Please wait"
       />
     );
   }
 
-  // Redirect to welcome screen if not authenticated
   if (!user) {
     return <Navigate to="/welcome-screen" state={{ from: location }} replace />;
   }
 
-  // Redirect if no access
   if (!canAccess) {
     return <Navigate to={redirectRoute} state={{ from: location }} replace />;
   }

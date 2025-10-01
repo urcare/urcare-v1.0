@@ -6,7 +6,7 @@ import { SerialOnboarding } from "@/components/onboarding/SerialOnboarding";
 import { AuthOptions } from "@/components/auth/AuthOptions";
 import { toast } from "sonner";
 
-const Onboarding: React.FC = () => {
+const OnboardingNew: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -35,9 +35,9 @@ const Onboarding: React.FC = () => {
       return;
     }
 
-      setLoading(true);
-
-      try {
+    setLoading(true);
+    
+    try {
       console.log("Completing onboarding with data:", data);
       
       const result = await onboardingService.saveOnboardingData(user, data);
@@ -50,18 +50,18 @@ const Onboarding: React.FC = () => {
         
         // Navigate to dashboard
         navigate("/dashboard", { replace: true });
-                    } else {
+      } else {
         toast.error("Failed to save onboarding data", {
           description: result.error || "Please try again."
         });
       }
-      } catch (error) {
-        console.error("Error completing onboarding:", error);
-        toast.error("Failed to complete onboarding", {
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      toast.error("Failed to complete onboarding", {
         description: error instanceof Error ? error.message : "Please try again."
-        });
-      } finally {
-        setLoading(false);
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,12 +88,12 @@ const Onboarding: React.FC = () => {
   }
 
   // Show onboarding form
-    return (
-        <SerialOnboarding
+  return (
+    <SerialOnboarding
       onComplete={handleOnboardingComplete}
-          onBack={() => navigate("/")}
-        />
+      onBack={() => navigate("/")}
+    />
   );
 };
 
-export default Onboarding;
+export default OnboardingNew;
