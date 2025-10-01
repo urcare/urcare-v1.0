@@ -71,7 +71,7 @@ Respond in JSON format:
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -118,6 +118,24 @@ Respond in JSON format:
 
   } catch (error) {
     console.error('❌ Health score generation error:', error);
+    
+    // Handle specific OpenAI errors
+    if (error.code === 'insufficient_quota') {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'OpenAI quota exceeded. Please check your billing details.', 
+        details: 'You have exceeded your current OpenAI usage limit. Please upgrade your plan or wait for quota reset.'
+      });
+    }
+    
+    if (error.code === 'model_not_found') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'OpenAI model not available', 
+        details: 'The requested model is not available with your current OpenAI plan.'
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
       error: 'Failed to generate health score', 
@@ -231,7 +249,7 @@ Respond in JSON format:
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -302,6 +320,24 @@ Respond in JSON format:
 
   } catch (error) {
     console.error('❌ Health plan generation error:', error);
+    
+    // Handle specific OpenAI errors
+    if (error.code === 'insufficient_quota') {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'OpenAI quota exceeded. Please check your billing details.', 
+        details: 'You have exceeded your current OpenAI usage limit. Please upgrade your plan or wait for quota reset.'
+      });
+    }
+    
+    if (error.code === 'model_not_found') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'OpenAI model not available', 
+        details: 'The requested model is not available with your current OpenAI plan.'
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
       error: 'Failed to generate health plans', 
@@ -374,7 +410,7 @@ Respond in JSON format:
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
