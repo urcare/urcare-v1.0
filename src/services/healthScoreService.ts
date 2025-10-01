@@ -150,11 +150,11 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       timestamp: new Date().toISOString()
     };
 
-    // Try localhost first, then production
-    const apiUrls = [
-      'http://localhost:3000/api/health-score',
-      'https://urcare-server.vercel.app/api/health-score'
-    ];
+          // Try production server first, then localhost
+          const apiUrls = [
+            'https://urcare-server.vercel.app/api/health-score',
+            'http://localhost:3000/api/health-score'
+          ];
 
     for (const apiUrl of apiUrls) {
       try {

@@ -213,11 +213,11 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       timestamp: new Date().toISOString()
     };
 
-    // Try localhost first, then production
-    const apiUrls = [
-      'http://localhost:3000/api/health-plans',
-      'https://urcare-server.vercel.app/api/health-plans'
-    ];
+          // Try production server first, then localhost
+          const apiUrls = [
+            'https://urcare-server.vercel.app/api/health-plans',
+            'http://localhost:3000/api/health-plans'
+          ];
 
     for (const apiUrl of apiUrls) {
       try {
