@@ -5,13 +5,13 @@ const PHONEPE_BACKEND_URL = (() => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:5000';
     } else {
-      // For production, use a deployed Express backend or direct PhonePe API
-      return 'https://urcare.vercel.app/api/phonepe';
+      // For production, use Vercel-deployed Express backend
+      return 'https://urcare.vercel.app';
     }
   }
   // Fallback to environment variable
   return process.env.NODE_ENV === 'production' 
-    ? 'https://urcare.vercel.app/api/phonepe'
+    ? 'https://urcare.vercel.app'
     : 'http://localhost:5000';
 })();
 
@@ -20,7 +20,7 @@ const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU3MzQ0MzgsImV4cCI6MjA1MTMxMDQzOH0.bb62b7c1fe2d9c22a670bbcdaad3930828e5c296e97d35109534d46b7c614adf';
 
 console.log('🔧 PhonePe Backend URL configured:', PHONEPE_BACKEND_URL);
-console.log('📦 PhonePe Service Version: 5.0.0 - Vercel API Integration');
+console.log('📦 PhonePe Service Version: 6.0.0 - Express Backend on Vercel');
 
 // Live PhonePe API configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
