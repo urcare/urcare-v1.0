@@ -69,12 +69,12 @@ class AuthService {
       return "/";
     }
 
-    if (profile?.onboarding_completed) {
-      // After onboarding, go to health assessment
-      return "/health-assessment";
-    } else {
+    if (!profile?.onboarding_completed) {
       return "/onboarding";
     }
+
+    // If onboarding complete, go to dashboard (let dashboard handle subscription checks)
+    return "/dashboard";
   }
 
   /**

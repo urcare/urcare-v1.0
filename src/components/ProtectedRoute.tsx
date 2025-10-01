@@ -25,28 +25,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return;
     }
 
-    const checkAccess = async () => {
-      try {
-        // Check if user can access the route
-        const hasAccess = authService.canAccessRoute(user, location.pathname, profile);
-        
-        if (hasAccess) {
-          setCanAccess(true);
-        } else {
-          setCanAccess(false);
-          
-          // Get redirect route
-          const redirect = await authService.getRedirectRoute(user, profile);
-          setRedirectRoute(redirect);
-        }
-      } catch (error) {
-        console.error("Error checking route access:", error);
-        setCanAccess(false);
-        setRedirectRoute("/");
-      }
-    };
+    // Simple access check without async calls
+    if (!user) {
+      setCanAccess(false);
+      setRedirectRoute("/welcome-screen");
+      return;
+    }
 
-    checkAccess();
+    if (!profile?.onboarding_completed && location.pathname !== "/onboarding") {
+      setCanAccess(false);
+      setRedirectRoute("/onboarding");
+      return;
+    }
+
+    // Allow access to all other routes
+    setCanAccess(true);
   }, [user, profile, isInitialized, loading, location.pathname]);
 
   // Show loading while checking

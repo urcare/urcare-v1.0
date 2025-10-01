@@ -24,8 +24,8 @@ const Onboarding: React.FC = () => {
   // Redirect if onboarding already completed
   useEffect(() => {
     if (profile?.onboarding_completed) {
-      console.log("Onboarding already completed, redirecting to health assessment");
-        navigate("/health-assessment", { replace: true });
+      console.log("Onboarding already completed, redirecting to dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [profile, navigate]);
 
@@ -48,8 +48,8 @@ const Onboarding: React.FC = () => {
         // Refresh profile to update the context
         await refreshProfile();
         
-        // Navigate to health assessment
-          navigate("/health-assessment", { replace: true });
+        // Navigate to dashboard
+        navigate("/dashboard", { replace: true });
                     } else {
         toast.error("Failed to save onboarding data", {
           description: result.error || "Please try again."
