@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ interface AdminStats {
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const { user, showAdminPopup, setShowAdminPopup } = useAuth();
+  const { isAdmin, setAdmin } = useAdmin();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -142,13 +144,14 @@ const AdminPanel: React.FC = () => {
 
   // Check admin authentication
   useEffect(() => {
-    if (user && (user.email === 'admin@urcare.com' || user.email?.includes('admin'))) {
+    if (isAdmin) {
       setIsAuthenticated(true);
       loadAdminData();
-    } else if (!user) {
-      setShowAdminPopup(true);
+    } else {
+      // Redirect to admin login if not authenticated
+      navigate('/my-admin', { replace: true });
     }
-  }, [user, setShowAdminPopup]);
+  }, [isAdmin, navigate]);
 
   // Load admin data
   const loadAdminData = async () => {
@@ -367,7 +370,7 @@ const AdminPanel: React.FC = () => {
   };
 
   // Show loading while checking authentication
-  if (!isAuthenticated && !showAdminPopup) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -375,27 +378,6 @@ const AdminPanel: React.FC = () => {
             <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading...</h2>
             <p className="text-gray-600">Checking admin access...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Show access denied if user is logged in but not admin
-  if (user && !user.email?.includes('admin')) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-gray-600">You don't have permission to access this page.</p>
-            <Button 
-              onClick={() => setShowAdminPopup(true)}
-              className="mt-4"
-            >
-              Admin Login
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -426,10 +408,13 @@ const AdminPanel: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => {
+                  setAdmin(false);
+                  navigate('/my-admin');
+                }}
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Back to App
+                Logout Admin
               </Button>
             </div>
           </div>
@@ -805,15 +790,6 @@ const AdminPanel: React.FC = () => {
         </Tabs>
       </div>
 
-      {/* Admin Login Popup */}
-      <AdminLoginPopup
-        isOpen={showAdminPopup}
-        onClose={() => setShowAdminPopup(false)}
-        onSuccess={() => {
-          setShowAdminPopup(false);
-          setIsAuthenticated(true);
-        }}
-      />
     </div>
   );
 };

@@ -23,15 +23,15 @@ const AdminLogin: React.FC = () => {
     setIsLoading(true);
 
     // Simple admin authentication
-    if (username === adminCredentials.username && password === adminCredentials.password) {
+    if (username === 'admin' && password === 'admin') {
       setAdmin(true);
       toast.success('Admin access granted!', {
-        description: 'Redirecting to admin dashboard...'
+        description: 'Redirecting to admin panel...'
       });
       
       // Small delay for better UX
       setTimeout(() => {
-        navigate('/admin-dashboard', { replace: true });
+        navigate('/admin-panel', { replace: true });
       }, 1000);
     } else {
       setError('Invalid username or password');
@@ -124,10 +124,10 @@ const AdminLogin: React.FC = () => {
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Default Credentials:</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Admin Credentials:</h4>
             <div className="text-sm text-gray-600 space-y-1">
-              <div><strong>Username:</strong> {adminCredentials.username}</div>
-              <div><strong>Password:</strong> {adminCredentials.password}</div>
+              <div><strong>Username:</strong> admin</div>
+              <div><strong>Password:</strong> admin</div>
             </div>
           </div>
         </CardContent>
