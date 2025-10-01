@@ -141,7 +141,7 @@ app.post('/api/health-plans', async (req, res) => {
 
     console.log('🔍 Generating health plans for user:', userProfile?.id);
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.VITE_OPENAI_API_KEY) {
       return res.status(500).json({
         success: false,
         error: 'OpenAI API key not configured'
