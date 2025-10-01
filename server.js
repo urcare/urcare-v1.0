@@ -12,13 +12,13 @@ app.use(express.json());
 
 // Initialize OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY,
+  apiKey: process.env.VITE_OPENAI_API_KEY || "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",
 });
 
 // Initialize Supabase
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL || "https://lvnkpserdydhnqbigfbz.supabase.co",
+  process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc"
 );
 
 // Health Score Generation API
@@ -317,7 +317,7 @@ app.post('/api/plan-activities', async (req, res) => {
 
     console.log('🔍 Generating activities for plan:', selectedPlan?.title);
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.VITE_OPENAI_API_KEY) {
       return res.status(500).json({
         success: false,
         error: 'OpenAI API key not configured'
