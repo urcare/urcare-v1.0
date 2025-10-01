@@ -63,7 +63,7 @@ export default function PhonePeCheckoutSimple() {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Button>
-            <h1 className="text-xl font-bold text-gray-900">PhonePe Payment</h1>
+            <h1 className="text-xl font-bold text-gray-900">PhonePe Payment (OLD DUMMY VERSION)</h1>
             <div className="w-10"></div>
           </div>
         </div>

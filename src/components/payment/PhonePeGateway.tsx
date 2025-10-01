@@ -86,7 +86,7 @@ export default function PhonePeGateway({ amount, userId, planSlug, billingCycle 
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <CardTitle>PhonePe Payment Gateway</CardTitle>
+            <CardTitle>PhonePe Payment Gateway (Backend-Powered)</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
