@@ -222,17 +222,3 @@ const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({ isOpen, onClose, onSu
 };
 
 export default AdminLoginPopup;
-
-          
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-500">
-              Enter "admin" for both username and password
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export default AdminLoginPopup;
