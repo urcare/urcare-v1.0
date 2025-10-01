@@ -27,7 +27,7 @@ import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/healthScoreService";
 import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
-import HealthPlansDisplay from "@/components/HealthPlansDisplay";
+import HealthPlansVerticalList from "@/components/HealthPlansVerticalList";
 
 interface HealthPlan {
   id: string;
@@ -242,7 +242,7 @@ const Dashboard: React.FC = () => {
       const result = await saveSelectedHealthPlan(user.id, plan);
       if (result.success) {
         toast.success(`Selected plan: ${plan.title}`);
-        navigate('/workout-dashboard', { state: { selectedPlan: plan } });
+        navigate('/health-plan-generation', { state: { selectedPlan: plan } });
       } else {
         throw new Error(result.error || "Failed to save selected plan");
       }
@@ -485,7 +485,7 @@ const Dashboard: React.FC = () => {
           isDarkMode ? 'bg-gray-800' : 'bg-white'
         }`}>
           {showHealthPlans ? (
-            <HealthPlansDisplay 
+            <HealthPlansVerticalList 
               plans={healthPlans} 
               onSelectPlan={handleSelectPlan}
             />
