@@ -65,6 +65,8 @@ module.exports = async function handler(req, res) {
 
     console.log('🌐 Calling live PhonePe API:', `${PHONEPE_BASE_URL}/pg/v1/pay`);
     console.log('🔑 X-VERIFY signature:', xVerify);
+    console.log('📦 Base64 payload:', base64Payload);
+    console.log('📦 Request body:', JSON.stringify({ request: base64Payload }));
 
     // Call live PhonePe API
     const response = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
