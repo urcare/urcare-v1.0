@@ -200,11 +200,15 @@ const Dashboard: React.FC = () => {
           voiceTranscript: transcript.trim()
         });
 
+        console.log('📋 Plans result:', plansResult);
+        
         if (!plansResult.success) {
+          console.error('❌ Plans generation failed:', plansResult.error);
           throw new Error(plansResult.error || "Failed to generate health plans");
         }
 
         // Show health plans
+        console.log('✅ Setting health plans:', plansResult.plans);
         setHealthPlans(plansResult.plans || []);
         setShowHealthPlans(true);
 

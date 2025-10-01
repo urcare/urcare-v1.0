@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Fallback health plan generation when API is not available
 const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {
+  console.log('🔄 Fallback function called with:', { userProfile, healthScore, userInput });
+  
   const age = parseInt(userProfile.age) || 30;
   const isBeginner = age < 25 || healthScore < 60;
   const isAdvanced = age > 40 && healthScore > 80;
@@ -10,6 +12,8 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
   // Analyze user input to determine focus area
   const input = (userInput || '').toLowerCase();
   let focusArea = 'general';
+  
+  console.log('🔍 Analyzing input:', input);
   
   if (input.includes('stress') || input.includes('anxiety') || input.includes('relax')) {
     focusArea = 'stress';
@@ -24,6 +28,8 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
   } else if (input.includes('energy') || input.includes('tired') || input.includes('fatigue')) {
     focusArea = 'energy';
   }
+  
+  console.log('🎯 Selected focus area:', focusArea);
   
   let plans = [];
   
@@ -158,6 +164,7 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
     plans[1].focusAreas = ['Flexibility', 'Core Strength', 'Balance'];
   }
 
+  console.log('✅ Fallback plans generated:', plans);
   return plans;
   }
 };
@@ -234,7 +241,15 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
     console.log('🔄 Using fallback health plan generation');
     
     try {
+      console.log('🔄 Calling fallback function with:', {
+        userProfile: request.userProfile,
+        healthScore: request.healthScore,
+        userInput: request.userInput
+      });
+      
       const fallbackPlans = generateFallbackHealthPlans(request.userProfile, request.healthScore, request.userInput);
+      console.log('✅ Fallback plans generated:', fallbackPlans);
+      
       return {
         success: true,
         plans: fallbackPlans
