@@ -215,11 +215,11 @@ export async function createPhonePePayment(orderId: string, amount: number, user
       console.log("🌐 Production mode - using Vercel API for live PhonePe");
       
       try {
-        // Call Vercel API route that handles PhonePe API calls
-        console.log("🌐 Calling Vercel API:", `${PHONEPE_BACKEND_URL}/pay`);
+        // Call Vercel Express backend that handles PhonePe API calls
+        console.log("🌐 Calling Vercel Express Backend:", `${PHONEPE_BACKEND_URL}/api/phonepe/pay`);
         console.log("📤 Request body:", JSON.stringify(requestBody, null, 2));
         
-        const response = await fetch(`${PHONEPE_BACKEND_URL}/pay`, {
+        const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/pay`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -227,12 +227,12 @@ export async function createPhonePePayment(orderId: string, amount: number, user
           body: JSON.stringify(requestBody)
         });
         
-        console.log("📨 Vercel API response status:", response.status);
+        console.log("📨 Express Backend response status:", response.status);
         const data = await response.json();
-        console.log("📨 Vercel API response data:", JSON.stringify(data, null, 2));
+        console.log("📨 Express Backend response data:", JSON.stringify(data, null, 2));
 
         if (!response.ok) {
-          console.error("Vercel API error:", data);
+          console.error("Express Backend error:", data);
           throw new Error(data.error || "Failed to create payment order");
         }
 
@@ -252,9 +252,14 @@ export async function createPhonePePayment(orderId: string, amount: number, user
           throw new Error(data?.error || data?.message || "Payment initiation failed");
         }
       } catch (error) {
-        console.error("Live PhonePe API error:", error);
-        // Fallback to mock payment if live API fails
-        console.log("🔄 Falling back to mock payment due to API error");
+        console.error("Express Backend error:", error);
+        console.error("Error details:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        // Fallback to mock payment if Express backend fails
+        console.log("🔄 Falling back to mock payment due to Express backend error");
         const mockRedirectUrl = `${window.location.origin}/mock-phonepe-payment?orderId=${orderId}&merchantId=M23XRS3XN3QMF&amount=${amount}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`;
         
         return {
