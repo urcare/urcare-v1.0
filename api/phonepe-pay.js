@@ -40,43 +40,52 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing required fields: orderId, amount, userId' });
     }
 
-    // Create PhonePe v3 API payload for live payment
+    // Create PhonePe API payload (correct structure)
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
       merchantTransactionId: orderId,
       amount: amount, // Amount in paise
       merchantUserId: userId,
+      redirectUrl: `${FRONTEND_URL}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
+      redirectMode: "REDIRECT",
       callbackUrl: `${FRONTEND_URL}/api/phonepe-callback`,
-      saltIndex: parseInt(PHONEPE_SALT_INDEX)
+      paymentInstrument: {
+        type: "PAY_PAGE"
+      }
     };
 
-    console.log('📦 PhonePe v3 Payload:', JSON.stringify(payload, null, 2));
+    console.log('📦 PhonePe Payload:', JSON.stringify(payload, null, 2));
 
-    // Generate X-VERIFY signature for PhonePe v3 API
-    const xVerify = generateXVerify(JSON.stringify(payload), '', PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
+    // Convert payload to base64
+    const payloadString = JSON.stringify(payload);
+    const base64Payload = Buffer.from(payloadString).toString('base64');
 
-    console.log('🌐 Calling live PhonePe v3 API:', `${PHONEPE_BASE_URL}/v3/transaction/initiate`);
+    // Generate X-VERIFY signature
+    const xVerify = generateXVerify(base64Payload, '/pg/v1/pay', PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
+
+    console.log('🌐 Calling live PhonePe API:', `${PHONEPE_BASE_URL}/pg/v1/pay`);
     console.log('🔑 X-VERIFY signature:', xVerify);
 
-    // Call live PhonePe v3 API
-    const response = await fetch(`${PHONEPE_BASE_URL}/v3/transaction/initiate`, {
+    // Call live PhonePe API
+    const response = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-VERIFY': xVerify,
+        'X-MERCHANT-ID': PHONEPE_MERCHANT_ID,
         'accept': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ request: base64Payload })
     });
 
     const data = await response.json();
     console.log('📨 PhonePe API Response:', JSON.stringify(data, null, 2));
 
-    if (data.success && data.data?.paymentLink) {
-      console.log('✅ Live PhonePe v3 payment successful, redirect URL:', data.data.paymentLink);
+    if (data.success && data.data?.instrumentResponse?.redirectInfo?.url) {
+      console.log('✅ Live PhonePe payment successful, redirect URL:', data.data.instrumentResponse.redirectInfo.url);
       res.status(200).json({
         success: true,
-        redirectUrl: data.data.paymentLink,
+        redirectUrl: data.data.instrumentResponse.redirectInfo.url,
         orderId: orderId,
         transactionId: orderId,
         merchantId: PHONEPE_MERCHANT_ID,
@@ -85,23 +94,25 @@ export default async function handler(req, res) {
         billingCycle: billingCycle || 'annual'
       });
     } else {
-      console.error('❌ Live PhonePe v3 payment failed:', data);
+      console.error('❌ Live PhonePe payment failed:', data);
       console.error('❌ Response status:', response.status);
       console.error('❌ Response headers:', response.headers);
       
       res.status(400).json({
         success: false,
-        error: data.message || 'Live PhonePe v3 payment initiation failed',
+        error: data.message || 'Live PhonePe payment initiation failed',
         code: data.code,
         data: data,
         debug: {
           responseStatus: response.status,
           responseStatusText: response.statusText,
           hasData: !!data.data,
-          hasPaymentLink: !!data.data?.paymentLink,
+          hasInstrumentResponse: !!data.data?.instrumentResponse,
+          hasRedirectInfo: !!data.data?.instrumentResponse?.redirectInfo,
+          hasUrl: !!data.data?.instrumentResponse?.redirectInfo?.url,
           merchantId: PHONEPE_MERCHANT_ID,
           baseUrl: PHONEPE_BASE_URL,
-          endpoint: '/v3/transaction/initiate'
+          endpoint: '/pg/v1/pay'
         }
       });
     }

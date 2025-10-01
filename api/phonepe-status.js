@@ -39,26 +39,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing required field: transactionId' });
     }
 
-    // Create status check payload for v3 API
-    const statusPayload = {
-      merchantId: PHONEPE_MERCHANT_ID,
-      merchantTransactionId: transactionId
-    };
+    // Create status check endpoint
+    const endpoint = `/pg/v1/status/${PHONEPE_MERCHANT_ID}/${transactionId}`;
     
     // Generate X-VERIFY signature for status check
-    const xVerify = generateXVerify(JSON.stringify(statusPayload), '', PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
+    const xVerify = generateXVerify('', endpoint, PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
 
-    console.log('🌐 Calling live PhonePe v3 status API:', `${PHONEPE_BASE_URL}/v3/transaction/status`);
+    console.log('🌐 Calling live PhonePe status API:', `${PHONEPE_BASE_URL}${endpoint}`);
 
-    // Call live PhonePe v3 status API
-    const response = await fetch(`${PHONEPE_BASE_URL}/v3/transaction/status`, {
-      method: 'POST',
+    // Call live PhonePe status API
+    const response = await fetch(`${PHONEPE_BASE_URL}${endpoint}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'X-VERIFY': xVerify,
+        'X-MERCHANT-ID': PHONEPE_MERCHANT_ID,
         'accept': 'application/json'
-      },
-      body: JSON.stringify(statusPayload)
+      }
     });
 
     const data = await response.json();
