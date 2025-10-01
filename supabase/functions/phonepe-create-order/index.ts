@@ -83,6 +83,10 @@ serve(async (req) => {
     );
   }
 
+  // Skip authentication for payment processing
+  // This allows anonymous requests to create payment orders
+  console.log('📥 Processing payment request (anonymous access allowed)');
+
   try {
     const requestBody = await req.json();
     console.log('📥 Raw request body:', JSON.stringify(requestBody, null, 2));

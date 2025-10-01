@@ -29,6 +29,10 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Skip authentication for payment status checks
+  // This allows anonymous requests to check payment status
+  console.log('📥 Processing status check request (anonymous access allowed)');
+
   try {
     const { transactionId } = await req.json();
 

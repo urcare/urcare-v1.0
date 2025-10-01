@@ -88,8 +88,6 @@ export async function createPhonePePayment(orderId: string, amount: number, user
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
         },
         body: JSON.stringify(requestBody)
       });
@@ -160,9 +158,7 @@ export async function checkPhonePeStatus(orderId: string, userId?: string) {
       const response = await fetch(`${PHONEPE_BACKEND_URL}/phonepe-status`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
+          
         },
         body: JSON.stringify({
           transactionId: orderId
