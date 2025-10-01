@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { workoutService } from "@/services/workoutService";
+import { generatePlanActivities } from "@/services/planActivitiesService";
 import { EditPreferencesModal } from "@/components/EditPreferencesModal";
 import { CheckDashboardModal } from "@/components/CheckDashboardModal";
 
@@ -103,7 +104,6 @@ const WorkoutDashboard: React.FC = () => {
   const generateWorkoutData = useCallback(async (plan: any) => {
     // Prevent duplicate calls
     if (generating) {
-      console.log('Already generating workout data, skipping...');
       return;
     }
 
@@ -111,9 +111,32 @@ const WorkoutDashboard: React.FC = () => {
     setGenerating(true);
 
     try {
-      // Generate workout data directly without calling Supabase function
-      const workoutDataWithPreferences: WorkoutDashboardData = {
-        activities: [
+      // Generate activities based on the selected plan
+      const activitiesResponse = await generatePlanActivities({
+        selectedPlan: plan,
+        userProfile: profile,
+        weeks: 4
+      });
+
+      let activities = [];
+      if (activitiesResponse.success && activitiesResponse.activities) {
+        activities = activitiesResponse.activities.map(activity => ({
+          id: activity.id,
+          title: activity.title,
+          duration: activity.duration,
+          type: activity.type,
+          time: activity.time,
+          description: activity.description,
+          instructions: activity.instructions || [],
+          benefits: activity.benefits || [],
+          equipment: activity.equipment || [],
+          difficulty: activity.difficulty || 'Beginner',
+          calories: activity.calories || 0,
+          completed: false
+        }));
+      } else {
+        // Fallback activities if API fails
+        activities = [
           {
             id: "morning_breathing",
             title: "Blood Pressure Breathing Exercise",
@@ -147,20 +170,27 @@ const WorkoutDashboard: React.FC = () => {
             description: "Evening routine to improve sleep quality",
             completed: false
           }
-        ],
+        ];
+      }
+
+      // Create workout data with preferences
+      const workoutDataWithPreferences: WorkoutDashboardData = {
+        activities,
+        preferences: {
+          workoutTime: "morning",
+          intensity: "moderate",
+          focusAreas: ["cardio", "strength"],
+          equipment: ["dumbbells", "yoga_mat"],
+          duration: 45
+        },
+        upcomingDays: getUpcomingDays(),
+        intensity: "moderate",
+        currentDay: getCurrentDayName(),
         daySummary: {
           totalTime: "1h 0m",
           focus: "heart health + stress management + sleep optimization",
           readiness: "Ready",
           readinessColor: "bg-green-100 text-green-800"
-        },
-        preferences: {
-          yogaLevel: 'Beginner',
-          equipment: ['Mat', 'Bands'],
-          location: 'Home',
-          workoutIntensity: 'moderate',
-          preferredTime: 'morning',
-          restDays: ['sunday']
         },
         upcomingDays: getUpcomingDays(),
         intensity: "moderate",
@@ -173,7 +203,6 @@ const WorkoutDashboard: React.FC = () => {
       generateRecommendations();
       
     } catch (error) {
-      console.error('Error generating workout data:', error);
       toast.error('Failed to generate workout data');
     } finally {
       setLoading(false);
@@ -182,27 +211,21 @@ const WorkoutDashboard: React.FC = () => {
   }, [generating, profile]);
 
   useEffect(() => {
-    console.log("WorkoutDashboard useEffect - user:", !!user, "profile:", !!profile);
-    console.log("Location state:", location.state);
     
     if (!user || !profile) {
-      console.log("No user or profile, redirecting to onboarding");
       navigate("/onboarding");
       return;
     }
 
     // Prevent multiple initializations
     if (isInitialized) {
-      console.log("Already initialized, skipping...");
       return;
     }
 
     // Get selected plan from location state
     const plan = location.state?.selectedPlan;
-    console.log("Selected plan from location state:", plan);
     
     if (plan) {
-      console.log("Plan found, setting selected plan and generating workout data");
       setSelectedPlan(plan);
       generateWorkoutData(plan);
       setIsInitialized(true);

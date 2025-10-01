@@ -37,7 +37,9 @@ app.post('/api/health-score', async (req, res) => {
 
     // Prepare the prompt for health score calculation
     const prompt = `
-You are a health assessment AI. Based on the following user data, calculate a health score from 0-100 and provide analysis.
+You are a professional health assessment AI. Analyze the following comprehensive user data and provide an accurate health score (0-100) with detailed analysis.
+
+CRITICAL: Base your assessment on actual medical and health data provided. Consider all factors including age, lifestyle, medical conditions, and user-specific inputs.
 
 User Profile:
 - Age: ${userProfile?.age || 'Not provided'}
@@ -52,21 +54,33 @@ User Profile:
 - Workout Time: ${userProfile?.workout_time || 'Not specified'}
 - Sleep Time: ${userProfile?.sleep_time || 'Not specified'}
 - Wake Up Time: ${userProfile?.wake_up_time || 'Not specified'}
+- Activity Level: ${userProfile?.activity_level || 'Not provided'}
+- Sleep Hours: ${userProfile?.sleep_hours || 'Not provided'}
+- Stress Level: ${userProfile?.stress_level || 'Not provided'}
+- Water Intake: ${userProfile?.water_intake_liters || 'Not provided'}
+- Smoking: ${userProfile?.smoking || 'Not provided'}
+- Alcohol Consumption: ${userProfile?.alcohol_consumption || 'Not provided'}
+- BMI: ${userProfile?.bmi || 'Not provided'}
+- Blood Pressure: ${userProfile?.blood_pressure || 'Not provided'}
+- Heart Rate: ${userProfile?.heart_rate || 'Not provided'}
 
-User Input: ${userInput || 'None'}
+Additional User Input: ${userInput || 'None'}
 Voice Transcript: ${voiceTranscript || 'None'}
 Uploaded Files Content: ${uploadedFiles?.map(file => `${file.name}: ${file.content.substring(0, 500)}...`).join('\n\n') || 'None'}
 
-Please provide:
-1. A health score from 0-100 (where 100 is perfect health)
-2. A detailed analysis of their current health status
-3. 5-7 specific recommendations for improvement
+SCORING CRITERIA:
+- 90-100: Excellent health with optimal lifestyle
+- 80-89: Good health with minor improvements needed
+- 70-79: Average health with moderate improvements needed
+- 60-69: Below average health requiring attention
+- 50-59: Poor health requiring significant changes
+- Below 50: Critical health issues requiring immediate attention
 
-Respond in JSON format:
+Provide a detailed, medically-informed response in this EXACT JSON format:
 {
-  "healthScore": number,
-  "analysis": "detailed analysis text",
-  "recommendations": ["recommendation1", "recommendation2", ...]
+  "healthScore": [number between 0-100],
+  "analysis": "[Detailed analysis of current health status, specific to user's data and conditions]",
+  "recommendations": ["[Specific, actionable recommendation 1]", "[Specific, actionable recommendation 2]", "[Specific, actionable recommendation 3]"]
 }
 `;
 

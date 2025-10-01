@@ -61,7 +61,7 @@ const calculateFallbackHealthScore = (userProfile: any) => {
   if (userProfile.workout_time) {
     score += 10;
     analysis.push("Having a regular workout schedule is great for your health.");
-  } else {
+        } else {
     score -= 5;
     recommendations.push("Establish a regular exercise routine, even if it's just 30 minutes daily");
   }
@@ -139,7 +139,6 @@ interface HealthScoreResponse {
 
 export const calculateHealthScore = async (request: HealthScoreRequest): Promise<HealthScoreResponse> => {
   try {
-    console.log('🔍 Calculating health score with data:', request);
 
     // Prepare the data for OpenAI
     const healthData = {
@@ -158,7 +157,6 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
 
     for (const apiUrl of apiUrls) {
       try {
-        console.log(`🔍 Trying API: ${apiUrl}`);
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -172,7 +170,6 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
         }
 
         const result = await response.json();
-        console.log('✅ Health score calculated via API:', result);
 
         return {
           success: true,
@@ -181,7 +178,6 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
           recommendations: result.recommendations
         };
       } catch (apiError) {
-        console.log(`❌ API failed: ${apiUrl}`, apiError.message);
         continue; // Try next URL
       }
     }
@@ -190,10 +186,8 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
     throw new Error('All API endpoints failed');
 
   } catch (error) {
-    console.error('❌ Health score calculation error:', error);
     
     // Fallback: Generate a basic health score based on user profile
-    console.log('🔄 Using fallback health score calculation');
     
     try {
       const fallbackScore = calculateFallbackHealthScore(request.userProfile);
@@ -204,7 +198,6 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
         recommendations: fallbackScore.recommendations
       };
     } catch (fallbackError) {
-      console.error('❌ Fallback health score calculation failed:', fallbackError);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to calculate health score'
@@ -229,7 +222,6 @@ export const getUserProfileForHealthScore = async (userId: string) => {
       profile
     };
     } catch (error) {
-    console.error('❌ Error fetching user profile:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch user profile'

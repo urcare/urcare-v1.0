@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Fallback health plan generation when API is not available
 const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {
-  console.log('🔄 Fallback function called with:', { userProfile, healthScore, userInput });
   
   const age = parseInt(userProfile.age) || 30;
   const isBeginner = age < 25 || healthScore < 60;
@@ -13,7 +12,6 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
   const input = (userInput || '').toLowerCase();
   let focusArea = 'general';
   
-  console.log('🔍 Analyzing input:', input);
   
   if (input.includes('stress') || input.includes('anxiety') || input.includes('relax')) {
     focusArea = 'stress';
@@ -29,7 +27,6 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
     focusArea = 'energy';
   }
   
-  console.log('🎯 Selected focus area:', focusArea);
   
   let plans = [];
   
@@ -165,7 +162,6 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
     plans[1].focusAreas = ['Flexibility', 'Core Strength', 'Balance'];
   }
 
-  console.log('✅ Fallback plans generated:', plans);
   return plans;
 };
 
@@ -199,7 +195,6 @@ interface HealthPlanResponse {
 
 export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
   try {
-    console.log('🔍 Generating health plans with data:', request);
 
     // Prepare the data for OpenAI
     const planData = {
@@ -221,7 +216,6 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
 
     for (const apiUrl of apiUrls) {
       try {
-        console.log(`🔍 Trying API: ${apiUrl}`);
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -235,14 +229,12 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
         }
 
         const result = await response.json();
-        console.log('✅ Health plans generated via API:', result);
 
         return {
           success: true,
           plans: result.plans
         };
       } catch (apiError) {
-        console.log(`❌ API failed: ${apiUrl}`, apiError.message);
         continue; // Try next URL
       }
     }
