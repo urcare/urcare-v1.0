@@ -113,6 +113,11 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
     navigate("/paywall");
   };
 
+  const handlePayLater = () => {
+    toast.success("Payment skipped! Redirecting to dashboard...");
+    navigate("/dashboard");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -187,6 +192,16 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
                 Pay ₹{amount.toFixed(2)} Now
               </div>
             )}
+          </Button>
+
+          {/* Pay Later Button */}
+          <Button
+            onClick={handlePayLater}
+            disabled={loading}
+            variant="outline"
+            className="w-full mt-3 border-purple-300 text-purple-600 hover:bg-purple-50 py-4 text-base font-medium rounded-lg transition-all"
+          >
+            I'll Pay Later
           </Button>
 
           {/* Error Display */}

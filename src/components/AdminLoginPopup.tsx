@@ -106,8 +106,8 @@ const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({ isOpen, onClose, onSu
         onSuccess();
         onClose();
         
-        // Navigate to onboarding with admin parameter
-        navigate('/onboarding?admin=true');
+        // Navigate to health assessment directly for admin
+        navigate('/health-assessment');
       } else {
         setError('Invalid username or password');
         toast.error('Login failed', {
