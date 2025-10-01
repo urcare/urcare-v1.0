@@ -142,6 +142,7 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
       estimatedCalories: 500
     }
   ];
+  }
 
   // Adjust plans based on user profile
   if (userProfile.health_goals?.includes('weight loss')) {
@@ -166,7 +167,6 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number, user
 
   console.log('✅ Fallback plans generated:', plans);
   return plans;
-  }
 };
 
 interface HealthPlanRequest {
@@ -223,6 +223,8 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
     });
 
     if (!response.ok) {
+      console.error(`❌ Health plan API error: ${response.status}`);
+      // Don't throw error here - let the fallback handle it
       throw new Error(`Health plan API error: ${response.status}`);
     }
 
