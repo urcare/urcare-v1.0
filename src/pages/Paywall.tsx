@@ -75,21 +75,38 @@ const Paywall: React.FC = () => {
   }, [user]);
 
   const handleSubscribe = async () => {
-    if (!user) {
+    console.log("🔘 Subscribe button clicked!");
+    console.log("User:", user);
+    console.log("Billing cycle:", billingCycle);
+    console.log("Hostname:", window.location.hostname);
+    
+    // For localhost development, allow navigation without user
+    if (!user && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       toast.error("Please log in to subscribe");
       return;
     }
 
-    console.log("Subscribe button clicked, navigating to PhonePe checkout");
+    console.log("✅ Proceeding with navigation to PhonePe checkout");
+    
+    // Calculate amount based on billing cycle
+    const amount = billingCycle === 'annual' ? priceAnnualINR : priceMonthlyINR;
+    
+    console.log("Amount calculated:", amount);
+    
     // Navigate to PhonePe checkout page
-    const amount = billingCycle === "monthly" ? priceMonthlyINR : priceAnnualINR;
-    navigate("/phonecheckout", {
-      state: {
-        planSlug: "basic",
-        billingCycle: billingCycle,
-        amount: amount
-      }
-    });
+    try {
+      navigate("/phonecheckout", {
+        state: {
+          planSlug: "basic",
+          billingCycle: billingCycle,
+          amount: amount
+        }
+      });
+      console.log("✅ Navigation successful");
+    } catch (error) {
+      console.error("❌ Navigation failed:", error);
+      toast.error("Navigation failed. Please try again.");
+    }
   };
 
   const handlePaymentSuccess = () => {
@@ -364,8 +381,14 @@ const Paywall: React.FC = () => {
 
         {/* CTA Button */}
         <Button
-          onClick={handleSubscribe}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("🔘 Button clicked - event:", e);
+            handleSubscribe();
+          }}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+          type="button"
         >
           Subscribe Now
         </Button>
