@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import PhonePeGateway from "@/components/payment/PhonePeGateway";
+import RazorpayGateway from "@/components/payment/RazorpayGateway";
 
 export default function PhonePeCheckout() {
   const { user } = useAuth();
@@ -33,7 +33,7 @@ export default function PhonePeCheckout() {
   }
 
   return (
-    <PhonePeGateway
+    <RazorpayGateway
       amount={finalAmount}
       userId={user.id}
       planSlug={finalPlan}

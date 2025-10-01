@@ -1,13 +1,10 @@
 
 {
   "functions": {
-    "api/phonepe-pay.js": {
+    "api/razorpay-create-order.js": {
       "maxDuration": 30
     },
-    "api/phonepe-status.js": {
-      "maxDuration": 30
-    },
-    "api/phonepe-callback.js": {
+    "api/razorpay-verify-payment.js": {
       "maxDuration": 30
     },
     "api/generate-plan.js": {
@@ -15,9 +12,8 @@
     }
   },
   "rewrites": [
-    { "source": "/api/phonepe/pay", "destination": "/api/phonepe-pay.js" },
-    { "source": "/api/phonepe/status", "destination": "/api/phonepe-status.js" },
-    { "source": "/api/phonepe/callback", "destination": "/api/phonepe-callback.js" },
+    { "source": "/api/razorpay/create-order", "destination": "/api/razorpay-create-order.js" },
+    { "source": "/api/razorpay/verify-payment", "destination": "/api/razorpay-verify-payment.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
