@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminLoginPopup from '@/components/AdminLoginPopup';
 import { 
   Users, 
   Settings, 
@@ -40,55 +41,68 @@ interface ChatMessage {
 }
 
 const ArshAdmin: React.FC = () => {
-  const { user } = useAuth();
+  const { user, showAdminPopup, setShowAdminPopup } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  // Check admin authentication
+  useEffect(() => {
+    if (user && user.email === 'admin@urcare.com') {
+      setIsAdminAuthenticated(true);
+    } else if (!user) {
+      // Show admin login popup if no user
+      setShowAdminPopup(true);
+    }
+  }, [user, setShowAdminPopup]);
 
   // Mock data - replace with actual API calls
   useEffect(() => {
-    // Mock users data
-    setUsers([
-      {
-        id: '1',
-        email: 'user1@example.com',
-        full_name: 'John Doe',
-        created_at: '2024-01-15',
-        status: 'active',
-        last_login: '2024-01-20',
-        subscription_status: 'premium'
-      },
-      {
-        id: '2',
-        email: 'user2@example.com',
-        full_name: 'Jane Smith',
-        created_at: '2024-01-10',
-        status: 'inactive',
-        last_login: '2024-01-18',
-        subscription_status: 'basic'
-      }
-    ]);
+    if (isAdminAuthenticated) {
+      // Mock users data
+      setUsers([
+        {
+          id: '1',
+          email: 'user1@example.com',
+          full_name: 'John Doe',
+          created_at: '2024-01-15',
+          status: 'active',
+          last_login: '2024-01-20',
+          subscription_status: 'premium'
+        },
+        {
+          id: '2',
+          email: 'user2@example.com',
+          full_name: 'Jane Smith',
+          created_at: '2024-01-10',
+          status: 'inactive',
+          last_login: '2024-01-18',
+          subscription_status: 'basic'
+        }
+      ]);
 
-    // Mock messages data
-    setMessages([
-      {
-        id: '1',
-        user_id: '1',
-        message: 'I need help with my workout plan',
-        timestamp: '2024-01-20T10:30:00Z',
-        is_admin: false
-      },
-      {
-        id: '2',
-        user_id: 'admin',
-        message: 'I can help you with that. What specific exercises are you having trouble with?',
-        timestamp: '2024-01-20T10:35:00Z',
-        is_admin: true
-      }
-    ]);
-  }, []);
+      // Mock messages data
+      setMessages([
+        {
+          id: '1',
+          user_id: '1',
+          message: 'I need help with my workout plan',
+          timestamp: '2024-01-20T10:30:00Z',
+          is_admin: false
+        },
+        {
+          id: '2',
+          user_id: 'admin',
+          message: 'I can help you with that. What specific exercises are you having trouble with?',
+          timestamp: '2024-01-20T10:35:00Z',
+          is_admin: true
+        }
+      ]);
+    }
+  }, [isAdminAuthenticated]);
 
   const handleUserStatusChange = (userId: string, status: 'active' | 'inactive' | 'suspended') => {
     setUsers(prev => prev.map(user => 
@@ -120,7 +134,23 @@ const ArshAdmin: React.FC = () => {
     }
   };
 
-  if (!user || user.email !== 'admin@urcare.com') {
+  // Show loading while checking authentication
+  if (!isAdminAuthenticated && !showAdminPopup) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading...</h2>
+            <p className="text-gray-600">Checking admin access...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show access denied if user is logged in but not admin
+  if (user && user.email !== 'admin@urcare.com') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -128,6 +158,12 @@ const ArshAdmin: React.FC = () => {
             <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
             <p className="text-gray-600">You don't have permission to access this page.</p>
+            <Button 
+              onClick={() => setShowAdminPopup(true)}
+              className="mt-4"
+            >
+              Admin Login
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -366,6 +402,16 @@ const ArshAdmin: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Admin Login Popup */}
+      <AdminLoginPopup
+        isOpen={showAdminPopup}
+        onClose={() => setShowAdminPopup(false)}
+        onSuccess={() => {
+          setShowAdminPopup(false);
+          setIsAdminAuthenticated(true);
+        }}
+      />
     </div>
   );
 };
