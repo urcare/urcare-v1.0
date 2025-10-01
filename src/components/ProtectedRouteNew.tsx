@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
   requireSubscription?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+export const ProtectedRouteNew: React.FC<ProtectedRouteProps> = ({
   children,
   requireOnboardingComplete = false,
   requireSubscription = false,

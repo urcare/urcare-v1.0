@@ -200,7 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           .insert([
             {
               id: user.id,
-              full_name: user.user_metadata?.full_name || user.email,
+              full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
               onboarding_completed: false,
               status: "active",
             },
