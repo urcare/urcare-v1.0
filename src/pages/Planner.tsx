@@ -2,10 +2,9 @@ import { MobileNavigation } from "@/components/MobileNavigation";
 import { ThemeWrapper } from "@/components/ThemeWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  HealthPlanRecord,
-  healthPlanService,
+  generateHealthPlans,
+  saveSelectedHealthPlan,
 } from "@/services/healthPlanService";
-import { debugHealthPlan } from "@/utils/healthPlanDebug";
 import {
   Activity,
   Brain,
@@ -27,7 +26,7 @@ import { toast } from "sonner";
 
 const Planner: React.FC = () => {
   const { user, profile } = useAuth();
-  const [currentPlan, setCurrentPlan] = useState<HealthPlanRecord | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState<1 | 2>(1);
@@ -49,11 +48,8 @@ const Planner: React.FC = () => {
     if (!currentPlan) return;
 
     try {
-      const progress = await healthPlanService.getDayProgress(
-        currentPlan.id,
-        selectedDay
-      );
-      setDayProgress(progress);
+      // Mock progress data
+      setDayProgress({});
     } catch (error) {
       console.error("Error loading day progress:", error);
     }
@@ -62,26 +58,8 @@ const Planner: React.FC = () => {
   const loadCurrentPlan = async () => {
     try {
       setLoading(true);
-
-      // First check if we need to generate a new plan
-      const newPlan = await healthPlanService.checkAndGenerateNextPlan();
-      if (newPlan) {
-        setCurrentPlan(newPlan);
-        toast.success("New health plan generated automatically!");
-        return;
-      }
-
-      // Otherwise load the current plan
-      const plan = await healthPlanService.getCurrentPlan();
-      setCurrentPlan(plan);
-
-      if (plan) {
-        const progress = await healthPlanService.getDayProgress(
-          plan.id,
-          selectedDay
-        );
-        setDayProgress(progress);
-      }
+      // For now, we'll generate a new plan using the live API
+      await generateNewPlan();
     } catch (error) {
       console.error("Error loading current plan:", error);
       toast.error("Failed to load health plan");
@@ -93,9 +71,49 @@ const Planner: React.FC = () => {
   const generateNewPlan = async () => {
     try {
       setGenerating(true);
-      const newPlan = await healthPlanService.generateHealthPlan();
-      setCurrentPlan(newPlan);
-      toast.success("New health plan generated successfully!");
+      
+      if (!user) {
+        toast.error("Please log in to generate a health plan");
+        return;
+      }
+
+      // Create a mock user profile for plan generation
+      const userProfile = {
+        id: user.id,
+        full_name: user.user_metadata?.full_name || 'User',
+        age: 30,
+        gender: 'Not specified',
+        height_cm: '170',
+        weight_kg: '70',
+        blood_group: 'Not specified',
+        chronic_conditions: [],
+        medications: [],
+        health_goals: ['General wellness'],
+        diet_type: 'Balanced',
+        workout_time: 'Morning',
+        sleep_time: '22:00',
+        wake_up_time: '06:00'
+      };
+
+      // Generate health plans using live API
+      const plansResult = await generateHealthPlans({
+        userProfile,
+        healthScore: 75, // Default health score
+        analysis: 'General health assessment',
+        recommendations: ['Regular exercise', 'Balanced diet', 'Adequate sleep'],
+        userInput: 'Generate a comprehensive health plan',
+        uploadedFiles: [],
+        voiceTranscript: ''
+      });
+
+      if (plansResult.success && plansResult.plans && plansResult.plans.length > 0) {
+        // Use the first plan as the current plan
+        const newPlan = plansResult.plans[0];
+        setCurrentPlan(newPlan);
+        toast.success("New health plan generated successfully!");
+      } else {
+        throw new Error(plansResult.error || "Failed to generate health plan");
+      }
     } catch (error) {
       console.error("Error generating plan:", error);
       toast.error("Failed to generate health plan");
@@ -110,22 +128,8 @@ const Planner: React.FC = () => {
     try {
       const isCompleted = dayProgress[activityId];
 
-      if (isCompleted) {
-        // Mark as incomplete
-        await healthPlanService.markActivityCompleted(
-          currentPlan.id,
-          activityId,
-          selectedDay,
-          "Marked as incomplete"
-        );
-      } else {
-        // Mark as completed
-        await healthPlanService.markActivityCompleted(
-          currentPlan.id,
-          activityId,
-          selectedDay
-        );
-      }
+      // Update local state directly since we don't have backend persistence
+      // In a real app, you would call the API here
 
       // Update local state
       setDayProgress((prev) => ({
@@ -199,15 +203,16 @@ const Planner: React.FC = () => {
     // If all activities are completed, mark the day as completed
     if (completedActivities === totalActivities && totalActivities > 0) {
       try {
-        await healthPlanService.markDayCompleted(currentPlan.id, selectedDay);
+        // Mark day as completed in local state
+        // In a real app, you would call the API here
         toast.success(`Day ${selectedDay} completed! 🎉`);
 
         // If both days are completed, generate next plan
         if (currentPlan.day_1_completed && currentPlan.day_2_completed) {
           setTimeout(async () => {
             try {
-              const nextPlan = await healthPlanService.generateNextPlan();
-              setCurrentPlan(nextPlan);
+              // Generate next plan using live API
+              await generateNewPlan();
               toast.success("New 2-day plan generated!");
             } catch (error) {
               console.error("Error generating next plan:", error);
@@ -327,12 +332,6 @@ const Planner: React.FC = () => {
                     <RefreshCw className="h-4 w-4" />
                   )}
                   {generating ? "Generating..." : "New Plan"}
-                </button>
-                <button
-                  onClick={debugHealthPlan}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
-                >
-                  🐛 Debug
                 </button>
               </div>
             </div>

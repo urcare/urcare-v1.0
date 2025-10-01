@@ -1,8 +1,6 @@
 import { HealthInputBar } from "@/components/HealthInputBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useHealthPlan } from "@/hooks/useHealthPlan";
-import { useHealthScore } from "@/hooks/useHealthScore";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { EnhancedPlanNamingService } from "@/services/enhancedPlanNamingService";
@@ -76,11 +74,9 @@ export const HealthContentNew = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const insightsCardRef = useRef<HTMLDivElement | null>(null);
-  const {
-    currentPlan,
-    loading: planLoading,
-    loadCurrentPlan,
-  } = useHealthPlan();
+  // Local state for health plan
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(false);
 
   // State management for dynamic content
   const [contentState, setContentState] = useState<
@@ -552,7 +548,7 @@ export const HealthContentNew = () => {
       if (error) throw error;
 
       // Refresh the health plan state to reflect the removal
-      await loadCurrentPlan();
+      setCurrentPlan(null);
 
       toast.success("Protocol removed", { id: "remove-plan" });
       // After removal, return to insights
@@ -675,14 +671,9 @@ export const HealthContentNew = () => {
   } = useStickyBottomScroll();
 
   // Health score data
-  const {
-    healthData,
-    loading: healthLoading,
-    markActivityCompleted,
-    getActivityIconData,
-    getStreakBonusText,
-    initializeHealthScore,
-  } = useHealthScore();
+  // Local state for health score
+  const [healthData, setHealthData] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(false);
 
   return (
     <div className="h-screen flex flex-col relative">
