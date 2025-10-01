@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ArrowLeft, CreditCard, Smartphone, QrCode, Building2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, ArrowLeft, CreditCard, Smartphone, QrCode, Building2, X } from "lucide-react";
 import { toast } from "sonner";
 import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from "@/services/razorpayService";
 
@@ -17,6 +18,7 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showQRPopup, setShowQRPopup] = useState(false);
 
   console.log("🚀 RazorpayGateway mounted/rendered", {
     amount,
@@ -113,9 +115,12 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
     navigate("/paywall");
   };
 
-  const handlePayLater = () => {
-    toast.success("Payment skipped! Redirecting to dashboard...");
-    navigate("/dashboard");
+  const handlePayByQR = () => {
+    setShowQRPopup(true);
+  };
+
+  const handleCloseQR = () => {
+    setShowQRPopup(false);
   };
 
   return (
@@ -194,14 +199,15 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
             )}
           </Button>
 
-          {/* Pay Later Button */}
+          {/* Pay by QR Button */}
           <Button
-            onClick={handlePayLater}
+            onClick={handlePayByQR}
             disabled={loading}
             variant="outline"
             className="w-full mt-3 border-purple-300 text-purple-600 hover:bg-purple-50 py-4 text-base font-medium rounded-lg transition-all"
           >
-            I'll Pay Later
+            <QrCode className="w-5 h-5 mr-2" />
+            I will Pay by QR
           </Button>
 
           {/* Error Display */}
@@ -223,6 +229,90 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
           </div>
         </CardContent>
       </Card>
+
+      {/* QR Code Popup */}
+      <Dialog open={showQRPopup} onOpenChange={setShowQRPopup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Pay with QR Code</span>
+              <button
+                onClick={handleCloseQR}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </DialogTitle>
+            <DialogDescription>
+              Scan the QR code below with any UPI app to complete your payment
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center space-y-4 py-4">
+            {/* QR Code Image */}
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-lg">
+              <img 
+                src="/qr-code-upi.svg" 
+                alt="QR Code for Payment" 
+                className="w-64 h-64 object-contain"
+                onError={(e) => {
+                  // Fallback to a generated QR code or placeholder
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                }}
+              />
+              {/* Fallback QR Code */}
+              <div className="w-64 h-64 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hidden">
+                <div className="text-center">
+                  <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">QR Code</p>
+                  <p className="text-xs text-gray-400 mt-1">Amount: ₹{amount.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Details */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 w-full">
+              <div className="text-center space-y-2">
+                <p className="text-lg font-semibold text-blue-800">₹{amount.toFixed(2)}</p>
+                <p className="text-sm text-blue-600">Plan: {planSlug} ({billingCycle})</p>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 w-full">
+              <div className="text-center">
+                <p className="text-sm font-medium text-yellow-800 mb-2">
+                  📱 Scan with any UPI app
+                </p>
+                <p className="text-xs text-yellow-700">
+                  After payment, please wait sometime. We will activate your subscription once payment is confirmed.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 w-full">
+              <Button
+                onClick={handleCloseQR}
+                variant="outline"
+                className="flex-1"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowQRPopup(false);
+                  navigate("/dashboard");
+                }}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                Payment Done
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
