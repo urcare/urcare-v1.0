@@ -213,28 +213,31 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       timestamp: new Date().toISOString()
     };
 
-    // Call the health plan generation API
-    const response = await fetch('https://urcare-server.vercel.app/api/health-plans', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(planData)
-    });
+    // Try to call the health plan generation API
+    try {
+      const response = await fetch('https://urcare-server.vercel.app/api/health-plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(planData)
+      });
 
-    if (!response.ok) {
-      console.error(`❌ Health plan API error: ${response.status}`);
-      // Don't throw error here - let the fallback handle it
-      throw new Error(`Health plan API error: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Health plan API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Health plans generated:', result);
+
+      return {
+        success: true,
+        plans: result.plans
+      };
+    } catch (apiError) {
+      console.log('🔄 API not available, using fallback generation');
+      throw apiError; // This will trigger the fallback
     }
-
-    const result = await response.json();
-    console.log('✅ Health plans generated:', result);
-
-    return {
-      success: true,
-      plans: result.plans
-    };
 
     } catch (error) {
     console.error('❌ Health plan generation error:', error);

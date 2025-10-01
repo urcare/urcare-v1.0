@@ -150,28 +150,33 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       timestamp: new Date().toISOString()
     };
 
-    // Call the health score generation API
-    const response = await fetch('https://urcare-server.vercel.app/api/health-score', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(healthData)
-    });
+    // Try to call the health score generation API
+    try {
+      const response = await fetch('https://urcare-server.vercel.app/api/health-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(healthData)
+      });
 
-    if (!response.ok) {
-      throw new Error(`Health score API error: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Health score API error: ${response.status}`);
+      }
 
-    const result = await response.json();
-    console.log('✅ Health score calculated:', result);
+      const result = await response.json();
+      console.log('✅ Health score calculated:', result);
 
       return {
-      success: true,
-      healthScore: result.healthScore,
-      analysis: result.analysis,
-      recommendations: result.recommendations
-    };
+        success: true,
+        healthScore: result.healthScore,
+        analysis: result.analysis,
+        recommendations: result.recommendations
+      };
+    } catch (apiError) {
+      console.log('🔄 API not available, using fallback calculation');
+      throw apiError; // This will trigger the fallback
+    }
 
   } catch (error) {
     console.error('❌ Health score calculation error:', error);

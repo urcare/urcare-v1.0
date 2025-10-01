@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Initialize OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY || "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",
+  apiKey: process.env.VITE_OPENAI_API_KEY || "",
 });
 
 // Initialize Supabase
