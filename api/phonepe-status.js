@@ -1,9 +1,9 @@
 // Vercel API route for PhonePe payment status check
 const crypto = require('crypto');
 
-// PhonePe Live Configuration
-const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
-const PHONEPE_SALT_KEY = '713219fb-38d0-468d-8268-8b15955468b0';
+// PhonePe UAT Test Configuration
+const PHONEPE_MERCHANT_ID = 'PHONEPEPGUAT';
+const PHONEPE_SALT_KEY = 'c817ffaf-8471-48b5-a7e2-a27e5b7efbd3';
 const PHONEPE_SALT_INDEX = '1';
 const PHONEPE_BASE_URL = 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
