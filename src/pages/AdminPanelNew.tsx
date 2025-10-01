@@ -114,7 +114,7 @@ interface AdminStats {
   averagePayment: number;
 }
 
-const AdminPanel: React.FC = () => {
+const AdminPanelNew: React.FC = () => {
   const navigate = useNavigate();
   const { user, showAdminPopup, setShowAdminPopup } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -818,4 +818,4 @@ const AdminPanel: React.FC = () => {
   );
 };
 
-export default AdminPanel;
+export default AdminPanelNew;

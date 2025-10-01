@@ -1,12 +1,17 @@
 import OpenAI from 'openai';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const openai = new OpenAI({
-  apiKey: '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'
+  apiKey: process.env.VITE_OPENAI_API_KEY || ""
 });
 
 async function testOpenAI() {
   try {
-    console.log('🔍 Testing OpenAI API with provided key...');
+    console.log('🔍 Testing OpenAI API with environment key...');
+    console.log('🔑 API Key (first 10 chars):', process.env.VITE_OPENAI_API_KEY?.substring(0, 10) + '...');
     
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
