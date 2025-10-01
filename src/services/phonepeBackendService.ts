@@ -1,6 +1,6 @@
 // PhonePe Express Backend URL
 const PHONEPE_BACKEND_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://urcare.vercep.app/api/phonepe'
+  ? 'https://urcare.vercel.app/api/phonepe'
   : 'http://localhost:5000';
 
 // Create PhonePe payment order using Express Backend

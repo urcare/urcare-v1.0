@@ -12,8 +12,8 @@ app.use(cors({
   origin: [
     'http://localhost:8080', 
     'http://localhost:8081',
-    'https://urcare.vercep.app',
-    'https://www.urcare.vercep.app'
+    'https://urcare.vercel.app',
+    'https://www.urcare.vercel.app'
   ],
   credentials: true
 }));
@@ -25,8 +25,8 @@ const PHONEPE_CONFIG = {
   apiKey: process.env.PHONEPE_API_KEY || '713219fb-38d0-468d-8268-8b15955468b0',
   saltIndex: process.env.PHONEPE_SALT_INDEX || '1',
   baseUrl: process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/hermes',
-  frontendUrl: process.env.FRONTEND_URL || 'https://urcare.vercep.app',
-  backendCallbackUrl: process.env.BACKEND_CALLBACK_URL || 'https://urcare.vercep.app/api/phonepe/callback',
+  frontendUrl: process.env.FRONTEND_URL || 'https://urcare.vercel.app',
+  backendCallbackUrl: process.env.BACKEND_CALLBACK_URL || 'https://urcare.vercel.app/api/phonepe/callback',
   environment: process.env.NODE_ENV || 'production'
 };
 

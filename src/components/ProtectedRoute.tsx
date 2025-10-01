@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/authService";
+import { authFlowService } from "@/services/authFlowService";
 import { MobileLoadingScreen } from "@/components/MobileLoadingScreen";
 
 interface ProtectedRouteProps {
@@ -21,24 +21,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [redirectRoute, setRedirectRoute] = useState<string>("/");
 
   useEffect(() => {
-    if (!isInitialized || loading) {
-      return;
-    }
+    let isMounted = true;
 
-    // Simple access check without async calls
-    if (!user) {
-      setCanAccess(false);
-      setRedirectRoute("/welcome-screen");
-      return;
-    }
+    const checkAccess = async () => {
+      if (!isInitialized || loading) {
+        return;
+      }
 
-    if (!profile?.onboarding_completed && location.pathname !== "/onboarding") {
-      setCanAccess(false);
-      setRedirectRoute("/onboarding");
-      return;
-    }
+      if (!user) {
+        if (isMounted) {
+          setCanAccess(false);
+          setRedirectRoute("/");
+        }
+        return;
+      }
 
-<<<<<<< HEAD
       try {
         // Add timeout to prevent hanging - reduced to 3 seconds for better responsiveness
         const timeoutPromise = new Promise<boolean>((_, reject) => {

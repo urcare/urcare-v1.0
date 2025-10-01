@@ -1,6 +1,6 @@
 # PhonePe Production Deployment Guide
 
-## 🚀 **Step-by-Step Setup for urcare.vercep.app**
+## 🚀 **Step-by-Step Setup for urcare.vercel.app**
 
 ### 1. **PhonePe Dashboard Configuration**
 
@@ -10,13 +10,13 @@
 
 2. **Add Redirect URLs**
    - Go to: Developer Settings → Redirect URL
-   - Add: `https://urcare.vercep.app/payment/success`
-   - Add: `https://www.urcare.vercep.app/payment/success`
+   - Add: `https://urcare.vercel.app/payment/success`
+   - Add: `https://www.urcare.vercel.app/payment/success`
 
 3. **Add Webhook URLs**
    - Go to: Developer Settings → Webhook URL
-   - Add: `https://urcare.vercep.app/api/phonepe/callback`
-   - Add: `https://www.urcare.vercep.app/api/phonepe/callback`
+   - Add: `https://urcare.vercel.app/api/phonepe/callback`
+   - Add: `https://www.urcare.vercel.app/api/phonepe/callback`
 
 4. **Verify API Keys**
    - Go to: Developer Settings → API Keys
@@ -24,12 +24,12 @@
    - Confirm your API Key: `713219fb-38d0-468d-8268-8b15955468b0`
    - Confirm Salt Index: `1`
 
-### 2. **Deploy Backend to urcare.vercep.app**
+### 2. **Deploy Backend to urcare.vercel.app**
 
 1. **Upload the production server**
    ```bash
    # Upload phonepe-backend/production-ready-server.js to your server
-   # Make sure it's accessible at: https://urcare.vercep.app/api/phonepe/
+   # Make sure it's accessible at: https://urcare.vercel.app/api/phonepe/
    ```
 
 2. **Set Environment Variables**
@@ -38,8 +38,8 @@
    PHONEPE_API_KEY=713219fb-38d0-468d-8268-8b15955468b0
    PHONEPE_SALT_INDEX=1
    PHONEPE_BASE_URL=https://api.phonepe.com/apis/hermes
-   FRONTEND_URL=https://urcare.vercep.app
-   BACKEND_CALLBACK_URL=https://urcare.vercep.app/api/phonepe/callback
+   FRONTEND_URL=https://urcare.vercel.app
+   BACKEND_CALLBACK_URL=https://urcare.vercel.app/api/phonepe/callback
    NODE_ENV=production
    ```
 
