@@ -214,7 +214,7 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
     };
 
     // Call the health plan generation API
-    const response = await fetch('/api/generate-health-plans', {
+    const response = await fetch('https://urcare-server.vercel.app/api/health-plans', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -269,32 +269,23 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
 // Save selected health plan
 export const saveSelectedHealthPlan = async (userId: string, plan: HealthPlan) => {
   try {
-    const { data, error } = await supabase
-      .from('user_health_plans')
-      .insert({
-        user_id: userId,
-        plan_id: plan.id,
-        plan_title: plan.title,
-        plan_description: plan.description,
-        duration: plan.duration,
-        difficulty: plan.difficulty,
-        focus_areas: plan.focusAreas,
-        estimated_calories: plan.estimatedCalories,
-        equipment: plan.equipment,
-        benefits: plan.benefits,
-        selected_at: new Date().toISOString(),
-        status: 'active'
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
+    // For now, just store in localStorage since the table doesn't exist
+    const selectedPlan = {
+      ...plan,
+      userId,
+      selectedAt: new Date().toISOString(),
+      status: 'active'
+    };
+    
+    localStorage.setItem('selectedHealthPlan', JSON.stringify(selectedPlan));
+    
+    console.log('✅ Health plan saved to localStorage:', selectedPlan);
+    
     return {
       success: true,
-      plan: data
+      plan: selectedPlan
     };
-    } catch (error) {
+  } catch (error) {
     console.error('❌ Error saving health plan:', error);
     return {
       success: false,

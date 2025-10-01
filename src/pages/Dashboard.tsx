@@ -28,6 +28,7 @@ import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/h
 import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
 import HealthPlansVerticalList from "@/components/HealthPlansVerticalList";
+import FloatingChat from "@/components/FloatingChat";
 
 interface HealthPlan {
   id: string;
@@ -700,6 +701,9 @@ const Dashboard: React.FC = () => {
           toast.error("AI processing failed: " + error);
         }}
       />
+
+      {/* Floating Chat */}
+      <FloatingChat />
     </div>
   );
 };

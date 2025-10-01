@@ -151,7 +151,7 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
     };
 
     // Call the health score generation API
-    const response = await fetch('/api/generate-health-score', {
+    const response = await fetch('https://urcare-server.vercel.app/api/health-score', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

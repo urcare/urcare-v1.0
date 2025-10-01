@@ -14,6 +14,8 @@ import Goals from "./pages/Goals";
 import HealthAssessment from "./pages/HealthAssessment";
 import HealthPlan from "./pages/HealthPlan";
 import HealthPlanGeneration from "./pages/HealthPlanGeneration";
+import ArshAdmin from "./pages/ArshAdmin";
+import Performance from "./pages/Performance";
 import CustomPlan from "./pages/CustomPlan";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
@@ -245,6 +247,16 @@ function App() {
                 <HealthPlanGeneration />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/arshadmin"
+            element={<ArshAdmin />}
+          />
+
+          <Route
+            path="/performance"
+            element={<Performance />}
           />
 
           <Route
