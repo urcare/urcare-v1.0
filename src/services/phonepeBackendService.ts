@@ -121,9 +121,9 @@ async function checkPhonePeStatusDirect(transactionId: string) {
   
   // Generate X-VERIFY signature for status check
   const encoder = new TextEncoder();
-  const data = encoder.encode(endpoint + PHONEPE_SALT_KEY);
+  const stringToHash = encoder.encode(endpoint + PHONEPE_SALT_KEY);
   
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', stringToHash);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
@@ -142,12 +142,12 @@ async function checkPhonePeStatusDirect(transactionId: string) {
     }
   });
 
-  const data = await response.json();
-  console.log('📨 Live PhonePe Status Response:', JSON.stringify(data, null, 2));
+  const responseData = await response.json();
+  console.log('📨 Live PhonePe Status Response:', JSON.stringify(responseData, null, 2));
 
   return {
-    success: data.success || false,
-    data: data.data
+    success: responseData.success || false,
+    data: responseData.data
   };
 }
 
