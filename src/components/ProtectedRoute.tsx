@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { authFlowService } from "@/services/authFlowService";
 import { MobileLoadingScreen } from "@/components/MobileLoadingScreen";
@@ -15,30 +15,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireOnboardingComplete = false,
   requireSubscription = false,
 }) => {
+  // For localhost development, always render children without any checks
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log("🔓 Localhost development mode - allowing access to all routes");
+    return <>{children}</>;
+  }
+
+  // For production, use the original logic
   const { user, profile, loading, isInitialized } = useAuth();
   const location = useLocation();
-  const [canAccess, setCanAccess] = useState<boolean | null>(null);
-  const [redirectRoute, setRedirectRoute] = useState<string>("/");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simplified access check - allow all routes for localhost development
     if (!isInitialized || loading) {
       return;
     }
 
     if (!user) {
-      setCanAccess(false);
-      setRedirectRoute("/welcome-screen");
+      console.log("No user, redirecting to welcome screen");
+      navigate("/welcome-screen", { replace: true });
       return;
     }
 
-    // For localhost development, allow access to all routes
-    console.log("🔓 Localhost development mode - allowing access to all routes");
-    setCanAccess(true);
-  }, [user, isInitialized, loading]);
+    console.log("User authenticated, allowing access");
+  }, [user, isInitialized, loading, navigate]);
 
   // Show loading while checking
-  if (loading || !isInitialized || canAccess === null) {
+  if (loading || !isInitialized) {
     return (
       <MobileLoadingScreen
         message={loading ? "Loading..." : "Checking access..."}
@@ -47,15 +50,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Redirect to welcome screen if not authenticated
-  if (!user) {
-    return <Navigate to="/welcome-screen" state={{ from: location }} replace />;
+  // Render children if user exists
+  if (user) {
+    return <>{children}</>;
   }
 
-  // Redirect if no access
-  if (!canAccess) {
-    return <Navigate to={redirectRoute} state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
+  // This should not be reached due to redirect above
+  return null;
 };
