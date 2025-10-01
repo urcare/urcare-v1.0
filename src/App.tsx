@@ -25,6 +25,7 @@ import PhonePeCheckout from "./pages/PhonePeCheckout";
 import PaymentResult from "./pages/PaymentResult";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import MockPhonePePayment from "./pages/MockPhonePePayment";
+import PhonePeQRFallbackPage from "./pages/PhonePeQRFallbackPage";
 import PhonePeTest from "./pages/PhonePeTest";
 import PhonePeCheckoutSimple from "./pages/PhonePeCheckoutSimple";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
@@ -156,6 +157,14 @@ function App() {
                     element={
                       <ProtectedRoute requireOnboardingComplete={false}>
                         <MockPhonePePayment />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/phonepe-qr-fallback"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={false}>
+                        <PhonePeQRFallbackPage />
                       </ProtectedRoute>
                     }
                   />

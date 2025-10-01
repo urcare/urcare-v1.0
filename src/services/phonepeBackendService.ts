@@ -20,7 +20,7 @@ const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU3MzQ0MzgsImV4cCI6MjA1MTMxMDQzOH0.bb62b7c1fe2d9c22a670bbcdaad3930828e5c296e97d35109534d46b7c614adf';
 
 console.log('🔧 PhonePe Backend URL configured:', PHONEPE_BACKEND_URL);
-console.log('📦 PhonePe Service Version: 6.0.0 - Express Backend on Vercel');
+console.log('📦 PhonePe Service Version: 6.1.0 - Express Backend + QR Fallback');
 
 // Live PhonePe API configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
@@ -258,13 +258,13 @@ export async function createPhonePePayment(orderId: string, amount: number, user
           stack: error.stack,
           name: error.name
         });
-        // Fallback to mock payment if Express backend fails
-        console.log("🔄 Falling back to mock payment due to Express backend error");
-        const mockRedirectUrl = `${window.location.origin}/mock-phonepe-payment?orderId=${orderId}&merchantId=M23XRS3XN3QMF&amount=${amount}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`;
+        // Fallback to QR code payment if Express backend fails
+        console.log("🔄 Falling back to QR code payment due to Express backend error");
+        const qrRedirectUrl = `${window.location.origin}/phonepe-qr-fallback?orderId=${orderId}&merchantId=M23XRS3XN3QMF&amount=${amount}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`;
         
         return {
           success: true,
-          redirectUrl: mockRedirectUrl,
+          redirectUrl: qrRedirectUrl,
           orderId: orderId,
           transactionId: orderId,
           merchantId: 'M23XRS3XN3QMF',

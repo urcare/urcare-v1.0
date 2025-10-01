@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const serverless = require('serverless-http');
 
 const app = express();
 
@@ -200,3 +201,4 @@ app.post('/api/phonepe/store-payment', async (req, res) => {
 
 // Export for Vercel
 module.exports = app;
+module.exports.handler = serverless(app);
