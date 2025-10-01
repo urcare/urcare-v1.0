@@ -19,6 +19,7 @@ const Dashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   
+  
   const getFirstName = () => {
     if (profile?.full_name) {
       return profile.full_name.split(" ")[0];
@@ -27,22 +28,22 @@ const Dashboard: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    console.log("Logout button clicked");
     try {
-      // Use Supabase directly to avoid the window.location.href redirect
+      // Use Supabase directly to avoid loading state issues
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase signOut error:", error);
+        throw error;
+      }
       
-      // Redirect to landing page
-      navigate("/");
+      console.log("Supabase signOut successful, redirecting...");
+      // Force immediate redirect
+      window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
-      // Fallback: try the context signOut
-      try {
-        await signOut();
-      } catch (fallbackError) {
-        console.error("Fallback signOut failed:", fallbackError);
-        navigate("/");
-      }
+      // Force redirect even if signOut fails
+      window.location.href = "/";
     }
   };
 
@@ -73,7 +74,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <button 
                 onClick={handleLogout}
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 <LogOut className="w-5 h-5 text-red-600" />
               </button>
