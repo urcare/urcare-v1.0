@@ -37,20 +37,21 @@ export default function UPIPopup({ isOpen, onClose, onPaymentSuccess, amount }: 
     setIsProcessing(true);
     
     try {
-      // Simulate UPI payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Simulate UPI payment processing (2 seconds for faster demo)
+      console.log("Processing UPI payment for:", upiId);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simulate payment success
-      const isSuccess = Math.random() > 0.3; // 70% success rate for demo
-      
-      if (isSuccess) {
-        toast.success("Payment successful!");
-        onPaymentSuccess(upiId);
-      } else {
-        toast.error("Payment failed. Please try again.");
-        setIsProcessing(false);
-      }
+      // For demo: Always succeed (100% success rate)
+      console.log("UPI payment successful!");
+      toast.success("Payment successful!");
+      onPaymentSuccess(upiId);
+      setIsProcessing(false);
+      // Close modal after success
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (error) {
+      console.error("UPI payment error:", error);
       toast.error("Payment failed. Please try again.");
       setIsProcessing(false);
     }

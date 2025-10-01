@@ -610,16 +610,16 @@ export class AIHealthPlanService {
     try {
       // Try comprehensive_health_plans first (if it exists)
       try {
-        const { data: comprehensiveData, error: comprehensiveError } = await supabase
-          .from('comprehensive_health_plans')
-          .select('plan_data')
-          .eq('user_id', userId)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
+      const { data: comprehensiveData, error: comprehensiveError } = await supabase
+        .from('comprehensive_health_plans')
+        .select('plan_data')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
         if (!comprehensiveError && comprehensiveData && comprehensiveData.length > 0) {
           console.log('Found health plans in comprehensive_health_plans table');
-          return comprehensiveData.map(item => item.plan_data) || [];
+        return comprehensiveData.map(item => item.plan_data) || [];
         }
       } catch (comprehensiveError) {
         // Table doesn't exist, silently fall back to health_plans table

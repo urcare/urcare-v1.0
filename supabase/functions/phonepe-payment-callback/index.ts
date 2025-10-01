@@ -126,7 +126,7 @@ serve(async (req) => {
     // Update payment record
     const { error: updateError } = await supabaseClient
       .from('payments')
-      .update({ 
+      .update({
         status: paymentStatus,
         phonepe_response: callbackData,
         phonepe_transaction_id: phonepeTransactionId
@@ -137,8 +137,8 @@ serve(async (req) => {
       console.error('Failed to update payment record:', updateError);
       return new Response(
         JSON.stringify({ error: 'Failed to update payment status' }),
-        { 
-          status: 500, 
+        {
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
@@ -159,14 +159,14 @@ serve(async (req) => {
 
     // Return success response
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Callback processed successfully',
         orderId: orderId,
         status: paymentStatus
       }),
-      { 
-        status: 200, 
+      {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
@@ -175,12 +175,12 @@ serve(async (req) => {
     console.error('Error processing PhonePe callback:', error);
     
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message || 'Internal server error',
         success: false 
       }),
-      { 
-        status: 500, 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

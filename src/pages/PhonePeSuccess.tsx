@@ -71,16 +71,16 @@ export default function PhonePeSuccess() {
           
           // Create subscription if payment is successful
           try {
-            await subscriptionService.createSubscription(user.id, {
+        await subscriptionService.createSubscription(user.id, {
               planId: plan,
-              billingCycle: cycle,
-            } as any);
-            
+          billingCycle: cycle,
+        } as any);
+
             toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
             
             // Redirect to dashboard after 2 seconds
             setTimeout(() => {
-              navigate("/dashboard", { replace: true });
+        navigate("/dashboard", { replace: true });
             }, 2000);
           } catch (subscriptionError) {
             console.error("Subscription creation failed:", subscriptionError);

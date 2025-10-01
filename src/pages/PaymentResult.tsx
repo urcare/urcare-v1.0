@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { subscriptionService } from "@/services/subscriptionService";
+import { checkPhonePeStatus, storePaymentRecord } from "@/services/phonepeBackendService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2, ArrowLeft } from "lucide-react";
@@ -52,45 +53,52 @@ export default function PaymentResult() {
     try {
       console.log("Checking payment status for transaction:", transactionId);
 
-      // Try Supabase Edge Function first
+      // Use PhonePe backend service to check status
       try {
-        const { data, error } = await supabase.functions.invoke('phonepe-payment-status', {
-          body: {
-            transactionId: transactionId,
-            userId: user.id
-          }
-        });
+        const result = await checkPhonePeStatus(transactionId, user.id);
+        
+        if (result.success && result.data) {
+          const paymentData = result.data;
+          console.log("PhonePe status response:", paymentData);
 
-        if (error) {
-          throw error;
-        }
-
-        console.log("Payment status response:", data);
-
-        if (data && data.code === "PAYMENT_SUCCESS") {
-          setStatus("success");
-          setPaymentDetails(data);
-          
-          // Create subscription if payment is successful
-          try {
-            await subscriptionService.createSubscription(user.id, {
-              planId: planSlug,
-              billingCycle: billingCycle,
-            } as any);
+          if (paymentData.code === "PAYMENT_SUCCESS") {
+            setStatus("success");
+            setPaymentDetails(paymentData);
             
-            toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
-          } catch (subscriptionError) {
-            console.error("Subscription creation failed:", subscriptionError);
-            // Don't fail the payment flow if subscription creation fails
+            // Update payment record in database
+            await storePaymentRecord(user.id, transactionId, paymentData.data?.amount || 100, "completed", planSlug, billingCycle);
+            
+            // Create subscription if payment is successful
+            try {
+              await subscriptionService.createSubscription(user.id, {
+                planId: planSlug,
+                billingCycle: billingCycle,
+              } as any);
+              
+              toast.success("🎉 Payment successful! Welcome to UrCare Pro!");
+            } catch (subscriptionError) {
+              console.error("Subscription creation failed:", subscriptionError);
+              // Don't fail the payment flow if subscription creation fails
+            }
+            return;
+          } else if (paymentData.code === "PAYMENT_ERROR" || paymentData.code === "PAYMENT_CANCELLED") {
+            setStatus("failed");
+            setError(paymentData.message || "Payment failed or was cancelled");
+            
+            // Update payment record in database
+            await storePaymentRecord(user.id, transactionId, 0, "failed", planSlug, billingCycle);
+            return;
+          } else {
+            // Still processing - wait a bit and check again
+            console.log("Payment still processing, waiting...");
+            setTimeout(() => {
+              checkPaymentStatus();
+            }, 2000);
+            return;
           }
-          return;
-        } else {
-          setStatus("failed");
-          setError(data?.message || "Payment failed or was cancelled");
-          return;
         }
-      } catch (functionError) {
-        console.log("Supabase function not available, using fallback:", functionError);
+      } catch (phonepeError) {
+        console.log("PhonePe status check failed, using fallback:", phonepeError);
       }
 
       // Fallback: Check payment status from database

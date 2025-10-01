@@ -1,241 +1,295 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// Deno type declarations
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// PhonePe Configuration - Using saved secrets
-const PHONEPE_CONFIG = {
-  MERCHANT_ID: Deno.env.get('PHONEPE_MERCHANT_ID') || 'M23XRS3XN3QMF',
-  CLIENT_ID: Deno.env.get('PHONEPE_CLIENT_ID') || 'SU2509291721337653559173',
-  CLIENT_SECRET: Deno.env.get('PHONEPE_CLIENT_SECRET') || '713219fb-38d0-468d-8268-8b15955468b0',
-  CLIENT_VERSION: Deno.env.get('PHONEPE_CLIENT_VERSION') || '1',
-  KEY_INDEX: Deno.env.get('PHONEPE_KEY_INDEX') || '1',
-  API_KEY: Deno.env.get('PHONEPE_API_KEY') || '713219fb-38d0-468d-8268-8b15955468b0',
-  BASE_URL: Deno.env.get('PHONEPE_BASE_URL') || 'https://api-preprod.phonepe.com/apis/pg-sandbox',
-  ENVIRONMENT: Deno.env.get('PHONEPE_ENV') || 'SANDBOX', // Change to PRODUCTION when going live
-  REDIRECT_URL: (Deno.env.get('FRONTEND_URL') || 'http://localhost:8080') + '/phonecheckout/result',
-  CALLBACK_URL: (Deno.env.get('SUPABASE_URL') || '') + '/functions/v1/phonepe-payment-callback',
-  MERCHANT_USERNAME: Deno.env.get('MERCHANT_USERNAME') || 'M23XRS3XN3QMF',
-  MERCHANT_PASSWORD: Deno.env.get('MERCHANT_PASSWORD') || '713219fb-38d0-468d-8268-8b15955468b0',
-};
+// PhonePe Configuration with fallbacks
+const PHONEPE_BASE_URL = Deno.env.get('PHONEPE_BASE_URL') || 'https://api.phonepe.com/apis/hermes';
+const PHONEPE_MERCHANT_ID = Deno.env.get('PHONEPE_MERCHANT_ID') || 'M23XRS3XN3QMF';
+const PHONEPE_SALT_KEY = Deno.env.get('PHONEPE_API_KEY') || '713219fb-38d0-468d-8268-8b15955468b0';
+const PHONEPE_SALT_INDEX = Deno.env.get('PHONEPE_SALT_INDEX') || '1';
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'http://localhost:8080';
+const BACKEND_CALLBACK_URL = Deno.env.get('BACKEND_CALLBACK_URL') || `${FRONTEND_URL}/api/phonepe/callback`;
 
-// Generate PhonePe checksum
-function generateChecksum(payload: string, apiKey: string): string {
-  const crypto = require('crypto');
-  const hash = crypto.createHmac('sha256', apiKey).update(payload).digest('hex');
-  return Buffer.from(hash).toString('base64');
-}
+// Check if we have valid credentials
+const hasValidCredentials = PHONEPE_MERCHANT_ID && PHONEPE_SALT_KEY && PHONEPE_SALT_INDEX;
 
-// Generate UUID for merchant order ID
-function generateMerchantOrderId(): string {
-  return `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
+// Log configuration (remove in production)
+console.log('🔧 PhonePe Production Configuration:', {
+  baseUrl: PHONEPE_BASE_URL,
+  merchantId: PHONEPE_MERCHANT_ID,
+  saltKeyPrefix: PHONEPE_SALT_KEY?.substring(0, 15) + '...',
+  saltIndex: PHONEPE_SALT_INDEX,
+  frontendUrl: FRONTEND_URL
+});
 
-// Generate UUID (for backward compatibility)
-function generateUUID(): string {
-  return generateMerchantOrderId();
+// Generate PhonePe X-VERIFY signature (Deno Web Crypto API)
+async function generateXVerify(payload: string, endpoint: string, saltKey: string, saltIndex: string): Promise<string> {
+  console.log('🔐 Generating X-VERIFY signature...');
+  console.log('📦 Payload:', payload.substring(0, 100) + '...');
+  console.log('🔗 Endpoint:', endpoint);
+  console.log('🔑 Salt Key (first 10 chars):', saltKey.substring(0, 10) + '...');
+  console.log('🔢 Salt Index:', saltIndex);
+  
+  // Create the string to hash: base64Payload + endpoint + saltKey
+  const stringToHash = `${payload}${endpoint}${saltKey}`;
+  console.log('🔗 String to hash length:', stringToHash.length);
+  
+  const encoder = new TextEncoder();
+  const data = encoder.encode(stringToHash);
+  
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  const xVerify = `${hashHex}###${saltIndex}`;
+  console.log('✅ X-VERIFY generated:', xVerify.substring(0, 30) + '...');
+  
+  return xVerify;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  try {
-    const { amount, userId, planSlug, billingCycle, merchantOrderId, redirectUrl, sdkMode } = await req.json();
-
-    if (!amount || !userId || !planSlug || !billingCycle) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: amount, userId, planSlug, billingCycle' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    if (amount <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid amount' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Generate merchant order ID if not provided
-    const orderId = merchantOrderId || generateMerchantOrderId();
-    const finalRedirectUrl = redirectUrl || `${PHONEPE_CONFIG.REDIRECT_URL}?orderId=${orderId}&plan=${planSlug}&cycle=${billingCycle}`;
-    
-    // Convert amount to paise (multiply by 100)
-    const amountInPaise = Math.round(amount * 100);
-
-    // For SDK mode, create SDK order
-    if (sdkMode) {
-      const sdkOrderRequest = {
-        merchantOrderId: orderId,
-        amount: amountInPaise,
-        redirectUrl: finalRedirectUrl,
-        redirectMode: 'POST',
-        callbackUrl: PHONEPE_CONFIG.CALLBACK_URL,
-        mobileNumber: '9999999999',
-        paymentInstrument: {
-          type: 'PAY_PAGE'
-        }
-      };
-
-      // In a real implementation, you would call PhonePe's SDK order creation API
-      // For now, we'll simulate the response
-      const mockSdkResponse = {
-        success: true,
-        token: `sdk_token_${orderId}`,
-        orderId: orderId,
-        checkoutUrl: `${PHONEPE_CONFIG.BASE_URL}/pg/v1/pay?merchantId=${PHONEPE_CONFIG.MERCHANT_ID}&merchantOrderId=${orderId}&amount=${amountInPaise}&redirectUrl=${encodeURIComponent(finalRedirectUrl)}`
-      };
-
-      // Store payment record in database
-      await storePaymentRecord(userId, planSlug, billingCycle, amount, orderId, 'processing', sdkOrderRequest, mockSdkResponse);
-
-      return new Response(
-        JSON.stringify(mockSdkResponse),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // For regular checkout, create PhonePe payload
-    const payload = {
-      merchantId: PHONEPE_CONFIG.MERCHANT_ID,
-      merchantTransactionId: orderId,
-      amount: amountInPaise,
-      redirectUrl: finalRedirectUrl,
-      redirectMode: 'POST',
-      callbackUrl: PHONEPE_CONFIG.CALLBACK_URL,
-      mobileNumber: '9999999999',
-      paymentInstrument: {
-        type: "PAY_PAGE"
-      }
-    };
-
-    // Convert payload to string for checksum
-    const payloadString = JSON.stringify(payload);
-    
-    // Generate checksum
-    const checksum = generateChecksum(payloadString, PHONEPE_CONFIG.API_KEY);
-
-    // Create PhonePe request
-    const phonepeRequest = {
-      request: Buffer.from(payloadString).toString('base64')
-    };
-
-    console.log('PhonePe Create Order Request:', {
-      merchantId: PHONEPE_CONFIG.MERCHANT_ID,
-      orderId,
-      amount: amountInPaise,
-      checksum: checksum.substring(0, 20) + '...'
-    });
-
-    // Call PhonePe API
-    const phonepeResponse = await fetch(`${PHONEPE_CONFIG.BASE_URL}/pg/v1/pay`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-VERIFY': checksum + '###' + PHONEPE_CONFIG.KEY_INDEX,
-        'accept': 'application/json'
-      },
-      body: JSON.stringify(phonepeRequest)
-    });
-
-    const phonepeData = await phonepeResponse.json();
-    console.log('PhonePe API Response:', phonepeData);
-
-    if (!phonepeResponse.ok) {
-      throw new Error(`PhonePe API error: ${phonepeData.message || 'Unknown error'}`);
-    }
-
-    if (phonepeData.code !== 'PAYMENT_INITIATED') {
-      throw new Error(`PhonePe error: ${phonepeData.message || 'Payment initiation failed'}`);
-    }
-
-    // Store payment record in database
-    await storePaymentRecord(userId, planSlug, billingCycle, amount, orderId, 'processing', payload, phonepeData);
-
-    // Return success response
+  // Simple health check endpoint
+  if (req.method === 'GET') {
     return new Response(
-      JSON.stringify({
-        success: true,
-        transactionId: orderId,
-        orderId: orderId,
-        redirectUrl: phonepeData.data.instrumentResponse.redirectInfo.url,
-        amount: amount,
-        planSlug: planSlug,
-        billingCycle: billingCycle
+      JSON.stringify({ 
+        status: 'ok', 
+        message: 'PhonePe Edge Function is running',
+        timestamp: new Date().toISOString(),
+        config: {
+          baseUrl: PHONEPE_BASE_URL,
+          hasMerchantId: !!PHONEPE_MERCHANT_ID,
+          hasSaltKey: !!PHONEPE_SALT_KEY,
+          hasSaltIndex: !!PHONEPE_SALT_INDEX
+        }
       }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
+  }
+
+  try {
+    const requestBody = await req.json();
+    console.log('📥 Raw request body:', JSON.stringify(requestBody, null, 2));
+    
+    const { orderId, amount, userId, planSlug, billingCycle } = requestBody;
+
+    console.log('📥 PhonePe Production Payment Request:', { 
+      orderId, 
+      amount, 
+      userId, 
+      planSlug, 
+      billingCycle,
+      amountType: typeof amount,
+      userIdType: typeof userId
+    });
+
+    // Validate input with detailed error messages
+    if (!orderId) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing required field: orderId',
+          received: { orderId, amount, userId, planSlug, billingCycle }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (!amount || amount <= 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing or invalid amount. Amount must be greater than 0',
+          received: { orderId, amount, userId, planSlug, billingCycle }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing required field: userId',
+          received: { orderId, amount, userId, planSlug, billingCycle }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Check if we have valid PhonePe credentials
+    if (!hasValidCredentials) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'PhonePe credentials not configured. Please set environment variables.',
+          debug: {
+            hasMerchantId: !!PHONEPE_MERCHANT_ID,
+            hasSaltKey: !!PHONEPE_SALT_KEY,
+            hasSaltIndex: !!PHONEPE_SALT_INDEX,
+            merchantId: PHONEPE_MERCHANT_ID?.substring(0, 10) + '...',
+            saltKey: PHONEPE_SALT_KEY?.substring(0, 10) + '...',
+            saltIndex: PHONEPE_SALT_INDEX
+          }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Convert amount to paise (ensure it's a number)
+    const amountInPaise = Math.round(Number(amount));
+    
+    // Validate amount is in paise (must be > 0)
+    if (amountInPaise <= 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid amount. Amount must be greater than 0 paise',
+          received: { amount, amountInPaise }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Create PhonePe production payload (exactly as PhonePe requires)
+    const payload = {
+      merchantId: PHONEPE_MERCHANT_ID,
+      merchantTransactionId: orderId, // PhonePe expects merchantTransactionId, not transactionId
+      merchantUserId: userId,
+      amount: amountInPaise,
+      redirectUrl: `${FRONTEND_URL}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
+      redirectMode: "REDIRECT", // PhonePe requires redirectMode
+      callbackUrl: BACKEND_CALLBACK_URL,
+      paymentInstrument: { 
+        type: "PAY_PAGE" 
+      }
+    };
+
+    console.log('📦 PhonePe Payload:', JSON.stringify(payload, null, 2));
+    console.log('💰 Amount validation:', { 
+      originalAmount: amount, 
+      amountInPaise: amountInPaise, 
+      isValid: amountInPaise > 0 
+    });
+
+    const payloadString = JSON.stringify(payload);
+    const encoder = new TextEncoder();
+    const payloadBytes = encoder.encode(payloadString);
+    const base64Payload = btoa(String.fromCharCode(...payloadBytes));
+
+    const xVerify = await generateXVerify(base64Payload, '/pg/v1/pay', PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
+
+    console.log('🔐 X-VERIFY:', xVerify.substring(0, 30) + '...');
+    console.log('🌐 Calling PhonePe Production API:', `${PHONEPE_BASE_URL}/pg/v1/pay`);
+
+    // Prepare headers for PhonePe API
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-VERIFY': xVerify,
+      'X-MERCHANT-ID': PHONEPE_MERCHANT_ID,
+      'accept': 'application/json'
+    };
+
+    console.log('📤 Headers being sent:', {
+      'Content-Type': headers['Content-Type'],
+      'X-VERIFY': headers['X-VERIFY'].substring(0, 30) + '...',
+      'X-MERCHANT-ID': headers['X-MERCHANT-ID'],
+      'accept': headers['accept']
+    });
+
+    // POST to PhonePe production API
+    const phonepeResponse = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ request: base64Payload })
+    });
+
+    const phonepeData = await phonepeResponse.json();
+    console.log('📨 PhonePe Production Response:', JSON.stringify(phonepeData, null, 2));
+    console.log('📨 PhonePe Response Status:', phonepeResponse.status);
+
+    // Check if payment initiation was successful
+    if (phonepeData.success && phonepeData.data?.instrumentResponse?.redirectInfo?.url) {
+      console.log('✅ Payment initiation successful, redirect URL:', phonepeData.data.instrumentResponse.redirectInfo.url);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          redirectUrl: phonepeData.data.instrumentResponse.redirectInfo.url,
+          orderId: orderId,
+          transactionId: orderId,
+          merchantId: PHONEPE_MERCHANT_ID,
+          amount: amountInPaise,
+          planSlug: planSlug || 'basic',
+          billingCycle: billingCycle || 'annual'
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    } else {
+      console.log('❌ Payment initiation failed:', phonepeData);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: phonepeData.message || 'Payment initiation failed',
+          code: phonepeData.code,
+          data: phonepeData,
+          debug: {
+            hasData: !!phonepeData.data,
+            hasInstrumentResponse: !!phonepeData.data?.instrumentResponse,
+            hasRedirectInfo: !!phonepeData.data?.instrumentResponse?.redirectInfo,
+            hasUrl: !!phonepeData.data?.instrumentResponse?.redirectInfo?.url
+          }
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
   } catch (error) {
-    console.error('Error in phonepe-create-order:', error);
+    console.error('❌ Error in phonepe-create-order:', error);
     
     return new Response(
       JSON.stringify({ 
+        success: false, 
         error: error.message || 'Internal server error',
-        success: false 
+        stack: error.stack
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
-// Helper function to store payment record
-async function storePaymentRecord(userId: string, planSlug: string, billingCycle: string, amount: number, orderId: string, status: string, request: any, response: any) {
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-  );
-
-  const { data: plan, error: planError } = await supabaseClient
-    .from('subscription_plans')
-    .select('id')
-    .eq('slug', planSlug)
-    .single();
-
-  if (planError || !plan) {
-    console.error('Plan not found in DB for payment record:', planError);
-    // Continue, but log the error
-  }
-
-  const { error: paymentError } = await supabaseClient
-    .from('payments')
-    .insert({
-      user_id: userId,
-      plan_id: plan?.id || null,
-      amount: amount,
-      currency: 'INR',
-      status: status,
-      payment_method: 'phonepe',
-      billing_cycle: billingCycle,
-      phonepe_merchant_transaction_id: orderId,
-      is_first_time: true,
-      phonepe_request: request,
-      phonepe_response: response
-    });
-
-  if (paymentError) {
-    console.error('Failed to create payment record:', paymentError);
-    // Continue, but log the error
-  }
-}

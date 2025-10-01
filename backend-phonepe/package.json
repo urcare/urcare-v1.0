@@ -1,0 +1,28 @@
+{
+  "name": "phonepe-sdk-backend",
+  "version": "1.0.0",
+  "description": "PhonePe SDK Backend Server",
+  "main": "simple-server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node simple-server.js",
+    "dev": "node --watch simple-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
+    "phonepe-pg-sdk-node": "https://phonepe.mycloudrepo.io/public/repositories/phonepe-pg-sdk-node/releases/v2/phonepe-pg-sdk-node.tgz"
+  },
+  "keywords": [
+    "phonepe",
+    "payment",
+    "gateway",
+    "sdk",
+    "nodejs",
+    "express"
+  ],
+  "author": "UrCare Team",
+  "license": "MIT"
+}
