@@ -23,6 +23,8 @@ import PaymentPage from "./pages/PaymentPage";
 import PaymentWall from "./pages/PaymentWall";
 import PhonePeCheckout from "./pages/PhonePeCheckout";
 import PaymentResult from "./pages/PaymentResult";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import MockPhonePePayment from "./pages/MockPhonePePayment";
 import PhonePeTest from "./pages/PhonePeTest";
 import PhonePeCheckoutSimple from "./pages/PhonePeCheckoutSimple";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
@@ -138,6 +140,22 @@ function App() {
                     element={
                       <ProtectedRoute requireOnboardingComplete={true}>
                         <PaymentResult />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/payment/success"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={false}>
+                        <PaymentSuccess />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mock-phonepe-payment"
+                    element={
+                      <ProtectedRoute requireOnboardingComplete={false}>
+                        <MockPhonePePayment />
                       </ProtectedRoute>
                     }
                   />

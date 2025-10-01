@@ -89,7 +89,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [user, isInitialized, loading, location.pathname]);
+  }, [user, isInitialized, loading, location.pathname, profile?.id, profile?.onboarding_completed]);
 
   if (loading || !isInitialized || canAccess === null) {
     return (
