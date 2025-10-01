@@ -20,7 +20,7 @@ const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU3MzQ0MzgsImV4cCI6MjA1MTMxMDQzOH0.bb62b7c1fe2d9c22a670bbcdaad3930828e5c296e97d35109534d46b7c614adf';
 
 console.log('🔧 PhonePe Backend URL configured:', PHONEPE_BACKEND_URL);
-console.log('📦 PhonePe Service Version: 6.1.0 - Express Backend + QR Fallback');
+console.log('📦 PhonePe Service Version: 6.2.0 - Live PhonePe Only (No Fallbacks)');
 
 // Live PhonePe API configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
@@ -252,26 +252,15 @@ export async function createPhonePePayment(orderId: string, amount: number, user
           throw new Error(data?.error || data?.message || "Payment initiation failed");
         }
       } catch (error) {
-        console.error("Express Backend error:", error);
-        console.error("Error details:", {
+        console.error("❌ Express Backend error:", error);
+        console.error("❌ Error details:", {
           message: error.message,
           stack: error.stack,
           name: error.name
         });
-        // Fallback to QR code payment if Express backend fails
-        console.log("🔄 Falling back to QR code payment due to Express backend error");
-        const qrRedirectUrl = `${window.location.origin}/phonepe-qr-fallback?orderId=${orderId}&merchantId=M23XRS3XN3QMF&amount=${amount}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`;
-        
-        return {
-          success: true,
-          redirectUrl: qrRedirectUrl,
-          orderId: orderId,
-          transactionId: orderId,
-          merchantId: 'M23XRS3XN3QMF',
-          amount: amount,
-          planSlug: planSlug || 'basic',
-          billingCycle: billingCycle || 'annual'
-        };
+        // No fallback - show error and let user retry
+        console.log("❌ Live PhonePe payment failed - no fallback available");
+        throw new Error(`Live PhonePe payment failed: ${error.message}`);
       }
     }
   } catch (error) {

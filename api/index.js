@@ -10,11 +10,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// PhonePe Configuration
+// PhonePe Live Configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
 const PHONEPE_SALT_KEY = '713219fb-38d0-468d-8268-8b15955468b0';
 const PHONEPE_SALT_INDEX = '1';
 const PHONEPE_BASE_URL = 'https://api.phonepe.com/apis/hermes';
+const FRONTEND_URL = 'https://urcare.vercel.app';
 
 // Generate X-VERIFY signature
 function generateXVerify(payload, endpoint, saltKey, saltIndex) {
@@ -45,15 +46,15 @@ app.post('/api/phonepe/pay', async (req, res) => {
 
     console.log('🚀 Creating live PhonePe payment:', { orderId, amount, userId, planSlug, billingCycle });
 
-    // Create PhonePe payload
+    // Create PhonePe payload for live API
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
       merchantTransactionId: orderId,
       merchantUserId: userId,
-      amount: amount,
-      redirectUrl: `${req.headers.origin || 'https://urcare.vercel.app'}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
+      amount: amount, // Amount in paise
+      redirectUrl: `${FRONTEND_URL}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
       redirectMode: "REDIRECT",
-      callbackUrl: `${req.headers.origin || 'https://urcare.vercel.app'}/api/phonepe/callback`,
+      callbackUrl: `${FRONTEND_URL}/api/phonepe/callback`,
       paymentInstrument: { 
         type: "PAY_PAGE" 
       }
@@ -64,10 +65,11 @@ app.post('/api/phonepe/pay', async (req, res) => {
     const payloadString = JSON.stringify(payload);
     const base64Payload = Buffer.from(payloadString).toString('base64');
 
-    // Generate X-VERIFY signature
+    // Generate X-VERIFY signature for PhonePe API
     const xVerify = generateXVerify(base64Payload, '/pg/v1/pay', PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX);
 
     console.log('🌐 Calling live PhonePe API:', `${PHONEPE_BASE_URL}/pg/v1/pay`);
+    console.log('🔑 X-VERIFY signature:', xVerify);
 
     // Call live PhonePe API
     const response = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
@@ -98,6 +100,9 @@ app.post('/api/phonepe/pay', async (req, res) => {
       });
     } else {
       console.error('❌ Live PhonePe payment failed:', data);
+      console.error('❌ Response status:', response.status);
+      console.error('❌ Response headers:', response.headers);
+      
       res.status(400).json({
         success: false,
         error: data.message || 'Live PhonePe payment initiation failed',
@@ -105,19 +110,33 @@ app.post('/api/phonepe/pay', async (req, res) => {
         data: data,
         debug: {
           responseStatus: response.status,
+          responseStatusText: response.statusText,
           hasData: !!data.data,
           hasInstrumentResponse: !!data.data?.instrumentResponse,
           hasRedirectInfo: !!data.data?.instrumentResponse?.redirectInfo,
-          hasUrl: !!data.data?.instrumentResponse?.redirectInfo?.url
+          hasUrl: !!data.data?.instrumentResponse?.redirectInfo?.url,
+          merchantId: PHONEPE_MERCHANT_ID,
+          baseUrl: PHONEPE_BASE_URL,
+          endpoint: '/pg/v1/pay'
         }
       });
     }
 
   } catch (error) {
     console.error('❌ Express API error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error name:', error.name);
+    
     res.status(500).json({
       success: false,
-      error: error.message || 'Internal server error'
+      error: error.message || 'Internal server error',
+      debug: {
+        errorName: error.name,
+        errorMessage: error.message,
+        merchantId: PHONEPE_MERCHANT_ID,
+        baseUrl: PHONEPE_BASE_URL,
+        endpoint: '/pg/v1/pay'
+      }
     });
   }
 });
@@ -161,6 +180,48 @@ app.post('/api/phonepe/status', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Internal server error'
+    });
+  }
+});
+
+// PhonePe callback endpoint
+app.post('/api/phonepe/callback', (req, res) => {
+  try {
+    console.log('📞 PhonePe Callback received:', JSON.stringify(req.body, null, 2));
+    
+    // PhonePe sends callback data here
+    const { 
+      transactionId, 
+      status, 
+      amount, 
+      merchantId,
+      merchantTransactionId 
+    } = req.body;
+
+    console.log('📞 Callback details:', {
+      transactionId,
+      status,
+      amount,
+      merchantId,
+      merchantTransactionId,
+      timestamp: new Date().toISOString()
+    });
+
+    // In production, you would:
+    // 1. Verify the callback signature
+    // 2. Update payment status in database
+    // 3. Trigger any post-payment actions
+
+    res.status(200).json({
+      success: true,
+      message: 'Callback received successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Callback error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Callback processing failed'
     });
   }
 });
