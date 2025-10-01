@@ -41,7 +41,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({ plans, onSelect
 
   const handleSelectPlan = (plan: HealthPlan) => {
     onSelectPlan(plan);
-    navigate('/workout-dashboard');
+    navigate('/health-assessment', { state: { selectedPlan: plan } });
   };
 
   return (
@@ -55,7 +55,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({ plans, onSelect
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {plans.map((plan, index) => (
           <motion.div
             key={plan.id}
@@ -74,7 +74,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({ plans, onSelect
                     {plan.difficulty}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
                   {plan.description}
                 </p>
               </CardHeader>
@@ -92,50 +92,42 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({ plans, onSelect
                   </div>
                 </div>
 
-                {/* Focus Areas */}
+                {/* Focus Areas - Shortened */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <Target className="w-4 h-4 mr-1" />
-                    Focus Areas
+                  <h4 className="text-xs font-medium text-gray-700 mb-1 flex items-center">
+                    <Target className="w-3 h-3 mr-1" />
+                    Focus
                   </h4>
                   <div className="flex flex-wrap gap-1">
-                    {plan.focusAreas.slice(0, 3).map((area, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {area}
+                    {plan.focusAreas.slice(0, 2).map((area, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs px-2 py-1">
+                        {area.split(' ')[0]}
                       </Badge>
                     ))}
-                    {plan.focusAreas.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{plan.focusAreas.length - 3} more
-                      </Badge>
-                    )}
                   </div>
                 </div>
 
-                {/* Equipment */}
+                {/* Equipment - Shortened */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <Dumbbell className="w-4 h-4 mr-1" />
-                    Equipment
+                  <h4 className="text-xs font-medium text-gray-700 mb-1 flex items-center">
+                    <Dumbbell className="w-3 h-3 mr-1" />
+                    Gear
                   </h4>
                   <p className="text-xs text-gray-600">
-                    {plan.equipment.length > 0 
-                      ? plan.equipment.join(', ') 
-                      : 'No equipment needed'
-                    }
+                    {plan.equipment.slice(0, 2).map(item => item.split(' ')[0]).join(', ')}
                   </p>
                 </div>
 
-                {/* Key Benefits */}
+                {/* Key Benefits - Shortened */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Key Benefits
+                  <h4 className="text-xs font-medium text-gray-700 mb-1">
+                    Benefits
                   </h4>
                   <ul className="space-y-1">
-                    {plan.benefits.slice(0, 3).map((benefit, idx) => (
+                    {plan.benefits.slice(0, 2).map((benefit, idx) => (
                       <li key={idx} className="flex items-start space-x-2 text-xs text-gray-600">
-                        <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span>{benefit}</span>
+                        <CheckCircle className="w-2 h-2 text-green-500 mt-1 flex-shrink-0" />
+                        <span>{benefit.split(' ').slice(0, 2).join(' ')}</span>
                       </li>
                     ))}
                   </ul>
@@ -146,7 +138,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({ plans, onSelect
                   onClick={() => handleSelectPlan(plan)}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg transition-all duration-300 transform hover:scale-105"
                 >
-                  Select This Plan
+                  Select
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>

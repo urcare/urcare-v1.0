@@ -23,7 +23,7 @@ import {
   Minus,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
@@ -39,8 +39,10 @@ interface HealthMetric {
 
 const HealthAssessment: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile, loading, isInitialized } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [forceShow, setForceShow] = useState(false);
@@ -201,6 +203,13 @@ const HealthAssessment: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [analysisComplete, navigate]);
+
+  // Get selected plan from location state
+  useEffect(() => {
+    if (location.state?.selectedPlan) {
+      setSelectedPlan(location.state.selectedPlan);
+    }
+  }, [location.state]);
 
   // Show loading screen
   if ((!isInitialized || (!user && loading)) && !forceShow && !(user && profile)) {
@@ -400,12 +409,56 @@ const HealthAssessment: React.FC = () => {
           </p>
         </div>
 
+        {/* Selected Plan Activities */}
+        {selectedPlan && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+              <Target className="w-5 h-5 mr-2" />
+              Your Selected Plan: {selectedPlan.title}
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-blue-700 font-medium">Duration:</span>
+                <span className="text-blue-600">{selectedPlan.duration}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-blue-700 font-medium">Difficulty:</span>
+                <span className="text-blue-600">{selectedPlan.difficulty}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-blue-700 font-medium">Calories:</span>
+                <span className="text-blue-600">{selectedPlan.estimatedCalories} cal/day</span>
+              </div>
+              <div className="mt-3">
+                <span className="text-blue-700 font-medium text-sm">Focus Areas:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedPlan.focusAreas.map((area: string, idx: number) => (
+                    <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3">
+                <span className="text-blue-700 font-medium text-sm">Equipment Needed:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedPlan.equipment.map((item: string, idx: number) => (
+                    <span key={idx} className="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleGetSolution}
           className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 flex items-center justify-center"
         >
           <CheckCircle className="w-5 h-5 mr-2" />
-          Get My Personalized Health Plan
+          {selectedPlan ? 'Start My Plan' : 'Get My Personalized Health Plan'}
           <ArrowRight className="w-5 h-5 ml-2" />
         </button>
 

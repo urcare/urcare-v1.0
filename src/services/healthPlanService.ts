@@ -2,23 +2,116 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Fallback health plan generation when API is not available
-const generateFallbackHealthPlans = (userProfile: any, healthScore: number) => {
+const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {
   const age = parseInt(userProfile.age) || 30;
   const isBeginner = age < 25 || healthScore < 60;
   const isAdvanced = age > 40 && healthScore > 80;
   
-  const plans = [
-    {
-      id: 'beginner-wellness',
-      title: 'Beginner Wellness Journey',
-      difficulty: 'Beginner' as const,
-      duration: '4 weeks',
+  // Analyze user input to determine focus area
+  const input = (userInput || '').toLowerCase();
+  let focusArea = 'general';
+  
+  if (input.includes('stress') || input.includes('anxiety') || input.includes('relax')) {
+    focusArea = 'stress';
+  } else if (input.includes('weight') || input.includes('lose') || input.includes('fat')) {
+    focusArea = 'weight';
+  } else if (input.includes('muscle') || input.includes('strength') || input.includes('build')) {
+    focusArea = 'muscle';
+  } else if (input.includes('cardio') || input.includes('endurance') || input.includes('fitness')) {
+    focusArea = 'cardio';
+  } else if (input.includes('flexibility') || input.includes('yoga') || input.includes('stretch')) {
+    focusArea = 'flexibility';
+  } else if (input.includes('energy') || input.includes('tired') || input.includes('fatigue')) {
+    focusArea = 'energy';
+  }
+  
+  let plans = [];
+  
+  if (focusArea === 'stress') {
+    plans = [
+      {
+        id: 'stress-relief-beginner',
+        title: 'Stress Relief Starter',
+        difficulty: 'Beginner' as const,
+        duration: '4 weeks',
+        focusAreas: ['Meditation', 'Breathing', 'Gentle Yoga'],
+        equipment: ['Yoga Mat', 'Cushion', 'Timer'],
+        benefits: ['Reduced anxiety', 'Better sleep', 'Calm mind'],
+        description: 'Gentle stress relief techniques for beginners. Learn meditation and breathing exercises.',
+        estimatedCalories: 150
+      },
+      {
+        id: 'stress-relief-intermediate',
+        title: 'Mindfulness Mastery',
+        difficulty: 'Intermediate' as const,
+        duration: '6 weeks',
+        focusAreas: ['Advanced Meditation', 'Yoga Flow', 'Stress Management'],
+        equipment: ['Yoga Mat', 'Blocks', 'Meditation App'],
+        benefits: ['Deep relaxation', 'Mental clarity', 'Emotional balance'],
+        description: 'Advanced mindfulness practices for stress management and mental wellness.',
+        estimatedCalories: 250
+      },
+      {
+        id: 'stress-relief-advanced',
+        title: 'Zen Master Program',
+        difficulty: 'Advanced' as const,
+        duration: '8 weeks',
+        focusAreas: ['Deep Meditation', 'Advanced Yoga', 'Mental Training'],
+        equipment: ['Yoga Mat', 'Meditation Cushion', 'Journal'],
+        benefits: ['Inner peace', 'Stress immunity', 'Mental strength'],
+        description: 'Master-level stress management and mindfulness training for complete mental wellness.',
+        estimatedCalories: 300
+      }
+    ];
+  } else if (focusArea === 'weight') {
+    plans = [
+      {
+        id: 'weight-loss-beginner',
+        title: 'Weight Loss Starter',
+        difficulty: 'Beginner' as const,
+        duration: '4 weeks',
+        focusAreas: ['Cardio', 'Light Strength', 'Diet'],
+        equipment: ['Treadmill', 'Dumbbells', 'Scale'],
+        benefits: ['Fat loss', 'Better energy', 'Healthier habits'],
+        description: 'Beginner-friendly weight loss program with cardio and light strength training.',
+        estimatedCalories: 400
+      },
+      {
+        id: 'weight-loss-intermediate',
+        title: 'Fat Burn Challenge',
+        difficulty: 'Intermediate' as const,
+        duration: '6 weeks',
+        focusAreas: ['HIIT', 'Strength', 'Nutrition'],
+        equipment: ['Weights', 'Timer', 'Food Scale'],
+        benefits: ['Rapid fat loss', 'Muscle tone', 'Metabolism boost'],
+        description: 'Intensive fat burning program with HIIT and strength training.',
+        estimatedCalories: 500
+      },
+      {
+        id: 'weight-loss-advanced',
+        title: 'Transformation Program',
+        difficulty: 'Advanced' as const,
+        duration: '8 weeks',
+        focusAreas: ['Advanced HIIT', 'Heavy Lifting', 'Strict Diet'],
+        equipment: ['Full Gym', 'Supplements', 'Tracker'],
+        benefits: ['Dramatic results', 'Muscle definition', 'Peak fitness'],
+        description: 'Advanced transformation program for maximum weight loss and body recomposition.',
+        estimatedCalories: 600
+      }
+    ];
+  } else {
+    // Default general plans
+    plans = [
+      {
+        id: 'beginner-wellness',
+        title: 'Beginner Wellness Journey',
+        difficulty: 'Beginner' as const,
+        duration: '4 weeks',
       focusAreas: ['Cardio', 'Flexibility', 'Basic Strength'],
       equipment: ['Yoga Mat', 'Resistance Bands', 'Water Bottle'],
       benefits: ['Improved energy', 'Better sleep', 'Reduced stress', 'Weight management'],
       description: 'A gentle introduction to fitness with low-impact exercises perfect for beginners. Focus on building healthy habits and basic movement patterns.',
-      estimatedCalories: 200,
-      equipment: ['Yoga Mat', 'Resistance Bands', 'Water Bottle']
+      estimatedCalories: 200
     },
     {
       id: 'intermediate-fitness',
@@ -29,8 +122,7 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number) => {
       equipment: ['Dumbbells', 'Yoga Mat', 'Resistance Bands', 'Timer'],
       benefits: ['Increased muscle mass', 'Better endurance', 'Improved posture', 'Enhanced metabolism'],
       description: 'A balanced program combining strength and cardio training. Perfect for those ready to take their fitness to the next level.',
-      estimatedCalories: 350,
-      equipment: ['Dumbbells', 'Yoga Mat', 'Resistance Bands', 'Timer']
+      estimatedCalories: 350
     },
     {
       id: 'advanced-performance',
@@ -41,8 +133,7 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number) => {
       equipment: ['Dumbbells', 'Kettlebell', 'Pull-up Bar', 'Timer', 'Heart Rate Monitor'],
       benefits: ['Peak physical performance', 'Maximum strength gains', 'Elite endurance', 'Athletic conditioning'],
       description: 'An intensive program designed for experienced individuals seeking maximum results. High-intensity workouts with advanced techniques.',
-      estimatedCalories: 500,
-      equipment: ['Dumbbells', 'Kettlebell', 'Pull-up Bar', 'Timer', 'Heart Rate Monitor']
+      estimatedCalories: 500
     }
   ];
 
@@ -68,6 +159,7 @@ const generateFallbackHealthPlans = (userProfile: any, healthScore: number) => {
   }
 
   return plans;
+  }
 };
 
 interface HealthPlanRequest {
@@ -135,14 +227,14 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       plans: result.plans
     };
 
-  } catch (error) {
+    } catch (error) {
     console.error('❌ Health plan generation error:', error);
     
     // Fallback: Generate basic health plans based on user profile
     console.log('🔄 Using fallback health plan generation');
     
     try {
-      const fallbackPlans = generateFallbackHealthPlans(request.userProfile, request.healthScore);
+      const fallbackPlans = generateFallbackHealthPlans(request.userProfile, request.healthScore, request.userInput);
       return {
         success: true,
         plans: fallbackPlans
@@ -185,7 +277,7 @@ export const saveSelectedHealthPlan = async (userId: string, plan: HealthPlan) =
       success: true,
       plan: data
     };
-  } catch (error) {
+    } catch (error) {
     console.error('❌ Error saving health plan:', error);
     return {
       success: false,
