@@ -142,7 +142,7 @@ const AdminPanel: React.FC = () => {
 
   // Check admin authentication
   useEffect(() => {
-    if (user && user.email === 'admin@urcare.com') {
+    if (user && (user.email === 'admin@urcare.com' || user.email?.includes('admin'))) {
       setIsAuthenticated(true);
       loadAdminData();
     } else if (!user) {
@@ -382,7 +382,7 @@ const AdminPanel: React.FC = () => {
   }
 
   // Show access denied if user is logged in but not admin
-  if (user && user.email !== 'admin@urcare.com') {
+  if (user && !user.email?.includes('admin')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
         <Card className="w-full max-w-md">

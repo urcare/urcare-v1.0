@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { UserFlowHandler } from "@/components/UserFlowHandler";
 import { 
   CheckCircle, 
   Calendar,
@@ -278,11 +279,12 @@ const Dashboard: React.FC = () => {
   }, [transcript]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDarkMode 
-        ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
-        : 'bg-gradient-to-br from-[#88ba82] to-[#95c190]'
-    }`}>
+    <UserFlowHandler>
+      <div className={`min-h-screen transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+          : 'bg-gradient-to-br from-[#88ba82] to-[#95c190]'
+      }`}>
       <div className="max-w-md mx-auto min-h-screen">
         {/* Header Section - White with Rounded Bottom */}
         <div className={`rounded-b-[2rem] px-4 sm:px-6 py-4 shadow-lg transition-colors duration-300 ${
@@ -665,7 +667,7 @@ const Dashboard: React.FC = () => {
                       <span className={`font-medium transition-colors duration-300 ${
                         isDarkMode ? 'text-gray-200' : 'text-gray-800'
                       }`}>
-                        Admin Panel
+                        Admin Panel (Charts, Users, Payments, Chat)
                       </span>
                     </button>
                   )}
@@ -722,7 +724,8 @@ const Dashboard: React.FC = () => {
 
       {/* Floating Chat */}
       <FloatingChat />
-    </div>
+      </div>
+    </UserFlowHandler>
   );
 };
 
