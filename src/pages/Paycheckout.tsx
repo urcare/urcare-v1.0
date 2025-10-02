@@ -23,6 +23,7 @@ const Paycheckout: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // Get plan data from navigation state
   const planData = location.state || {
