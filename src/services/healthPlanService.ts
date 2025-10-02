@@ -182,10 +182,17 @@ interface HealthPlan {
   description: string;
   duration: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  focusAreas: string[];
-  estimatedCalories: number;
-  equipment: string[];
-  benefits: string[];
+  focusAreas?: string[];
+  estimatedCalories?: number;
+  equipment?: string[];
+  benefits?: string[];
+  activities?: {
+    time: string;
+    title: string;
+    description: string;
+    duration: string;
+    category: string;
+  }[];
 }
 
 interface HealthPlanResponse {

@@ -30,6 +30,8 @@ import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/h
 import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
 import HealthPlansVerticalList from "@/components/HealthPlansVerticalList";
+import HealthPlansDisplay from "@/components/HealthPlansDisplay";
+import YourHealthPopup from "@/components/YourHealthPopup";
 import FloatingChat from "@/components/FloatingChat";
 
 interface HealthPlan {
@@ -38,10 +40,17 @@ interface HealthPlan {
   description: string;
   duration: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  focusAreas: string[];
-  estimatedCalories: number;
-  equipment: string[];
-  benefits: string[];
+  focusAreas?: string[];
+  estimatedCalories?: number;
+  equipment?: string[];
+  benefits?: string[];
+  activities?: {
+    time: string;
+    title: string;
+    description: string;
+    duration: string;
+    category: string;
+  }[];
 }
 
 const Dashboard: React.FC = () => {
@@ -57,6 +66,7 @@ const Dashboard: React.FC = () => {
   const [showFileManager, setShowFileManager] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState<boolean>(false);
+  const [showYourHealthPopup, setShowYourHealthPopup] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<HealthPlan | null>(null);
 
   // File upload hook
@@ -263,6 +273,9 @@ const Dashboard: React.FC = () => {
       const result = await saveSelectedHealthPlan(user.id, plan);
       if (result.success) {
         toast.success(`Selected plan: ${plan.title}`);
+        // Hide the health plans and show the updated Today's Schedule
+        setShowHealthPlans(false);
+        // Navigate to health plan generation page
         navigate('/health-plan-generation', { state: { selectedPlan: plan } });
       } else {
         throw new Error(result.error || "Failed to save selected plan");
@@ -537,133 +550,137 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Today's Schedule Section */}
+        {/* Today's Schedule or Health Plans Section */}
         <div className="max-w-md mx-auto px-4 sm:px-6">
-          <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
-          }`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-lg font-medium transition-colors duration-300 ${
-                isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
-              }`}>
-                Today's Schedule
-              </h2>
-              <Settings className={`w-5 h-5 transition-colors duration-300 ${
-                isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
-              }`} />
-            </div>
-            
-            <div className="space-y-3">
-              {/* Morning Wake-up Routine */}
-              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                    isDarkMode 
-                      ? 'bg-gray-600 border-[#88ba82]' 
-                      : 'bg-white border-yellow-400'
-                  }`}>
-                    <Calendar className={`w-4 h-4 transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`} />
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`}>
-                      Morning Wake-up Routine
-                    </p>
-                    <p className={`text-xs transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      08:30:00
-                    </p>
-                  </div>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`} />
-              </div>
-
-              {/* Healthy Breakfast */}
-              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                    isDarkMode 
-                      ? 'bg-gray-600 border-[#88ba82]' 
-                      : 'bg-white border-yellow-400'
-                  }`}>
-                    <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`}>
-                      Healthy Breakfast
-                    </p>
-                    <p className={`text-xs transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      09:00
-                    </p>
-                  </div>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`} />
-              </div>
-
-              {/* Focused Work Session */}
-              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                    isDarkMode 
-                      ? 'bg-gray-600 border-[#88ba82]' 
-                      : 'bg-white border-yellow-400'
-                  }`}>
-                    <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`} />
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`}>
-                      Focused Work Session
-                    </p>
-                    <p className={`text-xs transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      09:45
-                    </p>
-                  </div>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Health Plans Section */}
-        {showHealthPlans && (
-          <div className="max-w-md mx-auto px-4 sm:px-6">
-            <div className={`py-4 flex-1 shadow-lg rounded-3xl mt-4 transition-colors duration-300 ${
+          {showHealthPlans ? (
+            <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
-              <HealthPlansVerticalList 
-                plans={healthPlans} 
+              <HealthPlansDisplay
+                plans={healthPlans}
                 onSelectPlan={handleSelectPlan}
+                selectedPlan={selectedPlan}
               />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className={`text-lg font-medium transition-colors duration-300 ${
+                  isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+                }`}>
+                  Today's Schedule
+                </h2>
+                <button
+                  onClick={() => setShowYourHealthPopup(true)}
+                  className="transition-colors duration-300 hover:opacity-80"
+                >
+                  <Settings className={`w-5 h-5 transition-colors duration-300 ${
+                    isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+                  }`} />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Morning Wake-up Routine */}
+                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-[#88ba82]' 
+                        : 'bg-white border-yellow-400'
+                    }`}>
+                      <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`}>
+                        Morning Wake-up Routine
+                      </p>
+                      <p className={`text-xs transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        08:30:00
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`} />
+                </div>
+
+                {/* Healthy Breakfast */}
+                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-[#88ba82]' 
+                        : 'bg-white border-yellow-400'
+                    }`}>
+                      <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`}>
+                        Healthy Breakfast
+                      </p>
+                      <p className={`text-xs transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        09:00
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`} />
+                </div>
+
+                {/* Focused Work Session */}
+                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-[#88ba82]' 
+                        : 'bg-white border-yellow-400'
+                    }`}>
+                      <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                      }`}>
+                        Focused Work Session
+                      </p>
+                      <p className={`text-xs transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        09:45
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
 
         {/* Notification Drawer */}
         {showNotificationDrawer && (
@@ -779,6 +796,15 @@ const Dashboard: React.FC = () => {
           console.error("AI processing error:", error);
           toast.error("AI processing failed: " + error);
         }}
+      />
+
+      {/* Your Health Popup */}
+      <YourHealthPopup
+        isOpen={showYourHealthPopup}
+        onClose={() => setShowYourHealthPopup(false)}
+        userProfile={profile}
+        healthScore={healthScore}
+        selectedPlan={selectedPlan}
       />
 
       {/* Floating Chat */}
