@@ -36,6 +36,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   const handlePaymentComplete = () => {
     onComplete();
     onClose();
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
   };
 
   return (
@@ -69,51 +71,20 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <h4 className="font-semibold text-blue-900 mb-2">How to pay:</h4>
-            <ol className="text-sm text-blue-800 space-y-1">
-              <li>1. Open PhonePe app on your phone</li>
-              <li>2. Scan this QR code</li>
-              <li>3. Enter amount: ₹{amount}</li>
-              <li>4. Complete payment</li>
-            </ol>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <Button 
-              onClick={handleDownloadQR}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download QR Image
-            </Button>
-            
-            <Button 
-              onClick={handlePaymentComplete}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              I've Paid - Complete
-            </Button>
-          </div>
-
-          {/* Note */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-800 text-center">
-              <strong>Note:</strong> We will allow your subscription in 1-2 hrs please wait.
+          {/* Simple Note */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800 text-center">
+              <strong>Please allow us some minutes to activate subscription</strong>
             </p>
           </div>
 
-          {/* Close Button */}
+          {/* Continue Button */}
           <Button 
-            onClick={onClose}
-            variant="outline"
-            className="w-full"
+            onClick={handlePaymentComplete}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-medium"
           >
-            <X className="w-4 h-4 mr-2" />
-            Cancel
+            <CheckCircle className="w-5 h-5 mr-2" />
+            Continue to Dashboard
           </Button>
         </div>
       </DialogContent>

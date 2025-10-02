@@ -97,12 +97,10 @@ export default function PhonePeCheckout() {
   };
 
   const handleQRComplete = () => {
-    toast.success('Payment submitted! We will activate your subscription in 1-2 hours. Please wait.');
+    toast.success('Payment submitted! Redirecting to dashboard...');
     setShowQRModal(false);
-    // In a real app, you would check payment status and redirect accordingly
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
+    // Redirect to dashboard immediately
+    navigate('/dashboard');
   };
 
   return (

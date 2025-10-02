@@ -310,7 +310,7 @@ const Paycheckout: React.FC = () => {
         onComplete={() => {
           setShowQRModal(false);
           setPaymentStatus({ status: 'success', orderId: paymentStatus.orderId });
-          toast.success('Payment submitted! We will activate your subscription in 1-2 hours.');
+          toast.success('Payment submitted! Redirecting to dashboard...');
         }}
         amount={planData.amount}
         planName={planData.name}
