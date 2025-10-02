@@ -10,16 +10,11 @@ import {
   Activity, 
   TrendingUp, 
   CheckCircle, 
-  QrCode, 
-  Download,
   ArrowLeft,
-  Clock,
   Shield,
   Star
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { calculateHealthScore, getUserProfileForHealthScore } from '@/services/healthScoreService';
-import { QRModal } from '@/components/QRModal';
 
 interface HealthMetrics {
   healthScore: number;
@@ -34,8 +29,6 @@ const OnboardingHealthAssessment: React.FC = () => {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetrics | null>(null);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -103,20 +96,6 @@ const OnboardingHealthAssessment: React.FC = () => {
     }
   };
 
-  const handleQRPayment = () => {
-    setShowQRModal(true);
-  };
-
-  const handlePaymentComplete = () => {
-    setProcessing(true);
-    toast.success('Payment received! Activating your subscription...');
-    
-    // Simulate processing time
-    setTimeout(() => {
-      setProcessing(false);
-      navigate('/dashboard');
-    }, 3000);
-  };
 
   const getHealthScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -239,81 +218,21 @@ const OnboardingHealthAssessment: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Payment Section */}
+        {/* Get Personalized Plan Button */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-gray-900">
-              Unlock Your Personalized Health Plan
-            </CardTitle>
-            <CardDescription>
-              Get access to AI-powered health recommendations, personalized workout plans, and nutrition guidance
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Features List */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Heart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Health Tracking</h3>
-                  <p className="text-sm text-gray-600">Monitor your progress daily</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <Activity className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Workout Plans</h3>
-                  <p className="text-sm text-gray-600">Personalized exercise routines</p>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">AI Insights</h3>
-                  <p className="text-sm text-gray-600">Smart health recommendations</p>
-                </div>
-              </div>
-
-              {/* Payment Options */}
-              <div className="space-y-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-semibold text-gray-900">Premium Plan</span>
-                    <span className="text-2xl font-bold text-blue-600">₹299/month</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Full access to all features • Cancel anytime
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={handleQRPayment}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 text-lg font-medium"
-                    disabled={processing}
-                  >
-                    <QrCode className="w-5 h-5 mr-2" />
-                    {processing ? 'Processing...' : 'I\'ll pay by QR'}
-                  </Button>
-                  
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">
-                      <Clock className="w-4 h-4 inline mr-1" />
-                      We'll activate your subscription within 1-2 hours
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Button
+                onClick={() => navigate('/paywall')}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 text-lg font-medium"
+              >
+                Get Your Personalized Plan
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* QR Modal */}
-      <QRModal
-        isOpen={showQRModal}
-        onClose={() => setShowQRModal(false)}
-        onPaymentComplete={handlePaymentComplete}
-        amount={299}
-        plan="Premium"
-        cycle="monthly"
-      />
     </div>
   );
 };
