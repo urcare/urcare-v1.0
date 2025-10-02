@@ -59,6 +59,36 @@ interface HealthPlan {
 const Dashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Add error boundary for Dashboard
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      console.error("Dashboard error:", error);
+      setHasError(true);
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-4">The dashboard encountered an error.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
   
   // State management
   const [healthScore, setHealthScore] = useState<number>(0);
@@ -72,6 +102,36 @@ const Dashboard: React.FC = () => {
   const [showYourHealthPopup, setShowYourHealthPopup] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<HealthPlan | null>(null);
   const [todaysActivities, setTodaysActivities] = useState<any[]>([]);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [showTips, setShowTips] = useState<boolean>(true);
+
+  // Default health tips data
+  const healthTips = [
+    {
+      id: 'hydration-tip',
+      title: 'Stay Hydrated',
+      time: 'All Day',
+      category: 'Hydration',
+      description: 'Drink at least 8 glasses of water throughout the day. Start your morning with a glass of water to kickstart your metabolism.',
+      icon: '💧'
+    },
+    {
+      id: 'sleep-tip',
+      title: 'Quality Sleep',
+      time: '22:00 - 06:00',
+      category: 'Sleep',
+      description: 'Aim for 7-9 hours of quality sleep. Keep your bedroom cool, dark, and quiet for optimal rest.',
+      icon: '😴'
+    },
+    {
+      id: 'exercise-tip',
+      title: 'Daily Movement',
+      time: '30 min',
+      category: 'Exercise',
+      description: 'Incorporate at least 30 minutes of physical activity daily. Even a brisk walk can make a significant difference.',
+      icon: '🏃‍♂️'
+    }
+  ];
 
   // Debounced user input for better performance
   const debouncedUserInput = useDebounce(userInput, 300);
@@ -112,23 +172,7 @@ const Dashboard: React.FC = () => {
   // Debug: Log user data to see what we're getting from Google OAuth
   useEffect(() => {
     if (user) {
-      console.log("🔍 DEBUG - Full user object:", user);
-      console.log("🔍 DEBUG - User metadata:", user.user_metadata);
-      console.log("🔍 DEBUG - App metadata:", user.app_metadata);
-      console.log("🔍 DEBUG - All possible avatar fields:", {
-        'user_metadata.avatar_url': user.user_metadata?.avatar_url,
-        'user_metadata.picture': user.user_metadata?.picture,
-        'user_metadata.photo_url': user.user_metadata?.photo_url,
-        'user_metadata.avatar': user.user_metadata?.avatar,
-        'user_metadata.image': user.user_metadata?.image,
-        'user_metadata.profile_image': user.user_metadata?.profile_image,
-        'app_metadata.avatar_url': user.app_metadata?.avatar_url,
-        'app_metadata.picture': user.app_metadata?.picture,
-        'app_metadata.photo_url': user.app_metadata?.photo_url,
-        'app_metadata.avatar': user.app_metadata?.avatar,
-        'app_metadata.image': user.app_metadata?.image,
-        'app_metadata.profile_image': user.app_metadata?.profile_image,
-      });
+      console.log("🔍 User logged in:", user.user_metadata?.full_name || 'Unknown');
     }
   }, [user]);
 
@@ -181,6 +225,7 @@ const Dashboard: React.FC = () => {
 
     setIsProcessing(true);
     setShowHealthPlans(false);
+    setShowTips(false); // Switch from tips to plans when user inputs goals
 
     // Process in background to avoid UI blocking
     const processHealthAnalysis = async () => {
@@ -213,32 +258,59 @@ const Dashboard: React.FC = () => {
           userProfile = profileResult.profile;
         }
         
-        // Send message to Groq AI for processing
-        const groqResponse = await fetch('/api/groq/chat', {
+        // First, get health score
+        console.log('🤖 Starting AI health analysis...');
+        const healthScoreResponse = await fetch('/api/health-score', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: userInput.trim(),
             userProfile,
+            userInput: userInput.trim(),
             uploadedFiles: uploadedFiles.map(file => file.content),
             voiceTranscript: transcript.trim()
           })
         });
 
-        if (!groqResponse.ok) {
-          throw new Error('Failed to get AI response');
+        if (!healthScoreResponse.ok) {
+          console.error('❌ Health Score API failed:', healthScoreResponse.status, healthScoreResponse.statusText);
+          const errorText = await healthScoreResponse.text();
+          console.error('❌ Error details:', errorText);
+          throw new Error(`Failed to get health score: ${healthScoreResponse.status}`);
         }
 
-        const groqData = await groqResponse.json();
-        
-        // Calculate health score from Groq response
-        const healthScore = groqData.healthScore || 75; // Default score
+        const healthScoreData = await healthScoreResponse.json();
+        const healthScore = healthScoreData.healthScore || 75;
         setHealthScore(healthScore);
+        console.log('✅ Health Score generated:', healthScore);
 
-        // Generate health plans from Groq response
-        const plans = groqData.plans || [
+        // Then, get health plans
+        const plansResponse = await fetch('/api/health-plans', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userProfile,
+            healthScore: healthScoreData.healthScore,
+            analysis: healthScoreData.analysis,
+            recommendations: healthScoreData.recommendations,
+            userInput: userInput.trim(),
+            uploadedFiles: uploadedFiles.map(file => file.content),
+            voiceTranscript: transcript.trim()
+          })
+        });
+
+        if (!plansResponse.ok) {
+          console.error('❌ Health Plans API failed:', plansResponse.status, plansResponse.statusText);
+          const errorText = await plansResponse.text();
+          console.error('❌ Error details:', errorText);
+          throw new Error(`Failed to get health plans: ${plansResponse.status}`);
+        }
+
+        const plansData = await plansResponse.json();
+        const plans = plansData.plans || [
           {
             id: 'plan-a',
             title: 'Plan A: Foundation Building',
@@ -279,6 +351,7 @@ const Dashboard: React.FC = () => {
 
         setHealthPlans(plans);
         setShowHealthPlans(true);
+        console.log('✅ Health Plans generated:', plans.length, 'plans');
 
         // Clear input
         setUserInput('');
@@ -355,6 +428,18 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
   // Update user input with voice transcript
   useEffect(() => {
     if (transcript) {
@@ -381,7 +466,7 @@ const Dashboard: React.FC = () => {
           ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
           : 'bg-gradient-to-br from-[#88ba82] to-[#95c190]'
       }`}>
-      <div className="max-w-md mx-auto min-h-screen">
+      <div className="max-w-md mx-auto pb-6">
         {/* Header Section - White with Rounded Bottom */}
         <div className={`rounded-b-[2rem] px-4 sm:px-6 py-4 shadow-lg transition-colors duration-300 ${
           isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -406,13 +491,12 @@ const Dashboard: React.FC = () => {
                     (user?.user_metadata?.full_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata.full_name)}&background=random&color=fff&size=128` : null) ||
                     "/icons/profile.png";
                   
-                  console.log("🖼️ DEBUG - Final avatar URL being used:", avatarUrl);
                   return avatarUrl;
                 })()}
                 alt="Profile"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-300 object-cover"
                 onError={() => {
-                  console.log("❌ DEBUG - Image failed to load, falling back to default");
+                  // Image failed to load, using fallback
                 }}
               />
               <div>
@@ -450,7 +534,7 @@ const Dashboard: React.FC = () => {
 
         {/* Health Score Section - Transparent Blur */}
         <div className="max-w-md mx-auto px-4 sm:px-6">
-          <div className={`backdrop-blur-md py-6 px-4 shadow-lg rounded-[2rem] mt-2 transition-colors duration-300 ${
+          <div className={`backdrop-blur-md py-4 px-4 shadow-lg rounded-[2rem] mt-2 transition-colors duration-300 ${
             isDarkMode 
               ? 'bg-gray-800/20' 
               : 'bg-white/20'
@@ -498,7 +582,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Input/Chat Section */}
-        <div className="max-w-sm mx-auto px-4 sm:px-6">
+        <div className="max-w-md mx-auto px-4 sm:px-6 mt-3">
           <div className={`backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 transition-colors duration-300 ${
             isDarkMode 
               ? 'bg-gray-700/90 border-gray-500/50' 
@@ -614,10 +698,10 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Today's Schedule or Health Plans Section */}
-        <div className="max-w-md mx-auto px-4 sm:px-6">
+        {/* Today's Schedule or Health Plans Section - Moved closer to input */}
+        <div className="max-w-md mx-auto px-4 sm:px-6 mt-2">
           {showHealthPlans ? (
-            <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+            <div className={`py-3 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <HealthPlansDisplay
@@ -627,163 +711,259 @@ const Dashboard: React.FC = () => {
               />
             </div>
           ) : (
-            <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+            <div className={`py-6 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 px-4">
                 <h2 className={`text-lg font-medium transition-colors duration-300 ${
                   isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
                 }`}>
-                  Today's Schedule
+                  {showTips ? 'Health Tips' : 'Today\'s Schedule'}
                 </h2>
-                <button
-                  onClick={() => setShowYourHealthPopup(true)}
-                  className="transition-colors duration-300 hover:opacity-80"
-                >
-                  <Settings className={`w-5 h-5 transition-colors duration-300 ${
-                    isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
-                  }`} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {!showTips && (
+                    <button
+                      onClick={() => setShowTips(true)}
+                      className="flex items-center justify-center w-6 h-6 transition-colors duration-300 hover:opacity-80"
+                      title="Show Health Tips"
+                    >
+                      <Heart className={`w-4 h-4 transition-colors duration-300 ${
+                        isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+                      }`} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowYourHealthPopup(true)}
+                    className="flex items-center justify-center w-6 h-6 transition-colors duration-300 hover:opacity-80"
+                  >
+                    <Settings className={`w-5 h-5 transition-colors duration-300 ${
+                      isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+                    }`} />
+                  </button>
+                </div>
               </div>
               
-              <div className="space-y-3">
-                {todaysActivities.length > 0 ? (
-                  todaysActivities.map((activity, index) => (
-                    <div 
-                      key={activity.id || index}
-                      className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                        isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                          isDarkMode 
-                            ? 'bg-gray-600 border-[#88ba82]' 
-                            : 'bg-white border-yellow-400'
-                        }`}>
-                          {activity.category === 'Exercise' ? (
-                            <Activity className={`w-4 h-4 transition-colors duration-300 ${
-                              isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                            }`} />
-                          ) : activity.category === 'Meals' ? (
-                            <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
-                          ) : (
-                            <Calendar className={`w-4 h-4 transition-colors duration-300 ${
-                              isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                            }`} />
-                          )}
+              <div className="space-y-3 px-4">
+                {showTips ? (
+                  // Show health tips by default
+                  healthTips.map((tip) => {
+                    const isExpanded = expandedItems.has(tip.id);
+                    
+                    return (
+                      <div key={tip.id} className="space-y-2">
+                        <div 
+                          onClick={() => toggleExpanded(tip.id)}
+                          className={`rounded-[2rem] px-4 py-3.5 flex items-center justify-between transition-colors duration-300 cursor-pointer hover:opacity-80 ${
+                            isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 flex-shrink-0 ${
+                              isDarkMode 
+                                ? 'bg-gray-600 border-[#88ba82]' 
+                                : 'bg-white border-yellow-400'
+                            }`}>
+                              <span className="text-lg">{tip.icon}</span>
+                            </div>
+                            <div className="flex flex-col justify-center min-h-[2rem]">
+                              <p className={`text-sm font-medium transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                              }`}>
+                                {tip.title}
+                              </p>
+                              <p className={`text-xs transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
+                                {tip.time}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 transform transition-all duration-300 ${
+                            isExpanded ? 'rotate-180' : 'rotate-0'
+                          } ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                         </div>
-                        <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                        
+                        {/* Expanded Details */}
+                        {isExpanded && (
+                          <div className={`ml-4 p-3 rounded-xl transition-colors duration-300 ${
+                            isDarkMode ? 'bg-gray-600' : 'bg-gray-50'
                           }`}>
-                            {activity.title}
-                          </p>
-                          <p className={`text-xs transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            {activity.time} • {activity.duration}
-                          </p>
-                        </div>
+                            <p className={`text-sm transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              <strong>Description:</strong> {tip.description}
+                            </p>
+                            <p className={`text-xs mt-2 transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              <strong>Category:</strong> {tip.category}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`} />
-                    </div>
-                  ))
+                    );
+                  })
+                ) : todaysActivities.length > 0 ? (
+                  todaysActivities.map((activity, index) => {
+                    const itemId = activity.id || `default-${index}`;
+                    const isExpanded = expandedItems.has(itemId);
+                    
+                    return (
+                      <div key={itemId} className="space-y-2">
+                        <div 
+                          onClick={() => toggleExpanded(itemId)}
+                          className={`rounded-[2rem] px-4 py-3.5 flex items-center justify-between transition-colors duration-300 cursor-pointer hover:opacity-80 ${
+                            isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 flex-shrink-0 ${
+                              isDarkMode 
+                                ? 'bg-gray-600 border-[#88ba82]' 
+                                : 'bg-white border-yellow-400'
+                            }`}>
+                              {activity.category === 'Exercise' ? (
+                                <Activity className={`w-4 h-4 transition-colors duration-300 ${
+                                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                }`} />
+                              ) : activity.category === 'Meals' ? (
+                                <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                              ) : (
+                                <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                }`} />
+                              )}
+                            </div>
+                            <div className="flex flex-col justify-center min-h-[2rem]">
+                              <p className={`text-sm font-medium transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                              }`}>
+                                {activity.title}
+                              </p>
+                              <p className={`text-xs transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
+                                {activity.time} • {activity.duration}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 transform transition-all duration-300 ${
+                            isExpanded ? 'rotate-180' : 'rotate-0'
+                          } ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                        </div>
+                        
+                        {/* Expanded Details */}
+                        {isExpanded && (
+                          <div className={`ml-4 p-3 rounded-xl transition-colors duration-300 ${
+                            isDarkMode ? 'bg-gray-600' : 'bg-gray-50'
+                          }`}>
+                            <p className={`text-sm transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              <strong>Description:</strong> {activity.description || 'No description available'}
+                            </p>
+                            <p className={`text-xs mt-2 transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              <strong>Category:</strong> {activity.category}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
                   // Default activities when no plan is selected
                   <>
-                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                          isDarkMode 
-                            ? 'bg-gray-600 border-[#88ba82]' 
-                            : 'bg-white border-yellow-400'
-                        }`}>
-                          <Calendar className={`w-4 h-4 transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                          }`} />
+                    {[
+                      {
+                        id: 'morning-routine',
+                        title: 'Morning Wake-up Routine',
+                        time: '08:30:00',
+                        category: 'Wake up',
+                        description: 'Start your day with a refreshing morning routine including hydration, light stretching, and mental preparation.'
+                      },
+                      {
+                        id: 'healthy-breakfast',
+                        title: 'Healthy Breakfast',
+                        time: '09:00',
+                        category: 'Meals',
+                        description: 'Enjoy a nutritious breakfast with protein, complex carbohydrates, and essential vitamins to fuel your day.'
+                      },
+                      {
+                        id: 'focused-work',
+                        title: 'Focused Work Session',
+                        time: '09:45',
+                        category: 'Work',
+                        description: 'Dedicated time for deep work, focusing on important tasks without distractions for maximum productivity.'
+                      }
+                    ].map((activity) => {
+                      const isExpanded = expandedItems.has(activity.id);
+                      
+                      return (
+                        <div key={activity.id} className="space-y-2">
+                          <div 
+                            onClick={() => toggleExpanded(activity.id)}
+                            className={`rounded-[2rem] px-4 py-3.5 flex items-center justify-between transition-colors duration-300 cursor-pointer hover:opacity-80 ${
+                              isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 flex-shrink-0 ${
+                                isDarkMode 
+                                  ? 'bg-gray-600 border-[#88ba82]' 
+                                  : 'bg-white border-yellow-400'
+                              }`}>
+                                {activity.category === 'Meals' ? (
+                                  <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                                ) : activity.category === 'Work' ? (
+                                  <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
+                                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                  }`} />
+                                ) : (
+                                  <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                  }`} />
+                                )}
+                              </div>
+                              <div className="flex flex-col justify-center min-h-[2rem]">
+                                <p className={`text-sm font-medium transition-colors duration-300 ${
+                                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                }`}>
+                                  {activity.title}
+                                </p>
+                                <p className={`text-xs transition-colors duration-300 ${
+                                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  {activity.time}
+                                </p>
+                              </div>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 transform transition-all duration-300 ${
+                              isExpanded ? 'rotate-180' : 'rotate-0'
+                            } ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                          </div>
+                          
+                          {/* Expanded Details */}
+                          {isExpanded && (
+                            <div className={`ml-4 p-3 rounded-xl transition-colors duration-300 ${
+                              isDarkMode ? 'bg-gray-600' : 'bg-gray-50'
+                            }`}>
+                              <p className={`text-sm transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                <strong>Description:</strong> {activity.description}
+                              </p>
+                              <p className={`text-xs mt-2 transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
+                                <strong>Category:</strong> {activity.category}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                          }`}>
-                            Morning Wake-up Routine
-                          </p>
-                          <p className={`text-xs transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            08:30:00
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`} />
-                    </div>
-
-                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                          isDarkMode 
-                            ? 'bg-gray-600 border-[#88ba82]' 
-                            : 'bg-white border-yellow-400'
-                        }`}>
-                          <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                          }`}>
-                            Healthy Breakfast
-                          </p>
-                          <p className={`text-xs transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            09:00
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`} />
-                    </div>
-
-                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                          isDarkMode 
-                            ? 'bg-gray-600 border-[#88ba82]' 
-                            : 'bg-white border-yellow-400'
-                        }`}>
-                          <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                          }`} />
-                        </div>
-                        <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                          }`}>
-                            Focused Work Session
-                          </p>
-                          <p className={`text-xs transition-colors duration-300 ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            09:45
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`} />
-                    </div>
+                      );
+                    })}
                   </>
                 )}
               </div>
@@ -900,7 +1080,7 @@ const Dashboard: React.FC = () => {
       <AIProcessingPopup
         isOpen={isProcessing}
         onComplete={(result) => {
-          console.log("AI processing completed:", result);
+          // AI processing completed
         }}
         onError={(error) => {
           console.error("AI processing error:", error);

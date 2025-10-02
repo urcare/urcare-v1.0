@@ -26,8 +26,25 @@ class UserFlowService {
    * Determine user flow state based on user and profile data
    */
   async getUserFlowState(user: User | null, profile?: UserProfile | null): Promise<UserFlowState> {
-    // No user - redirect to landing
+    // No user - redirect to landing (unless in development mode on dashboard)
     if (!user) {
+      // In development mode, if we're on dashboard, allow access
+      if (typeof window !== 'undefined' && 
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+          window.location.pathname === '/dashboard') {
+        console.log("UserFlowService: Development mode - allowing dashboard access without user");
+        return {
+          isNewUser: false,
+          isOldUser: true,
+          needsOnboarding: false,
+          needsHealthAssessment: false,
+          needsPaywall: false,
+          canAccessDashboard: true,
+          nextRoute: '/dashboard',
+          subscriptionStatus: 'active'
+        };
+      }
+      
       return {
         isNewUser: false,
         isOldUser: false,
@@ -43,6 +60,7 @@ class UserFlowService {
     // Development mode bypass
     if (typeof window !== 'undefined' && 
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      console.log("UserFlowService: Development mode bypass activated");
       return {
         isNewUser: false,
         isOldUser: true,
@@ -81,8 +99,11 @@ class UserFlowService {
       }
 
       // Determine if user is new or old
+      console.log("UserFlowService: Profile data:", userProfile);
+      console.log("UserFlowService: onboarding_completed:", userProfile.onboarding_completed);
       const isNewUser = !userProfile.onboarding_completed;
       const isOldUser = userProfile.onboarding_completed;
+      console.log("UserFlowService: isNewUser:", isNewUser, "isOldUser:", isOldUser);
 
       // Check subscription status
       const subscriptionStatus = this.getSubscriptionStatus(userProfile.subscription_status);
@@ -95,6 +116,8 @@ class UserFlowService {
 
       // Determine next route
       let nextRoute = '/';
+      console.log("UserFlowService: Flow requirements - needsOnboarding:", needsOnboarding, "needsHealthAssessment:", needsHealthAssessment, "needsPaywall:", needsPaywall, "canAccessDashboard:", canAccessDashboard);
+      
       if (needsOnboarding) {
         nextRoute = '/onboarding';
       } else if (needsHealthAssessment) {
@@ -104,6 +127,8 @@ class UserFlowService {
       } else if (canAccessDashboard) {
         nextRoute = '/dashboard';
       }
+      
+      console.log("UserFlowService: Final nextRoute:", nextRoute);
 
       return {
         isNewUser,

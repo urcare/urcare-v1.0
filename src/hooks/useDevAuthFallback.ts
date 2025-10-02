@@ -16,12 +16,13 @@ export const useDevAuthFallback = () => {
     // Check if we're on the auth callback page and stuck
     const currentPath = window.location.pathname;
     if (currentPath === "/auth/callback" || currentPath === "/auth") {
-      // Check if we've been on this page for more than 5 seconds
+      // Check if we've been on this page for more than 10 seconds (increased from 5)
       const startTime = Date.now();
       const checkInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
 
-        if (elapsed > 5000 && !auth.user) {
+        // Only activate fallback if we're truly stuck and no OAuth code is present
+        if (elapsed > 10000 && !auth.user && !window.location.search.includes('code=')) {
           devUtils.log("Auth callback stuck, activating development fallback");
           activateDevAuth();
           clearInterval(checkInterval);

@@ -39,7 +39,7 @@ export const AuthCallback: React.FC = () => {
         isInitialized &&
         !loading &&
         user
-        // Removed profile requirement - it might not be set yet
+        // Remove profile requirement - it might not be loaded yet
       ) {
         hasRedirected.current = true;
 
@@ -47,6 +47,7 @@ export const AuthCallback: React.FC = () => {
           console.log("AuthCallback: User authenticated, determining redirect");
           console.log("AuthCallback: User ID:", user.id);
           console.log("AuthCallback: Profile:", profile);
+          console.log("AuthCallback: Profile onboarding_completed:", profile?.onboarding_completed);
 
           // Add a small delay to ensure auth context is fully settled
           await new Promise((resolve) => setTimeout(resolve, 200));
@@ -55,8 +56,18 @@ export const AuthCallback: React.FC = () => {
           console.log(
             "AuthCallback: Calling authFlowService.getRedirectRoute..."
           );
-          const redirectRoute = await authFlowService.getRedirectRoute(user);
+          
+          // If profile is not loaded yet, wait a bit more or use a default route
+          let redirectRoute;
+          if (profile) {
+            redirectRoute = await authFlowService.getRedirectRoute(user, profile);
+          } else {
+            console.log("AuthCallback: Profile not loaded yet, using default onboarding route");
+            redirectRoute = "/onboarding"; // Default to onboarding for new users
+          }
+          
           console.log("AuthCallback: Got redirect route:", redirectRoute);
+          console.log("AuthCallback: Current URL before redirect:", window.location.href);
 
           toast.success("Welcome back!", {
             description: "Redirecting to your dashboard...",

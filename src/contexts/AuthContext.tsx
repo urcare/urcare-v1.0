@@ -275,8 +275,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const initializeAuth = async () => {
       try {
-        // For localhost development, skip auth checks to prevent 403 errors
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // For localhost development, only skip auth checks if NOT coming from OAuth callback and NOT on dashboard
+        if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+            !window.location.pathname.includes('/auth/callback') && 
+            !window.location.search.includes('code=') &&
+            !window.location.pathname.includes('/dashboard')) {
           console.log("🔓 Localhost development mode - skipping auth checks");
           if (mounted) {
             setUser(null);
@@ -334,9 +337,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!authListenerRef.current) {
       authListenerRef.current = true;
 
-      // Skip auth listener for localhost development
+      // Skip auth listener for localhost development, but allow OAuth callbacks and dashboard
       let subscription: any = null;
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      const isOAuthCallback = window.location.pathname.includes('/auth/callback') || window.location.search.includes('code=');
+      const isDashboard = window.location.pathname.includes('/dashboard');
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' || isOAuthCallback || isDashboard) {
         const {
           data: { subscription: authSubscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {

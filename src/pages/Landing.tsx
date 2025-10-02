@@ -17,10 +17,13 @@ const Landing = () => {
   useEffect(() => {
     if (isInitialized && !loading && user && profile?.onboarding_completed) {
       // Only redirect if we're not already on the landing page and user is fully authenticated
+      // Skip redirect if we're coming from an OAuth callback to avoid conflicts
       if (
         window.location.pathname === "/" &&
         profile &&
-        profile.onboarding_completed
+        profile.onboarding_completed &&
+        !window.location.search.includes('code=') && // Skip if OAuth callback
+        !window.location.href.includes('/auth/callback') // Skip if coming from auth callback
       ) {
         // Add a small delay to ensure auth state is stable and prevent redirect loops
         const redirectTimer = setTimeout(() => {
@@ -28,7 +31,9 @@ const Landing = () => {
           if (
             window.location.pathname === "/" &&
             user &&
-            profile?.onboarding_completed
+            profile?.onboarding_completed &&
+            !window.location.search.includes('code=') && // Skip if OAuth callback
+            !window.location.href.includes('/auth/callback') // Skip if coming from auth callback
           ) {
             navigate("/health-assessment", { replace: true });
           }
