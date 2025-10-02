@@ -18,9 +18,6 @@ import {
   Activity,
   Apple,
   Pill,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
   Moon,
   Sun,
   Briefcase,
@@ -456,9 +453,6 @@ const Onboarding = () => {
     }
   }, [user, profile, refreshProfile, loading]);
 
-  // Manual trigger for development (removed to prevent duplicate processing)
-  // The onboarding data restoration is now handled in the previous useEffect
-
   // Show auth popup if not authenticated
   if (showAuth) {
     return (
@@ -481,7 +475,6 @@ const Onboarding = () => {
     );
   }
 
-<<<<<<< HEAD
   // Show completion with scrollable profile data
   if (onboardingStep === "complete" && profile) {
     // Prepare profile fields for display
@@ -495,9 +488,21 @@ const Onboarding = () => {
       { label: "Workout Time", value: profile.workout_time, icon: Zap },
       { label: "Sleep Time", value: profile.sleep_time, icon: Moon },
       { label: "Wake Up Time", value: profile.wake_up_time, icon: Sun },
-      { label: "Medications", value: Array.isArray(profile.medications) ? profile.medications.join(", ") : profile.medications, icon: Pill },
-      { label: "Allergies", value: Array.isArray(profile.allergies) ? profile.allergies.join(", ") : profile.allergies, icon: Shield },
-      { label: "Family History", value: Array.isArray(profile.family_history) ? profile.family_history.join(", ") : profile.family_history, icon: Users },
+      { 
+        label: "Medications", 
+        value: Array.isArray(profile.medications) ? profile.medications.join(", ") : profile.medications, 
+        icon: Pill 
+      },
+      { 
+        label: "Allergies", 
+        value: Array.isArray(profile.allergies) ? profile.allergies.join(", ") : profile.allergies, 
+        icon: Shield 
+      },
+      { 
+        label: "Family History", 
+        value: Array.isArray(profile.family_history) ? profile.family_history.join(", ") : profile.family_history, 
+        icon: Users 
+      },
       { label: "Lifestyle", value: profile.lifestyle, icon: Zap },
       { label: "Stress Levels", value: profile.stress_levels, icon: Brain },
       { label: "Mental Health", value: profile.mental_health, icon: Brain },
@@ -559,56 +564,6 @@ const Onboarding = () => {
                     navigate("/dashboard", { replace: true });
                     return;
                   }
-=======
-  // Show completion
-  if (onboardingStep === "complete") {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-4 overflow-hidden">
-        <div className="text-center max-w-sm sm:max-w-md">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <svg
-              className="w-8 h-8 sm:w-10 sm:h-10 text-logo-text"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-4">
-            Profile Setup Complete!
-          </h2>
-          <p className="text-base sm:text-lg text-text-secondary mb-6 sm:mb-8">
-            Your profile has been successfully saved. You can now start using
-            UrCare.
-          </p>
-          <button
-            onClick={() => {
-              // Check subscription status and redirect accordingly
-              const checkSubscriptionAndRedirect = async () => {
-                try {
-                  const { subscriptionService } = await import(
-                    "../services/subscriptionService"
-                  );
-
-                  const subscriptionStatus =
-                    await subscriptionService.getSubscriptionStatus(user.id);
-                  const hasAccess = subscriptionStatus.isActive;
-
-                  if (hasAccess) {
-                    navigate("/dashboard", { replace: true });
-                  } else {
-                    navigate("/paywall", { replace: true });
-                  }
-                } catch (error) {
-                  console.error("Error checking subscription status:", error);
-                  navigate("/paywall", { replace: true });
->>>>>>> dd7caf11d2b74079ef2d6c011c3a6c6cd6c30d30
                 }
 
                 // New user or no active subscription
