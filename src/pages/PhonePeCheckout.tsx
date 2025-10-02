@@ -42,8 +42,45 @@ export default function PhonePeCheckout() {
   const handlePayWithQR = async () => {
     setIsProcessing(true);
     try {
-      // Create QR payment
-      const result = await phonepeService.createQRPayment(finalAmount, `${finalPlan} plan (${finalCycle})`);
+      // Try PhonePe server first, fallback to local API
+      const phonepeServerUrl = 'https://phonepe-server-25jew6ja6-urcares-projects.vercel.app';
+      let response;
+      
+      try {
+        response = await fetch(`${phonepeServerUrl}/api/phonepe/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: finalAmount * 100, // Convert to paise
+            orderId: `order_${Date.now()}`,
+            userId: user?.id || 'demo_user',
+            planName: `${finalPlan} plan (${finalCycle})`
+          })
+        });
+      } catch (serverError) {
+        console.log('PhonePe server unavailable, using fallback API');
+        // Fallback to local API
+        response = await fetch('/api/phonepe/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: finalAmount,
+            orderId: `order_${Date.now()}`,
+            userId: user?.id || 'demo_user',
+            planName: `${finalPlan} plan (${finalCycle})`
+          })
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
       
       if (result.success) {
         setShowQRModal(true);
@@ -53,7 +90,7 @@ export default function PhonePeCheckout() {
       }
     } catch (error) {
       console.error('QR payment error:', error);
-      toast.error('Failed to create QR payment');
+      toast.error('Failed to create QR payment: ' + error.message);
     } finally {
       setIsProcessing(false);
     }
