@@ -67,7 +67,6 @@ function App() {
             v7_relativeSplatPath: true,
           }}
         >
-          <DevRedirectHandler />
           <InitialRouteHandler />
           <Routes>
           {/* Public Routes */}
