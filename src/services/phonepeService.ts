@@ -44,7 +44,7 @@ class PhonePeService {
       merchantId: import.meta.env.VITE_PHONEPE_MERCHANT_ID || '',
       secret: import.meta.env.VITE_PHONEPE_SECRET || '',
       environment: (import.meta.env.VITE_PHONEPE_ENV as 'sandbox' | 'production') || 'sandbox',
-      baseUrl: import.meta.env.VITE_PHONEPE_BASE_URL || 'https://api-preprod.phonepe.com/apis/pg-sandbox'
+      baseUrl: import.meta.env.VITE_PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg-sandbox'
     };
   }
 

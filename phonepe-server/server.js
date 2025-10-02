@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || 'MERCURCARE';
 const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY || 'your-salt-key';
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || '1';
-const PHONEPE_BASE_URL = process.env.PHONEPE_BASE_URL || 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+const PHONEPE_BASE_URL = process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg-sandbox';
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'your-webhook-secret';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 

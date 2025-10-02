@@ -5,7 +5,7 @@
 const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || 'M23XRS3XN3QMF';
 const PHONEPE_API_KEY = process.env.PHONEPE_API_KEY || '713219fb-38d0-468d-8268-8b15955468b0';
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || '1';
-const PHONEPE_ENVIRONMENT = process.env.PHONEPE_ENVIRONMENT || 'production';
+const PHONEPE_ENVIRONMENT = process.env.VITE_PHONEPE_ENV || 'production';
 const BUSINESS_NAME = process.env.BUSINESS_NAME || 'UrCare org';
 const PAYMENT_AMOUNT_IN_PAISE = process.env.PAYMENT_AMOUNT_IN_PAISE || '100'; // ₹1 = 100 paise
 

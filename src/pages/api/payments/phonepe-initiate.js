@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const merchantId = process.env.PHONEPE_MERCHANT_ID;
   const salt = process.env.PHONEPE_SALT;
   const saltIndex = process.env.PHONEPE_SALT_INDEX || '1';
-  const baseUrl = process.env.PHONEPE_BASE_URL || 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+  const baseUrl = process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg-sandbox';
 
   const payload = {
     merchantId,
