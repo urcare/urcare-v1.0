@@ -121,3 +121,4 @@ export const QRModal: React.FC<QRModalProps> = ({
   );
 };
 
+

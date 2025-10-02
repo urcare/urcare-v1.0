@@ -1163,8 +1163,9 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         return (
           <CompletionStep
             onContinue={() => {
-              console.log("SerialOnboarding: Completion step continue clicked");
-              handleNext();
+              console.log("SerialOnboarding: Completion step continue clicked - navigating to health assessment");
+              // Navigate to health assessment instead of calling handleNext
+              window.location.href = '/onboarding-healthassessment-screen';
             }}
           />
         );

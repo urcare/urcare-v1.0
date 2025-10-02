@@ -59,8 +59,11 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 alt="Payment QR Code" 
                 className="w-48 h-48 object-contain"
                 onError={(e) => {
-                  console.error('QR image failed to load');
+                  console.error('QR image failed to load, trying placeholder');
                   e.currentTarget.src = '/qr-code-placeholder.png';
+                }}
+                onLoad={() => {
+                  console.log('QR image loaded successfully');
                 }}
               />
             </div>

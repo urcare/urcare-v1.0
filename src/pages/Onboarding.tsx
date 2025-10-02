@@ -33,13 +33,12 @@ const Onboarding: React.FC = () => {
     }
   }, [user]);
 
-  // Redirect if onboarding already completed
+  // Check if onboarding already completed (but don't auto-redirect)
   useEffect(() => {
     if (profile?.onboarding_completed) {
-      console.log("Onboarding already completed, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
+      console.log("Onboarding already completed - user can proceed manually");
     }
-  }, [profile, navigate]);
+  }, [profile]);
 
   const handleOnboardingComplete = async (data: OnboardingData) => {
     if (!isAdminMode && !user) {
@@ -53,21 +52,19 @@ const Onboarding: React.FC = () => {
       console.log("Completing onboarding with data:", data);
       
       if (isAdminMode) {
-        // For admin mode, just show success and redirect to health assessment
+        // For admin mode, just show success
         toast.success("Onboarding completed successfully! (Admin Mode)");
-        navigate("/onboarding-healthassessment-screen", { replace: true });
+        toast.info("Click 'Continue to Health Assessment' to proceed");
       } else {
         // Normal flow - save onboarding data
         const result = await onboardingService.saveOnboardingData(user!, data);
         
         if (result.success) {
           toast.success("Onboarding completed successfully!");
+          toast.info("Click 'Continue to Health Assessment' to proceed");
           
           // Refresh profile to update the context
           await refreshProfile();
-          
-          // Navigate to health assessment screen
-          navigate("/onboarding-healthassessment-screen", { replace: true });
         } else {
           toast.error("Failed to save onboarding data", {
             description: result.error || "Please try again."

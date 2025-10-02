@@ -76,3 +76,4 @@ The authentication flow is now streamlined with all signup options (Google, Appl
 
 **No more separate "Sign up with Email" button on the landing page!** ✅
 
+

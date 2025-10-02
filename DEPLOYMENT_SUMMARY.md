@@ -159,3 +159,4 @@ After deployment:
 
 The QR payment button is now always visible on the health assessment screen, and the entire application is ready for live deployment on Vercel.
 
+
