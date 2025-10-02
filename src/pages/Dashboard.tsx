@@ -92,6 +92,30 @@ const Dashboard: React.FC = () => {
     return "User";
   };
 
+  // Debug: Log user data to see what we're getting from Google OAuth
+  useEffect(() => {
+    if (user) {
+      console.log("🔍 DEBUG - Full user object:", user);
+      console.log("🔍 DEBUG - User metadata:", user.user_metadata);
+      console.log("🔍 DEBUG - App metadata:", user.app_metadata);
+      console.log("🔍 DEBUG - All possible avatar fields:", {
+        'user_metadata.avatar_url': user.user_metadata?.avatar_url,
+        'user_metadata.picture': user.user_metadata?.picture,
+        'user_metadata.photo_url': user.user_metadata?.photo_url,
+        'user_metadata.avatar': user.user_metadata?.avatar,
+        'user_metadata.image': user.user_metadata?.image,
+        'user_metadata.profile_image': user.user_metadata?.profile_image,
+        'app_metadata.avatar_url': user.app_metadata?.avatar_url,
+        'app_metadata.picture': user.app_metadata?.picture,
+        'app_metadata.photo_url': user.app_metadata?.photo_url,
+        'app_metadata.avatar': user.app_metadata?.avatar,
+        'app_metadata.image': user.app_metadata?.image,
+        'app_metadata.profile_image': user.app_metadata?.profile_image,
+      });
+    }
+  }, [user]);
+
+
   // Dark mode toggle
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -119,16 +143,10 @@ const Dashboard: React.FC = () => {
   const handleLogout = async () => {
     console.log("Logout button clicked");
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Supabase signOut error:", error);
-        throw error;
-      }
-      
-      console.log("Supabase signOut successful, redirecting...");
-      window.location.href = "/";
+      await signOut();
     } catch (error) {
       console.error("Error signing out:", error);
+      // Fallback redirect even if signOut fails
       window.location.href = "/";
     }
   };
@@ -293,15 +311,30 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
-                src={
-                  user?.user_metadata?.avatar_url ||
-                  user?.user_metadata?.picture ||
-                  user?.user_metadata?.full_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata.full_name)}&background=random&color=fff&size=128` :
-                  "/icons/profile.png"
-                } 
+                src={(() => {
+                  const avatarUrl = 
+                    user?.user_metadata?.avatar_url ||
+                    user?.user_metadata?.picture ||
+                    user?.user_metadata?.photo_url ||
+                    user?.user_metadata?.avatar ||
+                    user?.user_metadata?.image ||
+                    user?.user_metadata?.profile_image ||
+                    user?.app_metadata?.avatar_url ||
+                    user?.app_metadata?.picture ||
+                    user?.app_metadata?.photo_url ||
+                    user?.app_metadata?.avatar ||
+                    user?.app_metadata?.image ||
+                    user?.app_metadata?.profile_image ||
+                    (user?.user_metadata?.full_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata.full_name)}&background=random&color=fff&size=128` : null) ||
+                    "/icons/profile.png";
+                  
+                  console.log("🖼️ DEBUG - Final avatar URL being used:", avatarUrl);
+                  return avatarUrl;
+                })()} 
                 alt="Profile" 
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-300 object-cover"
                 onError={(e) => {
+                  console.log("❌ DEBUG - Image failed to load, falling back to default");
                   e.currentTarget.src = "/icons/profile.png";
                 }}
               />
@@ -339,52 +372,71 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Health Score Section - Transparent Blur */}
-        <div className={`backdrop-blur-md px-4 sm:px-6 py-6 shadow-lg rounded-[2rem] mx-4 mt-4 transition-colors duration-300 ${
-          isDarkMode 
-            ? 'bg-gray-800/20' 
-            : 'bg-white/20'
-        }`}>
-          <div className="flex items-center justify-center">
-            <div>
-              <h2 className={`text-sm font-medium mb-2 text-center transition-colors duration-300 ${
-                isDarkMode ? 'text-gray-200' : 'text-white'
-              }`}>
-                HEALTH SCORE
-              </h2>
-              <div className={`w-14 h-14 sm:w-16 sm:h-16 border-2 rounded-full flex items-center justify-center transition-colors duration-300 ${
-                isDarkMode 
-                  ? 'border-gray-400/50' 
-                  : 'border-white/50'
-              }`}>
-                <span className={`text-xl sm:text-2xl font-bold transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-200' : 'text-white'
-                }`}>
-                  {healthScore}
-                </span>
+        <div className="max-w-md mx-auto px-4 sm:px-6">
+          <div className={`backdrop-blur-md py-6 px-4 shadow-lg rounded-[2rem] mt-2 transition-colors duration-300 ${
+            isDarkMode 
+              ? 'bg-gray-800/20' 
+              : 'bg-white/20'
+          }`}>
+            <div className="flex items-center justify-between gap-4">
+              {/* Health Score */}
+              <div className="flex-shrink-0">
+                <div>
+                  <h2 className={`text-sm font-medium mb-2 text-center transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-200' : 'text-white'
+                  }`}>
+                    HEALTH SCORE
+                  </h2>
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16 border-2 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                    isDarkMode 
+                      ? 'border-gray-400/50' 
+                      : 'border-white/50'
+                  }`}>
+                    <span className={`text-xl sm:text-2xl font-bold transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-white'
+                    }`}>
+                      {healthScore}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Selected Plan or Call-to-Action */}
+              <div className="flex-1 min-w-0">
+                <div className="text-right">
+                  <h3 className={`text-xs font-medium mb-1 transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-300' : 'text-white/80'
+                  }`}>
+                    {selectedPlan ? 'SELECTED PLAN' : 'YOUR PLAN'}
+                  </h3>
+                  <p className={`text-sm font-semibold transition-colors duration-300 truncate ${
+                    isDarkMode ? 'text-gray-100' : 'text-white'
+                  }`}>
+                    {selectedPlan ? selectedPlan.title : 'Generate Your Plan'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Input/Chat Section */}
-        <div className={`px-4 sm:px-6 py-4 shadow-lg rounded-3xl mx-4 mt-4 transition-colors duration-300 ${
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <div className={`backdrop-blur-md rounded-3xl p-3 sm:p-4 mb-3 border transition-colors duration-300 ${
+        <div className="max-w-sm mx-auto px-4 sm:px-6">
+          <div className={`backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 transition-colors duration-300 ${
             isDarkMode 
-              ? 'bg-gray-700/90 border-gray-600/30' 
-              : 'bg-white/90 border-white/30'
+              ? 'bg-gray-700/90 border-gray-500/50' 
+              : 'bg-white/90 border-gray-300/60'
           }`}>
             <textarea 
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder="Set your health goals or ask for advice..."
-              className={`w-full bg-transparent text-sm focus:outline-none resize-none min-h-[50px] sm:min-h-[60px] transition-colors duration-300 ${
+              className={`w-full bg-transparent text-sm focus:outline-none resize-none min-h-[40px] transition-colors duration-300 border-2 rounded-2xl px-3 py-2 mb-2 ${
                 isDarkMode 
-                  ? 'text-gray-200 placeholder-gray-400' 
-                  : 'text-gray-800 placeholder-gray-500'
+                  ? 'text-gray-200 placeholder-gray-400 border-gray-600/50 focus:border-gray-500' 
+                  : 'text-gray-800 placeholder-gray-500 border-gray-300/60 focus:border-gray-400'
               }`}
-              rows={3}
+              rows={2}
             />
             
             {/* Voice transcript display */}
@@ -434,42 +486,42 @@ const Dashboard: React.FC = () => {
                 ))}
               </div>
             )}
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={openFileDialog}
-              className={`flex items-center gap-2 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl text-sm font-medium border transition-colors duration-300 ${
-                isDarkMode 
-                  ? 'bg-gray-700/90 border-gray-600/30 text-gray-200 hover:bg-gray-600' 
-                  : 'bg-white/90 border-white/30 text-gray-800 hover:bg-white'
-              }`}
-            >
-              <Paperclip className="w-4 h-4" />
-              <span className="hidden sm:inline">Attach</span>
-            </button>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex items-center justify-between gap-2 mt-2">
               <button 
-                onClick={handleVoiceToggle}
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-colors duration-300 ${
-                  isRecording 
-                    ? 'bg-red-500 text-white border-red-500' 
-                    : isDarkMode
-                    ? 'bg-gray-700/90 border-gray-600/30 text-gray-200 hover:bg-gray-600'
-                    : 'bg-white/90 backdrop-blur-md border-white/30 text-gray-800 hover:bg-white'
+                onClick={openFileDialog}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 transition-colors duration-300 ${
+                  isDarkMode 
+                    ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-gray-500' 
+                    : 'bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
                 }`}
-                disabled={!isVoiceSupported}
-                title={!isVoiceSupported ? "Voice recording not supported" : isRecording ? "Stop recording" : "Start recording"}
               >
-                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Paperclip className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Attach</span>
               </button>
-              <button 
-                onClick={handleSendMessage}
-                disabled={isProcessing || (!userInput.trim() && uploadedFiles.length === 0 && !transcript.trim())}
-                className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#88ba82] to-[#95c190] rounded-full flex items-center justify-center hover:from-[#7aa875] hover:to-[#88ba82] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
-              >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleVoiceToggle}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                    isRecording 
+                      ? 'bg-red-500 text-white border-red-500' 
+                      : isDarkMode
+                      ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-gray-500'
+                      : 'bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  disabled={!isVoiceSupported}
+                  title={!isVoiceSupported ? "Voice recording not supported" : isRecording ? "Stop recording" : "Start recording"}
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={handleSendMessage}
+                  disabled={isProcessing || (!userInput.trim() && uploadedFiles.length === 0 && !transcript.trim())}
+                  className="w-8 h-8 bg-gradient-to-r from-[#88ba82] to-[#95c190] rounded-full flex items-center justify-center hover:from-[#7aa875] hover:to-[#88ba82] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+                >
+                  <Send className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -482,128 +534,136 @@ const Dashboard: React.FC = () => {
             onChange={(e) => handleFileUpload(e.target.files)}
             className="hidden"
           />
-        </div>
-
-        {/* Health Plans or Today's Schedule Section */}
-        <div className={`px-4 sm:px-6 py-4 flex-1 shadow-lg rounded-3xl mx-4 mt-4 transition-colors duration-300 ${
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          {showHealthPlans ? (
-            <HealthPlansVerticalList 
-              plans={healthPlans} 
-              onSelectPlan={handleSelectPlan}
-            />
-          ) : (
-            <>
-          <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-lg font-medium transition-colors duration-300 ${
-                  isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
-                }`}>
-                  Today's Schedule
-                </h2>
-                <Settings className={`w-5 h-5 transition-colors duration-300 ${
-                  isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
-                }`} />
           </div>
-          
-          <div className="space-y-3">
-            {/* Morning Wake-up Routine */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-              <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
-                    }`}>
-                      <Calendar className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`} />
-                </div>
-                <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Morning Wake-up Routine
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        08:30:00
-                      </p>
-                </div>
-              </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-            </div>
-
-            {/* Healthy Breakfast */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-              <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
-                    }`}>
-                  <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
-                </div>
-                <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Healthy Breakfast
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        09:00
-                      </p>
-                </div>
-              </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-            </div>
-
-            {/* Focused Work Session */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-              <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
-                    }`}>
-                      <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`} />
-                </div>
-                <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Focused Work Session
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        09:45
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-                </div>
-              </div>
-            </>
-          )}
         </div>
+
+        {/* Today's Schedule Section */}
+        <div className="max-w-md mx-auto px-4 sm:px-6">
+          <div className={`py-4 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-medium transition-colors duration-300 ${
+                isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+              }`}>
+                Today's Schedule
+              </h2>
+              <Settings className={`w-5 h-5 transition-colors duration-300 ${
+                isDarkMode ? 'text-[#88ba82]' : 'text-yellow-500'
+              }`} />
+            </div>
+            
+            <div className="space-y-3">
+              {/* Morning Wake-up Routine */}
+              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                    isDarkMode 
+                      ? 'bg-gray-600 border-[#88ba82]' 
+                      : 'bg-white border-yellow-400'
+                  }`}>
+                    <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`}>
+                      Morning Wake-up Routine
+                    </p>
+                    <p className={`text-xs transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      08:30:00
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`} />
+              </div>
+
+              {/* Healthy Breakfast */}
+              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                    isDarkMode 
+                      ? 'bg-gray-600 border-[#88ba82]' 
+                      : 'bg-white border-yellow-400'
+                  }`}>
+                    <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`}>
+                      Healthy Breakfast
+                    </p>
+                    <p className={`text-xs transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      09:00
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`} />
+              </div>
+
+              {/* Focused Work Session */}
+              <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                    isDarkMode 
+                      ? 'bg-gray-600 border-[#88ba82]' 
+                      : 'bg-white border-yellow-400'
+                  }`}>
+                    <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`}>
+                      Focused Work Session
+                    </p>
+                    <p className={`text-xs transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      09:45
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Health Plans Section */}
+        {showHealthPlans && (
+          <div className="max-w-md mx-auto px-4 sm:px-6">
+            <div className={`py-4 flex-1 shadow-lg rounded-3xl mt-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <HealthPlansVerticalList 
+                plans={healthPlans} 
+                onSelectPlan={handleSelectPlan}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Notification Drawer */}
         {showNotificationDrawer && (
@@ -708,7 +768,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
         )}
-      </div>
 
       {/* AI Processing Popup */}
       <AIProcessingPopup
