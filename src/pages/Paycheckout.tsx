@@ -83,31 +83,37 @@ const Paycheckout: React.FC = () => {
       setIsRedirecting(true);
 
       const orderId = `order_${Date.now()}`;
-      const response = await fetch('/api/payments/phonepe-initiate', {
+      const response = await fetch('/api/phonepe/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           amount: planData.amount,
-          orderId: orderId
+          orderId: orderId,
+          userId: 'demo_user',
+          planName: planData.name
         })
       });
 
       const result = await response.json();
 
-      if (response.ok) {
-        // Open PhonePe in popup
-        const redirectUrl = result?.data?.redirectUrl || result?.response?.redirectUrl || result?.redirectUrl;
-        const qr = result?.qrCode;
+      if (response.ok && result.success) {
+        // Open PhonePe in popup or show QR modal
+        const redirectUrl = result?.data?.redirectUrl || result?.redirectUrl;
+        const qr = result?.data?.qrCode || result?.qrCode;
 
-        const popup = window.open('', 'phonepe', 'width=420,height=680');
         if (redirectUrl) {
-          popup.location = redirectUrl;
+          const popup = window.open(redirectUrl, 'phonepe', 'width=420,height=680');
+          if (popup) {
+            popup.focus();
+          }
         } else if (qr) {
+          const popup = window.open('', 'phonepe', 'width=420,height=680');
           popup.document.write(`<img src="${qr}" alt="PhonePe QR" />`);
         } else {
-          popup.document.write('<p>Unable to open PhonePe. Check logs.</p>');
+          // Show QR modal instead
+          setShowQRModal(true);
         }
 
         setPaymentStatus({ 

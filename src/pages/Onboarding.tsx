@@ -52,19 +52,25 @@ const Onboarding: React.FC = () => {
       console.log("Completing onboarding with data:", data);
       
       if (isAdminMode) {
-        // For admin mode, just show success
+        // For admin mode, just show success and redirect
         toast.success("Onboarding completed successfully! (Admin Mode)");
-        toast.info("Click 'Continue to Health Assessment' to proceed");
+        setTimeout(() => {
+          navigate("/onboarding-healthassessment-screen", { replace: true });
+        }, 1000);
       } else {
         // Normal flow - save onboarding data
         const result = await onboardingService.saveOnboardingData(user!, data);
         
         if (result.success) {
           toast.success("Onboarding completed successfully!");
-          toast.info("Click 'Continue to Health Assessment' to proceed");
           
           // Refresh profile to update the context
           await refreshProfile();
+          
+          // Redirect to health assessment after a short delay
+          setTimeout(() => {
+            navigate("/onboarding-healthassessment-screen", { replace: true });
+          }, 1000);
         } else {
           toast.error("Failed to save onboarding data", {
             description: result.error || "Please try again."

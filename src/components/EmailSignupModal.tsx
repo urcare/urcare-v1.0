@@ -18,6 +18,7 @@ export const EmailSignupModal: React.FC<EmailSignupModalProps> = ({ isOpen, onCl
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -32,8 +33,8 @@ export const EmailSignupModal: React.FC<EmailSignupModalProps> = ({ isOpen, onCl
         // Simulate auto-subscription activation
         setTimeout(() => {
           toast.success('Subscription activated! Welcome to UrCare Premium!');
-          onSuccess();
-          navigate('/onboarding'); // Redirect to onboarding
+          setSignupSuccess(true);
+          setIsSigningUp(false);
         }, 2000);
         
         return;
@@ -103,9 +104,26 @@ export const EmailSignupModal: React.FC<EmailSignupModalProps> = ({ isOpen, onCl
           </div>
           
           <DialogFooter>
-            <Button type="submit" className="w-full" disabled={isSigningUp}>
-              {isSigningUp ? 'Signing Up...' : 'Sign Up'}
-            </Button>
+            {signupSuccess ? (
+              <div className="w-full space-y-2">
+                <div className="text-center text-green-600 font-medium">
+                  ✅ Account created successfully!
+                </div>
+                <Button 
+                  onClick={() => {
+                    onSuccess();
+                    navigate('/onboarding');
+                  }}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  Continue to Onboarding
+                </Button>
+              </div>
+            ) : (
+              <Button type="submit" className="w-full" disabled={isSigningUp}>
+                {isSigningUp ? 'Signing Up...' : 'Sign Up'}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
