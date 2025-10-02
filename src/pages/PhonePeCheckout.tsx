@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Download, QrCode, CheckCircle, ArrowLeft } from "lucide-react";
+import QRCodeModal from "@/components/payment/QRCodeModal";
+import { phonepeService } from "@/services/phonepeService";
 
 export default function PhonePeCheckout() {
   const { user } = useAuth();
@@ -24,7 +25,8 @@ export default function PhonePeCheckout() {
   const finalPlan = planSlug || planFromUrl || 'basic';
   const finalCycle = billingCycle || cycleFromUrl || 'annual';
 
-  const [showQRPopup, setShowQRPopup] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -37,19 +39,30 @@ export default function PhonePeCheckout() {
     return null; // Will redirect
   }
 
-  const handleDownloadQR = () => {
-    // Create a temporary link to download the QR image
-    const link = document.createElement('a');
-    link.href = '/images/qr.jpg';
-    link.download = 'urcare-payment-qr.jpg';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('QR code downloaded successfully!');
+  const handlePayWithQR = async () => {
+    setIsProcessing(true);
+    try {
+      // Create QR payment
+      const result = await phonepeService.createQRPayment(finalAmount, `${finalPlan} plan (${finalCycle})`);
+      
+      if (result.success) {
+        setShowQRModal(true);
+        toast.success('QR payment created successfully!');
+      } else {
+        toast.error(result.error || 'Failed to create QR payment');
+      }
+    } catch (error) {
+      console.error('QR payment error:', error);
+      toast.error('Failed to create QR payment');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handlePaymentComplete = () => {
-    toast.success('Payment completed! Redirecting to dashboard...');
+  const handleQRComplete = () => {
+    toast.success('Payment submitted! We will activate your subscription in 1-2 hours. Please wait.');
+    setShowQRModal(false);
+    // In a real app, you would check payment status and redirect accordingly
     setTimeout(() => {
       navigate('/dashboard');
     }, 2000);
@@ -90,11 +103,12 @@ export default function PhonePeCheckout() {
           {/* Payment Options */}
           <div className="space-y-3">
             <Button 
-              onClick={() => setShowQRPopup(true)}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 text-lg font-medium"
+              onClick={handlePayWithQR}
+              disabled={isProcessing}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 text-lg font-medium disabled:opacity-50"
             >
               <QrCode className="w-5 h-5 mr-2" />
-              Pay Now with QR
+              {isProcessing ? 'Creating QR...' : 'I\'ll pay by QR'}
             </Button>
             
             <Button 
@@ -118,65 +132,16 @@ export default function PhonePeCheckout() {
         </CardContent>
       </Card>
 
-      {/* QR Code Popup */}
-      <Dialog open={showQRPopup} onOpenChange={setShowQRPopup}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl font-bold">
-              Scan QR Code to Pay
-            </DialogTitle>
-            <DialogDescription className="text-center text-gray-600">
-              Amount: ₹{finalAmount} • {finalPlan} plan ({finalCycle})
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* QR Code Image */}
-            <div className="flex justify-center">
-              <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-                <img 
-                  src="/images/qr.jpg" 
-                  alt="Payment QR Code" 
-                  className="w-48 h-48 object-contain"
-                  onError={(e) => {
-                    console.error('QR image failed to load');
-                    e.currentTarget.src = '/qr-code-placeholder.png';
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button 
-                onClick={handleDownloadQR}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download QR Image
-              </Button>
-              
-              <Button 
-                onClick={handlePaymentComplete}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                I've Paid - Complete
-              </Button>
-            </div>
-
-            {/* Note */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-sm text-yellow-800 text-center">
-                <strong>Note:</strong> Please download QR image and Pay. 
-                Then we allow your subscription. 
-                Our team continuously works to enhance your experience. 
-                Thank you, UrCare Team.
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        onComplete={handleQRComplete}
+        amount={finalAmount}
+        planName={finalPlan}
+        billingCycle={finalCycle}
+        userId={user?.id}
+      />
     </div>
   );
 }

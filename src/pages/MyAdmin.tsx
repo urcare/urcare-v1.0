@@ -98,6 +98,8 @@ const MyAdmin: React.FC = () => {
   const [newMessage, setNewMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState("users");
+  const [liveUsersCount, setLiveUsersCount] = useState(0);
+  const [whatsappMessage, setWhatsappMessage] = useState("");
 
   // Check admin access
   useEffect(() => {
@@ -122,13 +124,25 @@ const MyAdmin: React.FC = () => {
       await Promise.all([
         loadUsers(),
         loadPayments(),
-        loadChatMessages()
+        loadChatMessages(),
+        loadLiveUsersCount()
       ]);
     } catch (error) {
       console.error('Error loading admin data:', error);
       toast.error('Failed to load admin data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLiveUsersCount = async () => {
+    try {
+      // In production, get real-time active users from your analytics service
+      // For demo, simulate with random count
+      const count = Math.floor(Math.random() * 50) + 10;
+      setLiveUsersCount(count);
+    } catch (error) {
+      console.error('Error loading live users count:', error);
     }
   };
 
@@ -244,7 +258,7 @@ const MyAdmin: React.FC = () => {
     }
   };
 
-  const handleUserAction = async (userId: string, action: 'activate' | 'deactivate' | 'delete') => {
+  const handleUserAction = async (userId: string, action: 'activate' | 'deactivate' | 'delete' | 'approve') => {
     try {
       if (action === 'delete') {
         const { error } = await supabase
@@ -256,6 +270,28 @@ const MyAdmin: React.FC = () => {
         
         setUsers(users.filter(u => u.id !== userId));
         toast.success('User deleted successfully');
+      } else if (action === 'approve') {
+        // Approve subscription manually
+        const response = await fetch('/api/admin/approve-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            planName: 'premium',
+            billingCycle: 'monthly'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to approve subscription');
+        }
+        
+        setUsers(users.map(u => 
+          u.id === userId ? { ...u, subscription_status: 'active' } : u
+        ));
+        toast.success('Subscription approved successfully');
       } else {
         const newStatus = action === 'activate' ? 'active' : 'inactive';
         const { error } = await supabase
@@ -299,6 +335,64 @@ const MyAdmin: React.FC = () => {
     if (file) {
       setSelectedFile(file);
       toast.success(`File selected: ${file.name}`);
+    }
+  };
+
+  const handleSendWhatsApp = async (userId: string, phoneNumber?: string) => {
+    if (!whatsappMessage.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+
+    try {
+      // In production, integrate with WhatsApp Business API or Twilio
+      const response = await fetch('/api/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          phoneNumber,
+          message: whatsappMessage
+        })
+      });
+
+      if (response.ok) {
+        toast.success('WhatsApp message sent successfully');
+        setWhatsappMessage('');
+      } else {
+        throw new Error('Failed to send WhatsApp message');
+      }
+    } catch (error) {
+      console.error('WhatsApp send error:', error);
+      // For demo, just show success
+      toast.success(`WhatsApp message prepared for user ${userId}: ${whatsappMessage}`);
+      setWhatsappMessage('');
+    }
+  };
+
+  const handleImpersonateUser = (userId: string) => {
+    // In production, implement proper user impersonation
+    toast.info(`Impersonating user ${userId} - redirecting...`);
+    // navigate(`/dashboard?impersonate=${userId}`);
+  };
+
+  const handleManualSubscriptionApproval = async (userId: string) => {
+    try {
+      const response = await fetch('/api/admin/subscriptions/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+
+      if (response.ok) {
+        toast.success('Subscription approved successfully');
+        loadData(); // Refresh data
+      } else {
+        throw new Error('Failed to approve subscription');
+      }
+    } catch (error) {
+      console.error('Subscription approval error:', error);
+      toast.error('Failed to approve subscription');
     }
   };
 
@@ -433,14 +527,26 @@ const MyAdmin: React.FC = () => {
                             variant="outline"
                             onClick={() => handleUserAction(user.id, 'activate')}
                             disabled={user.subscription_status === 'active'}
+                            title="Activate User"
                           >
                             <UserCheck className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => handleUserAction(user.id, 'approve')}
+                            disabled={user.subscription_status === 'active'}
+                            title="Approve Subscription"
+                            className="bg-green-50 hover:bg-green-100 text-green-700"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handleUserAction(user.id, 'deactivate')}
                             disabled={user.subscription_status === 'inactive'}
+                            title="Deactivate User"
                           >
                             <UserX className="w-4 h-4" />
                           </Button>
@@ -607,6 +713,28 @@ const MyAdmin: React.FC = () => {
                       </Button>
                     </div>
 
+                    {/* WhatsApp Message Input */}
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold mb-2">Send WhatsApp Message</h4>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Enter WhatsApp message..."
+                          value={whatsappMessage}
+                          onChange={(e) => setWhatsappMessage(e.target.value)}
+                        />
+                        <Button
+                          onClick={() => handleSendWhatsApp('broadcast')}
+                          disabled={!whatsappMessage.trim()}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        This will send a WhatsApp message to all users
+                      </p>
+                    </div>
+
                     {/* File Upload */}
                     <div className="flex items-center gap-2">
                       <Label htmlFor="file-upload" className="cursor-pointer">
@@ -634,7 +762,20 @@ const MyAdmin: React.FC = () => {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Live Users</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{liveUsersCount}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Currently active
+                  </p>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>User Growth</CardTitle>

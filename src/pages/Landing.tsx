@@ -64,6 +64,7 @@ const Landing = () => {
     setShowAuth(true);
   };
 
+
   return (
     <div>
       {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
@@ -75,7 +76,7 @@ const Landing = () => {
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30">
           <div
             className="w-full max-w-md bg-white rounded-t-3xl shadow-xl pb-8 pt-4 px-6 animate-slide-up"
-            style={{ height: "320px" }}
+            style={{ height: authMode === "signup" ? "500px" : "320px" }}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold mx-auto">
@@ -95,17 +96,18 @@ const Landing = () => {
                 // Only handle non-OAuth flows here (like email sign-in)
                 // OAuth flows are handled by AuthCallback component
                 if (authMode === "signup") {
-                  navigate("/welcome-screen");
+                  navigate("/onboarding");
                 } else if (authMode === "signin") {
                   // For signin, check if user has completed onboarding
                   if (profile?.onboarding_completed) {
-                    navigate("/health-assessment");
+                    navigate("/dashboard");
                   } else {
-                    navigate("/welcome-screen");
+                    navigate("/onboarding");
                   }
                 }
               }}
               mode={authMode}
+              showAdminPlaceholders={authMode === "signin"}
             />
           </div>
         </div>

@@ -1,34 +1,18 @@
 {
-  "functions": {
-    "src/pages/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "env": {
-    "PHONEPE_MERCHANT_ID": "@phonepe_merchant_id",
-    "PHONEPE_API_KEY": "@phonepe_api_key",
-    "PHONEPE_SALT_INDEX": "@phonepe_salt_index",
-    "PHONEPE_ENVIRONMENT": "@phonepe_environment",
-    "BUSINESS_NAME": "@business_name",
-    "PAYMENT_AMOUNT_IN_PAISE": "@payment_amount_in_paise"
-  },
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://urcare.vercel.app"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-VERIFY, X-MERCHANT-ID"
-        }
-      ]
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!robots\\.txt|favicon\\.ico|sw\\.js|images/|icons/|brand\\.png|brand\\.jpg|logoAnimation\\.json|placeholder\\.svg|qr-code-.*|urcare-logo\\.svg).*)",
+      "destination": "/index.html"
     }
   ]
 }

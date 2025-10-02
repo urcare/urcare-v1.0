@@ -19,18 +19,16 @@ const Onboarding: React.FC = () => {
     const adminMode = urlParams.get('admin') === 'true';
     
     if (adminMode) {
+      console.log("🔓 Admin mode detected - allowing onboarding");
       setIsAdminMode(true);
       setShowAuth(false);
     } else if (!user) {
-      // For development, allow direct access to onboarding without auth
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log("🔓 Localhost development mode - allowing onboarding without auth");
-        setShowAuth(false);
-        setIsAdminMode(true); // Treat as admin mode for development
-      } else {
-        setShowAuth(true);
-      }
+      // For development and production, allow direct access to onboarding
+      console.log("🔓 No user detected - allowing onboarding in demo mode");
+      setShowAuth(false);
+      setIsAdminMode(true); // Treat as admin mode for demo
     } else {
+      console.log("✅ User authenticated - proceeding with onboarding");
       setShowAuth(false);
     }
   }, [user]);
@@ -55,9 +53,9 @@ const Onboarding: React.FC = () => {
       console.log("Completing onboarding with data:", data);
       
       if (isAdminMode) {
-        // For admin mode, just show success and redirect to dashboard
+        // For admin mode, just show success and redirect to health assessment
         toast.success("Onboarding completed successfully! (Admin Mode)");
-        navigate("/dashboard", { replace: true });
+        navigate("/onboarding-healthassessment-screen", { replace: true });
       } else {
         // Normal flow - save onboarding data
         const result = await onboardingService.saveOnboardingData(user!, data);
@@ -68,8 +66,8 @@ const Onboarding: React.FC = () => {
           // Refresh profile to update the context
           await refreshProfile();
           
-          // Navigate to dashboard
-          navigate("/dashboard", { replace: true });
+          // Navigate to health assessment screen
+          navigate("/onboarding-healthassessment-screen", { replace: true });
         } else {
           toast.error("Failed to save onboarding data", {
             description: result.error || "Please try again."
@@ -86,8 +84,8 @@ const Onboarding: React.FC = () => {
     }
   };
 
-  // Show auth popup if not authenticated
-  if (showAuth) {
+  // Show auth popup if not authenticated (only for non-localhost)
+  if (showAuth && !(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     return (
       <AuthOptions
         onboardingData={{}}
@@ -96,8 +94,8 @@ const Onboarding: React.FC = () => {
     );
   }
 
-  // Show loading if checking auth state (but not in admin mode or localhost dev)
-  if ((!isAdminMode && !user && !(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) || loading) {
+  // Show loading only when actually processing
+  if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">

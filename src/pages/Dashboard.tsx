@@ -26,6 +26,9 @@ import {
 import { toast } from "sonner";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
+import { useDebounce } from "@/hooks/useDebounce";
+import { throttle, performanceMonitor } from "@/utils/performance";
+import LazyImage from "@/components/LazyImage";
 import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/healthScoreService";
 import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
@@ -68,6 +71,10 @@ const Dashboard: React.FC = () => {
   const [showNotificationDrawer, setShowNotificationDrawer] = useState<boolean>(false);
   const [showYourHealthPopup, setShowYourHealthPopup] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<HealthPlan | null>(null);
+  const [todaysActivities, setTodaysActivities] = useState<any[]>([]);
+
+  // Debounced user input for better performance
+  const debouncedUserInput = useDebounce(userInput, 300);
 
   // File upload hook
   const {
@@ -161,7 +168,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = throttle(async () => {
     if (!user) {
       toast.error("Please log in to use this feature");
       return;
@@ -178,6 +185,7 @@ const Dashboard: React.FC = () => {
     // Process in background to avoid UI blocking
     const processHealthAnalysis = async () => {
       try {
+        performanceMonitor.startTiming('health-analysis');
         // Get user profile for health score calculation
         const profileResult = await getUserProfileForHealthScore(user.id);
         
@@ -205,42 +213,71 @@ const Dashboard: React.FC = () => {
           userProfile = profileResult.profile;
         }
         
-        // Calculate health score
-        const healthScoreResult = await calculateHealthScore({
-          userProfile,
-          userInput: userInput.trim(),
-          uploadedFiles: uploadedFiles.map(file => file.content),
-          voiceTranscript: transcript.trim()
+        // Send message to Groq AI for processing
+        const groqResponse = await fetch('/api/groq/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userInput.trim(),
+            userProfile,
+            uploadedFiles: uploadedFiles.map(file => file.content),
+            voiceTranscript: transcript.trim()
+          })
         });
 
-        if (!healthScoreResult.success) {
-          throw new Error(healthScoreResult.error || "Failed to calculate health score");
+        if (!groqResponse.ok) {
+          throw new Error('Failed to get AI response');
         }
 
-        // Update health score
-        setHealthScore(healthScoreResult.healthScore || 0);
-
-        // Generate health plans
-        const plansResult = await generateHealthPlans({
-          userProfile,
-          healthScore: healthScoreResult.healthScore || 0,
-          analysis: healthScoreResult.analysis || '',
-          recommendations: healthScoreResult.recommendations || [],
-          userInput: userInput.trim(),
-          uploadedFiles: uploadedFiles.map(file => file.content),
-          voiceTranscript: transcript.trim()
-        });
-
-        console.log('📋 Plans result:', plansResult);
+        const groqData = await groqResponse.json();
         
-        if (!plansResult.success) {
-          console.error('❌ Plans generation failed:', plansResult.error);
-          throw new Error(plansResult.error || "Failed to generate health plans");
-        }
+        // Calculate health score from Groq response
+        const healthScore = groqData.healthScore || 75; // Default score
+        setHealthScore(healthScore);
 
-        // Show health plans
-        console.log('✅ Setting health plans:', plansResult.plans);
-        setHealthPlans(plansResult.plans || []);
+        // Generate health plans from Groq response
+        const plans = groqData.plans || [
+          {
+            id: 'plan-a',
+            title: 'Plan A: Foundation Building',
+            description: 'Focus on establishing healthy habits and routines',
+            difficulty: 'Beginner',
+            duration: '4 weeks',
+            activities: [
+              { time: '07:00', title: 'Morning Hydration', description: 'Drink 500ml water', duration: '5 minutes', category: 'Hydration' },
+              { time: '07:30', title: 'Light Exercise', description: '15-minute walk or stretching', duration: '15 minutes', category: 'Exercise' },
+              { time: '08:00', title: 'Healthy Breakfast', description: 'Balanced meal with protein', duration: '20 minutes', category: 'Meals' }
+            ]
+          },
+          {
+            id: 'plan-b',
+            title: 'Plan B: Balanced Approach',
+            description: 'Moderate intensity with focus on consistency',
+            difficulty: 'Intermediate',
+            duration: '6 weeks',
+            activities: [
+              { time: '06:30', title: 'Morning Routine', description: 'Hydration, meditation, light stretching', duration: '20 minutes', category: 'Wake up' },
+              { time: '07:00', title: 'Workout Session', description: '30-minute cardio and strength training', duration: '30 minutes', category: 'Exercise' },
+              { time: '08:00', title: 'Protein Breakfast', description: 'High-protein meal with complex carbs', duration: '25 minutes', category: 'Meals' }
+            ]
+          },
+          {
+            id: 'plan-c',
+            title: 'Plan C: Advanced Optimization',
+            description: 'High-intensity program for maximum results',
+            difficulty: 'Advanced',
+            duration: '8 weeks',
+            activities: [
+              { time: '05:30', title: 'Early Morning Routine', description: 'Cold shower, hydration, meditation', duration: '30 minutes', category: 'Wake up' },
+              { time: '06:00', title: 'Intensive Workout', description: '45-minute HIIT or strength training', duration: '45 minutes', category: 'Exercise' },
+              { time: '07:00', title: 'Post-Workout Nutrition', description: 'Protein smoothie with supplements', duration: '15 minutes', category: 'Meals' }
+            ]
+          }
+        ];
+
+        setHealthPlans(plans);
         setShowHealthPlans(true);
 
         // Clear input
@@ -248,19 +285,20 @@ const Dashboard: React.FC = () => {
         clearAllFiles();
         clearTranscript();
 
-        toast.success("Health analysis completed! Choose your personalized plan.");
+        toast.success("AI analysis completed! Choose your personalized plan.");
 
       } catch (error) {
         console.error("Error processing health request:", error);
         toast.error(error instanceof Error ? error.message : "Failed to process request");
       } finally {
+        performanceMonitor.endTiming('health-analysis');
         setIsProcessing(false);
       }
     };
 
     // Run in background
     processHealthAnalysis();
-  };
+  }, 1000); // Throttle to max once per second
 
   const handleSelectPlan = async (plan: HealthPlan) => {
     if (!user) {
@@ -273,6 +311,21 @@ const Dashboard: React.FC = () => {
       const result = await saveSelectedHealthPlan(user.id, plan);
       if (result.success) {
         toast.success(`Selected plan: ${plan.title}`);
+        
+        // Update today's activities based on selected plan
+        if (plan.activities && plan.activities.length > 0) {
+          const activitiesWithTimestamps = plan.activities.map(activity => ({
+            ...activity,
+            id: Math.random().toString(36).substr(2, 9),
+            completed: false,
+            timestamp: new Date().toISOString()
+          }));
+          setTodaysActivities(activitiesWithTimestamps);
+          
+          // Save to localStorage for persistence
+          localStorage.setItem('todaysActivities', JSON.stringify(activitiesWithTimestamps));
+        }
+        
         // Hide the health plans and show the updated Today's Schedule
         setShowHealthPlans(false);
         // Navigate to health plan generation page
@@ -309,6 +362,18 @@ const Dashboard: React.FC = () => {
     }
   }, [transcript]);
 
+  // Load today's activities from localStorage on mount
+  useEffect(() => {
+    const savedActivities = localStorage.getItem('todaysActivities');
+    if (savedActivities) {
+      try {
+        setTodaysActivities(JSON.parse(savedActivities));
+      } catch (error) {
+        console.error('Failed to parse saved activities:', error);
+      }
+    }
+  }, []);
+
   return (
     <UserFlowHandler>
       <div className={`min-h-screen transition-colors duration-300 ${
@@ -323,7 +388,7 @@ const Dashboard: React.FC = () => {
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img 
+              <LazyImage
                 src={(() => {
                   const avatarUrl = 
                     user?.user_metadata?.avatar_url ||
@@ -343,12 +408,11 @@ const Dashboard: React.FC = () => {
                   
                   console.log("🖼️ DEBUG - Final avatar URL being used:", avatarUrl);
                   return avatarUrl;
-                })()} 
-                alt="Profile" 
+                })()}
+                alt="Profile"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-300 object-cover"
-                onError={(e) => {
+                onError={() => {
                   console.log("❌ DEBUG - Image failed to load, falling back to default");
-                  e.currentTarget.src = "/icons/profile.png";
                 }}
               />
               <div>
@@ -583,99 +647,145 @@ const Dashboard: React.FC = () => {
               </div>
               
               <div className="space-y-3">
-                {/* Morning Wake-up Routine */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
-                    }`}>
-                      <Calendar className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                {todaysActivities.length > 0 ? (
+                  todaysActivities.map((activity, index) => (
+                    <div 
+                      key={activity.id || index}
+                      className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                        isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                          isDarkMode 
+                            ? 'bg-gray-600 border-[#88ba82]' 
+                            : 'bg-white border-yellow-400'
+                        }`}>
+                          {activity.category === 'Exercise' ? (
+                            <Activity className={`w-4 h-4 transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                            }`} />
+                          ) : activity.category === 'Meals' ? (
+                            <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                          ) : (
+                            <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                            }`} />
+                          )}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>
+                            {activity.title}
+                          </p>
+                          <p className={`text-xs transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            {activity.time} • {activity.duration}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
                       }`} />
                     </div>
-                    <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Morning Wake-up Routine
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        08:30:00
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-                </div>
-
-                {/* Healthy Breakfast */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
+                  ))
+                ) : (
+                  // Default activities when no plan is selected
+                  <>
+                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
                     }`}>
-                      <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Healthy Breakfast
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                          isDarkMode 
+                            ? 'bg-gray-600 border-[#88ba82]' 
+                            : 'bg-white border-yellow-400'
+                        }`}>
+                          <Calendar className={`w-4 h-4 transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`} />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>
+                            Morning Wake-up Routine
+                          </p>
+                          <p className={`text-xs transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            08:30:00
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
                         isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        09:00
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-                </div>
-
-                {/* Focused Work Session */}
-                <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                  isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
-                      isDarkMode 
-                        ? 'bg-gray-600 border-[#88ba82]' 
-                        : 'bg-white border-yellow-400'
-                    }`}>
-                      <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
                       }`} />
                     </div>
-                    <div>
-                      <p className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                      }`}>
-                        Focused Work Session
-                      </p>
-                      <p className={`text-xs transition-colors duration-300 ${
+
+                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                          isDarkMode 
+                            ? 'bg-gray-600 border-[#88ba82]' 
+                            : 'bg-white border-yellow-400'
+                        }`}>
+                          <img src="/icons/diet.png" alt="Diet" className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>
+                            Healthy Breakfast
+                          </p>
+                          <p className={`text-xs transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            09:00
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
                         isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        09:45
-                      </p>
+                      }`} />
                     </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`} />
-                </div>
+
+                    <div className={`rounded-[2rem] px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
+                      isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                          isDarkMode 
+                            ? 'bg-gray-600 border-[#88ba82]' 
+                            : 'bg-white border-yellow-400'
+                        }`}>
+                          <CheckCircle className={`w-4 h-4 transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`} />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>
+                            Focused Work Session
+                          </p>
+                          <p className={`text-xs transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            09:45
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`} />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

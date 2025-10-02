@@ -19,6 +19,7 @@ import CustomPlan from "./pages/CustomPlan";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
 import Onboarding from "./pages/Onboarding";
+import OnboardingHealthAssessment from "./pages/OnboardingHealthAssessment";
 import Paywall from "./pages/Paywall";
 import PaymentPage from "./pages/PaymentPage";
 import PaymentWall from "./pages/PaymentWall";
@@ -92,6 +93,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Onboarding />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/onboarding-healthassessment-screen"
+            element={
+              <ProtectedRoute>
+                <OnboardingHealthAssessment />
               </ProtectedRoute>
             }
           />
