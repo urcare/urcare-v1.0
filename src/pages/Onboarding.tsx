@@ -22,6 +22,7 @@ const Onboarding: React.FC = () => {
       setIsAdminMode(true);
       setShowAuth(false);
     } else if (!user) {
+      // Force show auth for non-authenticated users
       setShowAuth(true);
     } else {
       setShowAuth(false);

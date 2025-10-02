@@ -87,6 +87,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
   isOnboardingComplete: () => boolean;
+  navigate: (path: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -240,8 +241,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        await ensureUserProfile(user);
-        const userProfile = await fetchUserProfile(user.id);
+        // Add timeout protection to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+        );
+        
+        const profilePromise = Promise.all([
+          ensureUserProfile(user),
+          fetchUserProfile(user.id)
+        ]);
+
+        const [, userProfile] = await Promise.race([profilePromise, timeoutPromise]) as [void, UserProfile | null];
 
         if (userProfile) {
           setProfile(userProfile);
@@ -398,6 +408,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Allow test user for development
+      const isTest = email === 'test@urcare.com' && password === 'test123';
+      
+      if (isTest) {
+        // Create a mock user for testing
+        const mockUser = {
+          id: 'test-user-id',
+          email: 'test@urcare.com',
+          user_metadata: { full_name: 'Test User' }
+        } as User;
+        setUser(mockUser);
+        toast.success("Test login successful!");
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -637,6 +662,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return profile?.onboarding_completed ?? false;
   }, [profile]);
 
+  // Navigation function that uses window.location for routing
+  const navigate = useCallback((path: string) => {
+    window.location.href = path;
+  }, []);
+
   const value: AuthContextType = useMemo(
     () => ({
       user,
@@ -659,6 +689,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signInWithEmail,
       signInWithEmailVerification,
       isOnboardingComplete,
+      navigate,
     }),
     [
       user,
@@ -681,6 +712,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signInWithEmail,
       signInWithEmailVerification,
       isOnboardingComplete,
+      navigate,
     ]
   );
 
@@ -696,6 +728,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setShowEmailSignupPopup(false);
           // You can add additional logic here to handle the user data
         }}
+        onNavigate={navigate}
       />
     </AuthContext.Provider>
   );

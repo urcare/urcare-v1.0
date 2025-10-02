@@ -93,9 +93,9 @@ const Paywall: React.FC = () => {
     
     console.log("Amount calculated:", amount);
     
-    // Navigate to PhonePe checkout page
+    // Navigate to paycheckout page
     try {
-      navigate("/phonecheckout", {
+      navigate("/paycheckout", {
         state: {
           planSlug: "basic",
           billingCycle: billingCycle,

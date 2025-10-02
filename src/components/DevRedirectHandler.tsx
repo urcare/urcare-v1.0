@@ -11,7 +11,9 @@ export const DevRedirectHandler: React.FC = () => {
     const currentUrl = window.location.href;
     const isLocalhost =
       currentUrl.includes("localhost:8080") ||
-      currentUrl.includes("127.0.0.1:8080");
+      currentUrl.includes("localhost:8081") ||
+      currentUrl.includes("127.0.0.1:8080") ||
+      currentUrl.includes("127.0.0.1:8081");
 
     if (!isLocalhost) {
       devUtils.warn(

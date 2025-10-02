@@ -2,9 +2,9 @@
 export const DEV_CONFIG = {
   // Development URLs
   URLS: {
-    local: "http://localhost:8080",
-    callback: "http://localhost:8080/auth/callback",
-    dashboard: "http://localhost:8080/dashboard",
+    local: typeof window !== 'undefined' ? window.location.origin : "http://localhost:8080",
+    callback: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : "http://localhost:8080/auth/callback",
+    dashboard: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : "http://localhost:8080/dashboard",
   },
 
   // Development user for local testing

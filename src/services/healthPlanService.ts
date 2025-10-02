@@ -203,8 +203,12 @@ interface HealthPlanResponse {
 
 export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
   try {
-    // Try Groq AI first
-    const groqResponse = await groqService.generateHealthPlans({
+    // Use the new LLM adapter with timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Plan generation timeout')), 30000); // 30 second timeout
+    });
+
+    const planPromise = groqService.generateHealthPlans({
       userProfile: request.userProfile,
       healthScore: request.healthScore,
       analysis: request.analysis,
@@ -212,7 +216,9 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       userInput: request.userInput || ''
     });
 
-    if (groqResponse.success && groqResponse.data && groqResponse.data.plans) {
+    const groqResponse = await Promise.race([planPromise, timeoutPromise]) as any;
+
+    if (groqResponse?.success && groqResponse?.data && groqResponse?.data?.plans) {
       console.log('✅ Groq health plans generated:', groqResponse.data.plans);
       return {
         success: true,

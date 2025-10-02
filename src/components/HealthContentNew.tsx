@@ -404,7 +404,7 @@ export const HealthContentNew = () => {
         title: "No Active Health Plan",
         description:
           "Generate a personalized health plan to see your daily protocol",
-        icon: <Target className="w-6 h-6 text-logo-text" />,
+        icon: <div className="w-6 h-6 text-logo-text">🎯</div>,
         time: "Generate Plan",
         isHighlighted: true,
         completed: false,
@@ -422,14 +422,17 @@ export const HealthContentNew = () => {
       try {
         if (item.action === "generate_comprehensive") {
           // Use existing comprehensive health plan service
-          const { ComprehensiveHealthPlanService } = await import(
+          const { comprehensiveHealthPlanService } = await import(
             "@/services/comprehensiveHealthPlanService"
           );
-          const comprehensiveService = new ComprehensiveHealthPlanService();
-          await comprehensiveService.generateComprehensivePlan(
-            "Improve overall health",
-            profile
-          );
+          await comprehensiveHealthPlanService.createPlan({
+            plan_name: "Comprehensive Health Plan",
+            primary_goal: "Improve overall health",
+            duration_weeks: 12,
+            difficulty: "Intermediate",
+            plan_start_date: new Date().toISOString(),
+            target_conditions: []
+          });
           toast.success("Comprehensive health protocol generated!");
 
           // Refresh to show new tasks
@@ -677,10 +680,20 @@ export const HealthContentNew = () => {
 
   return (
     <div className="h-screen flex flex-col relative">
-      {/* Centered Loading Overlay for Plan Generation */}
+      {/* Non-blocking Plan Generation Modal */}
       {generatingPlan && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4 relative">
+            {/* Close button */}
+            <button
+              onClick={() => setGeneratingPlan(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
@@ -711,8 +724,15 @@ export const HealthContentNew = () => {
 
               <p className="text-gray-600 mb-6">
                 Creating a personalized protocol based on your goals and
-                preferences...
+                preferences... You can continue using the app while this runs in the background.
               </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Tip:</strong> You can close this popup and continue using the app. 
+                  We'll notify you when your plan is ready!
+                </p>
+              </div>
 
               {/* Progress Steps */}
               <div className="space-y-3 text-sm text-gray-500">

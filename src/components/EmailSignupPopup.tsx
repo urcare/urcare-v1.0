@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Mail, Lock, User, MapPin, X } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -12,12 +12,14 @@ interface EmailSignupPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (userData: any) => void;
+  onNavigate?: (path: string) => void;
 }
 
 const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  onNavigate
 }) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -74,11 +76,11 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
 
     try {
       // Check for test credentials
-      if (formData.email === 'test' && formData.password === 'test123') {
+      if (formData.email === 'test@email.com' && formData.password === 'test123') {
         // Auto-activate subscription for test user
         const testUserData = {
           id: 'test-user-' + Date.now(),
-          email: 'test@urcare.com',
+          email: 'test@email.com',
           full_name: formData.fullName || 'Test User',
           city: formData.city,
           subscription_status: 'active',
@@ -91,11 +93,19 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
         localStorage.setItem('urcare_test_user', JSON.stringify(testUserData));
         
         toast.success('Test account created successfully!', {
-          description: 'You have been granted premium access.'
+          description: 'Redirecting to onboarding...'
         });
         
+        // Store test user data
         onSuccess(testUserData);
         onClose();
+        
+        // Redirect to onboarding after a short delay
+        if (onNavigate) {
+          setTimeout(() => {
+            onNavigate('/onboarding');
+          }, 1000);
+        }
         return;
       }
 
@@ -154,19 +164,9 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-gray-900">
-              Sign Up with Email
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-bold text-gray-900">
+            Sign Up with Email
+          </DialogTitle>
           <DialogDescription className="text-gray-600">
             Create your UrCare account to get started
           </DialogDescription>
@@ -271,7 +271,7 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
                 <strong>Test Credentials:</strong><br />
-                Email: <code className="bg-blue-100 px-1 rounded">test</code><br />
+                Email: <code className="bg-blue-100 px-1 rounded">test@email.com</code><br />
                 Password: <code className="bg-blue-100 px-1 rounded">test123</code><br />
                 <span className="text-xs text-blue-600">Auto-activates premium subscription</span>
               </p>

@@ -30,6 +30,10 @@ import PhonePeQRFallbackPage from "./pages/PhonePeQRFallbackPage";
 import PhonePeTest from "./pages/PhonePeTest";
 import PhonePeCheckoutSimple from "./pages/PhonePeCheckoutSimple";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
+import Pay from "./pages/Pay";
+import Paycheckout from "./pages/Paycheckout";
+import MyAdmin from "./pages/MyAdmin";
+import PhonePeTestPage from "./pages/PhonePeTestPage";
 import PlanDetails from "./pages/Calendar";
 import Planner from "./pages/Planner";
 import ProfileManagement from "./pages/ProfileManagement";
@@ -67,7 +71,7 @@ function App() {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/legal" element={<Legal />} />
-          <Route path="/my-admin" element={<AdminLogin />} />
+          <Route path="/my-admin" element={<MyAdmin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/email-auth" element={<EmailAuth />} />
           <Route path="/email-signin" element={<EmailSignIn />} />
@@ -133,6 +137,15 @@ function App() {
             element={
               <ProtectedRoute requireOnboardingComplete={true}>
                 <PhonePeCheckout />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/paycheckout"
+            element={
+              <ProtectedRoute requireOnboardingComplete={true}>
+                <Paycheckout />
               </ProtectedRoute>
             }
           />
@@ -266,6 +279,16 @@ function App() {
           <Route
             path="/workout-activity"
             element={<WorkoutActivity />}
+          />
+
+          <Route
+            path="/pay"
+            element={<Pay />}
+          />
+
+          <Route
+            path="/phonepe-test"
+            element={<PhonePeTestPage />}
           />
 
           <Route

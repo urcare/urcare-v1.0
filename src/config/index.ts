@@ -9,11 +9,11 @@ export const config = {
       import.meta.env.VITE_SUPABASE_ANON_KEY ||
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc",
     // Development redirect URL
-    redirectUrl:
-      import.meta.env.MODE === "development"
-        ? "http://localhost:8080/auth/callback"
-        : import.meta.env.VITE_SUPABASE_REDIRECT_URL ||
-          "https://urcare-v1-0.vercel.app/auth/callback",
+            redirectUrl:
+              import.meta.env.MODE === "development"
+                ? `${window.location.origin}/auth/callback`
+                : import.meta.env.VITE_SUPABASE_REDIRECT_URL ||
+                  "https://urcare.vercel.app/auth/callback",
   },
 
   // OpenAI Configuration
@@ -37,7 +37,7 @@ export const config = {
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL || 
       (import.meta.env.MODE === "production" 
-        ? window.location.origin 
+        ? "https://urcare.vercel.app" 
         : "http://localhost:4000"),
   },
 };

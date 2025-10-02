@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { userFlowService, type UserFlowState } from '@/services/userFlowService';
 import { toast } from 'sonner';
 
 interface UserFlowHandlerProps {
@@ -10,43 +11,61 @@ interface UserFlowHandlerProps {
 export const UserFlowHandler: React.FC<UserFlowHandlerProps> = ({ children }) => {
   const navigate = useNavigate();
   const { user, profile, loading, isInitialized } = useAuth();
+  const [flowState, setFlowState] = useState<UserFlowState | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Don't redirect if still loading or not initialized
-    if (!isInitialized || loading) return;
+    const handleUserFlow = async () => {
+      // Don't redirect if still loading or not initialized
+      if (!isInitialized || loading || isProcessing) return;
 
-    // If no user, redirect to landing
-    if (!user) {
-      navigate('/');
-      return;
-    }
+      try {
+        setIsProcessing(true);
 
-    // If no profile, redirect to onboarding
-    if (!profile) {
-      navigate('/onboarding');
-      return;
-    }
+        // Handle special users (admin/test) first
+        if (user) {
+          const email = user.email?.toLowerCase() || '';
+          if (email === 'admin@urcare.com' || email === 'admin' || 
+              email === 'test@email.com' || email === 'test@urcare.com') {
+            const specialFlow = await userFlowService.handleSpecialUserFlow(user, profile);
+            setFlowState(specialFlow);
+            
+            if (specialFlow.nextRoute !== window.location.pathname) {
+              navigate(specialFlow.nextRoute, { replace: true });
+            }
+            return;
+          }
+        }
 
-    // Check if onboarding is completed
-    if (!profile.onboarding_completed) {
-      navigate('/onboarding');
-      return;
-    }
+        // Handle regular user flow
+        const flow = await userFlowService.getUserFlowState(user, profile);
+        setFlowState(flow);
 
-    // Check if user has active subscription
-    const hasActiveSubscription = profile.subscription_status === 'active' || 
-                                 profile.subscription_status === 'trialing';
+        // Only redirect if we're not already on the correct route
+        if (flow.nextRoute !== window.location.pathname) {
+          navigate(flow.nextRoute, { replace: true });
+        }
 
-    // If no active subscription, redirect to paywall
-    if (!hasActiveSubscription) {
-      navigate('/paywall');
-      return;
-    }
+      } catch (error) {
+        console.error('Error handling user flow:', error);
+        // Fallback to onboarding
+        navigate('/onboarding', { replace: true });
+      } finally {
+        setIsProcessing(false);
+      }
+    };
 
-    // If everything is complete, allow access to dashboard
-    // This will be handled by the specific route components
+    handleUserFlow();
+  }, [user, profile, loading, isInitialized, navigate, isProcessing]);
 
-  }, [user, profile, loading, isInitialized, navigate]);
+  // Show loading state while processing
+  if (isProcessing || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 };

@@ -55,8 +55,9 @@ const EmailSignIn: React.FC = () => {
     try {
       await signIn(formData.email, formData.password);
       toast.success('Signed in successfully!', {
-        description: 'Welcome back!'
+        description: 'Redirecting to onboarding...'
       });
+      // Always redirect to onboarding after login
       navigate('/onboarding', { replace: true });
     } catch (error) {
       console.error('Sign in error:', error);

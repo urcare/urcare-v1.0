@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/urcare-v1.0/',
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -30,6 +30,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+    assetsDir: "assets",
     rollupOptions: {
       output: {
         // Add hash to filenames for cache busting
@@ -39,6 +40,7 @@ export default defineConfig({
       }
     }
   },
+  publicDir: "public",
   optimizeDeps: {
     include: ["react", "react-dom"],
   },
