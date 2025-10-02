@@ -1,8 +1,9 @@
 // Razorpay Service for Frontend Integration
 import { loadScript } from './loadScript';
+import { env } from '@/config/environment';
 
 // Razorpay Configuration
-const RAZORPAY_KEY_ID = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_1234567890'; // Replace with your actual key
+const RAZORPAY_KEY_ID = env.RAZORPAY_KEY_ID || 'rzp_test_1234567890'; // Replace with your actual key
 
 console.log('🔑 Frontend Razorpay Key ID:', RAZORPAY_KEY_ID ? 'Configured' : 'Not configured');
 

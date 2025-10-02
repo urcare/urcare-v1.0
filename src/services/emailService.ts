@@ -74,7 +74,7 @@ export const emailService = {
       return {
         success: true,
         message: 'Verification code sent successfully',
-        code: process.env.NODE_ENV === 'development' ? code : undefined // Only return code in development
+        code: import.meta.env.MODE === 'development' ? code : undefined // Only return code in development
       };
     } catch (error) {
       console.error('Email service error:', error);

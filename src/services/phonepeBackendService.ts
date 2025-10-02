@@ -10,7 +10,7 @@ const PHONEPE_BACKEND_URL = (() => {
     }
   }
   // Fallback to environment variable
-  return process.env.NODE_ENV === 'production' 
+  return import.meta.env.MODE === 'production' 
     ? 'https://urcare.vercel.app'
     : 'http://localhost:5000';
 })();
