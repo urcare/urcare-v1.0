@@ -8,6 +8,7 @@ import { CreditCard, Smartphone, Wallet, Clock, CheckCircle, XCircle, Loader2, A
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { PayByQRButton } from '@/components/PayByQRButton';
+import QRCodeModal from '@/components/payment/QRCodeModal';
 
 interface PaymentStatus {
   status: 'idle' | 'processing' | 'success' | 'failed' | 'expired';
@@ -301,6 +302,21 @@ const Paycheckout: React.FC = () => {
           </Card>
         )}
       </div>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        onComplete={() => {
+          setShowQRModal(false);
+          setPaymentStatus({ status: 'success', orderId: paymentStatus.orderId });
+          toast.success('Payment submitted! We will activate your subscription in 1-2 hours.');
+        }}
+        amount={planData.amount}
+        planName={planData.name}
+        billingCycle="monthly"
+        userId="demo_user"
+      />
     </div>
   );
 };
