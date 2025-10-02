@@ -119,3 +119,4 @@ If you encounter any issues:
 4. Check the browser console for any errors
 
 **Your UrCare Healthcare Platform is now live and ready for users!** 🚀
+

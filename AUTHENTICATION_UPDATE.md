@@ -75,3 +75,4 @@
 The authentication flow is now streamlined with all signup options (Google, Apple, Email) available directly in the main modal when users click "Get started", while maintaining the admin demo access for sign-in mode.
 
 **No more separate "Sign up with Email" button on the landing page!** ✅
+

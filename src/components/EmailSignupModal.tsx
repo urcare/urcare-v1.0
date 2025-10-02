@@ -112,3 +112,4 @@ export const EmailSignupModal: React.FC<EmailSignupModalProps> = ({ isOpen, onCl
     </Dialog>
   );
 };
+

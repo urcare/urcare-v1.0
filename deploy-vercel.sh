@@ -30,3 +30,4 @@ echo "1. Set up PhonePe sandbox account"
 echo "2. Configure environment variables in Vercel dashboard"
 echo "3. Test payment flow"
 echo "4. Switch to production credentials when ready"
+

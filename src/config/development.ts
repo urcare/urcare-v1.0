@@ -61,8 +61,8 @@ export const isDevelopment = (): boolean => {
   return (
     import.meta.env.MODE === "development" ||
     import.meta.env.DEV ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
+    (window.location.hostname === "localhost" && window.location.port === "8080") ||
+    (window.location.hostname === "127.0.0.1" && window.location.port === "8080")
   );
 };
 

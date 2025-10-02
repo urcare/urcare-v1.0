@@ -169,3 +169,4 @@ export const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, onSuc
     </Dialog>
   );
 };
+

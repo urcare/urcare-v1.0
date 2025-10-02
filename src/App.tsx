@@ -47,7 +47,6 @@ import WorkoutDashboard from "./pages/WorkoutDashboard";
 import WorkoutActivity from "./pages/WorkoutActivity";
 import AdminPanel from "./pages/AdminPanel";
 
-import { DevRedirectHandler } from "./components/DevRedirectHandler";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -62,7 +61,12 @@ function App() {
   return (
     <AuthProvider>
       <AdminProvider>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <DevRedirectHandler />
           <InitialRouteHandler />
           <Routes>

@@ -19,8 +19,8 @@ const PHONEPE_BACKEND_URL = (() => {
 const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU3MzQ0MzgsImV4cCI6MjA1MTMxMDQzOH0.bb62b7c1fe2d9c22a670bbcdaad3930828e5c296e97d35109534d46b7c614adf';
 
-console.log('🔧 PhonePe Backend URL configured:', PHONEPE_BACKEND_URL);
-console.log('📦 PhonePe Service Version: 6.2.0 - Live PhonePe Only (No Fallbacks)');
+// PhonePe Backend URL configured
+// PhonePe Service Version: 6.2.0 - Live PhonePe Only (No Fallbacks)
 
 // Live PhonePe API configuration
 const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';

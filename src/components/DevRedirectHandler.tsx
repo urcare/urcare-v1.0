@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 
 export const DevRedirectHandler: React.FC = () => {
   useEffect(() => {
+    // Only run in development mode and only redirect from localhost to localhost
     if (!isDevelopment()) {
       return;
     }
@@ -15,9 +16,11 @@ export const DevRedirectHandler: React.FC = () => {
       currentUrl.includes("127.0.0.1:8080") ||
       currentUrl.includes("127.0.0.1:8081");
 
-    if (!isLocalhost) {
+    // Only redirect if we're on localhost but not the correct port
+    // Don't redirect from production URLs
+    if (isLocalhost && !currentUrl.includes(":8080") && !currentUrl.includes(":8081")) {
       devUtils.warn(
-        `Redirecting from production URL to local development: ${currentUrl} -> ${DEV_CONFIG.URLS.local}`
+        `Redirecting from development URL to correct port: ${currentUrl} -> ${DEV_CONFIG.URLS.local}`
       );
 
       // Show a brief message before redirecting
@@ -35,7 +38,7 @@ export const DevRedirectHandler: React.FC = () => {
         z-index: 9999;
         font-family: system-ui, -apple-system, sans-serif;
       `;
-      message.textContent = "🔄 Redirecting to local development server...";
+      message.textContent = "🔄 Redirecting to correct development port...";
       document.body.appendChild(message);
 
       // Redirect after a short delay

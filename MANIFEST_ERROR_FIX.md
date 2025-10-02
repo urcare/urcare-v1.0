@@ -67,3 +67,4 @@ Manifest fetch from https://urcare-v10-j3dv81mzk-urcares-projects.vercel.app/man
 **Your UrCare app is now working perfectly without any console errors!** 🚀
 
 The 401 manifest error has been resolved and all authentication flows are working as expected.
+
