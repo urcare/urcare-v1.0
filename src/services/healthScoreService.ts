@@ -1,5 +1,6 @@
-// Health Score Calculation Service using OpenAI
+// Health Score Calculation Service using Groq AI
 import { supabase } from '@/integrations/supabase/client';
+import { groqService } from './groqService';
 
 // Fallback health score calculation when API is not available
 const calculateFallbackHealthScore = (userProfile: any) => {
@@ -139,8 +140,24 @@ interface HealthScoreResponse {
 
 export const calculateHealthScore = async (request: HealthScoreRequest): Promise<HealthScoreResponse> => {
   try {
+    // Try Groq AI first
+    const groqResponse = await groqService.calculateHealthScore({
+      userProfile: request.userProfile,
+      userInput: request.userInput || '',
+      uploadedFiles: request.uploadedFiles || [],
+      voiceTranscript: request.voiceTranscript || ''
+    });
 
-    // Prepare the data for OpenAI
+    if (groqResponse.success && groqResponse.data) {
+      return {
+        success: true,
+        healthScore: groqResponse.data.healthScore,
+        analysis: groqResponse.data.analysis,
+        recommendations: groqResponse.data.recommendations
+      };
+    }
+
+    // Fallback to server APIs if Groq fails
     const healthData = {
       userProfile: request.userProfile,
       userInput: request.userInput || '',
@@ -149,11 +166,10 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       timestamp: new Date().toISOString()
     };
 
-          // Try production server first, then localhost
-          const apiUrls = [
-            'https://urcare-server.vercel.app/api/health-score',
-            'http://localhost:3000/api/health-score'
-          ];
+    const apiUrls = [
+      'https://urcare-server.vercel.app/api/health-score',
+      'http://localhost:3000/api/health-score'
+    ];
 
     for (const apiUrl of apiUrls) {
       try {
@@ -182,18 +198,16 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       }
     }
 
-    // If all APIs fail, throw error to trigger fallback
+    // If all APIs fail, use Groq fallback
     throw new Error('All API endpoints failed');
 
   } catch (error) {
-    
-    // Fallback: Generate a basic health score based on user profile
-    
+    // Fallback: Use Groq service fallback calculation
     try {
-      const fallbackScore = calculateFallbackHealthScore(request.userProfile);
+      const fallbackScore = groqService.calculateFallbackHealthScore(request.userProfile);
       return {
         success: true,
-        healthScore: fallbackScore.score,
+        healthScore: fallbackScore.healthScore,
         analysis: fallbackScore.analysis,
         recommendations: fallbackScore.recommendations
       };

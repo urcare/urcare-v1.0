@@ -12,6 +12,7 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
+import EmailSignupPopup from "@/components/EmailSignupPopup";
 
 // Simple cache for user profiles
 const profileCache = new Map<
@@ -71,7 +72,9 @@ interface AuthContextType {
   loading: boolean;
   isInitialized: boolean;
   showAdminPopup: boolean;
+  showEmailSignupPopup: boolean;
   setShowAdminPopup: (show: boolean) => void;
+  setShowEmailSignupPopup: (show: boolean) => void;
   setUser: (user: User | null) => void;
   setProfile: (profile: UserProfile | null) => void;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
@@ -145,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showAdminPopup, setShowAdminPopup] = useState(false);
+  const [showEmailSignupPopup, setShowEmailSignupPopup] = useState(false);
 
   // Track if auth listener is initialized
   const authListenerRef = useRef<boolean>(false);
@@ -492,8 +496,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
-      // Show admin login popup instead of redirecting
-      setShowAdminPopup(true);
+      // Show email signup popup instead of admin popup
+      setShowEmailSignupPopup(true);
     } catch (error) {
       console.error("Email sign-in error:", error);
       const errorMessage =
@@ -640,7 +644,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       loading,
       isInitialized,
       showAdminPopup,
+      showEmailSignupPopup,
       setShowAdminPopup,
+      setShowEmailSignupPopup,
       setUser,
       setProfile,
       signUp,
@@ -660,7 +666,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       loading,
       isInitialized,
       showAdminPopup,
+      showEmailSignupPopup,
       setShowAdminPopup,
+      setShowEmailSignupPopup,
       setUser,
       setProfile,
       signUp,
@@ -676,7 +684,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     ]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <EmailSignupPopup
+        isOpen={showEmailSignupPopup}
+        onClose={() => setShowEmailSignupPopup(false)}
+        onSuccess={(userData) => {
+          // Handle successful email signup
+          console.log('Email signup successful:', userData);
+          setShowEmailSignupPopup(false);
+          // You can add additional logic here to handle the user data
+        }}
+      />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

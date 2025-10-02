@@ -95,7 +95,7 @@ function App() {
           <Route
             path="/health-assessment"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <ProtectedRoute requireOnboardingComplete={false}>
                 <HealthAssessment />
               </ProtectedRoute>
             }

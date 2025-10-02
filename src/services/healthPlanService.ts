@@ -1,5 +1,6 @@
-// Health Plan Generation Service using OpenAI
+// Health Plan Generation Service using Groq AI
 import { supabase } from '@/integrations/supabase/client';
+import { groqService } from './groqService';
 
 // Fallback health plan generation when API is not available
 const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {
@@ -195,8 +196,24 @@ interface HealthPlanResponse {
 
 export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
   try {
+    // Try Groq AI first
+    const groqResponse = await groqService.generateHealthPlans({
+      userProfile: request.userProfile,
+      healthScore: request.healthScore,
+      analysis: request.analysis,
+      recommendations: request.recommendations,
+      userInput: request.userInput || ''
+    });
 
-    // Prepare the data for OpenAI
+    if (groqResponse.success && groqResponse.data && groqResponse.data.plans) {
+      console.log('✅ Groq health plans generated:', groqResponse.data.plans);
+      return {
+        success: true,
+        plans: groqResponse.data.plans
+      };
+    }
+
+    // Fallback to server APIs if Groq fails
     const planData = {
       userProfile: request.userProfile,
       healthScore: request.healthScore,
@@ -208,11 +225,10 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       timestamp: new Date().toISOString()
     };
 
-          // Try production server first, then localhost
-          const apiUrls = [
-            'https://urcare-server.vercel.app/api/health-plans',
-            'http://localhost:3000/api/health-plans'
-          ];
+    const apiUrls = [
+      'https://urcare-server.vercel.app/api/health-plans',
+      'http://localhost:3000/api/health-plans'
+    ];
 
     for (const apiUrl of apiUrls) {
       try {
@@ -239,31 +255,25 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       }
     }
 
-    // If all APIs fail, throw error to trigger fallback
+    // If all APIs fail, use Groq fallback
     throw new Error('All API endpoints failed');
 
-    } catch (error) {
+  } catch (error) {
     console.error('❌ Health plan generation error:', error);
     
-    // Fallback: Generate basic health plans based on user profile
-    console.log('🔄 Using fallback health plan generation');
+    // Fallback: Use Groq service fallback calculation
+    console.log('🔄 Using Groq fallback health plan generation');
     
     try {
-      console.log('🔄 Calling fallback function with:', {
-        userProfile: request.userProfile,
-        healthScore: request.healthScore,
-        userInput: request.userInput
-      });
-      
-      const fallbackPlans = generateFallbackHealthPlans(request.userProfile, request.healthScore, request.userInput);
-      console.log('✅ Fallback plans generated:', fallbackPlans);
+      const fallbackPlans = groqService.generateFallbackHealthPlans(request.userProfile);
+      console.log('✅ Groq fallback plans generated:', fallbackPlans);
       
       return {
         success: true,
-        plans: fallbackPlans
+        plans: fallbackPlans.plans
       };
     } catch (fallbackError) {
-      console.error('❌ Fallback health plan generation failed:', fallbackError);
+      console.error('❌ Groq fallback health plan generation failed:', fallbackError);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate health plans'
