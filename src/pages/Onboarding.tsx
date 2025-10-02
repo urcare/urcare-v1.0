@@ -22,8 +22,14 @@ const Onboarding: React.FC = () => {
       setIsAdminMode(true);
       setShowAuth(false);
     } else if (!user) {
-      // Force show auth for non-authenticated users
-      setShowAuth(true);
+      // For development, allow direct access to onboarding without auth
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log("🔓 Localhost development mode - allowing onboarding without auth");
+        setShowAuth(false);
+        setIsAdminMode(true); // Treat as admin mode for development
+      } else {
+        setShowAuth(true);
+      }
     } else {
       setShowAuth(false);
     }
@@ -90,8 +96,8 @@ const Onboarding: React.FC = () => {
     );
   }
 
-  // Show loading if checking auth state (but not in admin mode)
-  if ((!isAdminMode && !user) || loading) {
+  // Show loading if checking auth state (but not in admin mode or localhost dev)
+  if ((!isAdminMode && !user && !(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) || loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">
