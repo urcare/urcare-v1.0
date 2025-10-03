@@ -38,7 +38,7 @@ export const config = {
     baseUrl: import.meta.env.VITE_API_BASE_URL || 
       (import.meta.env.MODE === "production" 
         ? "https://urcare.vercel.app" 
-        : "http://localhost:4000"),
+        : "http://localhost:3000"),
   },
 };
 

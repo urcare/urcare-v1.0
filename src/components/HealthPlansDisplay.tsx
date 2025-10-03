@@ -131,37 +131,36 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                 : 'hover:shadow-lg'
             }`}>
               <CardHeader 
-                className="cursor-pointer"
+                className="cursor-pointer pb-3"
                 onClick={() => togglePlanExpansion(plan.id)}
               >
+                {/* Title and Description */}
+                <div className="mb-3">
+                  <CardTitle className="text-lg mb-1">{plan.title}</CardTitle>
+                  <CardDescription className="text-sm leading-relaxed">
+                    {plan.description}
+                  </CardDescription>
+                </div>
+                
+                {/* Meta Information - Compact Single Row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
                       {getDifficultyIcon(plan.difficulty)}
-                      <Badge className={getDifficultyColor(plan.difficulty)}>
+                      <Badge className={`${getDifficultyColor(plan.difficulty)} text-xs px-2 py-0.5`}>
                         {plan.difficulty}
                       </Badge>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{plan.title}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {plan.description}
-                      </CardDescription>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {plan.duration}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-right">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {plan.duration}
-                      </div>
-                    </div>
-                    {expandedPlans.has(plan.id) ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
+                  {expandedPlans.has(plan.id) ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
                 </div>
               </CardHeader>
 
@@ -173,9 +172,9 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-gray-900 mb-3">
+                    <CardContent className="pt-0 pb-4">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-gray-900 mb-2">
                           Daily Activities
                         </h4>
                         
@@ -187,7 +186,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                             return (
                               <div
                                 key={activityIndex}
-                                className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                                className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors"
                               >
                                 <div 
                                   className="flex items-center justify-between cursor-pointer"
@@ -230,9 +229,9 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                                       animate={{ height: 'auto', opacity: 1 }}
                                       exit={{ height: 0, opacity: 0 }}
                                       transition={{ duration: 0.2 }}
-                                      className="mt-3 pt-3 border-t border-gray-100"
+                                      className="mt-2 pt-2 border-t border-gray-100"
                                     >
-                                      <div className="space-y-2">
+                                      <div className="space-y-1">
                                         <div className="flex items-center justify-between text-sm">
                                           <span className="text-gray-600">Category:</span>
                                           <span className="font-medium capitalize">
@@ -266,7 +265,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                         )}
                       </div>
 
-                      <div className="mt-6 pt-4 border-t border-gray-200">
+                      <div className="mt-4 pt-3 border-t border-gray-200">
                         <Button
                           onClick={() => onSelectPlan(plan)}
                           className={`w-full ${
