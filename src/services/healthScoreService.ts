@@ -224,10 +224,10 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
 export const getUserProfileForHealthScore = async (userId: string) => {
   try {
     const { data: profile, error } = await supabase
-      .from('profiles')
+      .from('user_profiles')
       .select('*')
       .eq('id', userId)
-        .single();
+      .single();
 
     if (error) throw error;
 
@@ -235,7 +235,7 @@ export const getUserProfileForHealthScore = async (userId: string) => {
       success: true,
       profile
     };
-    } catch (error) {
+  } catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch user profile'

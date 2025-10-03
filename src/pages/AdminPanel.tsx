@@ -175,7 +175,7 @@ const AdminPanel: React.FC = () => {
   const loadUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
