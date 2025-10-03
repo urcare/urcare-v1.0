@@ -1,0 +1,68 @@
+{
+  "recommendations": [
+    // TypeScript and JavaScript support
+    "ms-vscode.vscode-typescript-next",
+    
+    // React development
+    "ms-vscode.vscode-react-native",
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+    
+    // ESLint and Prettier for code quality
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    
+    // Git integration
+    "eamodio.gitlens",
+    
+    // Package management and npm
+    "christian-kohler.npm-intellisense",
+    "eg2.vscode-npm-script",
+    
+    // HTML and CSS
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+    "ms-vscode.live-server",
+    
+    // Capacitor and mobile development
+    "ionic.ionic",
+    
+    // Code formatting and productivity
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-markdown",
+    
+    // Auto imports and IntelliSense
+    "steoates.autoimport-es6-ts",
+    "visualstudioexptteam.vscodeintellicode",
+    
+    // Theme and UI enhancements
+    "pkief.material-icon-theme",
+    "zhuangtongfa.material-theme",
+    
+    // Code navigation and search
+    "ms-vscode.vscode-search-replace",
+    "alefragnani.bookmarks",
+    
+    // Database and API tools (for Supabase)
+    "ms-vscode.vscode-postgresql",
+    
+    // Environment and configuration
+    "mikestead.dotenv",
+    
+    // Path intellisense
+    "christian-kohler.path-intellisense",
+    
+    // Bracket pair colorizer
+    "coenraads.bracket-pair-colorizer-2",
+    
+    // Error lens for better error visibility
+    "usernamehw.errorlens",
+    
+    // REST client for API testing
+    "humao.rest-client",
+    
+    // Thunder Client for API testing
+    "rangav.vscode-thunder-client"
+  ]
+}

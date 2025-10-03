@@ -1,0 +1,147 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build React app
+      run: npm run build
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Setup Capacitor
+      run: |
+        if [ ! -d "./android" ]; then
+          npx cap add android
+        fi
+        npx cap sync android
+    
+    - name: Build APK (Debug)
+      if: github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleDebug
+    
+    - name: Build APK (Release)
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleRelease
+      env:
+        ANDROID_KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_FILE }}
+        ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    
+    - name: Upload Debug APK
+      if: github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-artifact@v4
+      with:
+        name: urcare-debug-${{ github.sha }}
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+    
+    - name: Upload Release APK
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-artifact@v4
+      with:
+        name: urcare-release-${{ github.ref_name }}
+        path: android/app/build/outputs/apk/release/app-release.apk
+        retention-days: 90
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: UrCare ${{ github.ref_name }}
+        files: |
+          android/app/build/outputs/apk/release/app-release.apk
+          android/app/build/outputs/apk/debug/app-debug.apk
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create Nightly Release
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: nightly-${{ github.run_number }}
+        name: UrCare Nightly Build ${{ github.run_number }}
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        generate_release_notes: true
+        draft: false
+        prerelease: true
+        body: |
+          🌙 **Nightly Build** - Automatically generated from latest commit
+          
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Build Date:** ${{ github.event.head_commit.timestamp }}
+          
+          ⚠️ This is a development build. Use at your own risk.
+          
+          **Installation:**
+          1. Download the APK file below
+          2. Enable "Install from unknown sources" on your Android device
+          3. Install the APK file
+          
+          **Changes in this build:**
+          ${{ github.event.head_commit.message }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notify Success
+      if: needs.build.result == 'success' && github.ref == 'refs/heads/main'
+      run: |
+        echo "✅ Android APK built successfully!"
+        echo "Download link will be available in the releases section."
+    
+    - name: Notify Failure
+      if: needs.build.result == 'failure'
+      run: |
+        echo "❌ Android APK build failed!"
+        echo "Check the logs for more details." 

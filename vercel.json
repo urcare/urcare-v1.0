@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!robots\\.txt|favicon\\.ico|sw\\.js|images/|icons/|brand\\.png|brand\\.jpg|logoAnimation\\.json|placeholder\\.svg|qr-code-.*|urcare-logo\\.svg).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
