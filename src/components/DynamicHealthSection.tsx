@@ -242,20 +242,142 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
   );
 
   const renderSelectedPlanActivities = () => {
-    if (!selectedPlan || !selectedPlan.activities) {
-      return (
-        <div className={`text-center py-8 ${
-          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-        }`}>
-          <p>No activities available for this plan.</p>
-        </div>
-      );
-    }
+    // Complete daily schedule from 7 AM to 11 PM
+    const dailySchedule = [
+      {
+        id: 'morning-wakeup',
+        time: '07:00',
+        title: 'Morning Wake-up Routine',
+        activity: 'Yoga',
+        details: ['Downward Dog', 'Warrior II', 'Child\'s Pose'],
+        icon: '🧘‍♀️'
+      },
+      {
+        id: 'breakfast',
+        time: '07:30',
+        title: 'Healthy Breakfast',
+        activity: 'Breakfast',
+        details: ['Oatmeal with Berries', 'Avocado Toast', 'Greek Yogurt Bowl'],
+        icon: '🍳'
+      },
+      {
+        id: 'focused-work',
+        time: '08:00',
+        title: 'Focused Work Session',
+        activity: 'Work',
+        details: ['Emails & Planning', 'Deep Work: Coding', 'Project Review'],
+        icon: '💻'
+      },
+      {
+        id: 'deep-work',
+        time: '09:00',
+        title: 'Deep Work Block',
+        activity: 'Work',
+        details: ['Deep Work: Coding', 'Problem Solving', 'Algorithm Practice'],
+        icon: '🔬'
+      },
+      {
+        id: 'short-break',
+        time: '10:30',
+        title: 'Short Break',
+        activity: 'Leisure/Break',
+        details: ['Walk Outside', 'Stretch', 'Hydrate'],
+        icon: '🚶‍♂️'
+      },
+      {
+        id: 'creative-work',
+        time: '11:00',
+        title: 'Creative Work',
+        activity: 'Work',
+        details: ['Brainstorming', 'Design', 'Writing'],
+        icon: '🎨'
+      },
+      {
+        id: 'lunch',
+        time: '12:30',
+        title: 'Lunch Break',
+        activity: 'Lunch',
+        details: ['Grilled Chicken Salad', 'Quinoa Bowl', 'Veggie Wrap'],
+        icon: '🥗'
+      },
+      {
+        id: 'afternoon-work',
+        time: '13:30',
+        title: 'Afternoon Work',
+        activity: 'Work',
+        details: ['Meetings', 'Collaboration', 'Review'],
+        icon: '👥'
+      },
+      {
+        id: 'energy-boost',
+        time: '15:00',
+        title: 'Energy Boost',
+        activity: 'Leisure/Break',
+        details: ['10-min Meditation', 'Green Tea', 'Light Snack'],
+        icon: '⚡'
+      },
+      {
+        id: 'physical-activity',
+        time: '16:00',
+        title: 'Physical Activity',
+        activity: 'Workout',
+        details: ['30-min Walk', 'Yoga Flow', 'Gym Session'],
+        icon: '🏃‍♂️'
+      },
+      {
+        id: 'wind-down',
+        time: '17:30',
+        title: 'Wind-down Routine',
+        activity: 'Leisure/Break',
+        details: ['Journaling', 'Gratitude List', 'Breathing Exercises'],
+        icon: '📝'
+      },
+      {
+        id: 'dinner',
+        time: '18:30',
+        title: 'Dinner',
+        activity: 'Dinner',
+        details: ['Salmon & Veggies', 'Lentil Curry', 'Stir-fry Tofu'],
+        icon: '🍽️'
+      },
+      {
+        id: 'leisure',
+        time: '20:00',
+        title: 'Leisure / Hobbies',
+        activity: 'Hobby',
+        details: ['Reading', 'Music', 'Art', 'Podcast'],
+        icon: '📚'
+      },
+      {
+        id: 'evening-relaxation',
+        time: '21:30',
+        title: 'Evening Relaxation',
+        activity: 'Leisure/Break',
+        details: ['Warm Bath', 'Herbal Tea', 'No Screens'],
+        icon: '🛁'
+      },
+      {
+        id: 'sleep-prep',
+        time: '22:30',
+        title: 'Sleep Prep',
+        activity: 'Leisure/Break',
+        details: ['Dim Lights', 'Stretch', 'Affirmations'],
+        icon: '🌙'
+      },
+      {
+        id: 'lights-out',
+        time: '23:00',
+        title: 'Lights Out',
+        activity: 'Sleep',
+        details: ['Sleep', 'Rest', 'Recovery'],
+        icon: '😴'
+      }
+    ];
 
     return (
       <>
-        {selectedPlan.activities.map((activity, index) => {
-          const itemId = `activity-${activity.id || index}`;
+        {dailySchedule.map((scheduleItem, index) => {
+          const itemId = `schedule-${scheduleItem.id}`;
           const isExpanded = expandedItems.has(itemId);
           
           return (
@@ -272,20 +394,18 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
                       ? 'bg-gray-600 border-[#88ba82]' 
                       : 'bg-white border-yellow-400'
                   }`}>
-                    <Clock className={`w-4 h-4 transition-colors duration-300 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                    }`} />
+                    <span className="text-lg">{scheduleItem.icon}</span>
                   </div>
                   <div className="flex flex-col justify-center min-h-[2rem]">
                     <p className={`text-sm font-medium transition-colors duration-300 ${
                       isDarkMode ? 'text-gray-200' : 'text-gray-800'
                     }`}>
-                      {activity.label}
+                      {scheduleItem.title}
                     </p>
                     <p className={`text-xs transition-colors duration-300 ${
                       isDarkMode ? 'text-gray-400' : 'text-gray-600'
                     }`}>
-                      {activity.time}
+                      {scheduleItem.time}
                     </p>
                   </div>
                 </div>
@@ -302,13 +422,32 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
                   <p className={`text-sm transition-colors duration-300 ${
                     isDarkMode ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    <strong>Activity:</strong> {activity.label}
+                    <strong>Activity:</strong> {scheduleItem.activity}
                   </p>
                   <p className={`text-xs mt-2 transition-colors duration-300 ${
                     isDarkMode ? 'text-gray-400' : 'text-gray-600'
                   }`}>
-                    <strong>Time:</strong> {activity.time}
+                    <strong>Time:</strong> {scheduleItem.time}
                   </p>
+                  <div className={`mt-3 transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <p className={`text-xs font-medium mb-2 transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`}>
+                      Details:
+                    </p>
+                    <ul className="space-y-1">
+                      {scheduleItem.details.map((detail, idx) => (
+                        <li key={idx} className={`text-xs flex items-center gap-2 transition-colors duration-300 ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          <span className="w-1 h-1 bg-current rounded-full"></span>
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               )}
             </div>
@@ -401,3 +540,5 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
 };
 
 export default DynamicHealthSection;
+
+

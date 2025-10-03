@@ -15,7 +15,7 @@ export default function PaymentResult() {
   const location = useLocation();
   
   const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(30);
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -230,7 +230,7 @@ export default function PaymentResult() {
               <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
                 <div 
                   className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${((5 - countdown) / 5) * 100}%` }}
+                  style={{ width: `${((30 - countdown) / 30) * 100}%` }}
                 ></div>
               </div>
             </div>

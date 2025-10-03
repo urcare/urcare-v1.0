@@ -13,7 +13,7 @@ interface PaymentSuccessModalProps {
 
 export default function PaymentSuccessModal({ isOpen, amount, paymentMethod, onClose }: PaymentSuccessModalProps) {
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {
     if (!isOpen) return;

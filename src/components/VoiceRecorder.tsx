@@ -120,7 +120,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
       // Send to server for processing
-      const response = await fetch('http://localhost:3000/api/groq/audio-process', {
+      const response = await fetch('/api/groq/audio-process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,3 +273,4 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 };
 
 export default VoiceRecorder;
+

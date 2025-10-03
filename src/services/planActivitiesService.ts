@@ -29,10 +29,9 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
   try {
     const { selectedPlan, userProfile, weeks = 4 } = request;
 
-    // Try localhost first, then production server
+    // Use relative paths for internal API calls
     const apiUrls = [
-      'http://localhost:3000/api/plan-activities',
-      'https://urcare-server.vercel.app/api/plan-activities'
+      '/api/plan-activities' // Internal API call - no CORS needed
     ];
 
     for (const apiUrl of apiUrls) {

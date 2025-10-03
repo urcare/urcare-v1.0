@@ -7,11 +7,19 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "src/pages/api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!robots\\.txt|favicon\\.ico|sw\\.js|images/|icons/|brand\\.png|brand\\.jpg|logoAnimation\\.json|placeholder\\.svg|qr-code-.*|urcare-logo\\.svg).*)",
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!robots\\.txt|favicon\\.ico|sw\\.js|images/|icons/|brand\\.png|brand\\.jpg|logoAnimation\\.json|placeholder\\.svg|qr-code-.*|urcare-logo\\.svg|api/).*)",
       "destination": "/index.html"
     }
   ]

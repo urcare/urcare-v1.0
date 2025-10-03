@@ -1,17 +1,21 @@
-// PhonePe Backend URL - Use Express backend for both localhost and production
+// PhonePe Backend URL - Use environment variable for better configuration
 const PHONEPE_BACKEND_URL = (() => {
-  // Force detection based on hostname for better reliability
+  // Use environment variable first, then detect based on hostname
+  if (import.meta.env.VITE_PHONEPE_API_URL) {
+    return import.meta.env.VITE_PHONEPE_API_URL;
+  }
+  
   if (typeof window !== 'undefined') {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:5000';
     } else {
-      // For production, use Vercel-deployed Express backend
-      return 'https://urcare.vercel.app';
+      // For production, use the correct PhonePe server URL
+      return 'https://phonepe-server-25jew6ja6-urcares-projects.vercel.app';
     }
   }
   // Fallback to environment variable
   return import.meta.env.MODE === 'production' 
-    ? 'https://urcare.vercel.app'
+    ? 'https://phonepe-server-25jew6ja6-urcares-projects.vercel.app'
     : 'http://localhost:5000';
 })();
 
@@ -211,56 +215,39 @@ export async function createPhonePePayment(orderId: string, amount: number, user
         throw new Error(data?.error || data?.message || "Payment initiation failed");
       }
     } else {
-      // For production, use Vercel API routes for live PhonePe integration
-      console.log("🌐 Production mode - using Vercel API for live PhonePe");
+      // For production, use the internal API route (no CORS needed)
+      console.log("🌐 Using internal API for PhonePe");
+      const response = await fetch('/api/phonepe/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
       
-      try {
-        // Call Vercel Express backend that handles PhonePe API calls
-        console.log("🌐 Calling Vercel Express Backend:", `${PHONEPE_BACKEND_URL}/api/phonepe/pay`);
-        console.log("📤 Request body:", JSON.stringify(requestBody, null, 2));
-        
-        const response = await fetch(`${PHONEPE_BACKEND_URL}/api/phonepe/pay`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
-        });
-        
-        console.log("📨 Express Backend response status:", response.status);
-        const data = await response.json();
-        console.log("📨 Express Backend response data:", JSON.stringify(data, null, 2));
+      const data = await response.json();
 
-        if (!response.ok) {
-          console.error("Express Backend error:", data);
-          throw new Error(data.error || "Failed to create payment order");
-        }
+      if (!response.ok) {
+        console.error("Internal API error:", data);
+        throw new Error(data.error || "Failed to create payment order");
+      }
 
-        if (data && data.success && data.redirectUrl) {
-          return {
-            success: true,
-            redirectUrl: data.redirectUrl,
-            orderId: data.orderId,
-            transactionId: data.transactionId,
-            merchantId: data.merchantId,
-            amount: data.amount,
-            planSlug: data.planSlug,
-            billingCycle: data.billingCycle
-          };
-        } else {
-          console.error("Payment initiation failed:", data);
-          throw new Error(data?.error || data?.message || "Payment initiation failed");
-        }
-      } catch (error) {
-        console.error("❌ Express Backend error:", error);
-        console.error("❌ Error details:", {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        });
-        // No fallback - show error and let user retry
-        console.log("❌ Live PhonePe payment failed - no fallback available");
-        throw new Error(`Live PhonePe payment failed: ${error.message}`);
+      console.log("Internal API response:", data);
+
+      if (data && data.success && data.redirectUrl) {
+        return {
+          success: true,
+          redirectUrl: data.redirectUrl,
+          orderId: data.orderId,
+          transactionId: data.transactionId,
+          merchantId: data.merchantId,
+          amount: data.amount,
+          planSlug: data.planSlug,
+          billingCycle: data.billingCycle
+        };
+      } else {
+        console.error("Payment initiation failed:", data);
+        throw new Error(data?.error || data?.message || "Payment initiation failed");
       }
     }
   } catch (error) {

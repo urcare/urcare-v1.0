@@ -33,12 +33,9 @@ export const config = {
     environment: import.meta.env.MODE || "development",
   },
 
-  // API Configuration
+  // API Configuration - Using internal API calls
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 
-      (import.meta.env.MODE === "production" 
-        ? "https://urcare.vercel.app" 
-        : "http://localhost:3000"),
+    baseUrl: '', // Empty for relative paths - no external API calls needed
   },
 };
 

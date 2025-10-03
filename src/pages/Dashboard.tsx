@@ -320,7 +320,7 @@ const Dashboard: React.FC = () => {
         
         // First, get health score
         console.log('🤖 Starting AI health analysis...');
-        const healthScoreResponse = await fetch('http://localhost:3000/api/health-score', {
+        const healthScoreResponse = await fetch('/api/health-score', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ const Dashboard: React.FC = () => {
         console.log('✅ Health Score generated:', healthScore);
 
         // Then, get health plans from Groq API
-        const groqResponse = await fetch('http://localhost:3000/api/groq/generate-plan', {
+        const groqResponse = await fetch('/api/groq/generate-plan', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

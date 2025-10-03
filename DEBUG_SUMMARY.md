@@ -178,3 +178,5 @@ Required environment variables:
 - `SUPABASE_ANON_KEY` - Supabase anonymous key
 
 All issues have been resolved and the server is fully functional! 🎉
+
+

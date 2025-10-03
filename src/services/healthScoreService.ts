@@ -166,9 +166,9 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       timestamp: new Date().toISOString()
     };
 
+    // Use relative paths for internal API calls
     const apiUrls = [
-      'https://urcare-server.vercel.app/api/health-score',
-      'http://localhost:3000/api/health-score'
+      '/api/health-score' // Internal API call - no CORS needed
     ];
 
     for (const apiUrl of apiUrls) {

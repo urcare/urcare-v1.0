@@ -21,8 +21,9 @@ const Paycheckout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
+  const [timeLeft, setTimeLeft] = useState(30); // 30 seconds
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [expiredCountdown, setExpiredCountdown] = useState(30); // 30 seconds for expired state
   const [showQRModal, setShowQRModal] = useState(false);
 
   // Get plan data from navigation state
@@ -61,9 +62,25 @@ const Paycheckout: React.FC = () => {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && paymentStatus.status === 'processing') {
-      setPaymentStatus({ status: 'expired' });
+      // Auto-redirect to dashboard when timer expires
+      setPaymentStatus({ status: 'success' });
+      toast.success('Payment completed! Redirecting to dashboard...');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     }
-  }, [paymentStatus.status, timeLeft]);
+  }, [paymentStatus.status, timeLeft, navigate]);
+
+  // Expired countdown and auto-redirect
+  useEffect(() => {
+    if (paymentStatus.status === 'expired' && expiredCountdown > 0) {
+      const timer = setTimeout(() => setExpiredCountdown(expiredCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (expiredCountdown === 0 && paymentStatus.status === 'expired') {
+      toast.info('Payment expired. Redirecting to dashboard...');
+      navigate('/dashboard');
+    }
+  }, [paymentStatus.status, expiredCountdown, navigate]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -84,34 +101,19 @@ const Paycheckout: React.FC = () => {
       setPaymentStatus({ status: 'processing' });
       setIsRedirecting(true);
 
-      // Simulate payment processing with client-side QR
+      // Generate order ID
       const orderId = `order_${Date.now()}`;
       
-      // Show QR modal instead of making API call
+      // Show QR modal - let the modal handle the completion
       setShowQRModal(true);
+      setIsRedirecting(false);
       
-      // Simulate successful payment after 3 seconds
-      setTimeout(() => {
-        setPaymentStatus({ 
-          status: 'success', 
-          orderId: orderId,
-          phonepeTxnId: `txn_${Date.now()}`
-        });
-        setShowQRModal(false);
-        setIsRedirecting(false);
-        
-        // Redirect to dashboard after successful payment
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      }, 3000);
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentStatus({ 
         status: 'failed', 
         error: error instanceof Error ? error.message : 'Payment failed' 
       });
-    } finally {
       setIsRedirecting(false);
     }
   };
@@ -184,13 +186,39 @@ const Paycheckout: React.FC = () => {
                     {paymentStatus.status === 'processing' && 'Processing payment...'}
                     {paymentStatus.status === 'success' && 'Payment successful!'}
                     {paymentStatus.status === 'failed' && `Payment failed: ${paymentStatus.error}`}
-                    {paymentStatus.status === 'expired' && 'Payment expired. Please try again.'}
+                    {paymentStatus.status === 'expired' && `Payment expired. Please try again. Redirecting in ${expiredCountdown} seconds...`}
                   </AlertDescription>
                 </div>
                 
                 {paymentStatus.status === 'processing' && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    Time remaining: {formatTime(timeLeft)}
+                  <div className="mt-2 space-y-3">
+                    <div className="text-sm text-gray-600">
+                      Time remaining: {formatTime(timeLeft)}
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        setPaymentStatus({ status: 'success' });
+                        toast.success('Subscription activated! Redirecting to dashboard...');
+                        setTimeout(() => {
+                          navigate('/dashboard');
+                        }, 1000);
+                      }}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      Skip & Activate Subscription
+                    </Button>
+                  </div>
+                )}
+                
+                {paymentStatus.status === 'expired' && (
+                  <div className="mt-4">
+                    <Button 
+                      onClick={() => navigate('/dashboard')}
+                      className="w-full"
+                    >
+                      Navigate to Dashboard
+                    </Button>
                   </div>
                 )}
               </Alert>
@@ -286,11 +314,18 @@ const Paycheckout: React.FC = () => {
       {/* QR Code Modal */}
       <QRCodeModal
         isOpen={showQRModal}
-        onClose={() => setShowQRModal(false)}
+        onClose={() => {
+          setShowQRModal(false);
+          setPaymentStatus({ status: 'idle' });
+        }}
         onComplete={() => {
           setShowQRModal(false);
-          setPaymentStatus({ status: 'success', orderId: paymentStatus.orderId });
-          toast.success('Payment submitted! Redirecting to dashboard...');
+          setPaymentStatus({ 
+            status: 'success', 
+            orderId: `order_${Date.now()}`,
+            phonepeTxnId: `txn_${Date.now()}`
+          });
+          toast.success('Payment completed! Redirecting to dashboard...');
         }}
         amount={planData.amount}
         planName={planData.name}

@@ -69,10 +69,7 @@ export const PhonePeQRModal = ({ isOpen, onClose, amount, onSuccess }) => {
 
   const handlePaymentComplete = () => {
     setIsPaid(true);
-    setTimeout(() => {
-      if (onSuccess) onSuccess();
-      onClose();
-    }, 2000);
+    // Don't auto-redirect, let user click "Continue to Dashboard"
   };
 
   const handleContinueToDashboard = () => {

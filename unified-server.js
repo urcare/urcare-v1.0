@@ -1,7 +1,14 @@
-const express = require('express');
-const cors = require('cors');
-const Groq = require('groq-sdk');
-const { createClient } = require('@supabase/supabase-js');
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import Groq from 'groq-sdk';
+import { createClient } from '@supabase/supabase-js';
+import multer from 'multer';
+
+// ES module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,19 +16,18 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors({ 
   origin: [
-    'https://urcare.vercel.app', // Production frontend
-    'http://localhost:5173', // Local development
     'http://localhost:3000', // Local development
-    'http://127.0.0.1:5173', // Local development
-    'http://127.0.0.1:3000' // Local development
+    'http://localhost:5173', // Vite dev server
+    'http://127.0.0.1:3000', // Local development
+    'http://127.0.0.1:5173'  // Vite dev server
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
 
-// Handle preflight requests
-app.options('*', cors());
+// Handle preflight requests - CORS middleware already handles this
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -34,15 +40,19 @@ app.use((req, res, next) => {
 // Initialize Groq
 const GROQ_API_KEY = process.env.VITE_GROQ_API_KEY;
 console.log('🔑 Groq API Key status:', GROQ_API_KEY ? '✅ Configured' : '❌ Missing');
-const groq = new Groq({
+const groq = GROQ_API_KEY ? new Groq({
   apiKey: GROQ_API_KEY,
-});
+}) : null;
 
 // Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://lvnkpserdydhnqbigfbz.supabase.co",
   process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc"
 );
+
+// ============================================================================
+// API ROUTES - All backend logic moved here
+// ============================================================================
 
 // Health Score Generation API - GET endpoint for health check
 app.get('/api/health-score', (req, res) => {
@@ -62,7 +72,7 @@ app.post('/api/health-score', async (req, res) => {
     console.log('🔍 Generating health score for user:', userProfile?.id);
     console.log('🔑 Groq API Key available:', !!GROQ_API_KEY);
 
-    if (!GROQ_API_KEY) {
+    if (!groq) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'
@@ -207,7 +217,7 @@ app.post('/api/health-plans', async (req, res) => {
 
     console.log('🔍 Generating health plans for user:', userProfile?.id);
 
-    if (!GROQ_API_KEY) {
+    if (!groq) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'
@@ -401,7 +411,7 @@ app.post('/api/plan-activities', async (req, res) => {
 
     console.log('🔍 Generating activities for plan:', selectedPlan?.title);
 
-    if (!GROQ_API_KEY) {
+    if (!groq) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'
@@ -525,7 +535,7 @@ app.post('/api/groq/generate-plan', async (req, res) => {
     
     console.log('🔍 Generating plans with Groq for user:', userProfile?.id);
     
-    if (!GROQ_API_KEY) {
+    if (!groq) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'
@@ -556,7 +566,13 @@ app.post('/api/groq/generate-plan', async (req, res) => {
     // Parse and structure the response
     let planData;
     try {
-      planData = JSON.parse(response);
+      // Try to extract JSON from the response if it's not pure JSON
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        planData = JSON.parse(jsonMatch[0]);
+      } else {
+        planData = JSON.parse(response);
+      }
     } catch (parseError) {
       console.error('❌ Failed to parse Groq response:', parseError);
       // Fallback response
@@ -619,7 +635,6 @@ app.post('/api/groq/generate-plan', async (req, res) => {
 app.post('/api/groq/audio-process', async (req, res) => {
   try {
     // Handle multipart/form-data for audio files
-    const multer = require('multer');
     const upload = multer({ storage: multer.memoryStorage() });
     
     upload.single('audio')(req, res, async (err) => {
@@ -673,6 +688,25 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// ============================================================================
+// FRONTEND SERVING - Serve the React build
+// ============================================================================
+
+// Serve static files from the React app build folder
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Handle React routing, return all requests to React app
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// ============================================================================
+// SERVER STARTUP
+// ============================================================================
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Unified server running on port ${PORT}`);
+  console.log(`📱 Frontend: http://localhost:${PORT}`);
+  console.log(`🔧 API: http://localhost:${PORT}/api`);
+  console.log(`❤️  Health: http://localhost:${PORT}/health`);
 });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,9 +16,11 @@ interface PaymentStatus {
 }
 
 const Pay: React.FC = () => {
+  const navigate = useNavigate();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
+  const [timeLeft, setTimeLeft] = useState(30); // 30 seconds
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [expiredCountdown, setExpiredCountdown] = useState(30); // 30 seconds for expired state
 
   // Payment options
   const paymentOptions = [
@@ -48,9 +51,25 @@ const Pay: React.FC = () => {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && paymentStatus.status === 'processing') {
-      setPaymentStatus({ status: 'expired', error: 'Payment timeout. Please try again.' });
+      // Auto-redirect to dashboard when timer expires
+      setPaymentStatus({ status: 'success' });
+      toast.success('Payment completed! Redirecting to dashboard...');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     }
-  }, [timeLeft, paymentStatus.status]);
+  }, [timeLeft, paymentStatus.status, navigate]);
+
+  // Expired countdown and auto-redirect
+  useEffect(() => {
+    if (paymentStatus.status === 'expired' && expiredCountdown > 0) {
+      const timer = setTimeout(() => setExpiredCountdown(expiredCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (expiredCountdown === 0 && paymentStatus.status === 'expired') {
+      toast.info('Payment expired. Redirecting to dashboard...');
+      navigate('/dashboard');
+    }
+  }, [paymentStatus.status, expiredCountdown, navigate]);
 
   // Format time display
   const formatTime = (seconds: number) => {
@@ -228,20 +247,35 @@ const Pay: React.FC = () => {
                   exit={{ opacity: 0, y: -20 }}
                 >
                   {paymentStatus.status === 'processing' && (
-                    <Alert>
-                      <Clock className="h-4 w-4" />
-                      <AlertDescription>
-                        <div className="flex items-center justify-between">
-                          <span>Processing payment...</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-mono">
-                              {formatTime(timeLeft)}
-                            </span>
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                    <div className="space-y-3">
+                      <Alert>
+                        <Clock className="h-4 w-4" />
+                        <AlertDescription>
+                          <div className="flex items-center justify-between">
+                            <span>Processing payment...</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-mono">
+                                {formatTime(timeLeft)}
+                              </span>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            </div>
                           </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
+                        </AlertDescription>
+                      </Alert>
+                      <Button 
+                        onClick={() => {
+                          setPaymentStatus({ status: 'success' });
+                          toast.success('Subscription activated! Redirecting to dashboard...');
+                          setTimeout(() => {
+                            navigate('/dashboard');
+                          }, 1000);
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Skip & Activate Subscription
+                      </Button>
+                    </div>
                   )}
 
                   {paymentStatus.status === 'success' && (
@@ -263,12 +297,21 @@ const Pay: React.FC = () => {
                   )}
 
                   {paymentStatus.status === 'expired' && (
-                    <Alert className="border-orange-200 bg-orange-50">
-                      <Clock className="h-4 w-4 text-orange-600" />
-                      <AlertDescription className="text-orange-800">
-                        Payment session expired. Please start a new payment.
-                      </AlertDescription>
-                    </Alert>
+                    <div className="space-y-3">
+                      <Alert className="border-orange-200 bg-orange-50">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                        <AlertDescription className="text-orange-800">
+                          Payment session expired. Please start a new payment. Redirecting in {expiredCountdown} seconds...
+                        </AlertDescription>
+                      </Alert>
+                      <Button 
+                        onClick={() => navigate('/dashboard')}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        Navigate to Dashboard
+                      </Button>
+                    </div>
                   )}
                 </motion.div>
               )}

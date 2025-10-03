@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, CheckCircle, Clock } from 'lucide-react';
@@ -23,6 +24,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   billingCycle,
   userId = 'user'
 }) => {
+  const navigate = useNavigate();
+
   const handleDownloadQR = () => {
     const link = document.createElement('a');
     link.href = '/images/qr.jpg';
@@ -36,8 +39,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   const handlePaymentComplete = () => {
     onComplete();
     onClose();
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
+    // Use React Router navigation instead of window.location.href
+    navigate('/dashboard');
+    toast.success('Payment completed! Redirecting to dashboard...');
   };
 
   return (
