@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { saveSelectedHealthPlan } from '@/services/healthPlanService';
 import { 
   ArrowLeft, 
   CheckCircle, 
@@ -116,15 +117,44 @@ const HealthPlanGeneration: React.FC = () => {
     return labelMap[metric] || metric;
   };
 
-  const handleStartPlan = () => {
-    if (selectedPlan) {
-      toast.success(`Starting ${selectedPlan.title}!`);
-      navigate('/workout-dashboard', { state: { selectedPlan } });
+  const handleStartPlan = async () => {
+    if (!selectedPlan || !user) {
+      toast.error("Please log in to start a plan");
+      return;
+    }
+
+    try {
+      // Save the selected plan
+      const result = await saveSelectedHealthPlan(user.id, selectedPlan);
+      
+      if (result.success) {
+        toast.success(`Plan "${selectedPlan.title}" saved and started!`);
+        
+        // Navigate back to dashboard with the plan saved
+        navigate('/dashboard', { 
+          state: { 
+            planSaved: true,
+            selectedPlan: selectedPlan,
+            showTodaysSchedule: true
+          } 
+        });
+      } else {
+        toast.error("Failed to save plan. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving plan:", error);
+      toast.error("Failed to save plan. Please try again.");
     }
   };
 
   const handleGoBack = () => {
-    navigate('/dashboard');
+    // Navigate back to dashboard with the generated plans preserved
+    navigate('/dashboard', { 
+      state: { 
+        preserveHealthPlans: true,
+        generatedPlans: location.state?.generatedPlans || []
+      } 
+    });
   };
 
   if (!user) {

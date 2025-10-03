@@ -298,17 +298,53 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
 // Save selected health plan
 export const saveSelectedHealthPlan = async (userId: string, plan: HealthPlan) => {
   try {
-    // For now, just store in localStorage since the table doesn't exist
+    // Create a comprehensive plan structure
     const selectedPlan = {
       ...plan,
       userId,
       selectedAt: new Date().toISOString(),
-      status: 'active'
+      status: 'active',
+      startDate: new Date().toISOString().split('T')[0], // Today's date
+      activities: plan.activities || [
+        {
+          time: '07:00',
+          title: 'Morning Routine',
+          description: `Start your ${plan.title} - ${plan.description}`,
+          duration: '30 minutes',
+          category: 'Wake up'
+        },
+        {
+          time: '08:00',
+          title: 'Workout Session',
+          description: `Follow your ${plan.difficulty} level plan`,
+          duration: '45 minutes',
+          category: 'Exercise'
+        },
+        {
+          time: '09:00',
+          title: 'Healthy Breakfast',
+          description: 'Nutritious meal to fuel your day',
+          duration: '20 minutes',
+          category: 'Meals'
+        }
+      ]
     };
     
+    // Save to localStorage
     localStorage.setItem('selectedHealthPlan', JSON.stringify(selectedPlan));
     
+    // Also save to a separate key for today's activities
+    const todaysActivities = selectedPlan.activities.map(activity => ({
+      ...activity,
+      id: Math.random().toString(36).substr(2, 9),
+      completed: false,
+      timestamp: new Date().toISOString()
+    }));
+    
+    localStorage.setItem('todaysActivities', JSON.stringify(todaysActivities));
+    
     console.log('✅ Health plan saved to localStorage:', selectedPlan);
+    console.log('✅ Today\'s activities created:', todaysActivities);
     
     return {
       success: true,

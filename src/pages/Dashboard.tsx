@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { UserFlowHandler } from "@/components/UserFlowHandler";
 import { 
@@ -59,6 +59,7 @@ interface HealthPlan {
 const Dashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Add error boundary for Dashboard
   const [hasError, setHasError] = useState(false);
@@ -72,6 +73,62 @@ const Dashboard: React.FC = () => {
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
+
+  // Handle navigation state from health plan generation page
+  useEffect(() => {
+    if (location.state) {
+      const { planSaved, selectedPlan, showTodaysSchedule, preserveHealthPlans, generatedPlans } = location.state;
+      
+      if (planSaved && selectedPlan) {
+        // Plan was saved, update today's activities
+        setSelectedPlan(selectedPlan);
+        
+        // Create activities for today's schedule
+        const activities = [
+          {
+            id: 'morning-routine',
+            time: '07:00',
+            title: 'Morning Routine',
+            description: `Start your ${selectedPlan.title} - ${selectedPlan.description}`,
+            duration: '30 minutes',
+            category: 'Wake up',
+            completed: false,
+            timestamp: new Date().toISOString()
+          },
+          {
+            id: 'workout-session',
+            time: '08:00',
+            title: 'Workout Session',
+            description: `Follow your ${selectedPlan.difficulty} level plan`,
+            duration: '45 minutes',
+            category: 'Exercise',
+            completed: false,
+            timestamp: new Date().toISOString()
+          },
+          {
+            id: 'healthy-meal',
+            time: '09:00',
+            title: 'Healthy Breakfast',
+            description: 'Nutritious meal to fuel your day',
+            duration: '20 minutes',
+            category: 'Meals',
+            completed: false,
+            timestamp: new Date().toISOString()
+          }
+        ];
+        
+        setTodaysActivities(activities);
+        localStorage.setItem('todaysActivities', JSON.stringify(activities));
+        setShowHealthPlans(false);
+        
+        toast.success(`Plan "${selectedPlan.title}" is now active!`);
+      } else if (preserveHealthPlans && generatedPlans) {
+        // Preserve the generated plans when going back
+        setHealthPlans(generatedPlans);
+        setShowHealthPlans(true);
+      }
+    }
+  }, [location.state]);
 
   if (hasError) {
     return (
@@ -381,31 +438,14 @@ const Dashboard: React.FC = () => {
 
     try {
       setSelectedPlan(plan);
-      const result = await saveSelectedHealthPlan(user.id, plan);
-      if (result.success) {
-        toast.success(`Selected plan: ${plan.title}`);
-        
-        // Update today's activities based on selected plan
-        if (plan.activities && plan.activities.length > 0) {
-          const activitiesWithTimestamps = plan.activities.map(activity => ({
-            ...activity,
-            id: Math.random().toString(36).substr(2, 9),
-            completed: false,
-            timestamp: new Date().toISOString()
-          }));
-          setTodaysActivities(activitiesWithTimestamps);
-          
-          // Save to localStorage for persistence
-          localStorage.setItem('todaysActivities', JSON.stringify(activitiesWithTimestamps));
-        }
-        
-        // Hide the health plans and show the updated Today's Schedule
-        setShowHealthPlans(false);
-        // Navigate to health plan generation page
-        navigate('/health-plan-generation', { state: { selectedPlan: plan } });
-      } else {
-        throw new Error(result.error || "Failed to save selected plan");
-      }
+      
+        // Navigate to health plan generation page with the plan and generated plans
+        navigate('/health-plan-generation', { 
+          state: { 
+            selectedPlan: plan,
+            generatedPlans: healthPlans // Pass all generated plans
+          } 
+        });
     } catch (error) {
       console.error("Error selecting plan:", error);
       toast.error(error instanceof Error ? error.message : "Failed to select plan");
