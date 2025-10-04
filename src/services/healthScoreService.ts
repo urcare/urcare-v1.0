@@ -140,22 +140,33 @@ interface HealthScoreResponse {
 
 export const calculateHealthScore = async (request: HealthScoreRequest): Promise<HealthScoreResponse> => {
   try {
-    // Use Multi-AI service for enhanced health score calculation
-    const multiAIResponse = await multiAIService.calculateHealthScore(request);
+    console.log('🔍 Calculating health score using Supabase function...');
+    
+    // Call Supabase Edge Function for health score calculation
+    const { data, error } = await supabase.functions.invoke('health-score', {
+      body: {
+        userProfile: request.userProfile,
+        userInput: request.userInput,
+        uploadedFiles: request.uploadedFiles,
+        voiceTranscript: request.voiceTranscript
+      }
+    });
 
-    if (multiAIResponse.success && multiAIResponse.data) {
-      console.log(`Multi-AI Health Score calculated in ${multiAIResponse.processingTime}ms`);
-      console.log(`Consensus Score: ${multiAIResponse.consensusScore}`);
-      console.log(`AI Responses: ${multiAIResponse.responses.filter(r => r.success).length}/3 successful`);
+    if (error) {
+      console.error('❌ Supabase function error:', error);
+      throw new Error(`Supabase function error: ${error.message}`);
+    }
 
+    if (data && data.success) {
+      console.log(`✅ Health Score calculated: ${data.healthScore}`);
       return {
         success: true,
-        healthScore: multiAIResponse.data.healthScore,
-        analysis: multiAIResponse.data.analysis,
-        recommendations: multiAIResponse.data.recommendations
+        healthScore: data.healthScore,
+        analysis: data.analysis,
+        recommendations: data.recommendations
       };
     } else {
-      throw new Error(multiAIResponse.error || 'Multi-AI health score calculation failed');
+      throw new Error(data?.error || 'Health score calculation failed');
     }
 
   } catch (error) {

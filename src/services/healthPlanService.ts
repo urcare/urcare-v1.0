@@ -203,26 +203,28 @@ interface HealthPlanResponse {
 
 export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
   try {
-    // Use Multi-AI service for enhanced health plan generation
-    const multiAIResponse = await multiAIService.generateHealthPlans({
-      userProfile: request.userProfile,
-      healthScore: request.healthScore,
-      analysis: request.analysis,
-      recommendations: request.recommendations,
-      userInput: request.userInput || ''
+    console.log('🔍 Generating health plans using Supabase function...');
+    
+    // Call Supabase Edge Function for health plan generation
+    const { data, error } = await supabase.functions.invoke('generate-ai-health-plans', {
+      body: {
+        user_profile: request.userProfile
+      }
     });
 
-    if (multiAIResponse.success && multiAIResponse.data && multiAIResponse.data.plans) {
-      console.log(`Multi-AI Health Plans generated in ${multiAIResponse.processingTime}ms`);
-      console.log(`AI Responses: ${multiAIResponse.responses.filter(r => r.success).length}/3 successful`);
-      console.log('✅ Multi-AI health plans generated:', multiAIResponse.data.plans);
-      
+    if (error) {
+      console.error('❌ Supabase function error:', error);
+      throw new Error(`Supabase function error: ${error.message}`);
+    }
+
+    if (data && data.success && data.plans) {
+      console.log(`✅ Health Plans generated: ${data.plans.length} plans`);
       return {
         success: true,
-        plans: multiAIResponse.data.plans
+        plans: data.plans
       };
     } else {
-      throw new Error(multiAIResponse.error || 'Multi-AI health plan generation failed');
+      throw new Error(data?.error || 'Health plan generation failed');
     }
 
   } catch (error) {
