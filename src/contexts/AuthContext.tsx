@@ -482,6 +482,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         toast.success(
           "Signup successful! Please check your email to confirm your account."
         );
+        
+        // Redirect to onboarding after successful signup
+        setTimeout(() => {
+          window.location.href = "/onboarding";
+        }, 2000);
       } catch (error) {
         console.error("Signup error:", error);
         const errorMessage =
@@ -510,6 +515,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } as User;
         setUser(mockUser);
         toast.success("Test login successful!");
+        
+        // Redirect to dashboard after test login
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
         return;
       }
 
@@ -521,6 +531,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) throw error;
 
       toast.success("Login successful!");
+      
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1000);
     } catch (error) {
       console.error("Login error:", error);
       const errorMessage =
@@ -663,6 +678,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         setUser(authData.user);
         toast.success("Account created successfully!");
+        
+        // Redirect to onboarding after successful account creation
+        setTimeout(() => {
+          window.location.href = "/onboarding";
+        }, 1000);
+        
         return authData.user;
       }
     } catch (error) {

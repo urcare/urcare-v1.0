@@ -62,8 +62,8 @@ export const AuthCallback: React.FC = () => {
           if (profile) {
             redirectRoute = await authFlowService.getRedirectRoute(user, profile);
           } else {
-            console.log("AuthCallback: Profile not loaded yet, using default onboarding route");
-            redirectRoute = "/onboarding"; // Default to onboarding for new users
+            console.log("AuthCallback: Profile not loaded yet, using default dashboard route");
+            redirectRoute = "/dashboard"; // Default to dashboard for returning users
           }
           
           console.log("AuthCallback: Got redirect route:", redirectRoute);
