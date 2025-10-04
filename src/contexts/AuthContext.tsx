@@ -231,13 +231,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Handle user authentication
   const handleUserAuth = useCallback(
     async (user: User | null) => {
+      console.log("🔄 handleUserAuth called with user:", user?.id);
+      
       if (!user) {
+        console.log("🔄 No user, clearing state");
         setUser(null);
         setProfile(null);
         profileCache.clear();
         return;
       }
 
+      console.log("🔄 Setting user:", user.id);
       setUser(user);
 
       try {
@@ -254,6 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const [, userProfile] = await Promise.race([profilePromise, timeoutPromise]) as [void, UserProfile | null];
 
         if (userProfile) {
+          console.log("🔄 Setting profile from database:", userProfile.onboarding_completed);
           // Safety check to ensure we don't set an error object as profile
           if (typeof userProfile === 'object' && ('success' in userProfile || 'error' in userProfile)) {
             console.error('❌ Attempted to set error object as profile:', userProfile);
@@ -263,6 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setProfile(userProfile);
           }
         } else {
+          console.log("🔄 No profile found, creating minimal profile");
           const minimalProfile = createMinimalProfile(user);
           setProfile(minimalProfile);
         }
@@ -353,15 +359,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                              window.location.pathname === '/email-verification' ||
                              window.location.pathname === '/tasks-demo';
         
-        if (isDevelopment && isPublicRoute && !isOAuthCallback) {
-          if (mounted) {
-            setUser(null);
-            setProfile(null);
-            setLoading(false);
-            setIsInitialized(true);
-          }
-          return;
-        }
+        // Remove development mode bypass - always check authentication
+        // This was causing users to be logged out on localhost
 
         const {
           data: { user },
@@ -425,28 +424,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                            window.location.pathname === '/email-verification' ||
                            window.location.pathname === '/tasks-demo';
       
-      // Always set up auth listener in production, or for protected routes in development
-      if (!isDevelopment || !isPublicRoute || isOAuthCallback) {
-        const {
-          data: { subscription: authSubscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-          if (!mounted) return;
+      // Always set up auth listener - removed development mode bypass
+      const {
+        data: { subscription: authSubscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
 
-          // Skip auth state changes during initialization to prevent duplicate calls
-          if (isInitializing) {
-            return;
-          }
+        // Skip auth state changes during initialization to prevent duplicate calls
+        if (isInitializing) {
+          return;
+        }
 
-          if (event === "SIGNED_IN") {
-            await handleUserAuth(session?.user || null);
-          } else if (event === "SIGNED_OUT") {
-            setUser(null);
-            setProfile(null);
-            profileCache.clear();
-          }
-        });
-        subscription = authSubscription;
-      }
+        if (event === "SIGNED_IN") {
+          console.log("🔄 Auth state change: SIGNED_IN", session?.user?.id);
+          await handleUserAuth(session?.user || null);
+          
+          // After successful sign in, redirect to appropriate page
+          setTimeout(async () => {
+            try {
+              const redirectRoute = await authFlowService.getRedirectRoute(session?.user || null);
+              console.log("🔄 Redirecting after sign in to:", redirectRoute);
+              window.location.href = redirectRoute;
+            } catch (error) {
+              console.error("❌ Error redirecting after sign in:", error);
+              window.location.href = "/dashboard";
+            }
+          }, 1000);
+        } else if (event === "SIGNED_OUT") {
+          console.log("🔄 Auth state change: SIGNED_OUT");
+          setUser(null);
+          setProfile(null);
+          profileCache.clear();
+        }
+      });
+      subscription = authSubscription;
 
       // Initialize auth after setting up listener
       initializeAuth();
@@ -482,11 +493,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         toast.success(
           "Signup successful! Please check your email to confirm your account."
         );
-        
-        // Redirect to onboarding after successful signup
-        setTimeout(() => {
-          window.location.href = "/onboarding";
-        }, 2000);
+        // User will be redirected after email confirmation
       } catch (error) {
         console.error("Signup error:", error);
         const errorMessage =
@@ -515,11 +522,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } as User;
         setUser(mockUser);
         toast.success("Test login successful!");
-        
-        // Redirect to dashboard after test login
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1000);
+        // Auth state change will handle redirect
         return;
       }
 
@@ -531,11 +534,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) throw error;
 
       toast.success("Login successful!");
-      
-      // Redirect to dashboard after successful login
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1000);
+      // Auth state change will handle redirect
     } catch (error) {
       console.error("Login error:", error);
       const errorMessage =
@@ -678,12 +677,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         setUser(authData.user);
         toast.success("Account created successfully!");
-        
-        // Redirect to onboarding after successful account creation
-        setTimeout(() => {
-          window.location.href = "/onboarding";
-        }, 1000);
-        
+        // Auth state change will handle redirect
         return authData.user;
       }
     } catch (error) {
