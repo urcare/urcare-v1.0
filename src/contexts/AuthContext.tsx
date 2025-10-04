@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         // Add timeout protection to prevent hanging
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
         );
         
         const profilePromise = Promise.all([
@@ -254,15 +254,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const [, userProfile] = await Promise.race([profilePromise, timeoutPromise]) as [void, UserProfile | null];
 
         if (userProfile) {
-          setProfile(userProfile);
+          // Safety check to ensure we don't set an error object as profile
+          if (typeof userProfile === 'object' && ('success' in userProfile || 'error' in userProfile)) {
+            console.error('❌ Attempted to set error object as profile:', userProfile);
+            const minimalProfile = createMinimalProfile(user);
+            setProfile(minimalProfile);
+          } else {
+            setProfile(userProfile);
+          }
         } else {
           const minimalProfile = createMinimalProfile(user);
           setProfile(minimalProfile);
         }
       } catch (error) {
-        console.warn("❌ Profile operations failed:", error);
+        // Only log timeout errors once to avoid spam
+        if (error instanceof Error && error.message.includes('timeout')) {
+          console.warn("⚠️ Profile fetch timeout - using minimal profile");
+        } else {
+          console.warn("❌ Profile operations failed:", error);
+        }
         const minimalProfile = createMinimalProfile(user);
-        setProfile(minimalProfile);
+        // Safety check to ensure we don't set an error object as profile
+        if (typeof minimalProfile === 'object' && ('success' in minimalProfile || 'error' in minimalProfile)) {
+          console.error('❌ Minimal profile is an error object:', minimalProfile);
+          // Create a basic profile as fallback
+          const basicProfile = {
+            id: user.id,
+            full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+            onboarding_completed: false,
+            status: "active",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            age: null,
+            date_of_birth: null,
+            gender: null,
+            unit_system: null,
+            height_feet: null,
+            height_inches: null,
+            height_cm: null,
+            weight_lb: null,
+            weight_kg: null,
+            wake_up_time: null,
+            sleep_time: null,
+            work_start: null,
+            work_end: null,
+            chronic_conditions: null,
+            takes_medications: null,
+            medications: null,
+            has_surgery: null,
+            surgery_details: null,
+            health_goals: null,
+            diet_type: null,
+            blood_group: null,
+            breakfast_time: null,
+            lunch_time: null,
+            dinner_time: null,
+            workout_time: null,
+            routine_flexibility: null,
+            workout_type: null,
+            smoking: null,
+            drinking: null,
+            track_family: null,
+            critical_conditions: null,
+            has_health_reports: null,
+            health_reports: null,
+            referral_code: null,
+            save_progress: null,
+            preferences: null,
+          } as UserProfile;
+          setProfile(basicProfile);
+        } else {
+          setProfile(minimalProfile);
+        }
       }
     },
     [fetchUserProfile, ensureUserProfile]
@@ -275,12 +338,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const initializeAuth = async () => {
       try {
-        // For localhost development, only skip auth checks if NOT coming from OAuth callback and NOT on dashboard
-        if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
-            !window.location.pathname.includes('/auth/callback') && 
-            !window.location.search.includes('code=') &&
-            !window.location.pathname.includes('/dashboard')) {
-          console.log("🔓 Localhost development mode - skipping auth checks");
+        // In production, always check authentication
+        // Only skip auth checks in development for truly public routes
+        const isDevelopment = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                             import.meta.env.DEV;
+        const isOAuthCallback = window.location.pathname.includes('/auth/callback') || window.location.search.includes('code=');
+        const isPublicRoute = window.location.pathname === '/' || 
+                             window.location.pathname === '/legal' ||
+                             window.location.pathname === '/admin-login' ||
+                             window.location.pathname === '/my-admin' ||
+                             window.location.pathname === '/admin-dashboard' ||
+                             window.location.pathname === '/email-auth' ||
+                             window.location.pathname === '/email-signin' ||
+                             window.location.pathname === '/email-verification' ||
+                             window.location.pathname === '/tasks-demo';
+        
+        if (isDevelopment && isPublicRoute && !isOAuthCallback) {
           if (mounted) {
             setUser(null);
             setProfile(null);
@@ -337,11 +410,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!authListenerRef.current) {
       authListenerRef.current = true;
 
-      // Skip auth listener for localhost development, but allow OAuth callbacks and dashboard
+      // Set up auth listener for production and protected routes in development
       let subscription: any = null;
+      const isDevelopment = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                           import.meta.env.DEV;
       const isOAuthCallback = window.location.pathname.includes('/auth/callback') || window.location.search.includes('code=');
-      const isDashboard = window.location.pathname.includes('/dashboard');
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' || isOAuthCallback || isDashboard) {
+      const isPublicRoute = window.location.pathname === '/' || 
+                           window.location.pathname === '/legal' ||
+                           window.location.pathname === '/admin-login' ||
+                           window.location.pathname === '/my-admin' ||
+                           window.location.pathname === '/admin-dashboard' ||
+                           window.location.pathname === '/email-auth' ||
+                           window.location.pathname === '/email-signin' ||
+                           window.location.pathname === '/email-verification' ||
+                           window.location.pathname === '/tasks-demo';
+      
+      // Always set up auth listener in production, or for protected routes in development
+      if (!isDevelopment || !isPublicRoute || isOAuthCallback) {
         const {
           data: { subscription: authSubscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {

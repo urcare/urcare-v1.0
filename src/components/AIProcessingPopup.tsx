@@ -14,9 +14,10 @@ interface AIProcessingPopupProps {
   isOpen: boolean;
   onComplete: (result: any) => void;
   onError: (error: string) => void;
+  isActuallyProcessing?: boolean; // Add this to control when popup should close
 }
 
-const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplete, onError }) => {
+const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplete, onError, isActuallyProcessing = true }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
     {
@@ -51,25 +52,60 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
     }
   }, [isOpen]);
 
+  // Watch for actual processing completion
+  useEffect(() => {
+    if (!isActuallyProcessing && isOpen) {
+      // API processing is complete, finish the animation
+      completeProcessing();
+    }
+  }, [isActuallyProcessing, isOpen]);
+
   const startProcessing = async () => {
-    for (let i = 0; i < steps.length; i++) {
-      // Update current step to processing
-      setSteps(prev => prev.map((step, index) => 
-        index === i ? { ...step, status: 'processing' } : step
-      ));
-      setCurrentStep(i);
+    // Start with first step
+    setSteps(prev => prev.map((step, index) => 
+      index === 0 ? { ...step, status: 'processing' } : step
+    ));
+    setCurrentStep(0);
 
-      // Simulate processing time (2-4 seconds per step)
-      const processingTime = Math.random() * 2000 + 2000;
-      await new Promise(resolve => setTimeout(resolve, processingTime));
+    // Progress through steps while API is processing
+    const progressInterval = setInterval(() => {
+      setSteps(prev => {
+        const currentProcessingIndex = prev.findIndex(step => step.status === 'processing');
+        if (currentProcessingIndex >= 0) {
+          // Mark current step as completed
+          const updatedSteps = prev.map((step, index) => 
+            index === currentProcessingIndex ? { ...step, status: 'completed' } : step
+          );
+          
+          // Start next step if available
+          const nextIndex = currentProcessingIndex + 1;
+          if (nextIndex < prev.length) {
+            updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'processing' };
+            setCurrentStep(nextIndex);
+          }
+          
+          return updatedSteps;
+        }
+        return prev;
+      });
+    }, 2000); // Progress every 2 seconds
 
-      // Mark step as completed
-      setSteps(prev => prev.map((step, index) => 
-        index === i ? { ...step, status: 'completed' } : step
-      ));
+    // Store interval ID for cleanup
+    (window as any).progressInterval = progressInterval;
+  };
+
+  const completeProcessing = () => {
+    // Clear the progress interval
+    if ((window as any).progressInterval) {
+      clearInterval((window as any).progressInterval);
     }
 
-    // All steps completed
+    // Complete all remaining steps quickly
+    setSteps(prev => prev.map(step => 
+      step.status === 'processing' ? { ...step, status: 'completed' } : step
+    ));
+
+    // Call onComplete after a short delay
     setTimeout(() => {
       onComplete({ success: true });
     }, 1000);

@@ -118,6 +118,7 @@ class OnboardingService {
   async saveOnboardingData(user: User, data: OnboardingData): Promise<{ success: boolean; error?: string }> {
     try {
       console.log("Saving onboarding data for user:", user.id);
+      console.log("Onboarding data received:", data);
       
       // Calculate date of birth
       const dateOfBirth = this.calculateDateOfBirth(data.birthMonth, data.birthDay, data.birthYear);
@@ -162,12 +163,13 @@ class OnboardingService {
         onboarding_completed: true,
         // Additional health fields (only include fields that exist in the database)
         allergies: data.allergies || null,
-        // Set constraint-prone fields to null to avoid violations
-        smoking: null,
-        drinking: null,
+        // Set constraint-prone fields to proper values to avoid violations
+        smoking: data.smoking || null,
+        drinking: data.drinking || null,
       };
 
       // Save to user_profiles table
+      console.log("Saving profile data:", profileData);
       const { error: profileError } = await supabase
         .from("user_profiles")
         .upsert(profileData, { onConflict: "id" });
@@ -176,25 +178,28 @@ class OnboardingService {
         console.error("Error saving profile:", profileError);
         return { success: false, error: profileError.message };
       }
+      console.log("Profile saved successfully");
 
       // Save raw onboarding data to onboarding_profiles table
+      const onboardingData = {
+        user_id: user.id,
+        details: data as any,
+        onboarding_version: "1.0",
+        completed_steps: ["all"],
+        completion_percentage: 100,
+      };
+      console.log("Saving onboarding details:", onboardingData);
+      
       const { error: onboardingError } = await supabase
         .from("onboarding_profiles")
-        .upsert(
-          {
-            user_id: user.id,
-            details: data as any,
-            onboarding_version: "1.0",
-            completed_steps: ["all"],
-            completion_percentage: 100,
-          },
-          { onConflict: "user_id" }
-        );
+        .upsert(onboardingData, { onConflict: "user_id" });
 
       if (onboardingError) {
         console.error("Error saving onboarding details:", onboardingError);
         // Don't fail the entire process if onboarding_profiles save fails
         console.warn("Onboarding details save failed, but profile was saved successfully");
+      } else {
+        console.log("Onboarding details saved successfully");
       }
 
       console.log("Onboarding data saved successfully");

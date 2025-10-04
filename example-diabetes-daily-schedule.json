@@ -1,0 +1,664 @@
+{
+  "schedule_id": "diabetes_schedule_2024_01_15",
+  "user_id": "user_123",
+  "plan_id": "diabetes_reversal_intermediate",
+  "date": "2024-01-15",
+  "day_of_week": "monday",
+  "day_type": "workout",
+  "theme": "Metabolic Reset Monday",
+  "activities": [
+    {
+      "id": "activity_1_2024_01_15",
+      "template_id": "morning_glucose_check",
+      "title": "Morning Glucose Check",
+      "category": "health_monitoring",
+      "scheduled_time": "06:30",
+      "duration_minutes": 5,
+      "intensity": "low",
+      "description": "Check fasting blood glucose levels",
+      "instructions": [
+        "Wash hands thoroughly with soap and water",
+        "Use lancet to prick side of finger",
+        "Apply blood drop to test strip",
+        "Wait for reading (usually 5-10 seconds)",
+        "Record reading in diabetes logbook",
+        "Note any unusual readings or symptoms"
+      ],
+      "equipment": [
+        "Blood glucose monitor",
+        "Test strips",
+        "Lancets",
+        "Alcohol wipes",
+        "Diabetes logbook"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "blood_glucose_reading": null,
+      "notes": "Target range: 80-130 mg/dL"
+    },
+    {
+      "id": "activity_2_2024_01_15",
+      "template_id": "morning_walk",
+      "title": "Morning Metabolic Walk",
+      "category": "exercise",
+      "scheduled_time": "07:00",
+      "duration_minutes": 30,
+      "intensity": "medium",
+      "description": "Brisk walk to improve insulin sensitivity and burn glucose",
+      "instructions": [
+        "Start with 5-minute warm-up at slow pace",
+        "Increase to brisk pace (able to talk but not sing)",
+        "Focus on deep, rhythmic breathing",
+        "Maintain good posture and arm swing",
+        "End with 5-minute cool-down at slow pace",
+        "Monitor heart rate if using monitor"
+      ],
+      "equipment": [
+        "Comfortable walking shoes",
+        "Heart rate monitor (optional)",
+        "Water bottle",
+        "Weather-appropriate clothing"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "heart_rate_avg": null,
+      "steps_taken": null,
+      "notes": "Target heart rate: 50-70% of max"
+    },
+    {
+      "id": "activity_3_2024_01_15",
+      "template_id": "diabetes_breakfast",
+      "title": "Diabetes-Friendly Breakfast",
+      "category": "nutrition",
+      "scheduled_time": "08:00",
+      "duration_minutes": 20,
+      "intensity": "low",
+      "description": "Low-carb, high-protein breakfast to stabilize blood sugar",
+      "instructions": [
+        "Prepare breakfast within 1 hour of waking",
+        "Include 20-30g protein and healthy fats",
+        "Limit carbohydrates to 15-20g total",
+        "Eat slowly and mindfully",
+        "Check glucose 2 hours after eating",
+        "Record meal and glucose reading"
+      ],
+      "equipment": [
+        "Food scale",
+        "Measuring cups",
+        "Cooking utensils",
+        "Plate and utensils"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "meal_details": {
+        "protein_grams": 0,
+        "carb_grams": 0,
+        "fat_grams": 0,
+        "calories": 0,
+        "ingredients": []
+      },
+      "notes": "Sample meal: 2 eggs, 1 slice whole grain toast, 1/2 avocado"
+    },
+    {
+      "id": "activity_4_2024_01_15",
+      "template_id": "stress_management",
+      "title": "Morning Stress Management",
+      "category": "mindfulness",
+      "scheduled_time": "09:00",
+      "duration_minutes": 15,
+      "intensity": "low",
+      "description": "Meditation and breathing exercises to reduce cortisol levels",
+      "instructions": [
+        "Find quiet, comfortable space",
+        "Sit with back straight, feet flat on floor",
+        "Close eyes and focus on deep breathing",
+        "Practice 4-7-8 breathing technique",
+        "Visualize health goals and success",
+        "End with gratitude practice"
+      ],
+      "equipment": [
+        "Comfortable chair or cushion",
+        "Timer or meditation app",
+        "Quiet space"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "stress_level_before": null,
+      "stress_level_after": null,
+      "notes": "Focus on reducing cortisol for better blood sugar control"
+    },
+    {
+      "id": "activity_5_2024_01_15",
+      "template_id": "mid_morning_snack",
+      "title": "Mid-Morning Snack",
+      "category": "nutrition",
+      "scheduled_time": "10:00",
+      "duration_minutes": 10,
+      "intensity": "low",
+      "description": "Healthy snack to maintain blood sugar levels",
+      "instructions": [
+        "Choose protein-rich snack",
+        "Limit to 5-10g carbohydrates",
+        "Include healthy fats if possible",
+        "Eat slowly and mindfully",
+        "Check glucose if feeling symptoms"
+      ],
+      "equipment": [
+        "Food scale",
+        "Measuring cups"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "snack_details": {
+        "protein_grams": 0,
+        "carb_grams": 0,
+        "fat_grams": 0,
+        "calories": 0
+      },
+      "notes": "Sample snack: 1 oz nuts or 1/2 cup Greek yogurt"
+    },
+    {
+      "id": "activity_6_2024_01_15",
+      "template_id": "work_session",
+      "title": "Focused Work Session",
+      "category": "work",
+      "scheduled_time": "10:30",
+      "duration_minutes": 120,
+      "intensity": "low",
+      "description": "Productive work session with diabetes management considerations",
+      "instructions": [
+        "Set up ergonomic workspace",
+        "Keep water bottle nearby",
+        "Set timer for hourly breaks",
+        "Check glucose if feeling symptoms",
+        "Take standing breaks every hour",
+        "Stay hydrated throughout"
+      ],
+      "equipment": [
+        "Computer/laptop",
+        "Water bottle",
+        "Timer",
+        "Ergonomic setup"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "productivity_rating": null,
+      "notes": "Take breaks to prevent blood sugar spikes from stress"
+    },
+    {
+      "id": "activity_7_2024_01_15",
+      "template_id": "lunch",
+      "title": "Balanced Diabetes Lunch",
+      "category": "nutrition",
+      "scheduled_time": "12:30",
+      "duration_minutes": 30,
+      "intensity": "low",
+      "description": "Balanced lunch with proper macronutrients for diabetes management",
+      "instructions": [
+        "Include lean protein, vegetables, and complex carbs",
+        "Limit carbohydrates to 15-20g",
+        "Add healthy fats for satiety",
+        "Eat slowly and mindfully",
+        "Check glucose 2 hours after eating",
+        "Record meal and glucose reading"
+      ],
+      "equipment": [
+        "Food scale",
+        "Measuring cups",
+        "Cooking utensils"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "meal_details": {
+        "protein_grams": 0,
+        "carb_grams": 0,
+        "fat_grams": 0,
+        "calories": 0,
+        "ingredients": []
+      },
+      "notes": "Sample meal: Grilled chicken salad with olive oil dressing"
+    },
+    {
+      "id": "activity_8_2024_01_15",
+      "template_id": "afternoon_walk",
+      "title": "Afternoon Blood Sugar Walk",
+      "category": "exercise",
+      "scheduled_time": "15:00",
+      "duration_minutes": 20,
+      "intensity": "medium",
+      "description": "Short walk to help manage post-lunch blood sugar",
+      "instructions": [
+        "Take 10-minute walk after lunch",
+        "Maintain moderate pace",
+        "Focus on deep breathing",
+        "Enjoy nature if possible",
+        "Return to work refreshed"
+      ],
+      "equipment": [
+        "Comfortable walking shoes",
+        "Water bottle"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "steps_taken": null,
+      "notes": "Helps lower post-meal blood sugar spikes"
+    },
+    {
+      "id": "activity_9_2024_01_15",
+      "template_id": "afternoon_snack",
+      "title": "Afternoon Snack",
+      "category": "nutrition",
+      "scheduled_time": "15:30",
+      "duration_minutes": 10,
+      "intensity": "low",
+      "description": "Healthy afternoon snack to maintain energy and blood sugar",
+      "instructions": [
+        "Choose protein-rich snack",
+        "Limit to 5-10g carbohydrates",
+        "Include fiber if possible",
+        "Eat slowly and mindfully",
+        "Check glucose if feeling symptoms"
+      ],
+      "equipment": [
+        "Food scale",
+        "Measuring cups"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "snack_details": {
+        "protein_grams": 0,
+        "carb_grams": 0,
+        "fat_grams": 0,
+        "calories": 0
+      },
+      "notes": "Sample snack: 1/4 cup nuts or 1 hard-boiled egg"
+    },
+    {
+      "id": "activity_10_2024_01_15",
+      "template_id": "evening_workout",
+      "title": "Evening Strength Training",
+      "category": "exercise",
+      "scheduled_time": "18:00",
+      "duration_minutes": 45,
+      "intensity": "medium",
+      "description": "Resistance training to improve insulin sensitivity",
+      "instructions": [
+        "Warm up for 10 minutes",
+        "Perform 3 sets of 8-12 reps for each exercise",
+        "Focus on major muscle groups",
+        "Rest 60-90 seconds between sets",
+        "Cool down for 10 minutes",
+        "Check glucose after workout"
+      ],
+      "equipment": [
+        "Resistance bands",
+        "Dumbbells (optional)",
+        "Yoga mat",
+        "Water bottle"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "exercises_completed": [],
+      "notes": "Focus on compound movements for maximum benefit"
+    },
+    {
+      "id": "activity_11_2024_01_15",
+      "template_id": "dinner",
+      "title": "Diabetes-Friendly Dinner",
+      "category": "nutrition",
+      "scheduled_time": "19:00",
+      "duration_minutes": 30,
+      "intensity": "low",
+      "description": "Balanced dinner with proper macronutrients",
+      "instructions": [
+        "Include lean protein, vegetables, and complex carbs",
+        "Limit carbohydrates to 15-20g",
+        "Add healthy fats for satiety",
+        "Eat slowly and mindfully",
+        "Check glucose 2 hours after eating",
+        "Record meal and glucose reading"
+      ],
+      "equipment": [
+        "Food scale",
+        "Measuring cups",
+        "Cooking utensils"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "meal_details": {
+        "protein_grams": 0,
+        "carb_grams": 0,
+        "fat_grams": 0,
+        "calories": 0,
+        "ingredients": []
+      },
+      "notes": "Sample meal: Baked fish with roasted vegetables"
+    },
+    {
+      "id": "activity_12_2024_01_15",
+      "template_id": "evening_wind_down",
+      "title": "Evening Wind-Down",
+      "category": "recovery",
+      "scheduled_time": "20:30",
+      "duration_minutes": 30,
+      "intensity": "low",
+      "description": "Relaxing activities to prepare for sleep and manage stress",
+      "instructions": [
+        "Engage in calming activities",
+        "Practice deep breathing",
+        "Avoid screens 1 hour before bed",
+        "Prepare for next day",
+        "Practice gratitude",
+        "Check glucose before bed"
+      ],
+      "equipment": [
+        "Comfortable seating",
+        "Journal (optional)",
+        "Books or calming activities"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "stress_level": null,
+      "notes": "Important for blood sugar control and sleep quality"
+    },
+    {
+      "id": "activity_13_2024_01_15",
+      "template_id": "bedtime_glucose",
+      "title": "Bedtime Glucose Check",
+      "category": "health_monitoring",
+      "scheduled_time": "21:30",
+      "duration_minutes": 5,
+      "intensity": "low",
+      "description": "Check blood glucose before bed",
+      "instructions": [
+        "Check glucose 30 minutes before bed",
+        "Record reading in logbook",
+        "Note any symptoms or concerns",
+        "Prepare for overnight monitoring if needed",
+        "Set alarm for morning check"
+      ],
+      "equipment": [
+        "Blood glucose monitor",
+        "Test strips",
+        "Lancets",
+        "Diabetes logbook"
+      ],
+      "status": "pending",
+      "completion_notes": "",
+      "actual_duration": 0,
+      "difficulty_rating": 0,
+      "satisfaction_rating": 0,
+      "blood_glucose_reading": null,
+      "notes": "Target range: 100-140 mg/dL"
+    }
+  ],
+  "nutrition_plan": {
+    "date": "2024-01-15",
+    "total_calories": 1800,
+    "meals": {
+      "breakfast": {
+        "name": "Diabetes-Friendly Breakfast",
+        "time": "08:00",
+        "calories": 400,
+        "macronutrients": {
+          "protein": 25,
+          "carbs": 18,
+          "fat": 28
+        },
+        "ingredients": [
+          "2 large eggs",
+          "1 slice whole grain bread",
+          "1/2 avocado",
+          "1 tbsp olive oil",
+          "Salt and pepper to taste"
+        ],
+        "preparation_time": 15,
+        "instructions": [
+          "Heat olive oil in pan over medium heat",
+          "Crack eggs into pan, cook to preference",
+          "Toast whole grain bread",
+          "Mash avocado with salt and pepper",
+          "Serve eggs on toast with avocado",
+          "Enjoy slowly and mindfully"
+        ],
+        "alternatives": [
+          "Greek yogurt with berries and nuts",
+          "Oatmeal with protein powder",
+          "Vegetable omelet"
+        ],
+        "dietary_restrictions": ["Gluten-free option available"],
+        "blood_sugar_impact": "Low to moderate",
+        "glycemic_index": "Low"
+      },
+      "lunch": {
+        "name": "Balanced Diabetes Lunch",
+        "time": "12:30",
+        "calories": 500,
+        "macronutrients": {
+          "protein": 35,
+          "carbs": 20,
+          "fat": 32
+        },
+        "ingredients": [
+          "4 oz grilled chicken breast",
+          "2 cups mixed greens",
+          "1/2 cup cherry tomatoes",
+          "1/4 cup cucumber",
+          "2 tbsp olive oil dressing",
+          "1/4 cup nuts"
+        ],
+        "preparation_time": 20,
+        "instructions": [
+          "Grill chicken breast until cooked through",
+          "Wash and prepare vegetables",
+          "Mix greens with tomatoes and cucumber",
+          "Slice chicken and add to salad",
+          "Drizzle with olive oil dressing",
+          "Top with nuts and serve"
+        ],
+        "alternatives": [
+          "Salmon salad",
+          "Turkey and vegetable wrap",
+          "Quinoa bowl with vegetables"
+        ],
+        "dietary_restrictions": ["Nut-free option available"],
+        "blood_sugar_impact": "Low",
+        "glycemic_index": "Low"
+      },
+      "dinner": {
+        "name": "Diabetes-Friendly Dinner",
+        "time": "19:00",
+        "calories": 600,
+        "macronutrients": {
+          "protein": 40,
+          "carbs": 25,
+          "fat": 35
+        },
+        "ingredients": [
+          "5 oz baked salmon",
+          "1 cup roasted vegetables",
+          "1/2 cup brown rice",
+          "1 tbsp olive oil",
+          "Herbs and spices"
+        ],
+        "preparation_time": 30,
+        "instructions": [
+          "Preheat oven to 400°F",
+          "Season salmon with herbs and spices",
+          "Roast vegetables with olive oil",
+          "Cook brown rice according to package",
+          "Bake salmon for 12-15 minutes",
+          "Serve with vegetables and rice"
+        ],
+        "alternatives": [
+          "Grilled chicken with vegetables",
+          "Vegetarian stir-fry",
+          "Fish with sweet potato"
+        ],
+        "dietary_restrictions": ["Vegetarian option available"],
+        "blood_sugar_impact": "Low to moderate",
+        "glycemic_index": "Low to medium"
+      },
+      "snacks": [
+        {
+          "name": "Mid-Morning Snack",
+          "time": "10:00",
+          "calories": 150,
+          "macronutrients": {
+            "protein": 8,
+            "carbs": 8,
+            "fat": 12
+          },
+          "ingredients": [
+            "1 oz mixed nuts",
+            "1/4 cup berries"
+          ],
+          "preparation_time": 2,
+          "instructions": [
+            "Measure out nuts and berries",
+            "Mix together in small bowl",
+            "Eat slowly and mindfully"
+          ],
+          "alternatives": [
+            "Greek yogurt with berries",
+            "Hard-boiled egg",
+            "Cheese and vegetables"
+          ],
+          "dietary_restrictions": ["Nut-free option available"],
+          "blood_sugar_impact": "Low",
+          "glycemic_index": "Low"
+        },
+        {
+          "name": "Afternoon Snack",
+          "time": "15:30",
+          "calories": 150,
+          "macronutrients": {
+            "protein": 10,
+            "carbs": 6,
+            "fat": 12
+          },
+          "ingredients": [
+            "1 hard-boiled egg",
+            "1/4 cup vegetables"
+          ],
+          "preparation_time": 5,
+          "instructions": [
+            "Hard-boil egg (can be prepared in advance)",
+            "Cut vegetables into sticks",
+            "Serve together",
+            "Eat slowly and mindfully"
+          ],
+          "alternatives": [
+            "Cheese and crackers",
+            "Greek yogurt",
+            "Nuts and seeds"
+          ],
+          "dietary_restrictions": ["Vegetarian option available"],
+          "blood_sugar_impact": "Low",
+          "glycemic_index": "Low"
+        }
+      ]
+    },
+    "hydration": {
+      "target_water_intake": 2500,
+      "timing_schedule": [
+        "Upon waking (16 oz)",
+        "Before breakfast (8 oz)",
+        "Before lunch (8 oz)",
+        "Before dinner (8 oz)",
+        "Before bed (8 oz)",
+        "Throughout day (remaining)"
+      ],
+      "current_intake": 0,
+      "notes": "Stay hydrated to support kidney function and blood sugar management"
+    },
+    "supplements": [
+      {
+        "name": "Omega-3 Fish Oil",
+        "timing": "With breakfast",
+        "dosage": "1000mg",
+        "notes": "Supports heart health and reduces inflammation"
+      },
+      {
+        "name": "Vitamin D3",
+        "timing": "With breakfast",
+        "dosage": "2000 IU",
+        "notes": "Important for immune function and bone health"
+      },
+      {
+        "name": "Magnesium",
+        "timing": "Before bed",
+        "dosage": "400mg",
+        "notes": "Supports sleep and blood sugar regulation"
+      }
+    ]
+  },
+  "recovery_focus": [
+    "Adequate sleep (8 hours)",
+    "Stress management through meditation",
+    "Proper hydration throughout day",
+    "Blood sugar monitoring and management",
+    "Gentle movement and stretching"
+  ],
+  "progress_notes": "",
+  "completion_status": "pending",
+  "created_at": "2024-01-15T00:00:00.000Z",
+  "updated_at": "2024-01-15T00:00:00.000Z",
+  "daily_goals": [
+    "Check blood glucose 4 times",
+    "Complete 30 minutes of exercise",
+    "Stay within carbohydrate limits",
+    "Drink 2500ml water",
+    "Practice stress management",
+    "Get 8 hours of sleep"
+  ],
+  "blood_glucose_targets": {
+    "fasting": "80-130 mg/dL",
+    "pre_meal": "80-130 mg/dL",
+    "post_meal": "Less than 180 mg/dL",
+    "bedtime": "100-140 mg/dL"
+  },
+  "emergency_contacts": [
+    "Primary care physician",
+    "Endocrinologist",
+    "Emergency contact",
+    "Diabetes educator"
+  ],
+  "notes": "First day of diabetes reversal program. Focus on establishing routines and monitoring blood sugar patterns."
+}

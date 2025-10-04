@@ -47,7 +47,7 @@ import WorkoutDashboard from "./pages/WorkoutDashboard";
 import WorkoutActivity from "./pages/WorkoutActivity";
 import AdminPanel from "./pages/AdminPanel";
 
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { InitialRouteHandler } from "./components/InitialRouteHandler";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
@@ -242,10 +242,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -254,10 +251,7 @@ function App() {
           <Route
             path="/health-plan"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <HealthPlan />
               </ProtectedRoute>
             }
@@ -266,10 +260,7 @@ function App() {
           <Route
             path="/health-plan-generation"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <HealthPlanGeneration />
               </ProtectedRoute>
             }
@@ -308,10 +299,7 @@ function App() {
           <Route
             path="/custom-plan"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <CustomPlan />
               </ProtectedRoute>
             }
@@ -320,10 +308,7 @@ function App() {
           <Route
             path="/diet"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Diet />
               </ProtectedRoute>
             }
@@ -332,10 +317,7 @@ function App() {
           <Route
             path="/workout"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Workout />
               </ProtectedRoute>
             }
@@ -344,10 +326,7 @@ function App() {
           <Route
             path="/planner"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Planner />
               </ProtectedRoute>
             }
@@ -356,10 +335,7 @@ function App() {
           <Route
             path="/camera"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <ErrorBoundary>
                   <Camera />
                 </ErrorBoundary>
@@ -370,10 +346,7 @@ function App() {
           <Route
             path="/plan-details"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <ErrorBoundary>
                   <PlanDetails />
                 </ErrorBoundary>
@@ -384,10 +357,7 @@ function App() {
           <Route
             path="/goals"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Goals />
               </ProtectedRoute>
             }
@@ -396,10 +366,7 @@ function App() {
           <Route
             path="/progress"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={true}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Progress />
               </ProtectedRoute>
             }
@@ -408,10 +375,7 @@ function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <Settings />
               </ProtectedRoute>
             }
@@ -420,10 +384,7 @@ function App() {
           <Route
             path="/profile-management"
             element={
-              <ProtectedRoute
-                requireOnboardingComplete={true}
-                requireSubscription={false}
-              >
+              <ProtectedRoute requireOnboardingComplete={true}>
                 <ProfileManagement />
               </ProtectedRoute>
             }

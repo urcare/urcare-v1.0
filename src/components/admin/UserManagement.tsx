@@ -56,7 +56,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onRefresh }) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('id, full_name, created_at')
         .order('created_at', { ascending: false });
 
@@ -134,7 +134,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onRefresh }) => {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .delete()
         .eq('id', userId);
 
@@ -161,7 +161,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onRefresh }) => {
     try {
       // Create user profile directly (without auth for demo)
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .insert({
           full_name: fullName,
           created_at: new Date().toISOString()

@@ -15,6 +15,7 @@ import {
   Star
 } from 'lucide-react';
 import { calculateHealthScore, getUserProfileForHealthScore } from '@/services/healthScoreService';
+import { toast } from 'sonner';
 
 interface HealthMetrics {
   healthScore: number;

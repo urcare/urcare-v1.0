@@ -38,6 +38,10 @@ const groq = new Groq({
   apiKey: GROQ_API_KEY,
 });
 
+// Initialize Gemini API Key
+const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY;
+console.log('🔑 Gemini API Key status:', GEMINI_API_KEY ? '✅ Configured' : '❌ Missing');
+
 // Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://lvnkpserdydhnqbigfbz.supabase.co",
@@ -666,6 +670,283 @@ app.get('/api/user/profile', (req, res) => {
       activity_level: "Moderate"
     }
   });
+});
+
+// Unified Plan Generation API - Phase 1 (Groq)
+app.post('/api/generate-complete-plan', async (req, res) => {
+  try {
+    const { primaryGoal, onboardingData, userProfile } = req.body;
+
+    if (!primaryGoal || !onboardingData || !userProfile) {
+      return res.status(400).json({ error: 'Missing required data for plan generation' });
+    }
+
+    if (!GROQ_API_KEY) {
+      return res.status(500).json({ error: 'Groq API key not configured' });
+    }
+
+    const groqPrompt = `You are a fitness planning AI. Generate 3 distinct health plans based on user's goal and profile.
+
+PRIMARY GOAL: ${primaryGoal}
+
+ONBOARDING DATA:
+- Name: ${onboardingData.fullName || 'User'}
+- Age: ${onboardingData.age}
+- Gender: ${onboardingData.gender || 'Not specified'}
+- Height: ${onboardingData.heightCm || 'Not specified'} cm
+- Weight: ${onboardingData.weightKg || 'Not specified'} kg
+- Blood Group: ${onboardingData.bloodGroup || 'Not specified'}
+
+SCHEDULE:
+- Wake Up: ${onboardingData.wakeUpTime || '06:00'}
+- Sleep: ${onboardingData.sleepTime || '22:00'}
+- Work: ${onboardingData.workStart || '09:00'} - ${onboardingData.workEnd || '17:00'}
+- Breakfast: ${onboardingData.breakfastTime || '08:00'}
+- Lunch: ${onboardingData.lunchTime || '13:00'}
+- Dinner: ${onboardingData.dinnerTime || '19:00'}
+- Workout Time: ${onboardingData.workoutTime || 'Morning'}
+
+HEALTH:
+- Chronic Conditions: ${onboardingData.chronicConditions?.join(', ') || 'None'}
+- Medications: ${onboardingData.medications?.join(', ') || 'None'}
+- Allergies: ${onboardingData.allergies?.join(', ') || 'None'}
+
+PREFERENCES:
+- Diet Type: ${onboardingData.dietType || 'Balanced'}
+- Workout Type: ${onboardingData.workoutType || 'General'}
+- Routine Flexibility: ${onboardingData.routineFlexibility || 'Moderate'}
+
+HEALTH GOALS: ${onboardingData.healthGoals?.join(', ') || 'General wellness'}
+
+Generate 3 plans with DIFFERENT approaches:
+
+PLAN 1 (BEGINNER): Gentle, foundational approach
+PLAN 2 (INTERMEDIATE): Balanced, progressive approach  
+PLAN 3 (ADVANCED): Intensive, results-focused approach
+
+For each plan provide:
+1. Creative goal-specific name (e.g., "Diabetes Reversal Foundation", "Ultimate Weight Gainer Pro")
+2. Description (100 words)
+3. Duration (4-6 weeks / 8-10 weeks / 12+ weeks)
+4. Difficulty level
+5. Daily calorie target
+6. Macro split (protein/carbs/fats percentages)
+7. Workout frequency (days per week)
+8. Workout style based on user preference: ${onboardingData.workoutType || 'General'}
+9. Key focus areas (5 items)
+10. Expected outcomes timeline:
+    - Week 1-2: [specific changes]
+    - Week 3-4: [specific changes]
+    - Month 2: [specific changes]
+    - Month 3: [specific changes]
+11. Impact analysis:
+    - Primary goal impact
+    - Energy improvements
+    - Physical changes
+    - Mental health benefits
+    - Sleep quality improvements
+12. Schedule constraints:
+    - Available workout windows: [calculate from work schedule]
+    - Meal prep complexity: [based on work schedule]
+    - Recovery time needed: [based on workout intensity]
+
+CRITICAL REQUIREMENTS:
+- If workout type is YOGA: focus on yoga asanas, pranayama, flexibility
+- If workout type is GYM: focus on strength training, weights, machines
+- If workout type is HOME: focus on bodyweight exercises, minimal equipment
+- If workout type is CARDIO: focus on running, cycling, HIIT
+- Respect work schedule: ${onboardingData.workStart || '09:00'} - ${onboardingData.workEnd || '17:00'} = NO physical activities
+- During work hours, only suggest: focus techniques, posture corrections, breathing exercises
+- Respect dietary restrictions: ${onboardingData.dietType || 'Balanced'}
+- Account for allergies: ${onboardingData.allergies?.join(', ') || 'None'}
+- Consider chronic conditions for exercise modifications
+
+Return ONLY valid JSON:
+{
+  "plans": [
+    {
+      "id": "plan_1",
+      "name": "Creative Plan Name",
+      "description": "...",
+      "duration": "4-6 weeks",
+      "difficulty": "Beginner",
+      "calorieTarget": 1800,
+      "macros": {"protein": 30, "carbs": 40, "fats": 30},
+      "workoutFrequency": "3 days/week",
+      "workoutStyle": "${onboardingData.workoutType || 'General'}",
+      "focusAreas": ["area1", "area2", "area3", "area4", "area5"],
+      "timeline": {
+        "week1-2": "...",
+        "week3-4": "...",
+        "month2": "...",
+        "month3": "..."
+      },
+      "impacts": {
+        "primaryGoal": "...",
+        "energy": "...",
+        "physical": "...",
+        "mental": "...",
+        "sleep": "..."
+      },
+      "scheduleConstraints": {
+        "workoutWindows": ["06:00-07:30", "18:00-20:00"],
+        "mealPrepComplexity": "medium",
+        "recoveryTime": "8 hours sleep minimum"
+      }
+    }
+  ]
+}`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are a fitness planning expert. Generate 3 DISTINCT plans with different approaches. Return ONLY valid JSON." },
+        { role: "user", content: groqPrompt }
+      ],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.8,
+      max_tokens: 4000,
+    });
+
+    const response = completion.choices[0]?.message?.content;
+
+    if (!response) {
+      throw new Error('No response from Groq API');
+    }
+
+    const parsed = JSON.parse(response);
+    const plans = parsed.plans || [];
+
+    res.status(200).json({
+      success: true,
+      step: 'plans_ready',
+      plans: plans
+    });
+
+  } catch (error) {
+    console.error('Error in /api/generate-complete-plan:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Unified Schedule Generation API - Phase 2 (Gemini)
+app.post('/api/generate-schedule', async (req, res) => {
+  try {
+    const { selectedPlanId, planDetails, onboardingData, userProfile } = req.body;
+
+    if (!selectedPlanId || !planDetails || !onboardingData || !userProfile) {
+      return res.status(400).json({ error: 'Missing required data for schedule generation' });
+    }
+
+    const selectedPlan = planDetails.plans.find(p => p.id === selectedPlanId);
+
+    if (!selectedPlan) {
+      return res.status(400).json({ error: 'Selected plan not found in provided plan details' });
+    }
+
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'Gemini API key not configured' });
+    }
+
+    const prompt = `You are a schedule optimization AI. Generate a HYPER-PERSONALIZED daily schedule based on the selected plan and user's exact timings.
+
+SELECTED PLAN:
+${JSON.stringify(selectedPlan, null, 2)}
+
+USER'S EXACT SCHEDULE:
+- Wake Up: ${onboardingData.wakeUpTime || '06:00'}
+- Breakfast: ${onboardingData.breakfastTime || '08:00'}
+- Work Start: ${onboardingData.workStart || '09:00'}
+- Lunch: ${onboardingData.lunchTime || '13:00'}
+- Work End: ${onboardingData.workEnd || '17:00'}
+- Workout: ${onboardingData.workoutTime || '18:00'}
+- Dinner: ${onboardingData.dinnerTime || '19:00'}
+- Sleep: ${onboardingData.sleepTime || '22:00'}
+
+WORKOUT TYPE: ${onboardingData.workoutType || 'General'}
+DIET TYPE: ${onboardingData.dietType || 'Balanced'}
+ALLERGIES: ${onboardingData.allergies?.join(', ') || 'None'}
+
+CRITICAL PERSONALIZATION RULES:
+1. USE EXACT USER TIMES - do not suggest different times
+2. DURING WORK HOURS (${onboardingData.workStart || '09:00'} - ${onboardingData.workEnd || '17:00'}):
+   - NO physical workouts
+   - Only suggest: desk stretches, breathing exercises, posture tips, water reminders, eye exercises
+   - Keep suggestions under 5 minutes
+3. WORKOUT STYLE (${onboardingData.workoutType || 'General'}):
+   - If YOGA: Only yoga asanas, pranayama, meditation, flexibility work
+   - If GYM: Only gym exercises with weights, machines, strength training
+   - If HOME: Only bodyweight exercises, resistance bands, minimal equipment
+   - If CARDIO: Only running, cycling, HIIT, jumping exercises
+4. MEALS:
+   - Follow ${onboardingData.dietType || 'Balanced'} strictly
+   - Avoid ${onboardingData.allergies?.join(', ') || 'None'}
+   - Match calorie target: ${selectedPlan.calorieTarget || selectedPlan.estimatedCalories || 'N/A'}
+   - Match macro split: ${selectedPlan.macros?.protein || 'N/A'}P / ${selectedPlan.macros?.carbs || 'N/A'}C / ${selectedPlan.macros?.fats || 'N/A'}F
+5. DIFFICULTY ADAPTATION:
+   - ${selectedPlan.difficulty || 'Beginner'} level exercises only
+   - Scale intensity appropriately
+
+Generate COMPLETE daily schedule from wake to sleep with:
+- Exact timestamps (use user's times)
+- Specific activities (no generic placeholders)
+- Detailed exercise lists (with sets/reps)
+- Specific meal plans (with ingredients and portions)
+- Calorie and macro breakdown for each meal
+
+Return ONLY valid JSON:
+{
+  "dailySchedule": [
+    {
+      "time": "${onboardingData.wakeUpTime || '06:00'}",
+      "category": "morning_routine",
+      "activity": "Wake Up & Hydration",
+      "details": "Drink 500ml water, light stretching (5 min)",
+      "duration": "10 min",
+      "calories": 0
+    }
+  ]
+}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json"
+          }
+        })
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0) {
+      throw new Error('Invalid response from Gemini API');
+    }
+
+    const generatedContent = data.candidates[0].content.parts[0].text;
+    const parsedSchedule = JSON.parse(generatedContent);
+
+    res.status(200).json({
+      success: true,
+      schedule: parsedSchedule.dailySchedule,
+      plan: selectedPlan.name || selectedPlan.title,
+      generatedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in /api/generate-schedule:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate schedule',
+      details: error.message
+    });
+  }
 });
 
 // Health check endpoint

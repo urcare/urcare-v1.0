@@ -1,7 +1,6 @@
 import { AuthOptions } from "@/components/auth/AuthOptions";
 import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
 import { SplashScreen } from "@/components/ui/SplashScreen";
-import AdminLoginPopup from "@/components/AdminLoginPopup";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -11,7 +10,7 @@ const Landing = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
   const navigate = useNavigate();
-  const { user, profile, isInitialized, loading, showAdminPopup, setShowAdminPopup } = useAuth();
+  const { user, profile, isInitialized, loading } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
@@ -81,7 +80,7 @@ const Landing = () => {
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30">
           <div
             className="w-full max-w-md bg-white rounded-t-3xl shadow-xl pb-8 pt-4 px-6 animate-slide-up"
-            style={{ height: authMode === "signup" ? "500px" : "320px" }}
+            style={{ height: "320px" }}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold mx-auto">
@@ -105,28 +104,19 @@ const Landing = () => {
                 } else if (authMode === "signin") {
                   // For signin, check if user has completed onboarding
                   if (profile?.onboarding_completed) {
-                    navigate("/dashboard");
+                    navigate("/health-assessment");
                   } else {
                     navigate("/onboarding");
                   }
                 }
               }}
               mode={authMode}
-              showAdminPlaceholders={authMode === "signin"}
+              showAdminPlaceholders={false}
             />
           </div>
         </div>
       )}
       
-      {/* Admin Login Popup */}
-      <AdminLoginPopup
-        isOpen={showAdminPopup}
-        onClose={() => setShowAdminPopup(false)}
-        onSuccess={() => {
-          setShowAdminPopup(false);
-          // Admin login success - user will be redirected to onboarding by the popup component
-        }}
-      />
     </div>
   );
 };

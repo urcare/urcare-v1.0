@@ -1,1 +1,16 @@
-{"projectId":"prj_8DmyVN5y7HmfqkAgCiHY93RCcRGN","orgId":"team_pXJsIA450g0CRNjZxTc7GWAy","projectName":"urcare-v1.0"}
+{
+  "projectId": "prj_8DmyVN5y7HmfqkAgCiHY93RCcRGN",
+  "orgId": "team_pXJsIA450g0CRNjZxTc7GWAy",
+  "projectName": "urcare-v1.0",
+  "settings": {
+    "createdAt": 1759238107242,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "22.x"
+  }
+}

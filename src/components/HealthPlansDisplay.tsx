@@ -7,12 +7,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface HealthPlan {
   id: string;
-  title: string;
+  title?: string;
+  name?: string;
   description: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   duration: string;
   focusAreas?: string[];
   estimatedCalories?: number;
+  calorieTarget?: number;
+  macros?: {
+    protein: number;
+    carbs: number;
+    fats: number;
+  };
+  workoutFrequency?: string;
+  workoutStyle?: string;
+  timeline?: {
+    'week1-2': string;
+    'week3-4': string;
+    'month2': string;
+    'month3': string;
+  };
+  impacts?: {
+    primaryGoal: string;
+    energy: string;
+    physical: string;
+    mental: string;
+    sleep: string;
+  };
+  scheduleConstraints?: {
+    workoutWindows: string[];
+    mealPrepComplexity: string;
+    recoveryTime: string;
+  };
   equipment?: string[];
   benefits?: string[];
   activities?: {
@@ -109,10 +136,10 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
     <div className={`space-y-4 ${className}`}>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Your Personalized Health Plans
+          Your Personalized Health Protocols
         </h2>
         <p className="text-gray-600">
-          Choose the plan that best fits your lifestyle and goals
+          Choose the protocol that best fits your lifestyle and goals
         </p>
       </div>
 
@@ -136,7 +163,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
               >
                 {/* Title and Description */}
                 <div className="mb-3">
-                  <CardTitle className="text-lg mb-1">{plan.title}</CardTitle>
+                  <CardTitle className="text-lg mb-1">{plan.title || plan.name}</CardTitle>
                   <CardDescription className="text-sm leading-relaxed">
                     {plan.description}
                   </CardDescription>
@@ -173,7 +200,160 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                     transition={{ duration: 0.3 }}
                   >
                     <CardContent className="pt-0 pb-4">
-                      <div className="space-y-2">
+                      <div className="space-y-6">
+                        {/* Plan Overview */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Zap className="w-4 h-4 text-orange-500" />
+                              <span className="text-sm font-medium text-gray-700">Calories</span>
+                            </div>
+                            <p className="text-lg font-bold text-gray-900">
+                              {plan.calorieTarget || plan.estimatedCalories || 'N/A'} cal/day
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Target className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm font-medium text-gray-700">Workout</span>
+                            </div>
+                            <p className="text-lg font-bold text-gray-900">
+                              {plan.workoutFrequency || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Clock className="w-4 h-4 text-green-500" />
+                              <span className="text-sm font-medium text-gray-700">Style</span>
+                            </div>
+                            <p className="text-lg font-bold text-gray-900">
+                              {plan.workoutStyle || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Macros */}
+                        {plan.macros && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Macro Breakdown</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="text-center p-3 bg-red-50 rounded-lg">
+                                <p className="text-2xl font-bold text-red-600">{plan.macros.protein}%</p>
+                                <p className="text-sm text-gray-600">Protein</p>
+                              </div>
+                              <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                                <p className="text-2xl font-bold text-yellow-600">{plan.macros.carbs}%</p>
+                                <p className="text-sm text-gray-600">Carbs</p>
+                              </div>
+                              <div className="text-center p-3 bg-green-50 rounded-lg">
+                                <p className="text-2xl font-bold text-green-600">{plan.macros.fats}%</p>
+                                <p className="text-sm text-gray-600">Fats</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Focus Areas */}
+                        {plan.focusAreas && plan.focusAreas.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Focus Areas</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {plan.focusAreas.map((area, index) => (
+                                <Badge key={index} variant="secondary" className="px-3 py-1">
+                                  {area}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Timeline */}
+                        {plan.timeline && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Expected Timeline</h4>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span className="font-medium text-gray-700">Weeks 1-2:</span>
+                                <span className="text-gray-600">{plan.timeline['week1-2']}</span>
+                              </div>
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span className="font-medium text-gray-700">Weeks 3-4:</span>
+                                <span className="text-gray-600">{plan.timeline['week3-4']}</span>
+                              </div>
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span className="font-medium text-gray-700">Month 2:</span>
+                                <span className="text-gray-600">{plan.timeline['month2']}</span>
+                              </div>
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span className="font-medium text-gray-700">Month 3:</span>
+                                <span className="text-gray-600">{plan.timeline['month3']}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Impacts */}
+                        {plan.impacts && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Expected Impacts</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-3 bg-green-50 rounded-lg">
+                                <h5 className="font-medium text-green-800 mb-2">Primary Goal</h5>
+                                <p className="text-sm text-green-700">{plan.impacts.primaryGoal}</p>
+                              </div>
+                              <div className="p-3 bg-yellow-50 rounded-lg">
+                                <h5 className="font-medium text-yellow-800 mb-2">Energy</h5>
+                                <p className="text-sm text-yellow-700">{plan.impacts.energy}</p>
+                              </div>
+                              <div className="p-3 bg-blue-50 rounded-lg">
+                                <h5 className="font-medium text-blue-800 mb-2">Physical</h5>
+                                <p className="text-sm text-blue-700">{plan.impacts.physical}</p>
+                              </div>
+                              <div className="p-3 bg-purple-50 rounded-lg">
+                                <h5 className="font-medium text-purple-800 mb-2">Mental</h5>
+                                <p className="text-sm text-purple-700">{plan.impacts.mental}</p>
+                              </div>
+                              <div className="p-3 bg-indigo-50 rounded-lg col-span-1 md:col-span-2">
+                                <h5 className="font-medium text-indigo-800 mb-2">Sleep</h5>
+                                <p className="text-sm text-indigo-700">{plan.impacts.sleep}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Schedule Constraints */}
+                        {plan.scheduleConstraints && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Schedule Info</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-800 mb-2">Workout Windows</h5>
+                                <div className="space-y-1">
+                                  {plan.scheduleConstraints.workoutWindows.map((window, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {window}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-800 mb-2">Meal Prep</h5>
+                                <p className="text-sm text-gray-600 capitalize">
+                                  {plan.scheduleConstraints.mealPrepComplexity} complexity
+                                </p>
+                              </div>
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-800 mb-2">Recovery</h5>
+                                <p className="text-sm text-gray-600">
+                                  {plan.scheduleConstraints.recoveryTime}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Daily Activities */}
+                        <div>
                         <h4 className="font-semibold text-gray-900 mb-2">
                           Daily Activities
                         </h4>
@@ -263,6 +443,7 @@ const HealthPlansDisplay: React.FC<HealthPlansDisplayProps> = ({
                             <p className="text-sm mt-1">Select this plan to get started!</p>
                           </div>
                         )}
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-3 border-t border-gray-200">

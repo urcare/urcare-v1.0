@@ -21,7 +21,7 @@ import {
   Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { groqService } from '@/services/groqService';
+// Removed groqService import - now using server API
 
 interface YourHealthPopupProps {
   isOpen: boolean;
@@ -50,49 +50,90 @@ const YourHealthPopup: React.FC<YourHealthPopupProps> = ({
   const loadHealthRecommendations = async () => {
     setLoading(true);
     try {
-      const response = await groqService.getHealthRecommendations({
-        userProfile,
-        healthScore,
-        analysis: `Current health score: ${healthScore}/100`,
-        selectedPlan
+      const response = await fetch('/api/health-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userProfile,
+          userInput: `Health recommendations for ${selectedPlan?.title || 'general wellness'}`,
+          uploadedFiles: [],
+          voiceTranscript: ''
+        })
       });
 
-      if (response.success && response.data) {
-        setRecommendations(response.data);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.healthScore !== undefined) {
+          // Transform the health score response into recommendations format
+          setRecommendations({
+            immediate: data.recommendations?.slice(0, 3) || [
+              "Drink 8 glasses of water today",
+              "Take a 10-minute walk",
+              "Get 7-8 hours of sleep tonight"
+            ],
+            thisWeek: data.recommendations?.slice(3, 6) || [
+              "Establish a consistent sleep schedule",
+              "Increase daily water intake",
+              "Add 30 minutes of exercise"
+            ],
+            thisMonth: data.recommendations?.slice(6, 9) || [
+              "Complete a full health assessment",
+              "Establish a workout routine",
+              "Improve dietary habits"
+            ],
+            longTerm: "Achieve optimal health and wellness through consistent habits and lifestyle improvements",
+            planTips: data.strengths?.slice(0, 3) || [
+              "Follow your selected plan consistently",
+              "Track your progress daily",
+              "Adjust based on your results"
+            ],
+            warningSigns: data.improvements?.slice(0, 3) || [
+              "Persistent fatigue or low energy",
+              "Difficulty sleeping",
+              "Unexplained weight changes"
+            ],
+            professionalHelp: "Consult a healthcare provider if you experience any warning signs or have concerns about your health"
+          });
+        } else {
+          throw new Error('Invalid response format');
+        }
       } else {
-        // Fallback recommendations
-        setRecommendations({
-          immediate: [
-            "Drink 8 glasses of water today",
-            "Take a 10-minute walk",
-            "Get 7-8 hours of sleep tonight"
-          ],
-          thisWeek: [
-            "Establish a consistent sleep schedule",
-            "Increase daily water intake",
-            "Add 30 minutes of exercise"
-          ],
-          thisMonth: [
-            "Complete a full health assessment",
-            "Establish a workout routine",
-            "Improve dietary habits"
-          ],
-          longTerm: "Achieve optimal health and wellness through consistent habits and lifestyle improvements",
-          planTips: [
-            "Follow your selected plan consistently",
-            "Track your progress daily",
-            "Adjust based on your results"
-          ],
-          warningSigns: [
-            "Persistent fatigue or low energy",
-            "Difficulty sleeping",
-            "Unexplained weight changes"
-          ],
-          professionalHelp: "Consult a healthcare provider if you experience any warning signs or have concerns about your health"
-        });
+        throw new Error(`Server error: ${response.status}`);
       }
     } catch (error) {
       console.error('Error loading health recommendations:', error);
+      // Use fallback recommendations
+      setRecommendations({
+        immediate: [
+          "Drink 8 glasses of water today",
+          "Take a 10-minute walk",
+          "Get 7-8 hours of sleep tonight"
+        ],
+        thisWeek: [
+          "Establish a consistent sleep schedule",
+          "Increase daily water intake",
+          "Add 30 minutes of exercise"
+        ],
+        thisMonth: [
+          "Complete a full health assessment",
+          "Establish a workout routine",
+          "Improve dietary habits"
+        ],
+        longTerm: "Achieve optimal health and wellness through consistent habits and lifestyle improvements",
+        planTips: [
+          "Follow your selected plan consistently",
+          "Track your progress daily",
+          "Adjust based on your results"
+        ],
+        warningSigns: [
+          "Persistent fatigue or low energy",
+          "Difficulty sleeping",
+          "Unexplained weight changes"
+        ],
+        professionalHelp: "Consult a healthcare provider if you experience any warning signs or have concerns about your health"
+      });
     } finally {
       setLoading(false);
     }

@@ -104,9 +104,8 @@ class AuthFlowService {
       } else if (!hasCompletedHealthAssessment) {
         nextRoute = "/health-assessment";
       } else {
-        // After onboarding and health assessment, allow dashboard access
-        // Paywall can be shown later for premium features
-        nextRoute = "/dashboard";
+        // After onboarding and health assessment, go to paywall
+        nextRoute = "/paywall";
       }
 
       console.log("Auth flow state:", {
@@ -133,7 +132,7 @@ class AuthFlowService {
         isOnboardingComplete: true, // Changed from false to true
         hasActiveSubscription: false,
         shouldShowPaywall: false,
-        nextRoute: "/health-assessment", // Changed from /onboarding to /health-assessment
+        nextRoute: "/health-assessment", // Go to health assessment after onboarding
         canAccessDashboard: false,
       };
     }
@@ -365,7 +364,7 @@ class AuthFlowService {
 
     // Simple logic based on profile state - no complex auth flow checks
     if (profile?.onboarding_completed) {
-      return "/dashboard"; // After onboarding, go to dashboard
+      return "/health-assessment"; // After onboarding, go to health assessment
     } else {
       return "/onboarding"; // If not completed, go to onboarding
     }

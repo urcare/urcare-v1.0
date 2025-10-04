@@ -33,12 +33,12 @@ interface HealthPlan {
   id: string;
   title: string;
   description: string;
-  duration: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  focusAreas: string[];
-  estimatedCalories: number;
-  equipment: string[];
-  benefits: string[];
+  duration?: string;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+  focusAreas?: string[];
+  estimatedCalories?: number;
+  equipment?: string[];
+  benefits?: string[];
 }
 
 const difficultyColors = {
@@ -218,9 +218,9 @@ const HealthPlanGeneration: React.FC = () => {
               <h1 className="text-3xl font-bold text-white mb-1">
                 {selectedPlan.title}
               </h1>
-              <p className="text-white text-sm">
-                {selectedPlan.duration} • {selectedPlan.difficulty} Level
-              </p>
+                <p className="text-white text-sm">
+                  {selectedPlan.duration || 'Not specified'} • {selectedPlan.difficulty || 'Not specified'} Level
+                </p>
             </div>
           </div>
           <div className="text-white">
@@ -256,13 +256,13 @@ const HealthPlanGeneration: React.FC = () => {
                   <strong>Description:</strong> {selectedPlan.description}
                 </div>
                 <div>
-                  <strong>Duration:</strong> {selectedPlan.duration}
+                  <strong>Duration:</strong> {selectedPlan.duration || 'Not specified'}
                 </div>
                 <div>
-                  <strong>Difficulty:</strong> {selectedPlan.difficulty}
+                  <strong>Difficulty:</strong> {selectedPlan.difficulty || 'Not specified'}
                 </div>
                 <div>
-                  <strong>Calories per Session:</strong> {selectedPlan.estimatedCalories}
+                  <strong>Calories per Session:</strong> {selectedPlan.estimatedCalories || 'Not specified'}
                 </div>
               </div>
             </div>
@@ -272,20 +272,20 @@ const HealthPlanGeneration: React.FC = () => {
                 Focus Areas
               </h3>
               <div className="flex flex-wrap gap-2">
-                {selectedPlan.focusAreas.map((area, idx) => (
+                {selectedPlan.focusAreas?.map((area, idx) => (
                   <Badge key={idx} variant="secondary" className="text-sm">
                     {area}
                   </Badge>
-                ))}
+                )) || <span className="text-sm text-gray-500">No focus areas specified</span>}
               </div>
             </div>
 
             <div className="rounded-2xl bg-white p-4">
               <h3 className="text-lg font-semibold text-black mb-2">Equipment</h3>
               <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                {selectedPlan.equipment.map((item, idx) => (
+                {selectedPlan.equipment?.map((item, idx) => (
                   <li key={idx}>{item}</li>
-                ))}
+                )) || <li className="text-gray-500">No equipment specified</li>}
               </ul>
             </div>
 
@@ -294,9 +294,9 @@ const HealthPlanGeneration: React.FC = () => {
                 Key Benefits
               </h3>
               <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                {selectedPlan.benefits.map((benefit, idx) => (
+                {selectedPlan.benefits?.map((benefit, idx) => (
                   <li key={idx}>{benefit}</li>
-                ))}
+                )) || <li className="text-gray-500">No benefits specified</li>}
               </ul>
             </div>
           </div>
@@ -312,11 +312,11 @@ const HealthPlanGeneration: React.FC = () => {
               </div>
               <div>
                 <strong>Focus Areas</strong>
-                <p className="mt-1">{selectedPlan.focusAreas.length} key areas</p>
+                <p className="mt-1">{selectedPlan.focusAreas?.length || 0} key areas</p>
               </div>
               <div>
                 <strong>Equipment</strong>
-                <p className="mt-1">{selectedPlan.equipment.length} items needed</p>
+                <p className="mt-1">{selectedPlan.equipment?.length || 0} items needed</p>
               </div>
             </div>
           </div>

@@ -1163,9 +1163,9 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         return (
           <CompletionStep
             onContinue={() => {
-              console.log("SerialOnboarding: Completion step continue clicked - calling onComplete");
+              console.log("SerialOnboarding: Completion step continue clicked - calling onComplete with data:", data);
               // Call onComplete to trigger the parent's completion handler
-              handleNext();
+              onComplete(data);
             }}
           />
         );

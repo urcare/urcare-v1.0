@@ -1,6 +1,6 @@
-// Health Plan Generation Service using Groq AI
+// Health Plan Generation Service using Multi-AI (OpenAI, Gemini, Groq)
 import { supabase } from '@/integrations/supabase/client';
-import { groqService } from './groqService';
+import { multiAIService } from './multiAIService';
 
 // Fallback health plan generation when API is not available
 const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {
@@ -203,12 +203,8 @@ interface HealthPlanResponse {
 
 export const generateHealthPlans = async (request: HealthPlanRequest): Promise<HealthPlanResponse> => {
   try {
-    // Use the new LLM adapter with timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Plan generation timeout')), 30000); // 30 second timeout
-    });
-
-    const planPromise = groqService.generateHealthPlans({
+    // Use Multi-AI service for enhanced health plan generation
+    const multiAIResponse = await multiAIService.generateHealthPlans({
       userProfile: request.userProfile,
       healthScore: request.healthScore,
       analysis: request.analysis,
@@ -216,77 +212,39 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       userInput: request.userInput || ''
     });
 
-    const groqResponse = await Promise.race([planPromise, timeoutPromise]) as any;
-
-    if (groqResponse?.success && groqResponse?.data && groqResponse?.data?.plans) {
-      console.log('✅ Groq health plans generated:', groqResponse.data.plans);
+    if (multiAIResponse.success && multiAIResponse.data && multiAIResponse.data.plans) {
+      console.log(`Multi-AI Health Plans generated in ${multiAIResponse.processingTime}ms`);
+      console.log(`AI Responses: ${multiAIResponse.responses.filter(r => r.success).length}/3 successful`);
+      console.log('✅ Multi-AI health plans generated:', multiAIResponse.data.plans);
+      
       return {
         success: true,
-        plans: groqResponse.data.plans
+        plans: multiAIResponse.data.plans
       };
+    } else {
+      throw new Error(multiAIResponse.error || 'Multi-AI health plan generation failed');
     }
-
-    // Fallback to server APIs if Groq fails
-    const planData = {
-      userProfile: request.userProfile,
-      healthScore: request.healthScore,
-      analysis: request.analysis,
-      recommendations: request.recommendations,
-      userInput: request.userInput || '',
-      uploadedFiles: request.uploadedFiles || [],
-      voiceTranscript: request.voiceTranscript || '',
-      timestamp: new Date().toISOString()
-    };
-
-    // Use relative paths for internal API calls
-    const apiUrls = [
-      '/api/health-plans' // Internal API call - no CORS needed
-    ];
-
-    for (const apiUrl of apiUrls) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(planData)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Health plan API error: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        return {
-          success: true,
-          plans: result.plans
-        };
-      } catch (apiError) {
-        continue; // Try next URL
-      }
-    }
-
-    // If all APIs fail, use Groq fallback
-    throw new Error('All API endpoints failed');
 
   } catch (error) {
     console.error('❌ Health plan generation error:', error);
     
-    // Fallback: Use Groq service fallback calculation
-    console.log('🔄 Using Groq fallback health plan generation');
+    // Fallback: Use local fallback calculation
+    console.log('🔄 Using fallback health plan generation');
     
     try {
-      const fallbackPlans = groqService.generateFallbackHealthPlans(request.userProfile);
-      console.log('✅ Groq fallback plans generated:', fallbackPlans);
+      const fallbackPlans = generateFallbackHealthPlans(
+        request.userProfile, 
+        request.healthScore, 
+        request.userInput
+      );
+      console.log('✅ Fallback plans generated:', fallbackPlans);
       
       return {
         success: true,
-        plans: fallbackPlans.plans
+        plans: fallbackPlans
       };
     } catch (fallbackError) {
-      console.error('❌ Groq fallback health plan generation failed:', fallbackError);
+      console.error('❌ Fallback health plan generation failed:', fallbackError);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate health plans'

@@ -1,6 +1,6 @@
-// Health Score Calculation Service using Groq AI
+// Health Score Calculation Service using Multi-AI (OpenAI, Gemini, Groq)
 import { supabase } from '@/integrations/supabase/client';
-import { groqService } from './groqService';
+import { multiAIService } from './multiAIService';
 
 // Fallback health score calculation when API is not available
 const calculateFallbackHealthScore = (userProfile: any) => {
@@ -140,74 +140,31 @@ interface HealthScoreResponse {
 
 export const calculateHealthScore = async (request: HealthScoreRequest): Promise<HealthScoreResponse> => {
   try {
-    // Try Groq AI first
-    const groqResponse = await groqService.calculateHealthScore({
-      userProfile: request.userProfile,
-      userInput: request.userInput || '',
-      uploadedFiles: request.uploadedFiles || [],
-      voiceTranscript: request.voiceTranscript || ''
-    });
+    // Use Multi-AI service for enhanced health score calculation
+    const multiAIResponse = await multiAIService.calculateHealthScore(request);
 
-    if (groqResponse.success && groqResponse.data) {
+    if (multiAIResponse.success && multiAIResponse.data) {
+      console.log(`Multi-AI Health Score calculated in ${multiAIResponse.processingTime}ms`);
+      console.log(`Consensus Score: ${multiAIResponse.consensusScore}`);
+      console.log(`AI Responses: ${multiAIResponse.responses.filter(r => r.success).length}/3 successful`);
+
       return {
         success: true,
-        healthScore: groqResponse.data.healthScore,
-        analysis: groqResponse.data.analysis,
-        recommendations: groqResponse.data.recommendations
+        healthScore: multiAIResponse.data.healthScore,
+        analysis: multiAIResponse.data.analysis,
+        recommendations: multiAIResponse.data.recommendations
       };
+    } else {
+      throw new Error(multiAIResponse.error || 'Multi-AI health score calculation failed');
     }
-
-    // Fallback to server APIs if Groq fails
-    const healthData = {
-      userProfile: request.userProfile,
-      userInput: request.userInput || '',
-      uploadedFiles: request.uploadedFiles || [],
-      voiceTranscript: request.voiceTranscript || '',
-      timestamp: new Date().toISOString()
-    };
-
-    // Use relative paths for internal API calls
-    const apiUrls = [
-      '/api/health-score' // Internal API call - no CORS needed
-    ];
-
-    for (const apiUrl of apiUrls) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(healthData)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Health score API error: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        return {
-          success: true,
-          healthScore: result.healthScore,
-          analysis: result.analysis,
-          recommendations: result.recommendations
-        };
-      } catch (apiError) {
-        continue; // Try next URL
-      }
-    }
-
-    // If all APIs fail, use Groq fallback
-    throw new Error('All API endpoints failed');
 
   } catch (error) {
-    // Fallback: Use Groq service fallback calculation
+    // Fallback: Use local calculation
     try {
-      const fallbackScore = groqService.calculateFallbackHealthScore(request.userProfile);
+      const fallbackScore = calculateFallbackHealthScore(request.userProfile);
       return {
         success: true,
-        healthScore: fallbackScore.healthScore,
+        healthScore: fallbackScore.score,
         analysis: fallbackScore.analysis,
         recommendations: fallbackScore.recommendations
       };
@@ -224,7 +181,7 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
 export const getUserProfileForHealthScore = async (userId: string) => {
   try {
     const { data: profile, error } = await supabase
-      .from('profiles')
+      .from('user_profiles')
       .select('*')
       .eq('id', userId)
         .single();

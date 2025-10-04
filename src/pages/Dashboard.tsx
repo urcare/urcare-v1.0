@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useDebounce } from "@/hooks/useDebounce";
-import { throttle, performanceMonitor } from "@/utils/performance";
+// Removed throttle and performanceMonitor imports to fix debugger issue
 import LazyImage from "@/components/LazyImage";
 import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/healthScoreService";
 import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
@@ -37,7 +37,9 @@ import HealthPlansDisplay from "@/components/HealthPlansDisplay";
 import YourHealthPopup from "@/components/YourHealthPopup";
 import FloatingChat from "@/components/FloatingChat";
 import DynamicHealthSection from "@/components/DynamicHealthSection";
+import TodaySchedule from "@/components/TodaySchedule";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface HealthPlan {
   id: string;
@@ -60,19 +62,6 @@ const Dashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Add error boundary for Dashboard
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const handleError = (error: ErrorEvent) => {
-      console.error("Dashboard error:", error);
-      setHasError(true);
-    };
-
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
-  }, []);
 
   // Handle navigation state from health plan generation page
   useEffect(() => {
@@ -121,7 +110,7 @@ const Dashboard: React.FC = () => {
         localStorage.setItem('todaysActivities', JSON.stringify(activities));
         setShowHealthPlans(false);
         
-        toast.success(`Plan "${selectedPlan.title}" is now active!`);
+        toast.success(`Protocol "${selectedPlan.title}" is now active!`);
       } else if (preserveHealthPlans && generatedPlans) {
         // Preserve the generated plans when going back
         setHealthPlans(generatedPlans);
@@ -129,23 +118,6 @@ const Dashboard: React.FC = () => {
       }
     }
   }, [location.state]);
-
-  if (hasError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-          <p className="text-gray-600 mb-4">The dashboard encountered an error.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    );
-  }
   
   // State management
   const [healthScore, setHealthScore] = useState<number>(0);
@@ -163,6 +135,8 @@ const Dashboard: React.FC = () => {
   const [showTips, setShowTips] = useState<boolean>(true);
   const [groqPlans, setGroqPlans] = useState<HealthPlan[]>([]);
   const [showGroqPlans, setShowGroqPlans] = useState<boolean>(false);
+  const [profileImageError, setProfileImageError] = useState<boolean>(false);
+  const [sequentialAIResult, setSequentialAIResult] = useState<any>(null);
 
   // Default health tips data
   const healthTips = [
@@ -222,18 +196,88 @@ const Dashboard: React.FC = () => {
   } = useVoiceRecording();
   
   const getFirstName = () => {
+    // Debug: Check if profile is an error object
+    if (profile && typeof profile === 'object' && ('success' in profile || 'error' in profile)) {
+      console.error('❌ Profile is an error object:', profile);
+      return "User";
+    }
+    
+    // Additional safety check for any object that might be rendered
+    if (profile && typeof profile === 'object' && !('full_name' in profile) && !('id' in profile)) {
+      console.error('❌ Profile is not a valid user profile object:', profile);
+      return "User";
+    }
+    
     if (profile?.full_name) {
       return profile.full_name.split(" ")[0];
     }
     return "User";
   };
 
+  // Helper function to safely get profile data
+  const getSafeProfile = () => {
+    if (!profile || typeof profile !== 'object') return null;
+    if ('success' in profile || 'error' in profile) return null;
+    if (!('full_name' in profile) && !('id' in profile)) return null;
+    return profile;
+  };
+
+  // Helper function to safely render any value as string
+  const safeRender = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'boolean') return value.toString();
+    if (typeof value === 'object') {
+      console.error('❌ Attempted to render object as string:', value);
+      return '';
+    }
+    return String(value);
+  };
+
   // Debug: Log user data to see what we're getting from Google OAuth
   useEffect(() => {
     if (user) {
-      console.log("🔍 User logged in:", user.user_metadata?.full_name || 'Unknown');
+      // console.log("🔍 User logged in:", user.user_metadata?.full_name || 'Unknown');
+      // Reset profile image error when user changes
+      setProfileImageError(false);
     }
   }, [user]);
+
+  // Debug: Log profile object to see what we're getting
+  useEffect(() => {
+    if (profile) {
+      // console.log("🔍 Profile object:", profile);
+      if (typeof profile === 'object' && ('success' in profile || 'error' in profile)) {
+        console.error('❌ Profile is an error object! This will cause React rendering errors.');
+      }
+    }
+  }, [profile]);
+
+  // Debug: Log selected plan changes
+  useEffect(() => {
+    if (selectedPlan) {
+      // console.log("📋 Selected plan:", selectedPlan);
+    }
+  }, [selectedPlan]);
+
+  // Prevent debugger pauses
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Add error handling to prevent debugger pauses
+      window.addEventListener('error', (e) => {
+        // Silently handle errors to prevent debugger pauses
+        return false;
+      });
+      
+      // Handle unhandled promise rejections
+      window.addEventListener('unhandledrejection', (e) => {
+        // Silently handle promise rejections to prevent debugger pauses
+        e.preventDefault();
+        return false;
+      });
+    }
+  }, []);
 
 
   // Dark mode toggle
@@ -261,7 +305,7 @@ const Dashboard: React.FC = () => {
   }, [isDarkMode]);
 
   const handleLogout = async () => {
-    console.log("Logout button clicked");
+    // console.log("Logout button clicked");
     try {
       await signOut();
     } catch (error) {
@@ -271,7 +315,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSendMessage = throttle(async () => {
+  const handleSendMessage = async () => {
     if (!user) {
       toast.error("Please log in to use this feature");
       return;
@@ -287,158 +331,209 @@ const Dashboard: React.FC = () => {
     setShowGroqPlans(false);
     setShowTips(false); // Switch from tips to plans when user inputs goals
 
-    // Process in background to avoid UI blocking
-    const processHealthAnalysis = async () => {
-      try {
-        performanceMonitor.startTiming('health-analysis');
-        // Get user profile for health score calculation
-        const profileResult = await getUserProfileForHealthScore(user.id);
-        
-        let userProfile;
-        if (!profileResult.success) {
-          console.warn("Failed to fetch user profile, using mock data:", profileResult.error);
-          // Use mock profile data for admin or when profile fetch fails
-          userProfile = {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || 'User',
-            age: 30,
-            gender: 'Not specified',
-            height_cm: '170',
-            weight_kg: '70',
-            blood_group: 'Not specified',
-            chronic_conditions: [],
-            medications: [],
-            health_goals: ['General wellness'],
-            diet_type: 'Balanced',
-            workout_time: 'Morning',
-            sleep_time: '22:00',
-            wake_up_time: '06:00'
-          };
-        } else {
-          userProfile = profileResult.profile;
-        }
-        
-        // First, get health score
-        console.log('🤖 Starting AI health analysis...');
-        const healthScoreResponse = await fetch('/api/health-score', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userProfile,
-            userInput: userInput.trim(),
-            uploadedFiles: uploadedFiles.map(file => file.content),
-            voiceTranscript: transcript.trim()
-          })
-        });
-
-        if (!healthScoreResponse.ok) {
-          console.error('❌ Health Score API failed:', healthScoreResponse.status, healthScoreResponse.statusText);
-          const errorText = await healthScoreResponse.text();
-          console.error('❌ Error details:', errorText);
-          throw new Error(`Failed to get health score: ${healthScoreResponse.status}`);
-        }
-
-        const healthScoreData = await healthScoreResponse.json();
-        const healthScore = healthScoreData.healthScore || 75;
-        setHealthScore(healthScore);
-        console.log('✅ Health Score generated:', healthScore);
-
-        // Then, get health plans from Groq API
-        const groqResponse = await fetch('/api/groq/generate-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: `Generate 3 personalized health plans for a ${userProfile.age}-year-old who wants to improve their health. User goals: ${userInput.trim()}. Health score: ${healthScoreData.healthScore}/100. Analysis: ${healthScoreData.analysis}`,
-            userProfile
-          })
-        });
-
-        if (!groqResponse.ok) {
-          console.error('❌ Groq Plans API failed:', groqResponse.status, groqResponse.statusText);
-          const errorText = await groqResponse.text();
-          console.error('❌ Error details:', errorText);
-          throw new Error(`Failed to get Groq plans: ${groqResponse.status}`);
-        }
-
-        const groqData = await groqResponse.json();
-        const plans = groqData.plans || [
-          {
-            id: 'plan_1',
-            title: 'Morning Wellness Routine',
-            description: 'Start your day with energy and focus',
-            activities: [
-              { id: 'a1', label: 'Morning Wake-up Routine', time: '08:30' },
-              { id: 'a2', label: 'Healthy Breakfast', time: '09:00' },
-              { id: 'a3', label: 'Focused Work Session', time: '09:45' }
-            ]
-          },
-          {
-            id: 'plan_2',
-            title: 'Afternoon Productivity',
-            description: 'Maximize your afternoon potential',
-            activities: [
-              { id: 'b1', label: 'Lunch Break', time: '12:30' },
-              { id: 'b2', label: 'Quick Exercise', time: '13:15' },
-              { id: 'b3', label: 'Deep Work Session', time: '14:00' }
-            ]
-          },
-          {
-            id: 'plan_3',
-            title: 'Evening Wind-down',
-            description: 'Relax and prepare for tomorrow',
-            activities: [
-              { id: 'c1', label: 'Dinner Preparation', time: '18:30' },
-              { id: 'c2', label: 'Relaxation Time', time: '19:30' },
-              { id: 'c3', label: 'Bedtime Routine', time: '21:00' }
-            ]
-          }
-        ];
-
-        setGroqPlans(plans);
-        setShowGroqPlans(true);
-        console.log('✅ Groq Plans generated:', plans.length, 'plans');
-
-        // Clear input
-        setUserInput('');
-        clearAllFiles();
-        clearTranscript();
-
-        toast.success("AI analysis completed! Choose your personalized plan.");
-
-      } catch (error) {
-        console.error("Error processing health request:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to process request");
-      } finally {
-        performanceMonitor.endTiming('health-analysis');
-        setIsProcessing(false);
+    try {
+      // Get user profile for health score calculation
+      const profileResult = await getUserProfileForHealthScore(user.id);
+      
+      let userProfile;
+      if (!profileResult.success) {
+        console.warn("Failed to fetch user profile, using mock data:", profileResult.error);
+        // Use mock profile data for admin or when profile fetch fails
+        userProfile = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || 'User',
+          age: 30,
+          gender: 'Not specified',
+          height_cm: '170',
+          weight_kg: '70',
+          blood_group: 'Not specified',
+          chronic_conditions: [],
+          medications: [],
+          health_goals: ['General wellness'],
+          diet_type: 'Balanced',
+          workout_time: 'Morning',
+          sleep_time: '22:00',
+          wake_up_time: '06:00'
+        };
+      } else {
+        userProfile = profileResult.profile;
       }
-    };
+      
+      // Use the unified sequential AI service for both input types
+      const primaryGoal = userInput.trim() || "Boost energy, improve sleep, reduce stress";
+      
+      console.log('🔄 Starting Unified AI Service...');
+      console.log('👤 User:', userProfile.full_name);
+      console.log('🎯 Goal:', primaryGoal);
 
-    // Run in background
-    processHealthAnalysis();
-  }, 1000); // Throttle to max once per second
+      const response = await fetch('/api/groq-gemini-sequential', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userProfile: userProfile,
+          primaryGoal: primaryGoal
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Unified AI API failed:', response.status, errorText);
+        throw new Error(`Failed to generate AI plans: ${response.status}`);
+      }
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse unified AI response as JSON:', parseError);
+        console.error('❌ Response text:', responseText.substring(0, 200) + '...');
+        throw new Error('Invalid response format from unified AI API');
+      }
+      console.log('✅ Unified AI Response:', data);
+
+      setSequentialAIResult(data);
+      
+      // Convert Groq protocols to HealthPlan format for display
+      const healthPlans: HealthPlan[] = data.step1.plans?.map((plan: any, index: number) => ({
+        id: plan.id || `plan_${index + 1}`,
+        title: plan.name || plan.title || `Protocol ${index + 1}`,
+        name: plan.name || plan.title || `Protocol ${index + 1}`,
+        description: plan.description || 'Algorithm-generated health protocol',
+        duration: plan.duration || '4-6 weeks',
+        difficulty: plan.difficulty || 'Beginner',
+        focusAreas: plan.focusAreas || ['General wellness'],
+        estimatedCalories: plan.calorieTarget || plan.calories || 2000,
+        calorieTarget: plan.calorieTarget || plan.calories || 2000,
+        macros: plan.macros || { protein: 30, carbs: 40, fats: 30 },
+        workoutFrequency: plan.workoutFrequency || '3 days/week',
+        workoutStyle: plan.workoutStyle || 'balanced',
+        timeline: plan.timeline || {
+          'week1-2': 'Initial adaptation phase',
+          'week3-4': 'Building momentum',
+          'month2': 'Significant progress',
+          'month3': 'Advanced results'
+        },
+        impacts: plan.impacts || {
+          primaryGoal: 'Achieve your main health goal',
+          energy: 'Increased energy levels',
+          physical: 'Improved physical condition',
+          mental: 'Better mental clarity',
+          sleep: 'Enhanced sleep quality'
+        },
+        scheduleConstraints: plan.scheduleConstraints || {
+          workoutWindows: ['06:00-07:30', '18:00-20:00'],
+          mealPrepComplexity: 'medium',
+          recoveryTime: '8 hours sleep minimum'
+        },
+        equipment: plan.equipment || ['Basic equipment'],
+        benefits: plan.impacts ? Object.values(plan.impacts) : ['Improved health'],
+        activities: data.step2.schedule?.dailySchedule?.map((activity: any, actIndex: number) => ({
+          id: `activity_${actIndex}`,
+          label: activity.activity || activity.title || 'Activity',
+          time: activity.time || '00:00'
+        })) || []
+      })) || [];
+
+      setGroqPlans(healthPlans);
+      setShowGroqPlans(true);
+
+      // Clear input
+      setUserInput('');
+      clearAllFiles();
+      clearTranscript();
+
+      toast.success("Analysis completed! Choose your personalized protocol.");
+
+    } catch (error) {
+      console.error("Error processing health request:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to process request");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleSelectPlan = async (plan: HealthPlan) => {
     if (!user) {
-      toast.error("Please log in to select a plan");
+      toast.error("Please log in to select a protocol");
       return;
     }
 
     try {
-      setSelectedPlan(plan);
-      const result = await saveSelectedHealthPlan(user.id, plan);
+      setIsProcessing(true);
+      toast.info("Generating detailed daily schedule...");
+
+      // Phase 2: Generate detailed daily schedule using Gemini
+      const scheduleResponse = await fetch('/api/gemini/generate-schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: plan,
+          userProfile: getSafeProfile(),
+          healthScore: healthScore,
+          prompt: `Generate a detailed daily schedule for the health plan: "${plan.title}".
+
+          Plan Details:
+          - Description: ${plan.description}
+          - Duration: ${plan.duration}
+          - Difficulty: ${plan.difficulty}
+          - Focus Areas: ${plan.focusAreas?.join(', ')}
+          - Equipment: ${plan.equipment?.join(', ')}
+          - Benefits: ${plan.benefits?.join(', ')}
+
+          User Profile:
+          - Age: ${getSafeProfile()?.age || 'Not specified'}
+          - Health Score: ${healthScore}/100
+          - Goals: ${userInput || 'General wellness'}
+
+          Generate a complete daily schedule from 6:00 AM to 10:00 PM with:
+          1. Specific activities with exact times
+          2. Duration for each activity
+          3. Detailed instructions
+          4. Equipment needed for each activity
+          5. Difficulty level for each activity
+          6. Estimated calories burned
+          7. Activity type (exercise, meal, rest, work, mindfulness)
+
+          Format as JSON with activities array containing: id, title, time, duration, type, details, instructions, equipment, difficulty, calories`
+        })
+      });
+
+      if (!scheduleResponse.ok) {
+        throw new Error(`Failed to generate schedule: ${scheduleResponse.status}`);
+      }
+
+      const scheduleText = await scheduleResponse.text();
+      let scheduleData;
+      try {
+        scheduleData = JSON.parse(scheduleText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse schedule response as JSON:', parseError);
+        console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
+        throw new Error('Invalid response format from schedule generation API');
+      }
+      // console.log('🔍 Schedule API Response:', scheduleData);
+      // console.log('🔍 Activities received:', scheduleData.activities);
+      const detailedPlan = {
+        ...plan,
+        activities: scheduleData.activities || []
+      };
+
+      setSelectedPlan(detailedPlan);
+      const result = await saveSelectedHealthPlan(user.id, detailedPlan);
+      
       if (result.success) {
-        toast.success(`Selected plan: ${plan.title}`);
+        toast.success(`Plan "${plan.title}" is now active with detailed schedule!`);
         
-        // Update today's activities based on selected plan
-        if (plan.activities && plan.activities.length > 0) {
-          const activitiesWithTimestamps = plan.activities.map(activity => ({
+        // Update today's activities based on generated schedule
+        if (detailedPlan.activities && detailedPlan.activities.length > 0) {
+          const activitiesWithTimestamps = detailedPlan.activities.map(activity => ({
             ...activity,
-            id: Math.random().toString(36).substr(2, 9),
+            id: activity.id || Math.random().toString(36).substr(2, 9),
             completed: false,
             timestamp: new Date().toISOString()
           }));
@@ -451,21 +546,95 @@ const Dashboard: React.FC = () => {
         // Hide the health plans and show the updated Today's Schedule
         setShowHealthPlans(false);
         setShowGroqPlans(false);
+        
         // Navigate to health plan generation page
-        navigate('/health-plan-generation', { state: { selectedPlan: plan } });
+        navigate('/health-plan-generation', { state: { selectedPlan: detailedPlan } });
       } else {
         throw new Error(result.error || "Failed to save selected plan");
       }
     } catch (error) {
       console.error("Error selecting plan:", error);
       toast.error(error instanceof Error ? error.message : "Failed to select plan");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleGroqPlanSelect = (plan: HealthPlan) => {
-    setSelectedPlan(plan);
-    setShowGroqPlans(false);
-    toast.success(`Selected plan: ${plan.title}`);
+  const handleGroqPlanSelect = async (plan: HealthPlan) => {
+    if (!user) {
+      toast.error("Please log in to select a protocol");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      toast.info("Generating detailed daily schedule...");
+
+      // Phase 2: Generate detailed daily schedule using unified API
+      const scheduleResponse = await fetch('/api/generate-schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          selectedPlanId: plan.id,
+          planDetails: { plans: groqPlans },
+          onboardingData: getSafeProfile(),
+          userProfile: getSafeProfile()
+        })
+      });
+
+      if (!scheduleResponse.ok) {
+        throw new Error(`Failed to generate schedule: ${scheduleResponse.status}`);
+      }
+
+      const scheduleText = await scheduleResponse.text();
+      let scheduleData;
+      try {
+        scheduleData = JSON.parse(scheduleText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse schedule response as JSON:', parseError);
+        console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
+        throw new Error('Invalid response format from schedule generation API');
+      }
+      // console.log('🔍 Schedule API Response:', scheduleData);
+      // console.log('🔍 Activities received:', scheduleData.activities);
+      const detailedPlan = {
+        ...plan,
+        activities: scheduleData.activities || []
+      };
+
+      setSelectedPlan(detailedPlan);
+      const result = await saveSelectedHealthPlan(user.id, detailedPlan);
+      
+      if (result.success) {
+        toast.success(`Plan "${plan.title}" is now active with detailed schedule!`);
+        
+        // Update today's activities based on generated schedule
+        if (detailedPlan.activities && detailedPlan.activities.length > 0) {
+          const activitiesWithTimestamps = detailedPlan.activities.map(activity => ({
+            ...activity,
+            id: activity.id || Math.random().toString(36).substr(2, 9),
+            completed: false,
+            timestamp: new Date().toISOString()
+          }));
+          setTodaysActivities(activitiesWithTimestamps);
+          
+          // Save to localStorage for persistence
+          localStorage.setItem('todaysActivities', JSON.stringify(activitiesWithTimestamps));
+        }
+        
+        // Hide the health plans and show the updated Today's Schedule
+        setShowGroqPlans(false);
+      } else {
+        throw new Error(result.error || "Failed to save selected plan");
+      }
+    } catch (error) {
+      console.error("Error selecting plan:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to select plan");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleBackToGroqPlans = () => {
@@ -473,11 +642,13 @@ const Dashboard: React.FC = () => {
     setShowGroqPlans(true);
   };
 
-  const handleViewPlanDetails = () => {
-    if (selectedPlan) {
-      navigate('/workout-dashboard', { state: { selectedPlan, viewOnly: true } });
+
+  const handleViewPlanDetails = (plan?: HealthPlan) => {
+    const planToView = plan || selectedPlan;
+    if (planToView) {
+      navigate('/health-plan-generation', { state: { selectedPlan: planToView } });
     } else {
-      toast.error("No plan selected");
+      toast.error("No protocol selected");
     }
   };
 
@@ -520,52 +691,103 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
+  // Calculate health score on component mount
+  useEffect(() => {
+    const calculateInitialHealthScore = async () => {
+      if (user && profile) {
+        try {
+          const profileResult = await getUserProfileForHealthScore(user.id);
+          if (profileResult.success) {
+            const scoreResult = await calculateHealthScore({ userProfile: profileResult.profile });
+            if (scoreResult.success && scoreResult.healthScore) {
+              setHealthScore(scoreResult.healthScore);
+            } else {
+              setHealthScore(75);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to calculate initial health score:', error);
+          // Set a default health score if calculation fails
+          setHealthScore(75);
+        }
+      }
+    };
+
+    calculateInitialHealthScore();
+  }, [user, profile]);
+
   return (
     <UserFlowHandler>
-      <div className={`min-h-screen transition-colors duration-300 ${
-        isDarkMode 
-          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
-          : 'bg-gradient-to-br from-[#88ba82] to-[#95c190]'
-      }`}>
+      <ErrorBoundary>
+        <div className={`min-h-screen transition-colors duration-300 ${
+          isDarkMode 
+            ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+            : 'bg-gradient-to-br from-[#88ba82] to-[#95c190]'
+        }`}>
       <div className="max-w-md mx-auto pb-6">
         {/* Header Section - White with Rounded Bottom */}
         <div className={`rounded-b-[2rem] px-4 sm:px-6 py-4 shadow-lg transition-colors duration-300 ${
           isDarkMode ? 'bg-gray-800' : 'bg-white'
         }`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <LazyImage
-                src={(() => {
-                  const avatarUrl = 
-                    user?.user_metadata?.avatar_url ||
-                    user?.user_metadata?.picture ||
-                    user?.user_metadata?.photo_url ||
-                    user?.user_metadata?.avatar ||
-                    user?.user_metadata?.image ||
-                    user?.user_metadata?.profile_image ||
-                    user?.app_metadata?.avatar_url ||
-                    user?.app_metadata?.picture ||
-                    user?.app_metadata?.photo_url ||
-                    user?.app_metadata?.avatar ||
-                    user?.app_metadata?.image ||
-                    user?.app_metadata?.profile_image ||
-                    (user?.user_metadata?.full_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata.full_name)}&background=random&color=fff&size=128` : null) ||
-                    "/icons/profile.png";
-                  
-                  return avatarUrl;
-                })()}
-                alt="Profile"
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-300 object-cover"
-                onError={() => {
-                  // Image failed to load, using fallback
-                }}
-              />
-              <div>
-                <h1 className={`text-lg font-medium transition-colors duration-300 ${
+            <div className="flex items-center gap-4">
+              {/* Profile Image Container */}
+              <div className="relative">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-3 border-gray-200 shadow-md overflow-hidden bg-gradient-to-br from-[#88ba82] to-[#95c190] flex items-center justify-center">
+                  {(() => {
+                    // Try to get profile image from various sources
+                    const avatarUrl = 
+                      user?.user_metadata?.avatar_url ||
+                      user?.user_metadata?.picture ||
+                      user?.user_metadata?.photo_url ||
+                      user?.user_metadata?.avatar ||
+                      user?.user_metadata?.image ||
+                      user?.user_metadata?.profile_image ||
+                      user?.app_metadata?.avatar_url ||
+                      user?.app_metadata?.picture ||
+                      user?.app_metadata?.photo_url ||
+                      user?.app_metadata?.avatar ||
+                      user?.app_metadata?.image ||
+                      user?.app_metadata?.profile_image;
+                    
+                    if (avatarUrl && !profileImageError) {
+                      return (
+                        <LazyImage
+                          src={avatarUrl}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          onError={() => {
+                            // Set error state to show initials
+                            setProfileImageError(true);
+                          }}
+                        />
+                      );
+                    }
+                    
+                    // Show initials by default or when image fails
+                    return (
+                      <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg sm:text-xl">
+                        {safeRender(getFirstName()).charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    );
+                  })()}
+                </div>
+                {/* Online status indicator */}
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+              </div>
+              
+              {/* User Info Container */}
+              <div className="flex flex-col min-w-0 flex-1">
+                <h1 className={`text-lg font-semibold transition-colors duration-300 truncate ${
                   isDarkMode ? 'text-white' : 'text-gray-800'
                 }`}>
-                  Hi {getFirstName()}
+                  Hi {safeRender(getFirstName())}
                 </h1>
+                <p className={`text-sm transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  Welcome back!
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -740,8 +962,13 @@ const Dashboard: React.FC = () => {
                   onClick={handleSendMessage}
                   disabled={isProcessing || (!userInput.trim() && uploadedFiles.length === 0 && !transcript.trim())}
                   className="w-8 h-8 bg-gradient-to-r from-[#88ba82] to-[#95c190] rounded-full flex items-center justify-center hover:from-[#7aa875] hover:to-[#88ba82] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+                  title="Generate AI Health Plan"
                 >
-                  <Send className="w-4 h-4 text-white" />
+                  {isProcessing ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Activity className="w-4 h-4 text-white" />
+                  )}
                 </button>
               </div>
             </div>
@@ -771,20 +998,37 @@ const Dashboard: React.FC = () => {
                 selectedPlan={selectedPlan}
               />
             </div>
+          ) : showGroqPlans ? (
+            <div className={`py-3 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <TodaySchedule 
+                plans={groqPlans}
+                showPlans={true}
+                onSelectPlan={handleGroqPlanSelect}
+                onViewPlanDetails={handleViewPlanDetails}
+                sequentialAIResult={sequentialAIResult}
+              />
+            </div>
+          ) : selectedPlan ? (
+            <div className={`py-3 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <TodaySchedule 
+                plan={selectedPlan} 
+                onSelectPlan={handleGroqPlanSelect}
+                onViewPlanDetails={handleViewPlanDetails}
+                sequentialAIResult={sequentialAIResult}
+              />
+            </div>
           ) : (
-            <DynamicHealthSection
-              isDarkMode={isDarkMode}
-              showTips={showTips}
-              setShowTips={setShowTips}
-              setShowYourHealthPopup={setShowYourHealthPopup}
-              plans={groqPlans}
-              selectedPlan={selectedPlan}
-              onSelectPlan={handleGroqPlanSelect}
-              onBackToPlans={handleBackToGroqPlans}
-              todaysActivities={todaysActivities}
-              expandedItems={expandedItems}
-              toggleExpanded={toggleExpanded}
-            />
+            <div className={`py-3 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <TodaySchedule 
+                sequentialAIResult={sequentialAIResult}
+              />
+            </div>
           )}
         </div>
 
@@ -896,8 +1140,10 @@ const Dashboard: React.FC = () => {
       {/* AI Processing Popup */}
       <AIProcessingPopup
         isOpen={isProcessing}
+        isActuallyProcessing={isProcessing}
         onComplete={(result) => {
           // AI processing completed
+          // console.log("AI processing completed:", result);
         }}
         onError={(error) => {
           console.error("AI processing error:", error);
@@ -909,14 +1155,15 @@ const Dashboard: React.FC = () => {
       <YourHealthPopup
         isOpen={showYourHealthPopup}
         onClose={() => setShowYourHealthPopup(false)}
-        userProfile={profile}
+        userProfile={getSafeProfile()}
         healthScore={healthScore}
         selectedPlan={selectedPlan}
       />
 
       {/* Floating Chat */}
       <FloatingChat />
-      </div>
+        </div>
+      </ErrorBoundary>
     </UserFlowHandler>
   );
 };

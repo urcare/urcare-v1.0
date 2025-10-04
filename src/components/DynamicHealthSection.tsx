@@ -30,6 +30,51 @@ interface HealthPlan {
   title: string;
   description: string;
   activities?: PlanActivity[];
+  dailySchedule?: {
+    morning?: {
+      time: string;
+      activity: string;
+      details: string;
+    };
+    breakfast?: {
+      time: string;
+      meal: string;
+      calories: number;
+      macros: string;
+    };
+    workout?: {
+      time: string;
+      type: string;
+      exercises?: Array<{
+        name: string;
+        sets: number;
+        reps: number;
+        rest: string;
+      }>;
+    };
+    lunch?: {
+      time: string;
+      meal: string;
+      calories: number;
+      macros: string;
+    };
+    dinner?: {
+      time: string;
+      meal: string;
+      calories: number;
+      macros: string;
+    };
+    evening?: {
+      time: string;
+      activity: string;
+      details: string;
+    };
+    bedtime?: {
+      time: string;
+      activity: string;
+      details: string;
+    };
+  };
 }
 
 interface DynamicHealthSectionProps {
@@ -242,141 +287,122 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
   );
 
   const renderSelectedPlanActivities = () => {
-    // Complete daily schedule from 7 AM to 11 PM
-    const dailySchedule = [
-      {
-        id: 'morning-wakeup',
-        time: '07:00',
-        title: 'Morning Wake-up Routine',
-        activity: 'Yoga',
-        details: ['Downward Dog', 'Warrior II', 'Child\'s Pose'],
-        icon: '🧘‍♀️'
-      },
-      {
-        id: 'breakfast',
-        time: '07:30',
-        title: 'Healthy Breakfast',
-        activity: 'Breakfast',
-        details: ['Oatmeal with Berries', 'Avocado Toast', 'Greek Yogurt Bowl'],
-        icon: '🍳'
-      },
-      {
-        id: 'focused-work',
-        time: '08:00',
-        title: 'Focused Work Session',
-        activity: 'Work',
-        details: ['Emails & Planning', 'Deep Work: Coding', 'Project Review'],
-        icon: '💻'
-      },
-      {
-        id: 'deep-work',
-        time: '09:00',
-        title: 'Deep Work Block',
-        activity: 'Work',
-        details: ['Deep Work: Coding', 'Problem Solving', 'Algorithm Practice'],
-        icon: '🔬'
-      },
-      {
-        id: 'short-break',
-        time: '10:30',
-        title: 'Short Break',
-        activity: 'Leisure/Break',
-        details: ['Walk Outside', 'Stretch', 'Hydrate'],
-        icon: '🚶‍♂️'
-      },
-      {
-        id: 'creative-work',
-        time: '11:00',
-        title: 'Creative Work',
-        activity: 'Work',
-        details: ['Brainstorming', 'Design', 'Writing'],
-        icon: '🎨'
-      },
-      {
-        id: 'lunch',
-        time: '12:30',
-        title: 'Lunch Break',
-        activity: 'Lunch',
-        details: ['Grilled Chicken Salad', 'Quinoa Bowl', 'Veggie Wrap'],
-        icon: '🥗'
-      },
-      {
-        id: 'afternoon-work',
-        time: '13:30',
-        title: 'Afternoon Work',
-        activity: 'Work',
-        details: ['Meetings', 'Collaboration', 'Review'],
-        icon: '👥'
-      },
-      {
-        id: 'energy-boost',
-        time: '15:00',
-        title: 'Energy Boost',
-        activity: 'Leisure/Break',
-        details: ['10-min Meditation', 'Green Tea', 'Light Snack'],
-        icon: '⚡'
-      },
-      {
-        id: 'physical-activity',
-        time: '16:00',
-        title: 'Physical Activity',
-        activity: 'Workout',
-        details: ['30-min Walk', 'Yoga Flow', 'Gym Session'],
-        icon: '🏃‍♂️'
-      },
-      {
-        id: 'wind-down',
-        time: '17:30',
-        title: 'Wind-down Routine',
-        activity: 'Leisure/Break',
-        details: ['Journaling', 'Gratitude List', 'Breathing Exercises'],
-        icon: '📝'
-      },
-      {
-        id: 'dinner',
-        time: '18:30',
-        title: 'Dinner',
-        activity: 'Dinner',
-        details: ['Salmon & Veggies', 'Lentil Curry', 'Stir-fry Tofu'],
-        icon: '🍽️'
-      },
-      {
-        id: 'leisure',
-        time: '20:00',
-        title: 'Leisure / Hobbies',
-        activity: 'Hobby',
-        details: ['Reading', 'Music', 'Art', 'Podcast'],
-        icon: '📚'
-      },
-      {
-        id: 'evening-relaxation',
-        time: '21:30',
-        title: 'Evening Relaxation',
-        activity: 'Leisure/Break',
-        details: ['Warm Bath', 'Herbal Tea', 'No Screens'],
-        icon: '🛁'
-      },
-      {
-        id: 'sleep-prep',
-        time: '22:30',
-        title: 'Sleep Prep',
-        activity: 'Leisure/Break',
-        details: ['Dim Lights', 'Stretch', 'Affirmations'],
-        icon: '🌙'
-      },
-      {
-        id: 'lights-out',
-        time: '23:00',
-        title: 'Lights Out',
-        activity: 'Sleep',
-        details: ['Sleep', 'Rest', 'Recovery'],
-        icon: '😴'
-      }
-    ];
+    // Handle both dailySchedule (from /api/health-plans) and activities (from /api/groq/generate-plan)
+    if (!selectedPlan) {
+      return <div className="text-center text-gray-500">No plan selected.</div>;
+    }
+
+    let scheduleItems = [];
+
+    // Check if plan has dailySchedule (from /api/health-plans)
+    if (selectedPlan.dailySchedule) {
+      const { dailySchedule } = selectedPlan;
+      
+      // Convert AI daily schedule to display format
+      scheduleItems = [
+        dailySchedule.morning && {
+          id: 'morning',
+          time: dailySchedule.morning.time,
+          title: 'Morning Routine',
+          activity: dailySchedule.morning.activity,
+          details: [dailySchedule.morning.details],
+          icon: '🌅'
+        },
+        dailySchedule.breakfast && {
+          id: 'breakfast',
+          time: dailySchedule.breakfast.time,
+          title: 'Breakfast',
+          activity: dailySchedule.breakfast.meal,
+          details: [
+            `Calories: ${dailySchedule.breakfast.calories}`,
+            `Macros: ${dailySchedule.breakfast.macros}`
+          ],
+          icon: '🍳'
+        },
+        dailySchedule.workout && {
+          id: 'workout',
+          time: dailySchedule.workout.time,
+          title: 'Workout Session',
+          activity: dailySchedule.workout.type,
+          details: dailySchedule.workout.exercises?.map(ex => 
+            `${ex.name}: ${ex.sets} sets x ${ex.reps} reps (${ex.rest} rest)`
+          ) || [],
+          icon: '💪'
+        },
+        dailySchedule.lunch && {
+          id: 'lunch',
+          time: dailySchedule.lunch.time,
+          title: 'Lunch',
+          activity: dailySchedule.lunch.meal,
+          details: [
+            `Calories: ${dailySchedule.lunch.calories}`,
+            `Macros: ${dailySchedule.lunch.macros}`
+          ],
+          icon: '🥗'
+        },
+        dailySchedule.dinner && {
+          id: 'dinner',
+          time: dailySchedule.dinner.time,
+          title: 'Dinner',
+          activity: dailySchedule.dinner.meal,
+          details: [
+            `Calories: ${dailySchedule.dinner.calories}`,
+            `Macros: ${dailySchedule.dinner.macros}`
+          ],
+          icon: '🍽️'
+        },
+        dailySchedule.evening && {
+          id: 'evening',
+          time: dailySchedule.evening.time,
+          title: 'Evening Routine',
+          activity: dailySchedule.evening.activity,
+          details: [dailySchedule.evening.details],
+          icon: '🌙'
+        },
+        dailySchedule.bedtime && {
+          id: 'bedtime',
+          time: dailySchedule.bedtime.time,
+          title: 'Bedtime Routine',
+          activity: dailySchedule.bedtime.activity,
+          details: [dailySchedule.bedtime.details],
+          icon: '😴'
+        }
+      ].filter(Boolean); // Remove null/undefined items
+    }
+    // Check if plan has activities array (from /api/groq/generate-plan)
+    else if (selectedPlan.activities && Array.isArray(selectedPlan.activities)) {
+      scheduleItems = selectedPlan.activities.map((activity, index) => ({
+        id: activity.id || `activity_${index}`,
+        time: activity.time || 'TBD',
+        title: activity.label || 'Activity',
+        activity: activity.description || activity.label || 'Activity',
+        details: [activity.description || 'No details available'],
+        icon: getActivityIcon(activity.label || 'Activity')
+      }));
+    }
+    // Fallback if neither structure is found
+    else {
+      return <div className="text-center text-gray-500">No schedule available for this plan.</div>;
+    }
+
+    // Helper function to get appropriate icon based on activity label
+    function getActivityIcon(label) {
+      const lowerLabel = label.toLowerCase();
+      if (lowerLabel.includes('breakfast') || lowerLabel.includes('meal') || lowerLabel.includes('food')) return '🍳';
+      if (lowerLabel.includes('workout') || lowerLabel.includes('exercise') || lowerLabel.includes('gym')) return '💪';
+      if (lowerLabel.includes('lunch')) return '🥗';
+      if (lowerLabel.includes('dinner')) return '🍽️';
+      if (lowerLabel.includes('morning') || lowerLabel.includes('wake')) return '🌅';
+      if (lowerLabel.includes('evening') || lowerLabel.includes('wind')) return '🌙';
+      if (lowerLabel.includes('bedtime') || lowerLabel.includes('sleep')) return '😴';
+      if (lowerLabel.includes('work') || lowerLabel.includes('focus')) return '💻';
+      if (lowerLabel.includes('break') || lowerLabel.includes('rest')) return '☕';
+      return '📋';
+    }
 
     return (
       <>
-        {dailySchedule.map((scheduleItem, index) => {
+        {scheduleItems.map((scheduleItem, index) => {
           const itemId = `schedule-${scheduleItem.id}`;
           const isExpanded = expandedItems.has(itemId);
           
