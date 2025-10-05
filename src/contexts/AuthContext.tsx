@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Track if auth listener is initialized
   const authListenerRef = useRef<boolean>(false);
 
-  // Fetch user profile with caching
+  // Fetch user profile with caching and timeout
   const fetchUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
       try {
@@ -164,11 +164,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return cached.profile;
         }
 
-        const { data, error } = await supabase
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+        );
+
+        const profilePromise = supabase
           .from("user_profiles")
           .select("*")
           .eq("id", userId)
           .single();
+
+        const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
         if (error) {
           console.warn("Profile fetch error:", error);
@@ -187,7 +194,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         return result;
       } catch (error) {
-        console.warn("Profile fetch failed:", error);
+        if (error instanceof Error && error.message === 'Profile fetch timeout') {
+          console.warn("Profile fetch timed out after 5 seconds:", error);
+        } else {
+          console.warn("Profile fetch failed:", error);
+        }
         return null;
       }
     },
@@ -241,9 +252,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (increased to 20s for better reliability)
+        // Add timeout protection to prevent hanging (reduced to 10s for faster response)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 20000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
         );
         
         const profilePromise = Promise.all([
@@ -267,7 +278,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (error) {
         // Log errors for debugging in production
-        console.error("Profile operations failed:", error);
+        if (error instanceof Error && error.message === 'Profile fetch timeout') {
+          console.warn("Profile operations timed out after 10 seconds:", error);
+        } else {
+          console.error("Profile operations failed:", error);
+        }
         // Don't fail silently - this was causing white screens
         const minimalProfile = createMinimalProfile(user);
         // Safety check to ensure we don't set an error object as profile
