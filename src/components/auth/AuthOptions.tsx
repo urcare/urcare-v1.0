@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Google, Apple, Mail } from 'lucide-react';
+import { Mail, Smartphone, User } from 'lucide-react';
 
 interface AuthOptionsProps {
   onboardingData: any;
@@ -53,7 +53,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
         variant="outline"
         className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
       >
-        <Google className="w-5 h-5" />
+        <User className="w-5 h-5" />
         <span>Continue with Google</span>
       </Button>
 
@@ -63,7 +63,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
         variant="outline"
         className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
       >
-        <Apple className="w-5 h-5" />
+        <Smartphone className="w-5 h-5" />
         <span>Continue with Apple</span>
       </Button>
 
