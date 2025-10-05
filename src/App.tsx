@@ -48,12 +48,11 @@ import WorkoutActivity from "./pages/WorkoutActivity";
 import AdminPanel from "./pages/AdminPanel";
 
 import ErrorBoundary from "./components/ErrorBoundary";
-import { InitialRouteHandler } from "./components/InitialRouteHandler";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { CleanRouteHandler } from "./components/CleanRouteHandler";
+import { CleanCleanProtectedRoute } from "./components/CleanCleanProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
-import { SimpleAuthCallback } from "./components/auth/SimpleAuthCallback";
+import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
 import AdminDashboard from "./components/AdminDashboard";
-import { RoutingDebugger } from "./components/RoutingDebugger";
 
 function App() {
   // Apply Safari mobile fixes
@@ -68,12 +67,12 @@ function App() {
             v7_relativeSplatPath: true,
           }}
         >
-          <InitialRouteHandler />
+          <CleanRouteHandler />
           <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<SimpleAuthCallback />} />
-          <Route path="/auth/callback" element={<SimpleAuthCallback />} />
+          <Route path="/auth" element={<CleanAuthCallback />} />
+          <Route path="/auth/callback" element={<CleanAuthCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/admin-login" element={<AdminLogin />} />
@@ -87,114 +86,114 @@ function App() {
           <Route
             path="/welcome-screen"
             element={
-              <ProtectedRoute>
+              <CleanCleanProtectedRoute>
                 <WelcomeScreen />
-              </ProtectedRoute>
+              </CleanCleanProtectedRoute>
             }
           />
 
           <Route
             path="/onboarding"
             element={
-              <ProtectedRoute>
+              <CleanCleanProtectedRoute>
                 <Onboarding />
-              </ProtectedRoute>
+              </CleanCleanProtectedRoute>
             }
           />
 
           <Route
             path="/onboarding-healthassessment-screen"
             element={
-              <ProtectedRoute>
+              <CleanProtectedRoute>
                 <OnboardingHealthAssessment />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/health-assessment"
             element={
-              <ProtectedRoute requireOnboardingComplete={false}>
+              <CleanProtectedRoute requireOnboardingComplete={false}>
                 <HealthAssessment />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/paywall"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Paywall />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/payment-wall"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <PaymentWall />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/paymentpage"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <PaymentPage />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/phonecheckout"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <PhonePeCheckout />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/paycheckout"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Paycheckout />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
                   <Route
                     path="/phonecheckout/result"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={true}>
+                      <CleanProtectedRoute requireOnboardingComplete={true}>
                         <PaymentResult />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
                   <Route
                     path="/payment/success"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={false}>
+                      <CleanProtectedRoute requireOnboardingComplete={false}>
                         <PaymentSuccess />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
                   <Route
                     path="/mock-phonepe-payment"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={false}>
+                      <CleanProtectedRoute requireOnboardingComplete={false}>
                         <MockPhonePePayment />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
                   <Route
                     path="/phonepe-qr-fallback"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={false}>
+                      <CleanProtectedRoute requireOnboardingComplete={false}>
                         <PhonePeQRFallbackPage />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
 
@@ -202,18 +201,18 @@ function App() {
                   <Route
                     path="/test-phonepe"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={true}>
+                      <CleanProtectedRoute requireOnboardingComplete={true}>
                         <PhonePeCheckout />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
 
                   <Route
                     path="/phonepe-test"
                     element={
-                      <ProtectedRoute requireOnboardingComplete={false}>
+                      <CleanProtectedRoute requireOnboardingComplete={false}>
                         <PhonePeTest />
-                      </ProtectedRoute>
+                      </CleanProtectedRoute>
                     }
                   />
 
@@ -234,36 +233,36 @@ function App() {
           <Route
             path="/subscription"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Subscription />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Dashboard />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/health-plan"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <HealthPlan />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/health-plan-generation"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <HealthPlanGeneration />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
@@ -300,94 +299,94 @@ function App() {
           <Route
             path="/custom-plan"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <CustomPlan />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/diet"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Diet />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/workout"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Workout />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/planner"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Planner />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/camera"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <ErrorBoundary>
                   <Camera />
                 </ErrorBoundary>
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/plan-details"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <ErrorBoundary>
                   <PlanDetails />
                 </ErrorBoundary>
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/goals"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Goals />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/progress"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Progress />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/settings"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <Settings />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/profile-management"
             element={
-              <ProtectedRoute requireOnboardingComplete={true}>
+              <CleanProtectedRoute requireOnboardingComplete={true}>
                 <ProfileManagement />
-              </ProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 

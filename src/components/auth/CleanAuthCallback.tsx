@@ -1,17 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState } from "react";
 
-export const SimpleAuthCallback: React.FC = () => {
+export const CleanAuthCallback: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log("🔄 SimpleAuthCallback: Starting authentication...");
+        console.log("🔄 CleanAuthCallback: Starting authentication...");
         
-        // Wait a moment for Supabase to process the OAuth callback
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for Supabase to process the OAuth callback
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -30,7 +30,7 @@ export const SimpleAuthCallback: React.FC = () => {
           // Redirect to dashboard immediately
           setTimeout(() => {
             window.location.href = "/dashboard";
-          }, 1000);
+          }, 1500);
         } else {
           console.log("⚠️ No session found");
           setError("No authentication session found. Please try logging in again.");
