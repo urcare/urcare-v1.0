@@ -359,56 +359,40 @@ const Dashboard: React.FC = () => {
         userProfile = profileResult.profile;
       }
       
-      // Use the unified sequential AI service for both input types
-      const primaryGoal = userInput.trim() || "Boost energy, improve sleep, reduce stress";
+      // Use Supabase health-plans function to generate personalized plans
+      const primaryGoal = userInput.trim() || transcript.trim() || "Boost energy, improve sleep, reduce stress";
       
-
-      const response = await fetch('/api/generate-unified-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      console.log('🎯 Generating personalized health plans based on user input:', primaryGoal);
+      
+      const { data, error } = await supabase.functions.invoke('health-plans', {
+        body: {
           userProfile: userProfile,
-          healthScore: 75, // Default health score
-          healthAnalysis: "Good health with room for improvement",
-          recommendations: ["Exercise regularly", "Eat balanced meals", "Get enough sleep"],
+          healthScore: healthScore,
           userInput: primaryGoal,
-          customizationPreferences: {
-            difficulty: "intermediate",
-            focus: "general wellness"
-          }
-        })
+          uploadedFiles: uploadedFiles,
+          voiceTranscript: transcript
+        }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Unified AI API failed:', response.status, errorText);
-        throw new Error(`Failed to generate AI plans: ${response.status}`);
+      if (error) {
+        console.error('❌ Supabase health-plans function failed:', error);
+        throw new Error(`Failed to generate health plans: ${error.message}`);
       }
 
-      const responseText = await response.text();
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Failed to parse unified AI response as JSON:', parseError);
-        console.error('❌ Response text:', responseText.substring(0, 200) + '...');
-        throw new Error('Invalid response format from unified AI API');
-      }
+      console.log('✅ Health plans generated successfully:', data);
 
       setSequentialAIResult(data);
       
-      // Convert Groq protocols to HealthPlan format for display
-      const healthPlans: HealthPlan[] = data.step1.plans?.map((plan: any, index: number) => ({
+      // Convert Supabase health-plans response to HealthPlan format for display
+      const healthPlans: HealthPlan[] = data.plans?.map((plan: any, index: number) => ({
         id: plan.id || `plan_${index + 1}`,
-        title: plan.name || plan.title || `Protocol ${index + 1}`,
-        name: plan.name || plan.title || `Protocol ${index + 1}`,
-        description: plan.description || 'Algorithm-generated health protocol',
-        duration: plan.duration || '4-6 weeks',
+        title: plan.title || plan.name || `Health Plan ${index + 1}`,
+        name: plan.title || plan.name || `Health Plan ${index + 1}`,
+        description: plan.description || 'AI-generated personalized health plan',
+        duration: plan.duration || '12-16 weeks',
         difficulty: plan.difficulty || 'Beginner',
-        focusAreas: plan.focusAreas || ['General wellness'],
-        estimatedCalories: plan.calorieTarget || plan.calories || 2000,
+        focusAreas: plan.focusAreas || plan.focus_areas || ['General wellness'],
+        estimatedCalories: plan.estimatedCalories || plan.calories || 2000,
         calorieTarget: plan.calorieTarget || plan.calories || 2000,
         macros: plan.macros || { protein: 30, carbs: 40, fats: 30 },
         workoutFrequency: plan.workoutFrequency || '3 days/week',
@@ -420,7 +404,7 @@ const Dashboard: React.FC = () => {
           'month3': 'Advanced results'
         },
         impacts: plan.impacts || {
-          primaryGoal: 'Achieve your main health goal',
+          primaryGoal: plan.title || 'Achieve your main health goal',
           energy: 'Increased energy levels',
           physical: 'Improved physical condition',
           mental: 'Better mental clarity',
@@ -432,12 +416,8 @@ const Dashboard: React.FC = () => {
           recoveryTime: '8 hours sleep minimum'
         },
         equipment: plan.equipment || ['Basic equipment'],
-        benefits: plan.impacts ? Object.values(plan.impacts) : ['Improved health'],
-        activities: data.step2.schedule?.dailySchedule?.map((activity: any, actIndex: number) => ({
-          id: `activity_${actIndex}`,
-          label: activity.activity || activity.title || 'Activity',
-          time: activity.time || '00:00'
-        })) || []
+        benefits: plan.benefits || (plan.impacts ? Object.values(plan.impacts) : ['Improved health']),
+        activities: [] // Will be populated when plan is selected
       })) || [];
 
       setGroqPlans(healthPlans);
@@ -450,7 +430,7 @@ const Dashboard: React.FC = () => {
       clearAllFiles();
       clearTranscript();
 
-      toast.success("Analysis completed! Choose your personalized protocol.");
+      toast.success(`Generated ${healthPlans.length} personalized health plans based on your goal: "${primaryGoal}"`);
 
     } catch (error) {
       console.error("Error processing health request:", error);
