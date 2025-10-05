@@ -359,14 +359,21 @@ const Dashboard: React.FC = () => {
       const primaryGoal = userInput.trim() || "Boost energy, improve sleep, reduce stress";
       
 
-      const response = await fetch('/api/groq-gemini-sequential', {
+      const response = await fetch('/api/generate-unified-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userProfile: userProfile,
-          primaryGoal: primaryGoal
+          healthScore: 75, // Default health score
+          healthAnalysis: "Good health with room for improvement",
+          recommendations: ["Exercise regularly", "Eat balanced meals", "Get enough sleep"],
+          userInput: primaryGoal,
+          customizationPreferences: {
+            difficulty: "intermediate",
+            focus: "general wellness"
+          }
         })
       });
 
