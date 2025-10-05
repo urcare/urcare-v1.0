@@ -48,10 +48,10 @@ import WorkoutActivity from "./pages/WorkoutActivity";
 import AdminPanel from "./pages/AdminPanel";
 
 import ErrorBoundary from "./components/ErrorBoundary";
-import { CleanRouteHandler } from "./components/CleanRouteHandler";
 import { CleanProtectedRoute } from "./components/CleanProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
+import { SmartRouteHandler } from "./components/SmartRouteHandler";
 import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
@@ -69,7 +69,7 @@ function App() {
             v7_relativeSplatPath: true,
           }}
         >
-          <CleanRouteHandler />
+          <SmartRouteHandler />
           <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
@@ -395,7 +395,6 @@ function App() {
           {/* Catch all route */}
           <Route path="*" element={<Landing />} />
         </Routes>
-        <RoutingDebugger />
         </BrowserRouter>
       </AdminProvider>
     </AuthProvider>

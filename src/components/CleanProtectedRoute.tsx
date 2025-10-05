@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 interface CleanProtectedRouteProps {
   children: React.ReactNode;
@@ -10,11 +11,19 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
   children,
   requireOnboardingComplete = false,
 }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isInitialized } = useAuth();
   const location = useLocation();
+  const [isReady, setIsReady] = useState(false);
+
+  // Wait for auth to be initialized
+  useEffect(() => {
+    if (isInitialized && !loading) {
+      setIsReady(true);
+    }
+  }, [isInitialized, loading]);
 
   // Show loading while checking authentication
-  if (loading) {
+  if (!isReady || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">
