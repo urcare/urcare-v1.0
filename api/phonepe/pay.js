@@ -46,9 +46,9 @@ export default async function handler(req, res) {
       merchantTransactionId: orderId,
       merchantUserId: userId,
       amount: amount,
-      redirectUrl: `${req.headers.origin || 'https://urcare.vercel.app'}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
+      redirectUrl: `${req.headers.origin || 'https://urcarebyarsh.vercel.app'}/payment/success?orderId=${orderId}&plan=${planSlug || 'basic'}&cycle=${billingCycle || 'annual'}`,
       redirectMode: "REDIRECT",
-      callbackUrl: `${req.headers.origin || 'https://urcare.vercel.app'}/api/phonepe/callback`,
+      callbackUrl: `${req.headers.origin || 'https://urcarebyarsh.vercel.app'}/api/phonepe/callback`,
       paymentInstrument: { 
         type: "PAY_PAGE" 
       }

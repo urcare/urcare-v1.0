@@ -61,9 +61,9 @@ export async function createPhonePeTransaction(
       merchantTransactionId: orderId,
       merchantUserId: request.userId || 'urcare_user',
       amount: amount,
-      redirectUrl: request.redirectUrl || `${process.env.VERCEL_URL || 'https://urcare.vercel.app'}/api/phonepe/callback`,
+      redirectUrl: request.redirectUrl || `${process.env.VERCEL_URL || 'https://urcarebyarsh.vercel.app'}/api/phonepe/callback`,
       redirectMode: 'POST',
-      callbackUrl: `${process.env.VERCEL_URL || 'https://urcare.vercel.app'}/api/phonepe/notify`,
+      callbackUrl: `${process.env.VERCEL_URL || 'https://urcarebyarsh.vercel.app'}/api/phonepe/notify`,
       mobileNumber: '9999999999',
       paymentInstrument: {
         type: 'PAY_PAGE'

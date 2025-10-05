@@ -7,7 +7,8 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     allowNavigation: [
-      "urcare.vercel.app",
+      "urcarebyarsh.vercel.app",
+      "urcare.vercel.app", // Keep old domain for compatibility
       "accounts.google.com",
       "oauth.googleusercontent.com",
     ],

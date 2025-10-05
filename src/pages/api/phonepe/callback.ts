@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Redirect to payment result page
-    const redirectUrl = `${process.env.VERCEL_URL || 'https://urcare.vercel.app'}/pay?status=${order.status}&orderId=${merchantTransactionId}`;
+    const redirectUrl = `${process.env.VERCEL_URL || 'https://urcarebyarsh.vercel.app'}/pay?status=${order.status}&orderId=${merchantTransactionId}`;
     
     return res.redirect(302, redirectUrl);
   } catch (error) {

@@ -6,7 +6,7 @@ const PHONEPE_MERCHANT_ID = 'PHONEPEPGUAT';
 const PHONEPE_SALT_KEY = 'c817ffaf-8471-48b5-a7e2-a27e5b7efbd3';
 const PHONEPE_SALT_INDEX = '1';
 const PHONEPE_BASE_URL = 'https://api-preprod.phonepe.com/apis/pg-sandbox';
-const FRONTEND_URL = 'https://urcare.vercel.app';
+const FRONTEND_URL = 'https://urcarebyarsh.vercel.app';
 
 // Generate X-VERIFY signature
 function generateXVerify(payload, endpoint, saltKey, saltIndex) {

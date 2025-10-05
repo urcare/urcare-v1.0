@@ -10,6 +10,8 @@ export const config = {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc",
     // Dynamic redirect URL based on current origin
     redirectUrl: `${window.location.origin}/auth/callback`,
+    // Production domain for specific configurations
+    productionUrl: 'https://urcarebyarsh.vercel.app',
   },
 
   // OpenAI Configuration

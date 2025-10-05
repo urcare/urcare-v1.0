@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       amountPaise,
       orderId,
       userId,
-      redirectUrl: `${process.env.VERCEL_URL || 'https://urcare.vercel.app'}/api/phonepe/callback`
+      redirectUrl: `${process.env.VERCEL_URL || 'https://urcarebyarsh.vercel.app'}/api/phonepe/callback`
     });
 
     if (transactionResult.success) {

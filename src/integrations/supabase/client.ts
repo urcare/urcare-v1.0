@@ -15,5 +15,10 @@ export const supabase = createClient(
       flowType: "implicit",
       debug: false, // Disable verbose auth logs
     },
+    global: {
+      headers: {
+        'X-Client-Info': 'urcarebyarsh.vercel.app',
+      },
+    },
   }
 );

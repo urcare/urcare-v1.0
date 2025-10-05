@@ -7,9 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({ 
+app.use(cors({
   origin: [
-    'https://urcare.vercel.app', // Production frontend
+    'https://urcarebyarsh.vercel.app', // Production frontend
+    'https://urcare.vercel.app', // Old domain (for compatibility during transition)
     'http://localhost:5173', // Local development
     'http://localhost:3000', // Local development
     'http://127.0.0.1:5173', // Local development

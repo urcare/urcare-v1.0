@@ -15,7 +15,7 @@ const PHONEPE_MERCHANT_ID = 'M23XRS3XN3QMF';
 const PHONEPE_SALT_KEY = '713219fb-38d0-468d-8268-8b15955468b0';
 const PHONEPE_SALT_INDEX = '1';
 const PHONEPE_BASE_URL = 'https://api.phonepe.com/apis/hermes';
-const FRONTEND_URL = 'https://urcare.vercel.app';
+const FRONTEND_URL = 'https://urcarebyarsh.vercel.app';
 
 // Generate X-VERIFY signature
 function generateXVerify(payload, endpoint, saltKey, saltIndex) {
