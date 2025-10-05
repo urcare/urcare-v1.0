@@ -41,8 +41,6 @@ import TodaySchedule from "@/components/TodaySchedule";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AIResponseDisplay from "@/components/AIResponseDisplay";
-import AITestComponent from "@/components/AITestComponent";
-import SupabaseFunctionDebug from "@/components/SupabaseFunctionDebug";
 
 interface HealthPlan {
   id: string;
@@ -131,6 +129,7 @@ const Dashboard: React.FC = () => {
   const [aiError, setAiError] = useState<string>('');
   const [showHealthPlans, setShowHealthPlans] = useState<boolean>(false);
   const [healthPlans, setHealthPlans] = useState<HealthPlan[]>([]);
+  const [healthScoreCalculated, setHealthScoreCalculated] = useState<boolean>(false);
   const [showFileManager, setShowFileManager] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState<boolean>(false);
@@ -695,11 +694,14 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
-  // Calculate health score on component mount
+  // Calculate health score on component mount (only once)
   useEffect(() => {
     const calculateInitialHealthScore = async () => {
-      if (user && profile) {
+      if (user && profile && !healthScoreCalculated) {
         try {
+          console.log('🔍 Calculating health score (first time only)...');
+          setHealthScoreCalculated(true); // Prevent duplicate calls
+          
           const profileResult = await getUserProfileForHealthScore(user.id);
           if (profileResult.success) {
             const scoreResult = await calculateHealthScore({ userProfile: profileResult.profile });
@@ -718,12 +720,14 @@ const Dashboard: React.FC = () => {
           console.error('Failed to calculate initial health score:', error);
           // Set a default health score if calculation fails
           setHealthScore(75);
+          setHealthScoreAnalysis('Unable to generate AI analysis');
+          setHealthScoreRecommendations(['Please try again later']);
         }
       }
     };
 
     calculateInitialHealthScore();
-  }, [user, profile]);
+  }, [user, profile, healthScoreCalculated]);
 
   return (
     <UserFlowHandler>
@@ -1008,15 +1012,6 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* AI Test Component - Remove this after testing */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
-          <AITestComponent />
-        </div>
-
-        {/* Supabase Function Debug - Remove this after testing */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
-          <SupabaseFunctionDebug />
-        </div>
 
         {/* Dynamic Health Section - Health Tips, Plans, or Selected Plan Activities */}
         <div className="max-w-md mx-auto px-4 sm:px-6 mt-2">
