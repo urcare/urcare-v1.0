@@ -439,17 +439,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log("🔄 Auth state change: SIGNED_IN", session?.user?.id);
           await handleUserAuth(session?.user || null);
           
-          // After successful sign in, redirect to appropriate page
-          setTimeout(async () => {
-            try {
-              const redirectRoute = await authFlowService.getRedirectRoute(session?.user || null);
-              console.log("🔄 Redirecting after sign in to:", redirectRoute);
-              window.location.href = redirectRoute;
-            } catch (error) {
-              console.error("❌ Error redirecting after sign in:", error);
-              window.location.href = "/dashboard";
-            }
-          }, 1000);
+          // Don't redirect here - let InitialRouteHandler handle it
+          // This prevents double redirects and conflicts
         } else if (event === "SIGNED_OUT") {
           console.log("🔄 Auth state change: SIGNED_OUT");
           setUser(null);

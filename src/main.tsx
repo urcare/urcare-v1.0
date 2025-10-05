@@ -4,6 +4,7 @@ import App from './App.tsx'
 import './index.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { supabase } from './integrations/supabase/client'
+import './utils/supabaseDiagnostics'
 
 // Suppress React DevTools warning in development
 if (import.meta.env.DEV) {

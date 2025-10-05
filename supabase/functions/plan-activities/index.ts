@@ -31,8 +31,8 @@ serve(async (req) => {
     console.log("🔍 Generating activities for plan:", selectedPlan?.title);
 
     // Get Groq API keys
-    const GROQ_API_KEY = Deno.env.get("VITE_GROQ_API_KEY");
-    const GROQ_API_KEY_2 = Deno.env.get("VITE_GROQ_API_KEY_2");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    const GROQ_API_KEY_2 = Deno.env.get("GROQ_API_KEY_2");
 
     if (!GROQ_API_KEY) {
       return new Response(

@@ -22,7 +22,8 @@ export const InitialRouteHandler: React.FC = () => {
         processedRedirect.current = true;
 
         try {
-          const redirectRoute = await authFlowService.getRedirectRoute(user);
+          const redirectRoute = await authFlowService.getRedirectRoute(user, profile);
+          console.log("🔄 Redirecting user to:", redirectRoute);
           // Use window.location.replace for a clean redirect
           window.location.replace(redirectRoute);
         } catch (error) {

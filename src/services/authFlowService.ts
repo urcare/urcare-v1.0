@@ -360,12 +360,9 @@ class AuthFlowService {
       return "/";
     }
 
-    // Simple logic based on profile state - no complex auth flow checks
-    if (profile?.onboarding_completed) {
-      return "/dashboard"; // After onboarding, go to dashboard
-    } else {
-      return "/onboarding"; // If not completed, go to onboarding
-    }
+    // Use the new routing flow service for proper flow logic
+    const { routingFlowService } = await import('./routingFlowService');
+    return await routingFlowService.getCorrectRoute(user, profile);
   }
 }
 

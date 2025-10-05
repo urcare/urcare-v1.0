@@ -1,7 +1,7 @@
 const { Groq } = require('groq-sdk');
 
 const groq = new Groq({
-  apiKey: process.env.VITE_GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 module.exports = async function handler(req, res) {
@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 
     console.log('🔍 Generating activities for plan:', selectedPlan?.title);
 
-    if (!process.env.VITE_GROQ_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'

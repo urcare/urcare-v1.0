@@ -4,7 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDevAuthFallback } from "@/hooks/useDevAuthFallback";
 import { authFlowService } from "@/services/authFlowService";
 import { devAuthService } from "@/services/devAuthService";
-import React, { useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { OAuthCallbackHandler } from "./OAuthCallbackHandler";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,22 +15,31 @@ export const AuthCallback: React.FC = () => {
   const { user, profile, isInitialized, loading } = useAuth();
   const { isDevAuthActive, forceDevAuth } = useDevAuthFallback();
   const hasRedirected = useRef(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const handleAuthCallback = async () => {
-      // Check if we're in development and need to redirect to local URL
-      if (isDevelopment()) {
-        devUtils.log("Handling auth callback in development mode");
-        if (!devAuthService.checkDevelopmentUrl()) {
-          return; // Redirect is happening
-        }
-        // Let the development auth service handle the session check
-        await devAuthService.handleAuthCallback();
+  // Handle OAuth callback success
+  const handleOAuthSuccess = async (authenticatedUser: any) => {
+    console.log("✅ AuthCallback: OAuth success, user:", authenticatedUser.id);
+    
+    // Wait for auth context to update
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if we're in development and need to redirect to local URL
+    if (isDevelopment()) {
+      devUtils.log("Handling auth callback in development mode");
+      if (!devAuthService.checkDevelopmentUrl()) {
+        return; // Redirect is happening
       }
-    };
+      // Let the development auth service handle the session check
+      await devAuthService.handleAuthCallback();
+    }
+  };
 
-    handleAuthCallback();
-  }, []);
+  // Handle OAuth callback error
+  const handleOAuthError = (error: string) => {
+    console.error("❌ AuthCallback: OAuth error:", error);
+    setAuthError(error);
+  };
 
   // Handle redirect when user is authenticated and context is ready
   useEffect(() => {
@@ -106,11 +117,11 @@ export const AuthCallback: React.FC = () => {
     }
   }, [user]);
 
-  // Show loading while processing
+  // Use the OAuth callback handler for proper OAuth flow
   return (
-    <MobileLoadingScreen
-      message="Completing sign in..."
-      submessage="Setting up your account"
+    <OAuthCallbackHandler
+      onSuccess={handleOAuthSuccess}
+      onError={handleOAuthError}
     />
   );
 };

@@ -2,12 +2,12 @@ const { Groq } = require('groq-sdk');
 
 // Initialize Groq with primary API key
 const groq = new Groq({
-  apiKey: process.env.VITE_GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 // Initialize Groq with secondary API key for load balancing
 const groq2 = new Groq({
-  apiKey: process.env.VITE_GROQ_API_KEY_2,
+  apiKey: process.env.GROQ_API_KEY_2,
 });
 
 module.exports = async function handler(req, res) {
@@ -39,9 +39,9 @@ module.exports = async function handler(req, res) {
     const { userProfile, userInput, uploadedFiles, voiceTranscript } = req.body;
 
     console.log('🔍 Generating health score for user:', userProfile?.id);
-    console.log('🔑 Groq API Key available:', !!process.env.VITE_GROQ_API_KEY);
+    console.log('🔑 Groq API Key available:', !!process.env.GROQ_API_KEY);
 
-    if (!process.env.VITE_GROQ_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({
         success: false,
         error: 'Groq API key not configured'
@@ -134,7 +134,7 @@ Provide a detailed, medically-informed response in this EXACT JSON format:
       console.log('⚠️ Primary Groq API failed, trying secondary...');
       
       // Try secondary API key if primary fails
-      if (process.env.VITE_GROQ_API_KEY_2) {
+      if (process.env.GROQ_API_KEY_2) {
         try {
           const chatCompletion2 = await groq2.chat.completions.create({
             model: "llama-3.3-70b-versatile",

@@ -1,7 +1,7 @@
 import { Groq } from 'groq-sdk';
 
 const groq = new Groq({
-  apiKey: process.env.VITE_GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 export default async function handler(req, res) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!process.env.VITE_GROQ_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ 
         success: false, 
         error: 'Groq API key not configured' 
