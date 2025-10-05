@@ -699,7 +699,7 @@ const Dashboard: React.FC = () => {
     const calculateInitialHealthScore = async () => {
       if (user && profile && !healthScoreCalculated) {
         try {
-          console.log('🔍 Calculating health score (first time only)...');
+          console.log('🔍 Calculating health score (first time only)...', { user: user.id, profile: profile.id });
           setHealthScoreCalculated(true); // Prevent duplicate calls
           
           const profileResult = await getUserProfileForHealthScore(user.id);

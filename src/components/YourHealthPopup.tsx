@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Heart, 
   Activity, 
@@ -42,7 +43,8 @@ const YourHealthPopup: React.FC<YourHealthPopupProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen && userProfile) {
+    if (isOpen && userProfile && healthScore > 0) {
+      // Only load recommendations if we have a health score
       loadHealthRecommendations();
     }
   }, [isOpen, userProfile, healthScore, selectedPlan]);
@@ -50,21 +52,17 @@ const YourHealthPopup: React.FC<YourHealthPopupProps> = ({
   const loadHealthRecommendations = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/health-score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use Supabase function instead of Vercel API
+      const { data, error } = await supabase.functions.invoke('health-score', {
+        body: {
           userProfile,
           userInput: `Health recommendations for ${selectedPlan?.title || 'general wellness'}`,
           uploadedFiles: [],
           voiceTranscript: ''
-        })
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (!error && data) {
         if (data.healthScore !== undefined) {
           // Transform the health score response into recommendations format
           setRecommendations({
@@ -100,7 +98,7 @@ const YourHealthPopup: React.FC<YourHealthPopupProps> = ({
           throw new Error('Invalid response format');
         }
       } else {
-        throw new Error(`Server error: ${response.status}`);
+        throw new Error(`Supabase function error: ${error.message}`);
       }
     } catch (error) {
       console.error('Error loading health recommendations:', error);
