@@ -26,10 +26,10 @@ export const CleanAuthCallback: React.FC = () => {
         if (session?.user) {
           console.log("✅ Authentication successful:", session.user.id);
           setStatus('success');
-          
-          // Redirect to dashboard immediately
+
+          // Let the routing logic determine the correct destination based on subscription status
           setTimeout(() => {
-            window.location.href = "/dashboard";
+            window.location.href = "/"; // Redirect to home, let SmartRouteHandler determine the correct route
           }, 1500);
         } else {
           console.log("⚠️ No session found");

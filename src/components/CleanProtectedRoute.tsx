@@ -2,6 +2,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+// Debug logging for production troubleshooting
+const debugLog = (message: string, data?: any) => {
+  if (import.meta.env.PROD) {
+    console.log(`🔍 CleanProtectedRoute: ${message}`, data || '');
+  }
+};
+
 interface CleanProtectedRouteProps {
   children: React.ReactNode;
   requireOnboardingComplete?: boolean;
@@ -15,15 +22,28 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
   const location = useLocation();
   const [isReady, setIsReady] = useState(false);
 
+  debugLog('Component rendered', {
+    user: user?.id,
+    profile: profile?.id,
+    loading,
+    isInitialized,
+    isReady,
+    requireOnboardingComplete,
+    pathname: location.pathname
+  });
+
   // Wait for auth to be initialized
   useEffect(() => {
+    debugLog('useEffect triggered', { isInitialized, loading });
     if (isInitialized && !loading) {
+      debugLog('Setting isReady to true');
       setIsReady(true);
     }
   }, [isInitialized, loading]);
 
   // Show loading while checking authentication
   if (!isReady || loading) {
+    debugLog('Showing loading state', { isReady, loading });
     return (
       <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">
@@ -37,18 +57,28 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
 
   // Redirect to landing if not authenticated
   if (!user) {
+    debugLog('Redirecting to landing - no user');
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // Check onboarding completion if required
   if (requireOnboardingComplete && !profile?.onboarding_completed) {
+    debugLog('Redirecting to onboarding - onboarding not complete');
     return <Navigate to="/onboarding" state={{ from: location }} replace />;
   }
 
   // If onboarding is completed but user is trying to access onboarding, redirect to dashboard
   if (profile?.onboarding_completed && location.pathname === "/onboarding") {
+    debugLog('Redirecting to dashboard - onboarding already completed');
     return <Navigate to="/dashboard" replace />;
   }
+
+  debugLog('Rendering children', {
+    pathname: location.pathname,
+    requireOnboardingComplete,
+    hasProfile: !!profile,
+    onboardingComplete: profile?.onboarding_completed
+  });
 
   return <>{children}</>;
 };
