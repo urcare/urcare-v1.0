@@ -451,60 +451,94 @@ const Dashboard: React.FC = () => {
       setIsProcessing(true);
       toast.info("Generating detailed daily schedule...");
 
-      // Phase 2: Generate detailed daily schedule using Gemini
-      const scheduleResponse = await fetch('/api/gemini/generate-schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan: plan,
-          userProfile: getSafeProfile(),
-          healthScore: healthScore,
-          prompt: `Generate a detailed daily schedule for the health plan: "${plan.title}".
+      console.log('🎯 Generating detailed schedule for plan:', plan.title);
+      
+      // Get user profile for schedule generation
+      const profileResult = await getUserProfileForHealthScore(user.id);
+      if (!profileResult.success) {
+        throw new Error('Failed to get user profile for schedule generation');
+      }
 
-          Plan Details:
-          - Description: ${plan.description}
-          - Duration: ${plan.duration}
-          - Difficulty: ${plan.difficulty}
-          - Focus Areas: ${plan.focusAreas?.join(', ')}
-          - Equipment: ${plan.equipment?.join(', ')}
-          - Benefits: ${plan.benefits?.join(', ')}
-
-          User Profile:
-          - Age: ${getSafeProfile()?.age || 'Not specified'}
-          - Health Score: ${healthScore}/100
-          - Goals: ${userInput || 'General wellness'}
-
-          Generate a complete daily schedule from 6:00 AM to 10:00 PM with:
-          1. Specific activities with exact times
-          2. Duration for each activity
-          3. Detailed instructions
-          4. Equipment needed for each activity
-          5. Difficulty level for each activity
-          6. Estimated calories burned
-          7. Activity type (exercise, meal, rest, work, mindfulness)
-
-          Format as JSON with activities array containing: id, title, time, duration, type, details, instructions, equipment, difficulty, calories`
-        })
+      // Call Supabase plan-activities function to generate detailed daily schedule
+      const { data, error } = await supabase.functions.invoke('plan-activities', {
+        body: {
+          selectedPlan: plan,
+          userProfile: profileResult.profile
+        }
       });
 
-      if (!scheduleResponse.ok) {
-        throw new Error(`Failed to generate schedule: ${scheduleResponse.status}`);
+      if (error) {
+        console.error('❌ Supabase plan-activities function failed:', error);
+        throw new Error(`Failed to generate schedule: ${error.message}`);
       }
 
-      const scheduleText = await scheduleResponse.text();
-      let scheduleData;
-      try {
-        scheduleData = JSON.parse(scheduleText);
-      } catch (parseError) {
-        console.error('❌ Failed to parse schedule response as JSON:', parseError);
-        console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
-        throw new Error('Invalid response format from schedule generation API');
-      }
+      console.log('✅ Daily schedule generated successfully:', data);
+
+      // Convert the response to activities format
+      const activities = data.weeklySchedules?.[0]?.dailySchedules?.[0] ? 
+        Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+          typeof item === 'object' && item !== null
+        ).flatMap(daySchedule => {
+          const dayActivities = [];
+          
+          // Add morning routine activities
+          if (daySchedule.morningRoutine) {
+            dayActivities.push({
+              id: `morning-${Math.random().toString(36).substr(2, 9)}`,
+              title: 'Morning Routine',
+              time: daySchedule.morningRoutine.wakeUpTime || '06:00',
+              duration: '30 min',
+              type: 'mindfulness',
+              details: daySchedule.morningRoutine.hydration || 'Start your day with hydration',
+              instructions: ['Wake up at the scheduled time', 'Drink water', 'Prepare for the day'],
+              equipment: [],
+              difficulty: 'Easy',
+              calories: 0
+            });
+          }
+
+          // Add workout activities
+          if (daySchedule.workout) {
+            dayActivities.push({
+              id: `workout-${Math.random().toString(36).substr(2, 9)}`,
+              title: daySchedule.workout.exercises?.[0]?.name || 'Workout Session',
+              time: daySchedule.workout.time || '18:00',
+              duration: daySchedule.workout.duration || '45 min',
+              type: 'exercise',
+              details: daySchedule.workout.exercises?.[0]?.instructions || 'Complete your workout routine',
+              instructions: daySchedule.workout.exercises?.map(ex => ex.instructions) || ['Follow the workout plan'],
+              equipment: daySchedule.workout.equipment || [],
+              difficulty: plan.difficulty || 'Beginner',
+              calories: daySchedule.workout.caloriesBurned || 300
+            });
+          }
+
+          // Add meal activities
+          if (daySchedule.meals) {
+            Object.entries(daySchedule.meals).forEach(([mealType, mealData]) => {
+              if (mealData && typeof mealData === 'object' && mealData.time) {
+                dayActivities.push({
+                  id: `${mealType}-${Math.random().toString(36).substr(2, 9)}`,
+                  title: mealType.charAt(0).toUpperCase() + mealType.slice(1),
+                  time: mealData.time,
+                  duration: '30 min',
+                  type: 'meal',
+                  details: mealData.menu || `${mealType} meal`,
+                  instructions: ['Eat mindfully', 'Follow the meal plan', 'Stay hydrated'],
+                  equipment: [],
+                  difficulty: 'Easy',
+                  calories: mealData.calories || 400
+                });
+              }
+            });
+          }
+
+          return dayActivities;
+        }) : [];
+
       const detailedPlan = {
         ...plan,
-        activities: scheduleData.activities || []
+        activities: activities
       };
 
       setSelectedPlan(detailedPlan);
@@ -554,36 +588,94 @@ const Dashboard: React.FC = () => {
       setIsProcessing(true);
       toast.info("Generating detailed daily schedule...");
 
-      // Phase 2: Generate detailed daily schedule using unified API
-      const scheduleResponse = await fetch('/api/generate-schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          selectedPlanId: plan.id,
-          planDetails: { plans: groqPlans },
-          onboardingData: getSafeProfile(),
-          userProfile: getSafeProfile()
-        })
+      console.log('🎯 Generating detailed schedule for Groq plan:', plan.title);
+      
+      // Get user profile for schedule generation
+      const profileResult = await getUserProfileForHealthScore(user.id);
+      if (!profileResult.success) {
+        throw new Error('Failed to get user profile for schedule generation');
+      }
+
+      // Call Supabase plan-activities function to generate detailed daily schedule
+      const { data, error } = await supabase.functions.invoke('plan-activities', {
+        body: {
+          selectedPlan: plan,
+          userProfile: profileResult.profile
+        }
       });
 
-      if (!scheduleResponse.ok) {
-        throw new Error(`Failed to generate schedule: ${scheduleResponse.status}`);
+      if (error) {
+        console.error('❌ Supabase plan-activities function failed:', error);
+        throw new Error(`Failed to generate schedule: ${error.message}`);
       }
 
-      const scheduleText = await scheduleResponse.text();
-      let scheduleData;
-      try {
-        scheduleData = JSON.parse(scheduleText);
-      } catch (parseError) {
-        console.error('❌ Failed to parse schedule response as JSON:', parseError);
-        console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
-        throw new Error('Invalid response format from schedule generation API');
-      }
+      console.log('✅ Daily schedule generated successfully:', data);
+
+      // Convert the response to activities format (same logic as handleSelectPlan)
+      const activities = data.weeklySchedules?.[0]?.dailySchedules?.[0] ? 
+        Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+          typeof item === 'object' && item !== null
+        ).flatMap(daySchedule => {
+          const dayActivities = [];
+          
+          // Add morning routine activities
+          if (daySchedule.morningRoutine) {
+            dayActivities.push({
+              id: `morning-${Math.random().toString(36).substr(2, 9)}`,
+              title: 'Morning Routine',
+              time: daySchedule.morningRoutine.wakeUpTime || '06:00',
+              duration: '30 min',
+              type: 'mindfulness',
+              details: daySchedule.morningRoutine.hydration || 'Start your day with hydration',
+              instructions: ['Wake up at the scheduled time', 'Drink water', 'Prepare for the day'],
+              equipment: [],
+              difficulty: 'Easy',
+              calories: 0
+            });
+          }
+
+          // Add workout activities
+          if (daySchedule.workout) {
+            dayActivities.push({
+              id: `workout-${Math.random().toString(36).substr(2, 9)}`,
+              title: daySchedule.workout.exercises?.[0]?.name || 'Workout Session',
+              time: daySchedule.workout.time || '18:00',
+              duration: daySchedule.workout.duration || '45 min',
+              type: 'exercise',
+              details: daySchedule.workout.exercises?.[0]?.instructions || 'Complete your workout routine',
+              instructions: daySchedule.workout.exercises?.map(ex => ex.instructions) || ['Follow the workout plan'],
+              equipment: daySchedule.workout.equipment || [],
+              difficulty: plan.difficulty || 'Beginner',
+              calories: daySchedule.workout.caloriesBurned || 300
+            });
+          }
+
+          // Add meal activities
+          if (daySchedule.meals) {
+            Object.entries(daySchedule.meals).forEach(([mealType, mealData]) => {
+              if (mealData && typeof mealData === 'object' && mealData.time) {
+                dayActivities.push({
+                  id: `${mealType}-${Math.random().toString(36).substr(2, 9)}`,
+                  title: mealType.charAt(0).toUpperCase() + mealType.slice(1),
+                  time: mealData.time,
+                  duration: '30 min',
+                  type: 'meal',
+                  details: mealData.menu || `${mealType} meal`,
+                  instructions: ['Eat mindfully', 'Follow the meal plan', 'Stay hydrated'],
+                  equipment: [],
+                  difficulty: 'Easy',
+                  calories: mealData.calories || 400
+                });
+              }
+            });
+          }
+
+          return dayActivities;
+        }) : [];
+
       const detailedPlan = {
         ...plan,
-        activities: scheduleData.activities || []
+        activities: activities
       };
 
       setSelectedPlan(detailedPlan);
