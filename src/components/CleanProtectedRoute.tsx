@@ -29,6 +29,7 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-logo-text border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-text-secondary">Loading...</p>
+          <p className="text-xs text-text-secondary mt-2">Initializing authentication...</p>
         </div>
       </div>
     );

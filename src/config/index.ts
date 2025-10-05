@@ -8,12 +8,8 @@ export const config = {
     anonKey:
       import.meta.env.VITE_SUPABASE_ANON_KEY ||
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHlkaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMzY5NjYsImV4cCI6MjA2ODkxMjk2Nn0.Y2NfbA7K9efpFHB6FFmCtgti3udX5wbOoQVkDndtkBc",
-    // Development redirect URL
-            redirectUrl:
-              import.meta.env.MODE === "development"
-                ? `${window.location.origin}/auth/callback`
-                : import.meta.env.VITE_SUPABASE_REDIRECT_URL ||
-                  "https://urcare.vercel.app/auth/callback",
+    // Dynamic redirect URL based on current origin
+    redirectUrl: `${window.location.origin}/auth/callback`,
   },
 
   // OpenAI Configuration

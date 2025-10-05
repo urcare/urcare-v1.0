@@ -241,9 +241,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging
+        // Add timeout protection to prevent hanging (reduced from 30s to 10s)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
         );
         
         const profilePromise = Promise.all([
@@ -266,10 +266,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setProfile(minimalProfile);
         }
       } catch (error) {
-        // Handle errors silently in production
-        if (error instanceof Error && !error.message.includes('timeout')) {
-          console.warn("Profile operations failed:", error);
-        }
+        // Log errors for debugging in production
+        console.error("Profile operations failed:", error);
+        // Don't fail silently - this was causing white screens
         const minimalProfile = createMinimalProfile(user);
         // Safety check to ensure we don't set an error object as profile
         if (typeof minimalProfile === 'object' && ('success' in minimalProfile || 'error' in minimalProfile)) {
@@ -378,13 +377,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           await handleUserAuth(user);
         }
       } catch (error) {
-        console.warn("❌ Auth initialization failed:", error);
-        // Clear session on any auth errors
-        await supabase.auth.signOut();
-        if (mounted) {
-          setUser(null);
-          setProfile(null);
-          profileCache.clear();
+        console.error("❌ Auth initialization failed:", error);
+        // Don't clear session on auth errors - this was causing white screens
+        // Only clear session on specific auth errors
+        if (error instanceof Error && (
+          error.message.includes('403') ||
+          error.message.includes('401') ||
+          error.message.includes('Forbidden') ||
+          error.message.includes('Invalid JWT')
+        )) {
+          await supabase.auth.signOut();
+          if (mounted) {
+            setUser(null);
+            setProfile(null);
+            profileCache.clear();
+          }
         }
       } finally {
         if (mounted) {

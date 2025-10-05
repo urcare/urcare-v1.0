@@ -14,7 +14,7 @@ const Paywall: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
   );
-  // const [showPaymentButton, setShowPaymentButton] = useState(false);
+  const [showPaymentButton, setShowPaymentButton] = useState(false);
   const [priceMonthly, setPriceMonthly] = useState<number | null>(9.57);
   const [priceAnnual, setPriceAnnual] = useState<number | null>(56.36);
   const [originalMonthly, setOriginalMonthly] = useState<number | null>(19.99);

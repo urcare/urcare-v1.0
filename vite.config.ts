@@ -36,7 +36,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    sourcemap: false, // Disable source maps in production to prevent debugger pauses
+    sourcemap: true, // Enable source maps for debugging production issues
     assetsDir: "assets",
     rollupOptions: {
       output: {

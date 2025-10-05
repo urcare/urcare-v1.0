@@ -53,6 +53,8 @@ import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
 import { SmartRouteHandler } from "./components/SmartRouteHandler";
 import AdminDashboard from "./components/AdminDashboard";
+import { DebugInfo } from "./components/DebugInfo";
+import { ProductionDebugger } from "./components/ProductionDebugger";
 
 function App() {
   // Apply Safari mobile fixes
@@ -63,16 +65,17 @@ function App() {
   // Cache bust: 2024-01-15-10:36 - Force fresh build
 
   return (
-    <AuthProvider>
-      <AdminProvider>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <SmartRouteHandler />
-          <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AdminProvider>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            <SmartRouteHandler />
+            <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<CleanAuthCallback />} />
@@ -127,7 +130,9 @@ function App() {
             path="/paywall"
             element={
               <CleanProtectedRoute requireOnboardingComplete={true}>
-                <Paywall />
+                <ErrorBoundary>
+                  <Paywall />
+                </ErrorBoundary>
               </CleanProtectedRoute>
             }
           />
@@ -398,8 +403,12 @@ function App() {
           <Route path="*" element={<Landing />} />
         </Routes>
         </BrowserRouter>
-      </AdminProvider>
-    </AuthProvider>
+        {/* Debug component - only show in production for troubleshooting */}
+        <DebugInfo show={import.meta.env.PROD} />
+        <ProductionDebugger />
+        </AdminProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
