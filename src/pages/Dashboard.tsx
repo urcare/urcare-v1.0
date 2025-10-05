@@ -709,6 +709,14 @@ const Dashboard: React.FC = () => {
               setHealthScoreAnalysis(scoreResult.analysis || '');
               setHealthScoreRecommendations(scoreResult.recommendations || []);
               setAiError('');
+              
+              // Store AI health data in localStorage for HealthContentNew component
+              const aiHealthData = {
+                healthScore: scoreResult.healthScore,
+                healthScoreAnalysis: scoreResult.analysis || '',
+                healthScoreRecommendations: scoreResult.recommendations || []
+              };
+              localStorage.setItem('aiHealthData', JSON.stringify(aiHealthData));
             } else {
               setHealthScore(75);
               setHealthScoreAnalysis('Unable to generate AI analysis');

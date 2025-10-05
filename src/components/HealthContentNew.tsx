@@ -188,64 +188,103 @@ export const HealthContentNew = () => {
   const loadPersonalizedTips = useCallback(async () => {
     const tips = [] as DynamicContentItem[];
 
-    // Age-specific hydration tip
-    tips.push({
-      id: "1",
-      title: "Start Your Day with Hydration",
-      description: `Based on your ${
-        profile?.age || 30
-      }-year-old profile, drink 16oz of water upon waking to kickstart metabolism`,
-      icon: <Droplets className="w-6 h-6 text-logo-text" />,
-      time: "Morning",
-      isHighlighted: true,
-    });
-
-    // Schedule-based sleep tip
-    tips.push({
-      id: "2",
-      title: "Optimize Your Sleep Schedule",
-      description: `Your ideal bedtime is ${
-        profile?.sleep_time || "10:00 PM"
-      } for 7-8 hours of quality rest`,
-      icon: <Moon className="w-6 h-6 text-logo-text" />,
-      time: "Tonight",
-      isHighlighted: false,
-    });
-
-    // Gender-specific exercise tip
-    tips.push({
-      id: "3",
-      title: "Personalized Movement Plan",
-      description: `${
-        profile?.gender === "female" ? "Women benefit from" : "Men benefit from"
-      } strength training 3x/week for bone health`,
-      icon: <Dumbbell className="w-6 h-6 text-logo-text" />,
-      time: "This Week",
-      isHighlighted: false,
-    });
-
-    // Condition-specific tips
-    if (profile?.chronic_conditions && profile.chronic_conditions.length > 0) {
-      tips.push({
-        id: "4",
-        title: "Manage Your Health Conditions",
-        description: `Focus on anti-inflammatory foods for your ${profile.chronic_conditions[0]} management`,
-        icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
-        time: "Daily",
-        isHighlighted: false,
-      });
+    // Try to get AI-generated health data from Dashboard state or localStorage
+    let aiHealthData = null;
+    try {
+      // Check if we have AI data in localStorage (passed from Dashboard)
+      const storedHealthData = localStorage.getItem('aiHealthData');
+      if (storedHealthData) {
+        aiHealthData = JSON.parse(storedHealthData);
+      }
+    } catch (error) {
+      console.warn('Failed to load AI health data:', error);
     }
 
-    // Diet-specific tip
-    if (profile?.diet_type) {
+    if (aiHealthData && aiHealthData.healthScoreAnalysis) {
+      // Use AI-generated health analysis as the main insight
       tips.push({
-        id: "5",
-        title: `${profile.diet_type} Diet Optimization`,
-        description: `Meal prep strategies specifically designed for your ${profile.diet_type.toLowerCase()} lifestyle`,
-        icon: <Utensils className="w-6 h-6 text-logo-text" />,
-        time: "Meal Times",
+        id: "1",
+        title: "AI Health Analysis",
+        description: aiHealthData.healthScoreAnalysis,
+        icon: <Brain className="w-6 h-6 text-logo-text" />,
+        time: "Updated",
+        isHighlighted: true,
+      });
+
+      // Add AI recommendations as individual tips
+      if (aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0) {
+        aiHealthData.healthScoreRecommendations.slice(0, 3).forEach((recommendation: string, index: number) => {
+          tips.push({
+            id: `ai-rec-${index + 2}`,
+            title: `Key Recommendation ${index + 1}`,
+            description: recommendation,
+            icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
+            time: "Priority",
+            isHighlighted: false,
+          });
+        });
+      }
+    } else {
+      // Fallback to generic tips if no AI data available
+      // Age-specific hydration tip
+      tips.push({
+        id: "1",
+        title: "Start Your Day with Hydration",
+        description: `Based on your ${
+          profile?.age || 30
+        }-year-old profile, drink 16oz of water upon waking to kickstart metabolism`,
+        icon: <Droplets className="w-6 h-6 text-logo-text" />,
+        time: "Morning",
+        isHighlighted: true,
+      });
+
+      // Schedule-based sleep tip
+      tips.push({
+        id: "2",
+        title: "Optimize Your Sleep Schedule",
+        description: `Your ideal bedtime is ${
+          profile?.sleep_time || "10:00 PM"
+        } for 7-8 hours of quality rest`,
+        icon: <Moon className="w-6 h-6 text-logo-text" />,
+        time: "Tonight",
         isHighlighted: false,
       });
+
+      // Gender-specific exercise tip
+      tips.push({
+        id: "3",
+        title: "Personalized Movement Plan",
+        description: `${
+          profile?.gender === "female" ? "Women benefit from" : "Men benefit from"
+        } strength training 3x/week for bone health`,
+        icon: <Dumbbell className="w-6 h-6 text-logo-text" />,
+        time: "This Week",
+        isHighlighted: false,
+      });
+
+      // Condition-specific tips
+      if (profile?.chronic_conditions && profile.chronic_conditions.length > 0) {
+        tips.push({
+          id: "4",
+          title: "Manage Your Health Conditions",
+          description: `Focus on anti-inflammatory foods for your ${profile.chronic_conditions[0]} management`,
+          icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
+          time: "Daily",
+          isHighlighted: false,
+        });
+      }
+
+      // Diet-specific tip
+      if (profile?.diet_type) {
+        tips.push({
+          id: "5",
+          title: `${profile.diet_type} Diet Optimization`,
+          description: `Meal prep strategies specifically designed for your ${profile.diet_type.toLowerCase()} lifestyle`,
+          icon: <Utensils className="w-6 h-6 text-logo-text" />,
+          time: "Meal Times",
+          isHighlighted: false,
+        });
+      }
     }
 
     setDynamicContent(tips);
