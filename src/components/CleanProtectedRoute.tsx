@@ -62,7 +62,8 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
   }
 
   // Check onboarding completion if required
-  if (requireOnboardingComplete && !profile?.onboarding_completed) {
+  // Only redirect if we have a profile and onboarding is explicitly false
+  if (requireOnboardingComplete && profile && profile.onboarding_completed === false) {
     debugLog('Redirecting to onboarding - onboarding not complete');
     return <Navigate to="/onboarding" state={{ from: location }} replace />;
   }

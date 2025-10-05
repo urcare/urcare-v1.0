@@ -241,9 +241,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (reduced from 30s to 10s)
+        // Add timeout protection to prevent hanging (increased to 20s for better reliability)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 20000)
         );
         
         const profilePromise = Promise.all([
@@ -276,7 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const basicProfile = {
             id: user.id,
             full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-            onboarding_completed: false,
+            onboarding_completed: true,
             status: "active",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
