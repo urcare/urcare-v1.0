@@ -1201,21 +1201,79 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
           </div>
         </div>
       ) : (
-        // Health Insights View - Default fallback
+        // Health Insights View - AI Generated Content
         <div className="space-y-4">
-          <div className="text-center py-8">
-            <div className="text-gray-500 mb-4">
-              <Heart className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-lg font-medium">Welcome to Your Health Journey</p>
-              <p className="text-sm">Generate a personalized health plan to get started</p>
-            </div>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p>• Set your health goals</p>
-              <p>• Get personalized recommendations</p>
-              <p>• Track your daily activities</p>
-              <p>• Monitor your progress</p>
-            </div>
-          </div>
+          {(() => {
+            // Try to get AI health data from localStorage
+            let aiHealthData = null;
+            try {
+              const storedHealthData = localStorage.getItem('aiHealthData');
+              if (storedHealthData) {
+                aiHealthData = JSON.parse(storedHealthData);
+              }
+            } catch (error) {
+              console.warn('Failed to load AI health data:', error);
+            }
+
+            if (aiHealthData && aiHealthData.healthScoreAnalysis) {
+              // Show AI-generated health insights
+              return (
+                <div className="space-y-4">
+                  {/* AI Health Analysis */}
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Heart className="w-5 h-5 text-blue-600" />
+                        <span>Health Insights</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {aiHealthData.healthScoreAnalysis}
+                        </p>
+                        
+                        {/* AI Recommendations */}
+                        {aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              Key Recommendations
+                            </h4>
+                            <ul className="space-y-2">
+                              {aiHealthData.healthScoreRecommendations.slice(0, 3).map((recommendation: string, index: number) => (
+                                <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <span>{recommendation}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            } else {
+              // Fallback to default welcome content
+              return (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 mb-4">
+                    <Heart className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                    <p className="text-lg font-medium">Welcome to Your Health Journey</p>
+                    <p className="text-sm">Generate a personalized health plan to get started</p>
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <p>• Set your health goals</p>
+                    <p>• Get personalized recommendations</p>
+                    <p>• Track your daily activities</p>
+                    <p>• Monitor your progress</p>
+                  </div>
+                </div>
+              );
+            }
+          })()}
         </div>
       )}
     </div>
