@@ -56,29 +56,9 @@ class RoutingFlowService {
    */
   private async checkActiveSubscription(userId: string): Promise<boolean> {
     try {
-      // Check user_profiles table for subscription status
-      const { data: profile, error } = await supabase
-        .from("user_profiles")
-        .select("subscription_status, subscription_expires_at")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.warn("Error checking subscription:", error);
-        return false;
-      }
-
-      // Check if subscription is active
-      if (profile?.subscription_status === 'active') {
-        // Check if subscription hasn't expired
-        if (profile?.subscription_expires_at) {
-          const expiresAt = new Date(profile.subscription_expires_at);
-          const now = new Date();
-          return expiresAt > now;
-        }
-        return true;
-      }
-
+      // For now, assume no subscription since the columns don't exist
+      // This can be updated when subscription system is implemented
+      console.log("🔍 Subscription check: Assuming no active subscription (columns not implemented yet)");
       return false;
     } catch (error) {
       console.warn("Error checking subscription:", error);

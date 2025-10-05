@@ -53,6 +53,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { AuthCallback } from "./components/auth/AuthCallback";
 import { ImprovedAuthCallback } from "./components/auth/ImprovedAuthCallback";
+import { SessionBasedCallback } from "./components/auth/SessionBasedCallback";
 import AdminDashboard from "./components/AdminDashboard";
 import { RoutingDebugger } from "./components/RoutingDebugger";
 
@@ -73,8 +74,8 @@ function App() {
           <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<ImprovedAuthCallback />} />
-          <Route path="/auth/callback" element={<ImprovedAuthCallback />} />
+          <Route path="/auth" element={<SessionBasedCallback />} />
+          <Route path="/auth/callback" element={<SessionBasedCallback />} />
           <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/admin-login" element={<AdminLogin />} />

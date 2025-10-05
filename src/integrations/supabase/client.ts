@@ -11,8 +11,8 @@ export const supabase = createClient(
       detectSessionInUrl: true,
       // Use development redirect URL for local development
       redirectTo: config.supabase.redirectUrl,
-      // Additional auth options for development
-      flowType: "pkce",
+      // Use implicit flow for better compatibility
+      flowType: "implicit",
       debug: false, // Disable verbose auth logs
     },
   }
