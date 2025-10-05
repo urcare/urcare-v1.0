@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { routingFlowService } from "@/services/routingFlowService";
+import { simpleRoutingService } from "@/services/simpleRoutingService";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -44,10 +44,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     const checkRouteAccess = async () => {
       if (user && profile) {
-        const canAccess = await routingFlowService.canAccessRoute(user, location.pathname, profile);
+        const canAccess = await simpleRoutingService.canAccessRoute(user, location.pathname, profile);
         if (!canAccess) {
           // Get the correct route for this user
-          const correctRoute = await routingFlowService.getCorrectRoute(user, profile);
+          const correctRoute = await simpleRoutingService.getCorrectRoute(user, profile);
           window.location.replace(correctRoute);
         }
       }
@@ -61,12 +61,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/onboarding" state={{ from: location }} replace />;
   }
 
-  // If onboarding is completed but user is trying to access onboarding, redirect to appropriate route
+  // If onboarding is completed but user is trying to access onboarding, redirect to dashboard
   if (profile?.onboarding_completed && location.pathname === "/onboarding") {
-    // Check if user has subscription to determine where to redirect
-    routingFlowService.getCorrectRoute(user, profile).then(correctRoute => {
-      window.location.replace(correctRoute);
-    });
+    window.location.replace("/dashboard");
     return null; // Prevent rendering while redirecting
   }
 

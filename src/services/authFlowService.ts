@@ -360,9 +360,9 @@ class AuthFlowService {
       return "/";
     }
 
-    // Use the new routing flow service for proper flow logic
-    const { routingFlowService } = await import('./routingFlowService');
-    return await routingFlowService.getCorrectRoute(user, profile);
+    // Use the simple routing service for clean flow logic
+    const { simpleRoutingService } = await import('./simpleRoutingService');
+    return await simpleRoutingService.getCorrectRoute(user, profile);
   }
 }
 

@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { routingFlowService } from "@/services/routingFlowService";
+import { simpleRoutingService } from "@/services/simpleRoutingService";
 import { useEffect, useState } from "react";
 
 export const RoutingDebugger: React.FC = () => {
@@ -11,8 +11,8 @@ export const RoutingDebugger: React.FC = () => {
     const debugRouting = async () => {
       if (user && profile && !loading && isInitialized) {
         try {
-          const state = await routingFlowService.getUserFlowState(user, profile);
-          const route = await routingFlowService.getCorrectRoute(user, profile);
+          const state = await simpleRoutingService.getUserFlowState(user, profile);
+          const route = await simpleRoutingService.getCorrectRoute(user, profile);
           
           setFlowState(state);
           setCorrectRoute(route);
