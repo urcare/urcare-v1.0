@@ -1,5 +1,5 @@
-import { Groq } from 'groq-sdk';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+const { Groq } = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize Groq
 const groq = new Groq({
@@ -9,7 +9,7 @@ const groq = new Groq({
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
