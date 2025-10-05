@@ -475,8 +475,30 @@ const Dashboard: React.FC = () => {
       console.log('✅ Daily schedule generated successfully:', data);
 
       // Convert the response to activities format
-      const activities = data.weeklySchedules?.[0]?.dailySchedules?.[0] ? 
-        Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+      let activities = [];
+      
+      if (data.activities && Array.isArray(data.activities)) {
+        // Handle the actual response format from plan-activities function
+        activities = data.activities.flatMap(weekData => {
+          if (weekData.activities && Array.isArray(weekData.activities)) {
+            return weekData.activities.map(activity => ({
+              id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
+              title: activity.name || activity.title || 'Activity',
+              time: activity.time || '09:00',
+              duration: activity.duration || '30 min',
+              type: activity.type || 'exercise',
+              details: activity.instructions || activity.details || 'Follow the activity plan',
+              instructions: Array.isArray(activity.instructions) ? activity.instructions : [activity.instructions || 'Complete the activity'],
+              equipment: activity.equipment || [],
+              difficulty: activity.difficulty || plan.difficulty || 'Beginner',
+              calories: activity.calories || 200
+            }));
+          }
+          return [];
+        });
+      } else if (data.weeklySchedules?.[0]?.dailySchedules?.[0]) {
+        // Fallback to old format if needed
+        activities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
           typeof item === 'object' && item !== null
         ).flatMap(daySchedule => {
           const dayActivities = [];
@@ -534,7 +556,38 @@ const Dashboard: React.FC = () => {
           }
 
           return dayActivities;
-        }) : [];
+        });
+      }
+      
+      // If no activities generated, create some default ones
+      if (activities.length === 0) {
+        activities = [
+          {
+            id: `morning-${Math.random().toString(36).substr(2, 9)}`,
+            title: 'Morning Routine',
+            time: '07:00',
+            duration: '30 min',
+            type: 'mindfulness',
+            details: 'Start your day with a healthy morning routine',
+            instructions: ['Wake up at 7:00 AM', 'Drink a glass of water', 'Do light stretching'],
+            equipment: [],
+            difficulty: 'Easy',
+            calories: 0
+          },
+          {
+            id: `workout-${Math.random().toString(36).substr(2, 9)}`,
+            title: 'Workout Session',
+            time: '18:00',
+            duration: '45 min',
+            type: 'exercise',
+            details: 'Complete your daily workout routine',
+            instructions: ['Warm up for 5 minutes', 'Follow the workout plan', 'Cool down for 5 minutes'],
+            equipment: ['Basic equipment'],
+            difficulty: plan.difficulty || 'Beginner',
+            calories: 300
+          }
+        ];
+      }
 
       const detailedPlan = {
         ...plan,
@@ -612,8 +665,30 @@ const Dashboard: React.FC = () => {
       console.log('✅ Daily schedule generated successfully:', data);
 
       // Convert the response to activities format (same logic as handleSelectPlan)
-      const activities = data.weeklySchedules?.[0]?.dailySchedules?.[0] ? 
-        Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+      let activities = [];
+      
+      if (data.activities && Array.isArray(data.activities)) {
+        // Handle the actual response format from plan-activities function
+        activities = data.activities.flatMap(weekData => {
+          if (weekData.activities && Array.isArray(weekData.activities)) {
+            return weekData.activities.map(activity => ({
+              id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
+              title: activity.name || activity.title || 'Activity',
+              time: activity.time || '09:00',
+              duration: activity.duration || '30 min',
+              type: activity.type || 'exercise',
+              details: activity.instructions || activity.details || 'Follow the activity plan',
+              instructions: Array.isArray(activity.instructions) ? activity.instructions : [activity.instructions || 'Complete the activity'],
+              equipment: activity.equipment || [],
+              difficulty: activity.difficulty || plan.difficulty || 'Beginner',
+              calories: activity.calories || 200
+            }));
+          }
+          return [];
+        });
+      } else if (data.weeklySchedules?.[0]?.dailySchedules?.[0]) {
+        // Fallback to old format if needed
+        activities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
           typeof item === 'object' && item !== null
         ).flatMap(daySchedule => {
           const dayActivities = [];
@@ -671,7 +746,38 @@ const Dashboard: React.FC = () => {
           }
 
           return dayActivities;
-        }) : [];
+        });
+      }
+      
+      // If no activities generated, create some default ones
+      if (activities.length === 0) {
+        activities = [
+          {
+            id: `morning-${Math.random().toString(36).substr(2, 9)}`,
+            title: 'Morning Routine',
+            time: '07:00',
+            duration: '30 min',
+            type: 'mindfulness',
+            details: 'Start your day with a healthy morning routine',
+            instructions: ['Wake up at 7:00 AM', 'Drink a glass of water', 'Do light stretching'],
+            equipment: [],
+            difficulty: 'Easy',
+            calories: 0
+          },
+          {
+            id: `workout-${Math.random().toString(36).substr(2, 9)}`,
+            title: 'Workout Session',
+            time: '18:00',
+            duration: '45 min',
+            type: 'exercise',
+            details: 'Complete your daily workout routine',
+            instructions: ['Warm up for 5 minutes', 'Follow the workout plan', 'Cool down for 5 minutes'],
+            equipment: ['Basic equipment'],
+            difficulty: plan.difficulty || 'Beginner',
+            calories: 300
+          }
+        ];
+      }
 
       const detailedPlan = {
         ...plan,
