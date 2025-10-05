@@ -17,7 +17,7 @@ export const supabase = createClient(
     },
     global: {
       headers: {
-        'X-Client-Info': 'urcarebyarsh.vercel.app',
+        'X-Client-Info': 'urrcare.vercel.app',
       },
     },
   }

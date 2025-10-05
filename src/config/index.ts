@@ -11,7 +11,7 @@ export const config = {
     // Dynamic redirect URL based on current origin
     redirectUrl: `${window.location.origin}/auth/callback`,
     // Production domain for specific configurations
-    productionUrl: 'https://urcarebyarsh.vercel.app',
+    productionUrl: 'https://urrcare.vercel.app',
   },
 
   // OpenAI Configuration
