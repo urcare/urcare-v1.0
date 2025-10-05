@@ -57,6 +57,8 @@ import AdminDashboard from "./components/AdminDashboard";
 function App() {
   // Apply Safari mobile fixes
   useSafariMobileFix();
+  
+  // Force rebuild - using CleanProtectedRoute instead of old ProtectedRoute
 
   return (
     <AuthProvider>
