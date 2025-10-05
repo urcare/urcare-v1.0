@@ -231,17 +231,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Handle user authentication
   const handleUserAuth = useCallback(
     async (user: User | null) => {
-      console.log("🔄 handleUserAuth called with user:", user?.id);
-      
       if (!user) {
-        console.log("🔄 No user, clearing state");
         setUser(null);
         setProfile(null);
         profileCache.clear();
         return;
       }
 
-      console.log("🔄 Setting user:", user.id);
       setUser(user);
 
       try {
@@ -258,31 +254,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const [, userProfile] = await Promise.race([profilePromise, timeoutPromise]) as [void, UserProfile | null];
 
         if (userProfile) {
-          console.log("🔄 Setting profile from database:", userProfile.onboarding_completed);
           // Safety check to ensure we don't set an error object as profile
           if (typeof userProfile === 'object' && ('success' in userProfile || 'error' in userProfile)) {
-            console.error('❌ Attempted to set error object as profile:', userProfile);
             const minimalProfile = createMinimalProfile(user);
             setProfile(minimalProfile);
           } else {
             setProfile(userProfile);
           }
         } else {
-          console.log("🔄 No profile found, creating minimal profile");
           const minimalProfile = createMinimalProfile(user);
           setProfile(minimalProfile);
         }
       } catch (error) {
-        // Only log timeout errors once to avoid spam
-        if (error instanceof Error && error.message.includes('timeout')) {
-          console.warn("⚠️ Profile fetch timeout - using minimal profile");
-        } else {
-          console.warn("❌ Profile operations failed:", error);
+        // Handle errors silently in production
+        if (error instanceof Error && !error.message.includes('timeout')) {
+          console.warn("Profile operations failed:", error);
         }
         const minimalProfile = createMinimalProfile(user);
         // Safety check to ensure we don't set an error object as profile
         if (typeof minimalProfile === 'object' && ('success' in minimalProfile || 'error' in minimalProfile)) {
-          console.error('❌ Minimal profile is an error object:', minimalProfile);
           // Create a basic profile as fallback
           const basicProfile = {
             id: user.id,
@@ -436,13 +426,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         if (event === "SIGNED_IN") {
-          console.log("🔄 Auth state change: SIGNED_IN", session?.user?.id);
           await handleUserAuth(session?.user || null);
-          
-          // Don't redirect here - let InitialRouteHandler handle it
-          // This prevents double redirects and conflicts
         } else if (event === "SIGNED_OUT") {
-          console.log("🔄 Auth state change: SIGNED_OUT");
           setUser(null);
           setProfile(null);
           profileCache.clear();

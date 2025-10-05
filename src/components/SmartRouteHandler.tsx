@@ -34,28 +34,24 @@ export const SmartRouteHandler: React.FC = () => {
 
     // If no user, redirect to landing
     if (!user) {
-      console.log("🔍 No user - redirecting to landing");
       navigate('/', { replace: true });
       return;
     }
 
     // If user exists but no profile, redirect to onboarding
     if (user && !profile) {
-      console.log("🔍 User exists but no profile - redirecting to onboarding");
       navigate('/onboarding', { replace: true });
       return;
     }
 
     // If user is on onboarding but already completed it, redirect to dashboard
     if (location.pathname === '/onboarding' && profile?.onboarding_completed) {
-      console.log("🔍 Onboarding already completed - redirecting to dashboard");
       navigate('/dashboard', { replace: true });
       return;
     }
 
     // If user is on dashboard but onboarding not completed, redirect to onboarding
     if (location.pathname === '/dashboard' && !profile?.onboarding_completed) {
-      console.log("🔍 Onboarding not completed - redirecting to onboarding");
       navigate('/onboarding', { replace: true });
       return;
     }
