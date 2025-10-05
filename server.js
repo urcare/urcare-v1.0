@@ -29,13 +29,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
 // Initialize Groq
 const GROQ_API_KEY = process.env.VITE_GROQ_API_KEY;
-console.log('🔑 Groq API Key status:', GROQ_API_KEY ? '✅ Configured' : '❌ Missing');
 const groq = new Groq({
   apiKey: GROQ_API_KEY,
 });

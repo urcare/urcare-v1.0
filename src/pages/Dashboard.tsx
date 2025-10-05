@@ -238,7 +238,6 @@ const Dashboard: React.FC = () => {
   // Debug: Log user data to see what we're getting from Google OAuth
   useEffect(() => {
     if (user) {
-      // console.log("🔍 User logged in:", user.user_metadata?.full_name || 'Unknown');
       // Reset profile image error when user changes
       setProfileImageError(false);
     }
@@ -247,7 +246,6 @@ const Dashboard: React.FC = () => {
   // Debug: Log profile object to see what we're getting
   useEffect(() => {
     if (profile) {
-      // console.log("🔍 Profile object:", profile);
       if (typeof profile === 'object' && ('success' in profile || 'error' in profile)) {
         console.error('❌ Profile is an error object! This will cause React rendering errors.');
       }
@@ -257,7 +255,6 @@ const Dashboard: React.FC = () => {
   // Debug: Log selected plan changes
   useEffect(() => {
     if (selectedPlan) {
-      // console.log("📋 Selected plan:", selectedPlan);
     }
   }, [selectedPlan]);
 
@@ -305,7 +302,6 @@ const Dashboard: React.FC = () => {
   }, [isDarkMode]);
 
   const handleLogout = async () => {
-    // console.log("Logout button clicked");
     try {
       await signOut();
     } catch (error) {
@@ -362,9 +358,6 @@ const Dashboard: React.FC = () => {
       // Use the unified sequential AI service for both input types
       const primaryGoal = userInput.trim() || "Boost energy, improve sleep, reduce stress";
       
-      // console.log('🔄 Starting Unified AI Service...');
-      // console.log('👤 User:', userProfile.full_name);
-      // console.log('🎯 Goal:', primaryGoal);
 
       const response = await fetch('/api/groq-gemini-sequential', {
         method: 'POST',
@@ -392,7 +385,6 @@ const Dashboard: React.FC = () => {
         console.error('❌ Response text:', responseText.substring(0, 200) + '...');
         throw new Error('Invalid response format from unified AI API');
       }
-      console.log('✅ Unified AI Response:', data);
 
       setSequentialAIResult(data);
       
@@ -516,8 +508,6 @@ const Dashboard: React.FC = () => {
         console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
         throw new Error('Invalid response format from schedule generation API');
       }
-      // console.log('🔍 Schedule API Response:', scheduleData);
-      // console.log('🔍 Activities received:', scheduleData.activities);
       const detailedPlan = {
         ...plan,
         activities: scheduleData.activities || []
@@ -597,8 +587,6 @@ const Dashboard: React.FC = () => {
         console.error('❌ Response text:', scheduleText.substring(0, 200) + '...');
         throw new Error('Invalid response format from schedule generation API');
       }
-      // console.log('🔍 Schedule API Response:', scheduleData);
-      // console.log('🔍 Activities received:', scheduleData.activities);
       const detailedPlan = {
         ...plan,
         activities: scheduleData.activities || []
@@ -1143,7 +1131,6 @@ const Dashboard: React.FC = () => {
         isActuallyProcessing={isProcessing}
         onComplete={(result) => {
           // AI processing completed
-          // console.log("AI processing completed:", result);
         }}
         onError={(error) => {
           console.error("AI processing error:", error);

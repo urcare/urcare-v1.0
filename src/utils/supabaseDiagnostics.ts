@@ -70,9 +70,9 @@ export const runSupabaseDiagnostics = async () => {
   }
 };
 
-// Auto-run diagnostics in development
-if (import.meta.env.DEV) {
-  setTimeout(() => {
-    runSupabaseDiagnostics();
-  }, 1000);
-}
+// Auto-run diagnostics disabled for cleaner console
+// if (import.meta.env.DEV) {
+//   setTimeout(() => {
+//     runSupabaseDiagnostics();
+//   }, 1000);
+// }

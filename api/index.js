@@ -44,7 +44,6 @@ app.post('/api/phonepe/pay', async (req, res) => {
   try {
     const { orderId, amount, userId, planSlug, billingCycle } = req.body;
 
-    console.log('🚀 Creating live PhonePe payment:', { orderId, amount, userId, planSlug, billingCycle });
 
     // Create PhonePe payload for live API
     const payload = {

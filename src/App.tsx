@@ -53,8 +53,6 @@ import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
 import { SmartRouteHandler } from "./components/SmartRouteHandler";
 import AdminDashboard from "./components/AdminDashboard";
-import { DebugInfo } from "./components/DebugInfo";
-import { ProductionDebugger } from "./components/ProductionDebugger";
 
 function App() {
   // Apply Safari mobile fixes
@@ -403,9 +401,6 @@ function App() {
           <Route path="*" element={<Landing />} />
         </Routes>
         </BrowserRouter>
-        {/* Debug component - only show in production for troubleshooting */}
-        <DebugInfo show={import.meta.env.PROD} />
-        <ProductionDebugger />
         </AdminProvider>
       </AuthProvider>
     </ErrorBoundary>

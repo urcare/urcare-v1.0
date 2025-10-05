@@ -812,7 +812,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         onClose={() => setShowEmailSignupPopup(false)}
         onSuccess={(userData) => {
           // Handle successful email signup
-          console.log('Email signup successful:', userData);
           setShowEmailSignupPopup(false);
           // You can add additional logic here to handle the user data
         }}
