@@ -60,6 +60,7 @@ function App() {
   
   // Force rebuild - using CleanProtectedRoute instead of old ProtectedRoute
   // Build timestamp: 2024-01-15 - Fixed React Hooks errors
+  // Cache bust: 2024-01-15-10:36 - Force fresh build
 
   return (
     <AuthProvider>
