@@ -67,16 +67,40 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_created_at ON user_profiles(created
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policy for users to read their own profile
-CREATE POLICY "Users can read their own profile" ON user_profiles
-    FOR SELECT USING (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_profiles' AND policyname = 'Users can read their own profile'
+    ) THEN
+        CREATE POLICY "Users can read their own profile" ON user_profiles
+            FOR SELECT USING (auth.uid() = id);
+    END IF;
+END $$;
 
 -- Policy for users to update their own profile
-CREATE POLICY "Users can update their own profile" ON user_profiles
-    FOR UPDATE USING (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_profiles' AND policyname = 'Users can update their own profile'
+    ) THEN
+        CREATE POLICY "Users can update their own profile" ON user_profiles
+            FOR UPDATE USING (auth.uid() = id);
+    END IF;
+END $$;
 
 -- Policy for users to insert their own profile
-CREATE POLICY "Users can insert their own profile" ON user_profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_profiles' AND policyname = 'Users can insert their own profile'
+    ) THEN
+        CREATE POLICY "Users can insert their own profile" ON user_profiles
+            FOR INSERT WITH CHECK (auth.uid() = id);
+    END IF;
+END $$;
 
 -- 5. Create a function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -87,11 +111,19 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- 6. Create trigger to automatically update updated_at
-CREATE TRIGGER update_user_profiles_updated_at 
-    BEFORE UPDATE ON user_profiles 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+-- 6. Create trigger to automatically update updated_at (only if it doesn't exist)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger 
+        WHERE tgname = 'update_user_profiles_updated_at'
+    ) THEN
+        CREATE TRIGGER update_user_profiles_updated_at 
+            BEFORE UPDATE ON user_profiles 
+            FOR EACH ROW 
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
 -- 7. Create health_assessments table (if needed)
 CREATE TABLE IF NOT EXISTS health_assessments (
@@ -116,17 +148,49 @@ ALTER TABLE health_assessments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE health_plans ENABLE ROW LEVEL SECURITY;
 
 -- 10. Create RLS policies for new tables
-CREATE POLICY "Users can read their own health assessments" ON health_assessments
-    FOR SELECT USING (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'health_assessments' AND policyname = 'Users can read their own health assessments'
+    ) THEN
+        CREATE POLICY "Users can read their own health assessments" ON health_assessments
+            FOR SELECT USING (auth.uid() = user_id);
+    END IF;
+END $$;
 
-CREATE POLICY "Users can insert their own health assessments" ON health_assessments
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'health_assessments' AND policyname = 'Users can insert their own health assessments'
+    ) THEN
+        CREATE POLICY "Users can insert their own health assessments" ON health_assessments
+            FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+END $$;
 
-CREATE POLICY "Users can read their own health plans" ON health_plans
-    FOR SELECT USING (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'health_plans' AND policyname = 'Users can read their own health plans'
+    ) THEN
+        CREATE POLICY "Users can read their own health plans" ON health_plans
+            FOR SELECT USING (auth.uid() = user_id);
+    END IF;
+END $$;
 
-CREATE POLICY "Users can insert their own health plans" ON health_plans
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'health_plans' AND policyname = 'Users can insert their own health plans'
+    ) THEN
+        CREATE POLICY "Users can insert their own health plans" ON health_plans
+            FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+END $$;
 
 -- 11. Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
