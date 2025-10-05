@@ -40,7 +40,6 @@ import DynamicHealthSection from "@/components/DynamicHealthSection";
 import TodaySchedule from "@/components/TodaySchedule";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import AIResponseDisplay from "@/components/AIResponseDisplay";
 
 interface HealthPlan {
   id: string;
@@ -828,14 +827,14 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Health Score Section - Transparent Blur */}
+        {/* Health Insight Section - Enhanced with AI Analysis */}
         <div className="max-w-md mx-auto px-4 sm:px-6">
           <div className={`backdrop-blur-md py-4 px-4 shadow-lg rounded-[2rem] mt-2 transition-colors duration-300 ${
             isDarkMode 
               ? 'bg-gray-800/20' 
               : 'bg-white/20'
           }`}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 mb-3">
               {/* Health Score */}
               <div className="flex-shrink-0">
                 <div>
@@ -874,6 +873,56 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* AI Health Analysis - Display as Points */}
+            {healthScoreAnalysis && (
+              <div className="mt-3 pt-3 border-t border-white/20">
+                <h4 className={`text-xs font-semibold mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-white/90'
+                }`}>
+                  HEALTH INSIGHT
+                </h4>
+                <p className={`text-xs leading-relaxed transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-200' : 'text-white/80'
+                }`}>
+                  {healthScoreAnalysis}
+                </p>
+              </div>
+            )}
+
+            {/* AI Recommendations - Display as Points */}
+            {healthScoreRecommendations && healthScoreRecommendations.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-white/20">
+                <h4 className={`text-xs font-semibold mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-white/90'
+                }`}>
+                  KEY RECOMMENDATIONS
+                </h4>
+                <ul className="space-y-1">
+                  {healthScoreRecommendations.slice(0, 3).map((recommendation, index) => (
+                    <li key={index} className={`text-xs flex items-start space-x-2 transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-white/80'
+                    }`}>
+                      <span className={`w-1 h-1 rounded-full mt-2 flex-shrink-0 transition-colors duration-300 ${
+                        isDarkMode ? 'bg-gray-300' : 'bg-white/60'
+                      }`}></span>
+                      <span className="leading-relaxed">{recommendation}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {aiError && (
+              <div className="mt-3 pt-3 border-t border-red-400/30">
+                <p className={`text-xs transition-colors duration-300 ${
+                  isDarkMode ? 'text-red-300' : 'text-red-200'
+                }`}>
+                  {aiError}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -999,18 +1048,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Response Display */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
-          <AIResponseDisplay
-            healthScore={healthScore}
-            healthScoreAnalysis={healthScoreAnalysis}
-            healthScoreRecommendations={healthScoreRecommendations}
-            healthPlans={healthPlans}
-            selectedPlan={selectedPlan}
-            isLoading={isProcessing}
-            error={aiError}
-          />
-        </div>
 
 
         {/* Dynamic Health Section - Health Tips, Plans, or Selected Plan Activities */}
