@@ -362,9 +362,9 @@ const Dashboard: React.FC = () => {
       // Use the unified sequential AI service for both input types
       const primaryGoal = userInput.trim() || "Boost energy, improve sleep, reduce stress";
       
-      console.log('🔄 Starting Unified AI Service...');
-      console.log('👤 User:', userProfile.full_name);
-      console.log('🎯 Goal:', primaryGoal);
+      // console.log('🔄 Starting Unified AI Service...');
+      // console.log('👤 User:', userProfile.full_name);
+      // console.log('🎯 Goal:', primaryGoal);
 
       const response = await fetch('/api/groq-gemini-sequential', {
         method: 'POST',

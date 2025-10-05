@@ -389,10 +389,10 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   
   // Convert sequential AI result to schedule format
   const getAISchedule = (): Activity[] => {
-    console.log('🔍 TodaySchedule - sequentialAIResult:', sequentialAIResult);
+    // console.log('🔍 TodaySchedule - sequentialAIResult:', sequentialAIResult);
     
     if (sequentialAIResult?.step2?.schedule?.dailySchedule) {
-      console.log('🔍 TodaySchedule - dailySchedule found:', sequentialAIResult.step2.schedule.dailySchedule);
+      // console.log('🔍 TodaySchedule - dailySchedule found:', sequentialAIResult.step2.schedule.dailySchedule);
       
       return sequentialAIResult.step2.schedule.dailySchedule.map((activity: any, index: number) => ({
         id: `ai_activity_${index}`,
@@ -458,13 +458,13 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
       }));
     }
     
-    console.log('🔍 TodaySchedule - No AI schedule found, returning empty array');
+    // console.log('🔍 TodaySchedule - No AI schedule found, returning empty array');
     return [];
   };
 
   const aiSchedule = getAISchedule();
-  console.log('🔍 TodaySchedule - aiSchedule length:', aiSchedule.length);
-  console.log('🔍 TodaySchedule - aiSchedule:', aiSchedule);
+  // console.log('🔍 TodaySchedule - aiSchedule length:', aiSchedule.length);
+  // console.log('🔍 TodaySchedule - aiSchedule:', aiSchedule);
   
   const schedule = aiSchedule.length > 0 
     ? aiSchedule 
@@ -472,8 +472,8 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
     ? plan.activities 
         : generateFullDaySchedule());
     
-  console.log('🔍 TodaySchedule - Final schedule length:', schedule.length);
-  console.log('🔍 TodaySchedule - Final schedule:', schedule);
+  // console.log('🔍 TodaySchedule - Final schedule length:', schedule.length);
+  // console.log('🔍 TodaySchedule - Final schedule:', schedule);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
