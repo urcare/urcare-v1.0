@@ -511,16 +511,12 @@ export class AIHealthPlanService {
     try {
       console.log('Calling generate-ai-health-plans function with profile:', userProfile);
       
-      const { data, error } = await supabase.functions.invoke('generate-ai-health-plans', {
+      const { data, error } = await supabase.functions.invoke('health-plans', {
         body: {
-          user_profile: userProfile,
-          timestamp: new Date().toISOString()
-        },
-        headers: {
-          Authorization: `Bearer ${
-            (await supabase.auth.getSession()).data.session?.access_token
-          }`,
-        },
+          userProfile: userProfile,
+          healthScore: 75, // Default health score
+          userInput: 'Generate personalized health plans'
+        }
       });
 
       if (error) {

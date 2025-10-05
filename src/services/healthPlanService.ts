@@ -205,10 +205,12 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
   try {
     console.log('🔍 Generating health plans using Supabase function...');
     
-    // Call Supabase Edge Function for health plan generation
-    const { data, error } = await supabase.functions.invoke('generate-ai-health-plans', {
+    // Call Supabase Edge Function for health plan generation using Groq
+    const { data, error } = await supabase.functions.invoke('health-plans', {
       body: {
-        user_profile: request.userProfile
+        userProfile: request.userProfile,
+        healthScore: request.healthScore,
+        userInput: request.userInput
       }
     });
 

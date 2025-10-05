@@ -1842,6 +1842,273 @@ app.use((req, res, next) => {
 // Serve static files from the React app build folder
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// ============================================================================
+// GENERATE SCHEDULE API
+// ============================================================================
+
+app.post('/api/generate-schedule', async (req, res) => {
+  try {
+    const { selectedPlanId, planDetails, onboardingData, userProfile } = req.body;
+
+    if (!selectedPlanId || !planDetails || !onboardingData || !userProfile) {
+      return res.status(400).json({ error: 'Missing required data for schedule generation' });
+    }
+
+    const selectedPlan = planDetails.plans ? planDetails.plans.find(p => p.id === selectedPlanId) : planDetails;
+
+    if (!selectedPlan) {
+      return res.status(400).json({ error: 'Selected plan not found in provided plan details' });
+    }
+
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'Gemini API key not configured' });
+    }
+
+    console.log('🔍 Generating personalized schedule...');
+    console.log('Selected Plan ID:', selectedPlanId);
+    console.log('Plan Details:', JSON.stringify(selectedPlan, null, 2));
+    console.log('User Profile:', JSON.stringify(userProfile, null, 2));
+
+    const prompt = `You are a schedule optimization AI. Generate a HYPER-PERSONALIZED daily schedule based on the selected plan and user's exact timings.
+
+SELECTED PLAN:
+${JSON.stringify(selectedPlan, null, 2)}
+
+USER'S EXACT SCHEDULE:
+- Wake Up: ${onboardingData.wakeUpTime || userProfile?.wake_up_time || '06:00'}
+- Breakfast: ${onboardingData.breakfastTime || userProfile?.breakfast_time || '08:00'}
+- Work Start: ${onboardingData.workStart || userProfile?.work_start || '09:00'}
+- Lunch: ${onboardingData.lunchTime || userProfile?.lunch_time || '13:00'}
+- Work End: ${onboardingData.workEnd || userProfile?.work_end || '17:00'}
+- Workout: ${onboardingData.workoutTime || userProfile?.workout_time || '18:00'}
+- Dinner: ${onboardingData.dinnerTime || userProfile?.dinner_time || '19:00'}
+- Sleep: ${onboardingData.sleepTime || userProfile?.sleep_time || '22:00'}
+
+WORKOUT TYPE: ${onboardingData.workoutType || userProfile?.workout_type || 'General'}
+DIET TYPE: ${onboardingData.dietType || userProfile?.diet_type || 'Balanced'}
+ALLERGIES: ${onboardingData.allergies?.join(', ') || userProfile?.allergies?.join(', ') || 'None'}
+
+CRITICAL PERSONALIZATION RULES:
+1. USE EXACT USER TIMES - do not suggest different times
+2. DURING WORK HOURS (${onboardingData.workStart || userProfile?.work_start || '09:00'} - ${onboardingData.workEnd || userProfile?.work_end || '17:00'}):
+   - NO physical workouts
+   - Only suggest: desk stretches, breathing exercises, posture tips, water reminders, eye exercises
+   - Keep suggestions under 5 minutes
+3. WORKOUT STYLE (${onboardingData.workoutType || userProfile?.workout_type || 'General'}):
+   - If YOGA: Only yoga asanas, pranayama, meditation, flexibility work
+   - If GYM: Only gym exercises with weights, machines, strength training
+   - If HOME: Only bodyweight exercises, resistance bands, minimal equipment
+   - If CARDIO: Only running, cycling, HIIT, jumping exercises
+4. MEALS:
+   - Follow ${onboardingData.dietType || userProfile?.diet_type || 'Balanced'} strictly
+   - Avoid ${onboardingData.allergies?.join(', ') || userProfile?.allergies?.join(', ') || 'None'}
+   - Match calorie target: ${selectedPlan.calorieTarget || selectedPlan.estimatedCalories || 2000}
+5. DIFFICULTY ADAPTATION:
+   - ${selectedPlan.difficulty || 'Beginner'} level exercises only
+   - Scale intensity appropriately
+
+Generate COMPLETE daily schedule from wake to sleep with:
+- Exact timestamps (use user's times)
+- Specific activities (no generic placeholders)
+- Detailed exercise lists (with sets/reps)
+- Specific meal plans (with ingredients and portions)
+- Calorie and macro breakdown for each meal
+
+Return ONLY valid JSON:
+{
+  "dailySchedule": [
+    {
+      "time": "${onboardingData.wakeUpTime || userProfile?.wake_up_time || '06:00'}",
+      "category": "morning_routine",
+      "activity": "Wake Up & Hydration",
+      "details": "Drink 500ml water, light stretching (5 min)",
+      "duration": "10 min",
+      "calories": 0
+    },
+    {
+      "time": "${onboardingData.breakfastTime || userProfile?.breakfast_time || '08:00'}",
+      "category": "meal",
+      "activity": "Breakfast",
+      "meal": {
+        "name": "Protein-Rich Breakfast",
+        "items": [
+          {"food": "Oats", "quantity": "50g", "calories": 190, "protein": 7, "carbs": 34, "fats": 3},
+          {"food": "Banana", "quantity": "1 medium", "calories": 105, "protein": 1, "carbs": 27, "fats": 0},
+          {"food": "Almonds", "quantity": "10 pieces", "calories": 70, "protein": 3, "carbs": 3, "fats": 6}
+        ],
+        "totalCalories": 365,
+        "totalMacros": {"protein": 11, "carbs": 64, "fats": 9},
+        "prepTime": "15 min",
+        "alternatives": ["Eggs and whole wheat toast", "Greek yogurt with fruits"]
+      },
+      "duration": "20 min"
+    },
+    {
+      "time": "${onboardingData.workStart || userProfile?.work_start || '09:00'}",
+      "category": "work",
+      "activity": "Work Start - Focus Session",
+      "details": "Begin work. Stay hydrated. Maintain good posture.",
+      "duration": "Until ${onboardingData.workEnd || userProfile?.work_end || '17:00'}"
+    },
+    {
+      "time": "10:30",
+      "category": "work_break",
+      "activity": "Desk Stretch Break",
+      "details": "Neck rolls (10 reps), Shoulder shrugs (10 reps), Wrist circles (10 each), Stand and stretch",
+      "duration": "5 min",
+      "calories": 5
+    },
+    {
+      "time": "${onboardingData.lunchTime || userProfile?.lunch_time || '13:00'}",
+      "category": "meal",
+      "activity": "Lunch",
+      "meal": {
+        "name": "${onboardingData.dietType || userProfile?.diet_type || 'Balanced'} Balanced Lunch",
+        "items": [
+          {"food": "Grilled Chicken", "quantity": "150g", "calories": 250, "protein": 30, "carbs": 0, "fats": 15},
+          {"food": "Brown Rice", "quantity": "100g", "calories": 110, "protein": 2, "carbs": 23, "fats": 1},
+          {"food": "Mixed Vegetables", "quantity": "150g", "calories": 50, "protein": 2, "carbs": 10, "fats": 0}
+        ],
+        "totalCalories": 410,
+        "totalMacros": {"protein": 34, "carbs": 33, "fats": 16},
+        "prepTime": "25 min",
+        "alternatives": ["Salmon with quinoa", "Turkey wrap with vegetables"]
+      },
+      "duration": "30 min"
+    },
+    {
+      "time": "${onboardingData.workoutTime || userProfile?.workout_time || '18:00'}",
+      "category": "workout",
+      "activity": "${onboardingData.workoutType || userProfile?.workout_type || 'General'} Workout - ${selectedPlan.difficulty || 'Beginner'} Level",
+      "workout": {
+        "type": "${onboardingData.workoutType || userProfile?.workout_type || 'General'}",
+        "warmup": [
+          {"exercise": "Dynamic stretching", "duration": "5 min"}
+        ],
+        "mainExercises": [
+          {"exercise": "Push-ups", "sets": 3, "reps": 10, "rest": "60s"},
+          {"exercise": "Squats", "sets": 3, "reps": 15, "rest": "60s"},
+          {"exercise": "Plank", "sets": 3, "reps": "30s hold", "rest": "60s"}
+        ],
+        "cooldown": [
+          {"exercise": "Static stretching", "duration": "5 min"}
+        ],
+        "totalDuration": "45 min",
+        "caloriesBurned": 300,
+        "intensity": "${selectedPlan.difficulty || 'Beginner'}"
+      },
+      "duration": "45 min",
+      "calories": 300
+    },
+    {
+      "time": "${onboardingData.dinnerTime || userProfile?.dinner_time || '19:00'}",
+      "category": "meal",
+      "activity": "Dinner",
+      "meal": {
+        "name": "${onboardingData.dietType || userProfile?.diet_type || 'Balanced'} Balanced Dinner",
+        "items": [
+          {"food": "Grilled Salmon", "quantity": "150g", "calories": 280, "protein": 35, "carbs": 0, "fats": 15},
+          {"food": "Sweet Potato", "quantity": "200g", "calories": 180, "protein": 4, "carbs": 41, "fats": 0},
+          {"food": "Steamed Broccoli", "quantity": "100g", "calories": 35, "protein": 3, "carbs": 7, "fats": 0}
+        ],
+        "totalCalories": 495,
+        "totalMacros": {"protein": 42, "carbs": 48, "fats": 15},
+        "prepTime": "30 min",
+        "alternatives": ["Chicken with quinoa", "Vegetarian stir-fry"]
+      },
+      "duration": "30 min"
+    },
+    {
+      "time": "${onboardingData.sleepTime || userProfile?.sleep_time || '22:00'}",
+      "category": "sleep",
+      "activity": "Bedtime Routine",
+      "details": "Wind down activities, prepare for sleep",
+      "duration": "30 min",
+      "calories": 0
+    }
+  ]
+}`;
+
+    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json"
+      }
+    }, {
+      headers: {
+        'X-goog-api-key': GEMINI_API_KEY
+      }
+    });
+
+    const data = response.data;
+    console.log('🔍 Gemini API Response:', JSON.stringify(data, null, 2));
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error('❌ Invalid Gemini response structure:', data);
+      throw new Error('Invalid response from Gemini API');
+    }
+    
+    const text = data.candidates[0].content.parts[0].text;
+    console.log('🔍 Gemini Response Text:', text);
+
+    // Try to parse the JSON response
+    let dailySchedule = [];
+    try {
+      const parsed = JSON.parse(text);
+      dailySchedule = parsed.dailySchedule || [];
+      console.log('✅ Parsed dailySchedule:', dailySchedule.length, 'activities');
+    } catch (parseError) {
+      console.error('❌ Failed to parse Gemini response:', parseError);
+      console.log('Raw response text:', text);
+      
+      // Fallback: create a basic schedule structure
+      dailySchedule = [
+        {
+          time: onboardingData.wakeUpTime || userProfile?.wake_up_time || '06:00',
+          category: 'morning_routine',
+          activity: 'Wake Up & Hydration',
+          details: 'Drink 500ml water, light stretching (5 min)',
+          duration: '10 min',
+          calories: 0
+        },
+        {
+          time: onboardingData.workoutTime || userProfile?.workout_time || '18:00',
+          category: 'workout',
+          activity: `${onboardingData.workoutType || userProfile?.workout_type || 'General'} Workout`,
+          details: `Follow your ${selectedPlan.difficulty || 'Beginner'} level plan`,
+          duration: '45 min',
+          calories: 300
+        },
+        {
+          time: onboardingData.sleepTime || userProfile?.sleep_time || '22:00',
+          category: 'sleep',
+          activity: 'Bedtime Routine',
+          details: 'Wind down activities, prepare for sleep',
+          duration: '30 min',
+          calories: 0
+        }
+      ];
+    }
+
+    res.json({
+      success: true,
+      step: 'schedule_ready',
+      schedule: dailySchedule,
+      selectedPlan: selectedPlan,
+      generatedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in /api/generate-schedule:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Handle React routing, return all requests to React app (except API routes)
 app.use((req, res) => {
   // Don't serve React app for API routes

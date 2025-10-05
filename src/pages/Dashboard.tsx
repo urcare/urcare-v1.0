@@ -40,6 +40,9 @@ import DynamicHealthSection from "@/components/DynamicHealthSection";
 import TodaySchedule from "@/components/TodaySchedule";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AIResponseDisplay from "@/components/AIResponseDisplay";
+import AITestComponent from "@/components/AITestComponent";
+import SupabaseFunctionDebug from "@/components/SupabaseFunctionDebug";
 
 interface HealthPlan {
   id: string;
@@ -121,8 +124,11 @@ const Dashboard: React.FC = () => {
   
   // State management
   const [healthScore, setHealthScore] = useState<number>(0);
+  const [healthScoreAnalysis, setHealthScoreAnalysis] = useState<string>('');
+  const [healthScoreRecommendations, setHealthScoreRecommendations] = useState<string[]>([]);
   const [userInput, setUserInput] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string>('');
   const [showHealthPlans, setShowHealthPlans] = useState<boolean>(false);
   const [healthPlans, setHealthPlans] = useState<HealthPlan[]>([]);
   const [showFileManager, setShowFileManager] = useState<boolean>(false);
@@ -437,7 +443,9 @@ const Dashboard: React.FC = () => {
       })) || [];
 
       setGroqPlans(healthPlans);
+      setHealthPlans(healthPlans); // Also set healthPlans for AIResponseDisplay
       setShowGroqPlans(true);
+      setAiError(''); // Clear any previous errors
 
       // Clear input
       setUserInput('');
@@ -448,6 +456,7 @@ const Dashboard: React.FC = () => {
 
     } catch (error) {
       console.error("Error processing health request:", error);
+      setAiError(error instanceof Error ? error.message : "Failed to process AI request");
       toast.error(error instanceof Error ? error.message : "Failed to process request");
     } finally {
       setIsProcessing(false);
@@ -696,8 +705,13 @@ const Dashboard: React.FC = () => {
             const scoreResult = await calculateHealthScore({ userProfile: profileResult.profile });
             if (scoreResult.success && scoreResult.healthScore) {
               setHealthScore(scoreResult.healthScore);
+              setHealthScoreAnalysis(scoreResult.analysis || '');
+              setHealthScoreRecommendations(scoreResult.recommendations || []);
+              setAiError('');
             } else {
               setHealthScore(75);
+              setHealthScoreAnalysis('Unable to generate AI analysis');
+              setHealthScoreRecommendations(['Please try again later']);
             }
           }
         } catch (error) {
@@ -979,6 +993,29 @@ const Dashboard: React.FC = () => {
             className="hidden"
           />
           </div>
+        </div>
+
+        {/* AI Response Display */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+          <AIResponseDisplay
+            healthScore={healthScore}
+            healthScoreAnalysis={healthScoreAnalysis}
+            healthScoreRecommendations={healthScoreRecommendations}
+            healthPlans={healthPlans}
+            selectedPlan={selectedPlan}
+            isLoading={isProcessing}
+            error={aiError}
+          />
+        </div>
+
+        {/* AI Test Component - Remove this after testing */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+          <AITestComponent />
+        </div>
+
+        {/* Supabase Function Debug - Remove this after testing */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+          <SupabaseFunctionDebug />
         </div>
 
         {/* Dynamic Health Section - Health Tips, Plans, or Selected Plan Activities */}
