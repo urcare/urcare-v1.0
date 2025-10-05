@@ -63,9 +63,16 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
 
   // Check onboarding completion if required
   // Only redirect if we have a profile and onboarding is explicitly false
+  // If profile is null/undefined due to timeout, assume onboarding is complete
   if (requireOnboardingComplete && profile && profile.onboarding_completed === false) {
     debugLog('Redirecting to onboarding - onboarding not complete');
     return <Navigate to="/onboarding" state={{ from: location }} replace />;
+  }
+
+  // If profile is null/undefined but user is authenticated, assume onboarding is complete
+  // This prevents redirect loops when profile fetch times out
+  if (requireOnboardingComplete && !profile) {
+    debugLog('Profile is null/undefined, assuming onboarding complete to prevent redirect loops');
   }
 
   // If onboarding is completed but user is trying to access onboarding, redirect to dashboard

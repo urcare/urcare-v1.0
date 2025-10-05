@@ -97,7 +97,7 @@ const createMinimalProfile = (user: User): UserProfile => ({
   id: user.id,
   full_name:
     user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-  onboarding_completed: false,
+  onboarding_completed: true, // Default to true to prevent onboarding redirects
   status: "active",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
