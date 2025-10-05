@@ -49,7 +49,7 @@ import AdminPanel from "./pages/AdminPanel";
 
 import ErrorBoundary from "./components/ErrorBoundary";
 import { CleanRouteHandler } from "./components/CleanRouteHandler";
-import { CleanCleanProtectedRoute } from "./components/CleanCleanProtectedRoute";
+import { CleanProtectedRoute } from "./components/CleanProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
 import AdminDashboard from "./components/AdminDashboard";
@@ -86,18 +86,18 @@ function App() {
           <Route
             path="/welcome-screen"
             element={
-              <CleanCleanProtectedRoute>
+              <CleanProtectedRoute>
                 <WelcomeScreen />
-              </CleanCleanProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
           <Route
             path="/onboarding"
             element={
-              <CleanCleanProtectedRoute>
+              <CleanProtectedRoute>
                 <Onboarding />
-              </CleanCleanProtectedRoute>
+              </CleanProtectedRoute>
             }
           />
 
