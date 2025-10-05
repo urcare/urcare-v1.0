@@ -73,50 +73,54 @@ serve(async (req) => {
       );
     }
 
-    // Prepare the prompt for health score calculation
-    const prompt = `You are a professional health assessment AI. Analyze the following comprehensive user data and provide an accurate health score (0-100) with detailed analysis.
+    // Prepare the prompt for health risk analysis and causes
+    const prompt = `You are a medical risk assessment AI specializing in analyzing onboarding data to identify health risks and their root causes. Focus on risk factors, potential health issues, and underlying causes based on the user's comprehensive health profile.
 
-CRITICAL: Base your assessment on actual medical and health data provided. Consider all factors including age, lifestyle, medical conditions, and user-specific inputs.
+CRITICAL: Analyze the user's onboarding data to identify specific health risks, potential medical conditions, and the root causes behind their current health status.
 
-User Profile:
-- Age: ${userProfile?.age || 'Not provided'}
-- Gender: ${userProfile?.gender || 'Not provided'}
-- Height: ${userProfile?.height_cm || 'Not provided'}
-- Weight: ${userProfile?.weight_kg || 'Not provided'}
-- Blood Group: ${userProfile?.blood_group || 'Not provided'}
-- Chronic Conditions: ${userProfile?.chronic_conditions?.join(', ') || 'None'}
-- Health Goals: ${userProfile?.health_goals?.join(', ') || 'Not specified'}
-- Diet Type: ${userProfile?.diet_type || 'Not specified'}
-- Workout Time: ${userProfile?.workout_time || 'Not specified'}
-- Sleep Time: ${userProfile?.sleep_time || 'Not specified'}
-- Wake Up Time: ${userProfile?.wake_up_time || 'Not specified'}
-- Smoking: ${userProfile?.smoking || 'Not provided'}
-- Drinking: ${userProfile?.drinking || 'Not provided'}
-- Allergies: ${userProfile?.allergies?.join(', ') || 'None'}
-- Family History: ${userProfile?.family_history?.join(', ') || 'None'}
-- Lifestyle: ${userProfile?.lifestyle || 'Not provided'}
-- Stress Levels: ${userProfile?.stress_levels || 'Not provided'}
-- Mental Health: ${userProfile?.mental_health || 'Not provided'}
-- Hydration Habits: ${userProfile?.hydration_habits || 'Not provided'}
-- Occupation: ${userProfile?.occupation || 'Not provided'}
+User Profile Analysis:
+- Age: ${userProfile?.age || 'Not provided'} (Risk factor analysis)
+- Gender: ${userProfile?.gender || 'Not provided'} (Gender-specific risk factors)
+- Height: ${userProfile?.height_cm || 'Not provided'}cm
+- Weight: ${userProfile?.weight_kg || 'Not provided'}kg (BMI risk assessment)
+- Blood Group: ${userProfile?.blood_group || 'Not provided'} (Blood type health implications)
+- Chronic Conditions: ${userProfile?.chronic_conditions?.join(', ') || 'None'} (Existing health risks)
+- Health Goals: ${userProfile?.health_goals?.join(', ') || 'Not specified'} (Target health improvements)
+- Diet Type: ${userProfile?.diet_type || 'Not specified'} (Nutritional risk factors)
+- Workout Schedule: ${userProfile?.workout_time || 'Not specified'} (Physical activity levels)
+- Sleep Pattern: ${userProfile?.wake_up_time || 'Not provided'} to ${userProfile?.sleep_time || 'Not provided'} (Sleep quality risks)
+- Work Schedule: ${userProfile?.work_start || 'Not provided'} to ${userProfile?.work_end || 'Not provided'} (Work-life balance risks)
+- Meal Times: Breakfast ${userProfile?.breakfast_time || 'Not provided'}, Lunch ${userProfile?.lunch_time || 'Not provided'}, Dinner ${userProfile?.dinner_time || 'Not provided'} (Eating pattern risks)
+- Smoking: ${userProfile?.smoking || 'Not provided'} (Major health risk factor)
+- Drinking: ${userProfile?.drinking || 'Not provided'} (Alcohol consumption risks)
+- Allergies: ${userProfile?.allergies?.join(', ') || 'None'} (Allergic reaction risks)
+- Family History: ${userProfile?.family_history?.join(', ') || 'None'} (Genetic predisposition risks)
+- Lifestyle: ${userProfile?.lifestyle || 'Not provided'} (Lifestyle-related risks)
+- Stress Levels: ${userProfile?.stress_levels || 'Not provided'} (Mental health risks)
+- Mental Health: ${userProfile?.mental_health || 'Not provided'} (Psychological risk factors)
+- Hydration: ${userProfile?.hydration_habits || 'Not provided'} (Dehydration risks)
+- Occupation: ${userProfile?.occupation || 'Not provided'} (Occupational health risks)
 
-Additional User Input: ${userInput || 'None'}
-Voice Transcript: ${voiceTranscript || 'None'}
-Uploaded Files Content: ${uploadedFiles?.map(file => `${file.name}: ${file.content?.substring(0, 500)}...`).join('\n\n') || 'None'}
+Additional Health Data:
+- User Input: ${userInput || 'None'}
+- Voice Transcript: ${voiceTranscript || 'None'}
+- Health Reports: ${uploadedFiles?.map(file => `${file.name}: ${file.content?.substring(0, 500)}...`).join('\n\n') || 'None'}
 
-SCORING CRITERIA:
-- 90-100: Excellent health with optimal lifestyle
-- 80-89: Good health with minor improvements needed
-- 70-79: Average health with moderate improvements needed
-- 60-69: Below average health requiring attention
-- 50-59: Poor health requiring significant changes
-- Below 50: Critical health issues requiring immediate attention
+RISK ANALYSIS FOCUS:
+1. Identify specific health risks based on user's profile
+2. Analyze root causes of potential health issues
+3. Assess lifestyle factors contributing to health risks
+4. Evaluate genetic and environmental risk factors
+5. Determine immediate vs long-term health concerns
 
-Provide a detailed, medically-informed response in this EXACT JSON format:
+Provide a comprehensive risk analysis in this EXACT JSON format:
 {
-  "healthScore": [number between 0-100],
-  "analysis": "[Detailed analysis of current health status, specific to user's data and conditions]",
-  "recommendations": ["[Specific, actionable recommendation 1]", "[Specific, actionable recommendation 2]", "[Specific, actionable recommendation 3]"]
+  "healthScore": [number between 0-100 based on risk assessment],
+  "riskAnalysis": "[Detailed analysis of specific health risks identified from user's profile, including potential medical conditions and their likelihood]",
+  "rootCauses": ["[Root cause 1: Specific lifestyle or genetic factor causing health risk]", "[Root cause 2: Environmental or behavioral factor]", "[Root cause 3: Medical or physiological factor]"],
+  "immediateConcerns": ["[Immediate health concern 1]", "[Immediate health concern 2]", "[Immediate health concern 3]"],
+  "longTermRisks": ["[Long-term health risk 1]", "[Long-term health risk 2]", "[Long-term health risk 3]"],
+  "preventiveMeasures": ["[Specific preventive action 1]", "[Specific preventive action 2]", "[Specific preventive action 3]"]
 }`;
 
     // Try both Groq API keys for load balancing

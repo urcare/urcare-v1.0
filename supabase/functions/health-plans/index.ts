@@ -62,10 +62,10 @@ serve(async (req) => {
     }
 
     const prompt = `
-You are a health plan generation AI. Based on the following user data and health analysis, create 3 personalized health plans.
+You are a comprehensive health plan architect AI. Create 3 detailed, personalized health plans with specific durations, timelines, and comprehensive program structures based on the user's complete health profile.
 
 User Profile:
-- Age: ${userProfile.age || 'Not provided'}
+- Age: ${userProfile.age || 'Not provided'} years old
 - Gender: ${userProfile.gender || 'Not provided'}
 - Height: ${userProfile.height_cm || userProfile.height_feet || 'Not provided'}
 - Weight: ${userProfile.weight_kg || userProfile.weight_lb || 'Not provided'}
@@ -75,30 +75,35 @@ User Profile:
 - Health Goals: ${userProfile.health_goals?.join(', ') || 'Not specified'}
 - Diet Type: ${userProfile.diet_type || 'Not specified'}
 - Workout Time: ${userProfile.workout_time || 'Not specified'}
-- Sleep Time: ${userProfile.sleep_time || 'Not specified'}
-- Wake Up Time: ${userProfile.wake_up_time || 'Not specified'}
+- Sleep Schedule: ${userProfile.wake_up_time || 'Not provided'} to ${userProfile.sleep_time || 'Not provided'}
+- Work Schedule: ${userProfile.work_start || 'Not provided'} to ${userProfile.work_end || 'Not provided'}
+- Meal Times: Breakfast ${userProfile.breakfast_time || 'Not provided'}, Lunch ${userProfile.lunch_time || 'Not provided'}, Dinner ${userProfile.dinner_time || 'Not provided'}
+- Lifestyle: ${userProfile.lifestyle || 'Not provided'}
+- Stress Levels: ${userProfile.stress_levels || 'Not provided'}
+- Occupation: ${userProfile.occupation || 'Not provided'}
 
-Health Score: ${healthScore}/100
-Health Analysis: ${analysis}
-Recommendations: ${recommendations?.join(', ') || 'None'}
+Health Assessment:
+- Health Score: ${healthScore}/100
+- Risk Analysis: ${analysis}
+- Recommendations: ${recommendations?.join(', ') || 'None'}
 
 User Input: ${userInput || 'None'}
 
-Create 3 different health plans with varying difficulty levels and focus areas:
+Create 3 comprehensive health plans with detailed program structures:
 
-1. A beginner-friendly plan (focus on building habits)
-2. An intermediate plan (balanced approach)
-3. An advanced plan (intensive and comprehensive)
+1. BEGINNER PLAN (12-16 weeks): Foundation Building Program
+2. INTERMEDIATE PLAN (16-20 weeks): Progressive Development Program  
+3. ADVANCED PLAN (20-24 weeks): Intensive Transformation Program
 
-Each plan should include:
-- Title (descriptive and motivating)
-- Description (what the plan involves)
-- Duration (e.g., "4 weeks", "8 weeks", "12 weeks")
-- Difficulty level (Beginner/Intermediate/Advanced)
-- Focus areas (3-5 key areas like "Weight Loss", "Muscle Building", "Cardio", "Flexibility", "Nutrition")
-- Estimated calories burned per session
-- Equipment needed (list of equipment or "No equipment needed")
-- Key benefits (3-5 specific benefits)
+Each plan must include:
+- Detailed program structure with weekly milestones
+- Specific duration and timeline
+- Comprehensive exercise protocols
+- Detailed nutrition guidelines
+- Sleep and recovery protocols
+- Progress tracking metrics
+- Equipment requirements
+- Expected outcomes and timelines
 
 Respond in JSON format:
 {
