@@ -53,6 +53,12 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
         return;
       }
 
+      // Skip if profile is still loading (null means loading, undefined means not fetched)
+      if (profile === null) {
+        console.log('🔄 Profile still loading, skipping flow check');
+        return;
+      }
+
       // Skip if we're already on the correct route to prevent redirect loops
       if (location.pathname === '/onboarding' && !profile?.onboarding_completed) {
         return;

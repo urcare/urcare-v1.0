@@ -19,7 +19,7 @@ const profileCache = new Map<
   string,
   { profile: UserProfile; timestamp: number }
 >();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes - increased to prevent frequent re-fetching
 
 export interface UserProfile {
   id: string;
@@ -276,11 +276,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setProfile(userProfile);
           }
         } else {
-          // If no profile found, create minimal profile with onboarding_completed = false
-          // This ensures new users go through onboarding
-          const minimalProfile = createMinimalProfile(user);
-          minimalProfile.onboarding_completed = false;
-          setProfile(minimalProfile);
+          // If no profile found, check if user has completed onboarding in onboarding_profiles
+          try {
+            const { data: onboardingData } = await supabase
+              .from('onboarding_profiles')
+              .select('onboarding_completed')
+              .eq('user_id', user.id)
+              .single();
+            
+            const minimalProfile = createMinimalProfile(user);
+            // Use onboarding status from onboarding_profiles if available
+            minimalProfile.onboarding_completed = onboardingData?.onboarding_completed || false;
+            setProfile(minimalProfile);
+          } catch (onboardingError) {
+            // Fallback: assume onboarding not completed
+            const minimalProfile = createMinimalProfile(user);
+            minimalProfile.onboarding_completed = false;
+            setProfile(minimalProfile);
+          }
         }
       } catch (error) {
         // Log errors for debugging in production
@@ -289,10 +302,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           console.error("Profile operations failed:", error);
         }
-        // Create minimal profile with onboarding_completed = false to ensure proper flow
-        const minimalProfile = createMinimalProfile(user);
-        minimalProfile.onboarding_completed = false;
-        setProfile(minimalProfile);
+        
+        // Try to get onboarding status from onboarding_profiles before creating minimal profile
+        try {
+          const { data: onboardingData } = await supabase
+            .from('onboarding_profiles')
+            .select('onboarding_completed')
+            .eq('user_id', user.id)
+            .single();
+          
+          const minimalProfile = createMinimalProfile(user);
+          minimalProfile.onboarding_completed = onboardingData?.onboarding_completed || false;
+          setProfile(minimalProfile);
+        } catch (onboardingError) {
+          // Fallback: assume onboarding not completed
+          const minimalProfile = createMinimalProfile(user);
+          minimalProfile.onboarding_completed = false;
+          setProfile(minimalProfile);
+        }
       }
     },
     [fetchUserProfile, ensureUserProfile]
