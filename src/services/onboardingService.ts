@@ -41,6 +41,10 @@ export interface OnboardingData {
   workoutType?: string;
   smoking?: string;
   drinking?: string;
+  // Demographics fields
+  country?: string;
+  state?: string;
+  district?: string;
 }
 
 class OnboardingService {
@@ -166,6 +170,10 @@ class OnboardingService {
         // Set constraint-prone fields to proper values to avoid violations
         smoking: data.smoking || null,
         drinking: data.drinking || null,
+        // Demographics fields
+        country: data.country || null,
+        state: data.state || null,
+        district: data.district || null,
       };
 
       // Save to user_profiles table
@@ -187,6 +195,10 @@ class OnboardingService {
         onboarding_version: "1.0",
         completed_steps: ["all"],
         completion_percentage: 100,
+        // Demographics fields for structured storage
+        country: data.country || null,
+        state: data.state || null,
+        district: data.district || null,
       };
       console.log("Saving onboarding details:", onboardingData);
       
