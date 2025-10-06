@@ -61,8 +61,71 @@ serve(async (req) => {
       throw new Error("Groq API key not configured");
     }
 
+    // Determine the primary goal from user input
+    const primaryGoal = userInput?.toLowerCase() || userProfile.health_goals?.[0]?.toLowerCase() || 'general health';
+    
+    // Create goal-specific instructions
+    let goalSpecificInstructions = '';
+    let planTitles = [];
+    let planDurations = [];
+    let planFocusAreas = [];
+    
+    if (primaryGoal.includes('gain weight') || primaryGoal.includes('bulk') || primaryGoal.includes('muscle mass')) {
+      goalSpecificInstructions = `The user wants to GAIN WEIGHT and BUILD MUSCLE. Create plans focused on:
+      - Calorie surplus nutrition (300-500 calories above maintenance)
+      - Strength training with progressive overload
+      - High-protein meals and snacks
+      - Recovery and sleep optimization
+      - Compound movements for muscle building`;
+      planTitles = ['Muscle Building Foundation', 'Strength & Size Program', 'Advanced Mass Building'];
+      planDurations = ['8 weeks', '12 weeks', '16 weeks'];
+      planFocusAreas = [['Muscle Building', 'Strength Training', 'Nutrition'], ['Muscle Growth', 'Strength', 'Recovery'], ['Mass Building', 'Advanced Training', 'Performance']];
+    } else if (primaryGoal.includes('lose weight') || primaryGoal.includes('fat loss') || primaryGoal.includes('slim down')) {
+      goalSpecificInstructions = `The user wants to LOSE WEIGHT and BURN FAT. Create plans focused on:
+      - Calorie deficit nutrition (300-500 calories below maintenance)
+      - Cardio and HIIT workouts
+      - High-protein, low-carb meals
+      - Metabolism boosting activities
+      - Sustainable lifestyle changes`;
+      planTitles = ['Weight Loss Kickstart', 'Fat Burning Program', 'Advanced Transformation'];
+      planDurations = ['6 weeks', '10 weeks', '14 weeks'];
+      planFocusAreas = [['Weight Loss', 'Cardio', 'Nutrition'], ['Fat Burning', 'HIIT', 'Metabolism'], ['Transformation', 'Advanced Cardio', 'Body Recomposition']];
+    } else if (primaryGoal.includes('diabetes') || primaryGoal.includes('blood sugar') || primaryGoal.includes('reverse diabetes')) {
+      goalSpecificInstructions = `The user wants to REVERSE TYPE 2 DIABETES. Create plans focused on:
+      - Low-carb, high-fiber nutrition
+      - Blood sugar management
+      - Regular exercise for insulin sensitivity
+      - Stress management and sleep
+      - Medical monitoring and lifestyle changes`;
+      planTitles = ['Diabetes Reversal Foundation', 'Blood Sugar Control Program', 'Advanced Metabolic Health'];
+      planDurations = ['12 weeks', '16 weeks', '20 weeks'];
+      planFocusAreas = [['Blood Sugar Control', 'Low-Carb Nutrition', 'Exercise'], ['Insulin Sensitivity', 'Weight Management', 'Stress Reduction'], ['Metabolic Health', 'Advanced Nutrition', 'Lifestyle Optimization']];
+    } else if (primaryGoal.includes('fitness') || primaryGoal.includes('strength') || primaryGoal.includes('endurance')) {
+      goalSpecificInstructions = `The user wants to IMPROVE FITNESS and STRENGTH. Create plans focused on:
+      - Balanced nutrition for performance
+      - Progressive strength training
+      - Cardiovascular fitness
+      - Flexibility and mobility
+      - Performance optimization`;
+      planTitles = ['Fitness Foundation', 'Strength & Endurance Program', 'Elite Performance Plan'];
+      planDurations = ['8 weeks', '12 weeks', '16 weeks'];
+      planFocusAreas = [['Fitness', 'Strength', 'Endurance'], ['Performance', 'Strength', 'Cardio'], ['Elite Training', 'Advanced Fitness', 'Peak Performance']];
+    } else {
+      goalSpecificInstructions = `The user wants GENERAL HEALTH IMPROVEMENT. Create balanced plans focused on:
+      - Balanced nutrition
+      - Regular exercise
+      - Stress management
+      - Sleep optimization
+      - Lifestyle improvements`;
+      planTitles = ['Health Foundation', 'Wellness Program', 'Optimal Health Plan'];
+      planDurations = ['8 weeks', '12 weeks', '16 weeks'];
+      planFocusAreas = [['Health', 'Nutrition', 'Exercise'], ['Wellness', 'Fitness', 'Lifestyle'], ['Optimal Health', 'Advanced Wellness', 'Longevity']];
+    }
+
     const prompt = `
-You are a comprehensive health plan architect AI. Create 3 detailed, personalized health plans with specific durations, timelines, and comprehensive program structures based on the user's complete health profile.
+You are a comprehensive health plan architect AI. Create 3 detailed, personalized health plans specifically for the user's goal: "${primaryGoal}".
+
+${goalSpecificInstructions}
 
 User Profile:
 - Age: ${userProfile.age || 'Not provided'} years old
@@ -91,9 +154,9 @@ User Input: ${userInput || 'None'}
 
 Create 3 comprehensive health plans with detailed program structures:
 
-1. BEGINNER PLAN (12-16 weeks): Foundation Building Program
-2. INTERMEDIATE PLAN (16-20 weeks): Progressive Development Program  
-3. ADVANCED PLAN (20-24 weeks): Intensive Transformation Program
+1. BEGINNER PLAN (${planDurations[0]}): ${planTitles[0]}
+2. INTERMEDIATE PLAN (${planDurations[1]}): ${planTitles[1]}
+3. ADVANCED PLAN (${planDurations[2]}): ${planTitles[2]}
 
 Each plan must include:
 - Detailed program structure with weekly milestones

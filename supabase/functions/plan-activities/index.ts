@@ -12,13 +12,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log("🔍 Plan-activities function called");
+    
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    console.log("🔍 Auth header:", authHeader ? "Present" : "Missing");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -27,163 +24,248 @@ serve(async (req) => {
     );
 
     const { selectedPlan, userProfile } = await req.json();
+    console.log("🔍 Request data:", { selectedPlan: selectedPlan?.title, userProfile: userProfile?.age });
 
     console.log("🔍 Generating activities for plan:", selectedPlan?.title);
 
     // Get Groq API keys
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
     const GROQ_API_KEY_2 = Deno.env.get("GROQ_API_KEY_2");
+    const GROQ_API_KEY_3 = Deno.env.get("GROQ_API_KEY_3");
+
+    console.log("🔍 API Keys:", { 
+      primary: GROQ_API_KEY ? "Present" : "Missing",
+      secondary: GROQ_API_KEY_2 ? "Present" : "Missing",
+      tertiary: GROQ_API_KEY_3 ? "Present" : "Missing"
+    });
 
     if (!GROQ_API_KEY) {
+      console.log("❌ No GROQ_API_KEY found");
       return new Response(
         JSON.stringify({ success: false, error: "Groq API key not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Prepare the prompt for detailed daily schedule generation
-    const prompt = `You are a personalized daily schedule architect AI. Create comprehensive, detailed daily schedules with specific food recommendations, meal timings, exercise routines, and lifestyle activities based on the user's complete profile and selected health plan.
+    // Create hyper-personalized prompt based on user's exact schedule and preferences
+    const prompt = `
+You are a schedule optimization AI. Generate a HYPER-PERSONALIZED daily schedule based on the selected plan and user's exact timings.
 
-Selected Health Plan:
-- Title: ${selectedPlan?.title}
-- Description: ${selectedPlan?.description}
-- Duration: ${selectedPlan?.duration}
-- Difficulty: ${selectedPlan?.difficulty}
-- Focus Areas: ${selectedPlan?.focusAreas?.join(', ')}
-- Equipment: ${selectedPlan?.equipment?.join(', ')}
+SELECTED PLAN:
+${JSON.stringify(selectedPlan, null, 2)}
 
-User Profile:
-- Age: ${userProfile?.age || 'Not provided'} years old
-- Gender: ${userProfile?.gender || 'Not provided'}
-- Height: ${userProfile?.height_cm || 'Not provided'}cm
-- Weight: ${userProfile?.weight_kg || 'Not provided'}kg
-- Blood Group: ${userProfile?.blood_group || 'Not provided'}
-- Health Goals: ${userProfile?.health_goals?.join(', ') || 'Not specified'}
-- Diet Type: ${userProfile?.diet_type || 'Not specified'}
-- Allergies: ${userProfile?.allergies?.join(', ') || 'None'}
-- Workout Time: ${userProfile?.workout_time || 'Not specified'}
-- Sleep Schedule: ${userProfile?.wake_up_time || 'Not provided'} to ${userProfile?.sleep_time || 'Not provided'}
-- Work Schedule: ${userProfile?.work_start || 'Not provided'} to ${userProfile?.work_end || 'Not provided'}
-- Meal Times: Breakfast ${userProfile?.breakfast_time || 'Not provided'}, Lunch ${userProfile?.lunch_time || 'Not provided'}, Dinner ${userProfile?.dinner_time || 'Not provided'}
-- Lifestyle: ${userProfile?.lifestyle || 'Not provided'}
-- Stress Levels: ${userProfile?.stress_levels || 'Not provided'}
-- Occupation: ${userProfile?.occupation || 'Not provided'}
+USER'S EXACT SCHEDULE:
+- Wake Up: ${userProfile.wake_up_time}
+- Breakfast: ${userProfile.breakfast_time}
+- Work Start: ${userProfile.work_start}
+- Lunch: ${userProfile.lunch_time}
+- Work End: ${userProfile.work_end}
+- Workout: ${userProfile.workout_time}
+- Dinner: ${userProfile.dinner_time}
+- Sleep: ${userProfile.sleep_time}
 
-Create detailed daily schedules for each week of the plan. Each day should include:
+WORKOUT TYPE: ${userProfile.workout_type}
+DIET TYPE: ${userProfile.diet_type}
+ALLERGIES: ${userProfile.allergies?.join(', ') || 'None'}
+CHRONIC CONDITIONS: ${userProfile.chronic_conditions?.join(', ') || 'None'}
+HEALTH GOALS: ${userProfile.health_goals?.join(', ') || 'Not specified'}
 
-1. SPECIFIC FOOD RECOMMENDATIONS:
-   - Exact breakfast items with quantities and nutritional info
-   - Detailed lunch menu with macro breakdown
-   - Precise dinner recommendations with cooking methods
-   - Snack suggestions with timing
-   - Hydration schedule with specific amounts
+CRITICAL: Generate activities SPECIFIC to the user's health goals and conditions. Do NOT use generic activities like "Outdoor Activities" or "Rest Day". Create detailed, specific activities that directly address their health goals.
 
-2. EXERCISE ROUTINES:
-   - Warm-up exercises with duration
-   - Main workout with sets, reps, and rest periods
-   - Cool-down and stretching routine
-   - Exercise modifications for different fitness levels
+CRITICAL PERSONALIZATION RULES:
+1. USE EXACT USER TIMES - do not suggest different times
+2. DURING WORK HOURS (${userProfile.work_start} - ${userProfile.work_end}):
+   - NO physical workouts
+   - Only suggest: desk stretches, breathing exercises, posture tips, water reminders, eye exercises
+   - Keep suggestions under 5 minutes
+3. WORKOUT STYLE (${userProfile.workout_type}):
+   - If YOGA: Only yoga asanas, pranayama, meditation, flexibility work
+   - If GYM: Only gym exercises with weights, machines, strength training
+   - If HOME: Only bodyweight exercises, resistance bands, minimal equipment
+   - If CARDIO: Only running, cycling, HIIT, jumping exercises
+4. MEALS:
+   - Follow ${userProfile.diet_type} strictly
+   - Avoid ${userProfile.allergies?.join(', ') || 'None'}
+   - Match calorie target: ${selectedPlan.estimatedCalories || 2000}
+5. DIFFICULTY ADAPTATION:
+   - ${selectedPlan.difficulty} level exercises only
+   - Scale intensity appropriately
+6. CHRONIC CONDITIONS CONSIDERATION:
+   - ${userProfile.chronic_conditions?.join(', ') || 'None'} - adapt activities accordingly
+7. HEALTH GOALS FOCUS:
+   - ${userProfile.health_goals?.join(', ') || 'Not specified'} - prioritize these in activities
 
-3. LIFESTYLE ACTIVITIES:
-   - Sleep hygiene practices
-   - Stress management techniques
-   - Work productivity tips
-   - Recovery and relaxation activities
+SPECIFIC HEALTH GOAL ACTIVITIES:
+${userProfile.health_goals?.includes('better_sleep_recovery') ? `
+- SLEEP RECOVERY: Include sleep hygiene activities, relaxation techniques, blue light reduction, sleep supplements timing
+- NO caffeine after 2 PM, screen-free hour before bed, sleep environment optimization
+` : ''}
+${userProfile.health_goals?.includes('reduce_stress_anxiety') ? `
+- STRESS REDUCTION: Include meditation, breathing exercises, stress management techniques, anxiety-reducing activities
+- Mindfulness practices, progressive muscle relaxation, stress-relief exercises
+` : ''}
+${userProfile.health_goals?.includes('boost_energy_vitality') ? `
+- ENERGY BOOST: Include energizing exercises, nutrition timing, energy management techniques
+- Morning energizing routines, energy-boosting snacks, vitality-enhancing activities
+` : ''}
+${userProfile.chronic_conditions?.includes('sleep_disorders_poor_sleep') ? `
+- SLEEP DISORDER MANAGEMENT: Include sleep disorder-specific activities, sleep hygiene, circadian rhythm optimization
+- Sleep restriction therapy, sleep consolidation, sleep environment modifications
+` : ''}
 
-4. TIMING AND SCHEDULING:
-   - Exact times for all activities
-   - Meal prep schedules
-   - Workout timing optimization
-   - Sleep and wake routines
+AVOID GENERIC ACTIVITIES:
+- NO "Outdoor Activities for Cardiovascular Health"
+- NO "Rest Day" 
+- NO generic "Cardio" or "Strength Training"
+- NO vague "Wellness Activities"
+- Create SPECIFIC, DETAILED activities that directly address the user's goals
 
-Respond in JSON format:
+Generate COMPLETE daily schedule from wake to sleep with:
+- Exact timestamps (use user's times) - MUST be in chronological order
+- Specific activities (no generic placeholders)
+- Detailed exercise lists (with sets/reps)
+- Specific meal plans (with ingredients and portions)
+- Calorie and macro breakdown for each meal
+- Detailed instructions for each activity
+- Equipment requirements
+- Duration and difficulty level
+
+CRITICAL: Return activities in CHRONOLOGICAL ORDER from earliest to latest time
+
+FINAL INSTRUCTION: Create activities that are UNIQUE to this user's specific health goals, conditions, and preferences. Each activity should have a specific name and purpose that directly addresses their needs. Do not use generic templates.
+
+Return ONLY valid JSON:
 {
-  "weeklySchedules": [
+  "dailySchedule": [
     {
-      "week": 1,
-      "dailySchedules": [
-        {
-          "day": "Monday",
-          "date": "Week 1, Day 1",
-          "morningRoutine": {
-            "wakeUpTime": "06:00",
-            "hydration": "500ml water with lemon",
-            "breakfast": {
-              "time": "07:00",
-              "menu": "Oatmeal with berries and nuts",
-              "calories": 350,
-              "macros": "Carbs: 45g, Protein: 12g, Fat: 8g",
-              "prepTime": "10 minutes"
-            }
-          },
-          "workout": {
-            "time": "18:00",
-            "duration": "45 minutes",
-            "exercises": [
-              {
-                "name": "Warm-up",
-                "duration": "10 minutes",
-                "instructions": "Light cardio and dynamic stretching"
-              },
-              {
-                "name": "Strength Training",
-                "duration": "25 minutes",
-                "sets": 3,
-                "reps": "12-15",
-                "exercises": ["Squats", "Push-ups", "Lunges"],
-                "rest": "60 seconds between sets"
-              },
-              {
-                "name": "Cool-down",
-                "duration": "10 minutes",
-                "instructions": "Static stretching and deep breathing"
-              }
-            ],
-            "caloriesBurned": 300
-          },
-          "meals": {
-            "lunch": {
-              "time": "13:00",
-              "menu": "Grilled chicken salad with quinoa",
-              "calories": 450,
-              "macros": "Protein: 35g, Carbs: 30g, Fat: 15g"
-            },
-            "dinner": {
-              "time": "19:30",
-              "menu": "Baked salmon with roasted vegetables",
-              "calories": 400,
-              "macros": "Protein: 40g, Carbs: 25g, Fat: 18g"
-            },
-            "snacks": [
-              {
-                "time": "10:00",
-                "item": "Greek yogurt with almonds",
-                "calories": 150
-              },
-              {
-                "time": "15:30",
-                "item": "Apple with peanut butter",
-                "calories": 200
-              }
-            ]
-          },
-          "eveningRoutine": {
-            "sleepTime": "22:00",
-            "preparation": "No screens 1 hour before bed, meditation",
-            "hydration": "Herbal tea or warm water"
-          }
-        }
-      ]
+      "time": "${userProfile.wake_up_time}",
+      "category": "morning_routine",
+      "activity": "Wake Up & Hydration",
+      "details": "Drink 500ml water, light stretching (5 min)",
+      "duration": "10 min",
+      "calories": 0,
+      "instructions": "Start your day with hydration and light stretching",
+      "equipment": [],
+      "difficulty": "Easy"
+    },
+    {
+      "time": "${userProfile.breakfast_time}",
+      "category": "meal",
+      "activity": "Breakfast",
+      "meal": {
+        "name": "Protein-Rich Breakfast",
+        "items": [
+          {"food": "Oats", "quantity": "50g", "calories": 190, "protein": 7, "carbs": 34, "fats": 3},
+          {"food": "Banana", "quantity": "1 medium", "calories": 105, "protein": 1, "carbs": 27, "fats": 0},
+          {"food": "Almonds", "quantity": "10 pieces", "calories": 70, "protein": 3, "carbs": 3, "fats": 6}
+        ],
+        "totalCalories": 365,
+        "totalMacros": {"protein": 11, "carbs": 64, "fats": 9},
+        "prepTime": "15 min",
+        "alternatives": ["Eggs and whole wheat toast", "Greek yogurt with fruits"]
+      },
+      "duration": "20 min",
+      "instructions": "Eat mindfully, chew thoroughly, no distractions",
+      "equipment": [],
+      "difficulty": "Easy"
+    },
+    {
+      "time": "${userProfile.work_start}",
+      "category": "work",
+      "activity": "Work Start - Focus Session",
+      "details": "Begin work. Stay hydrated. Maintain good posture.",
+      "duration": "Until ${userProfile.work_end}",
+      "instructions": "Set up standing desk if possible, take movement breaks every 30 minutes",
+      "equipment": [],
+      "difficulty": "Easy"
+    },
+    {
+      "time": "${userProfile.lunch_time}",
+      "category": "meal",
+      "activity": "Lunch",
+      "meal": {
+        "name": "${userProfile.diet_type} Balanced Lunch",
+        "items": [
+          // Generate based on diet type and macros
+        ],
+        "totalCalories": ${Math.floor((selectedPlan.estimatedCalories || 2000) * 0.35)},
+        "totalMacros": {/* calculated */},
+        "prepTime": "25 min",
+        "alternatives": []
+      },
+      "duration": "30 min",
+      "instructions": "Eat in sequence: vegetables first, then protein, then carbs last",
+      "equipment": [],
+      "difficulty": "Easy"
+    },
+    {
+      "time": "${userProfile.workout_time}",
+      "category": "workout",
+      "activity": "Specific workout name based on health goals and workout type",
+      "workout": {
+        "type": "${userProfile.workout_type}",
+        "warmup": [
+          {"exercise": "Specific warmup exercise", "duration": "5 min", "instructions": "Detailed instructions"}
+        ],
+        "mainExercises": [
+          // Generate SPECIFIC exercises based on:
+          // 1. User's health goals (sleep, stress, energy)
+          // 2. Workout type (yoga, gym, home, cardio)
+          // 3. Chronic conditions (sleep disorders, etc.)
+          // 4. Plan difficulty level
+          // Example: "Sleep-Enhancing Yoga Sequence" or "Stress-Relief Breathing Practice"
+        ],
+        "cooldown": [
+          {"exercise": "Specific cooldown exercise", "duration": "5 min", "instructions": "Detailed instructions"}
+        ],
+        "totalDuration": "45 min",
+        "caloriesBurned": 300,
+        "intensity": "${selectedPlan.difficulty}",
+        "healthGoalFocus": "Specific to user's goals"
+      },
+      "duration": "45 min",
+      "instructions": "Detailed, specific instructions for this exact activity",
+      "equipment": ["Specific equipment needed"],
+      "difficulty": "${selectedPlan.difficulty}"
+    },
+    {
+      "time": "${userProfile.dinner_time}",
+      "category": "meal",
+      "activity": "Dinner",
+      "meal": {
+        "name": "Evening Meal",
+        "items": [
+          // Generate based on diet type and remaining calories
+        ],
+        "totalCalories": ${Math.floor((selectedPlan.estimatedCalories || 2000) * 0.25)},
+        "totalMacros": {/* calculated */},
+        "prepTime": "30 min",
+        "alternatives": []
+      },
+      "duration": "30 min",
+      "instructions": "Eat slowly, stop at 80% full, no screens during meal",
+      "equipment": [],
+      "difficulty": "Easy"
+    },
+    {
+      "time": "${userProfile.sleep_time}",
+      "category": "sleep",
+      "activity": "Bedtime Routine",
+      "details": "Wind down activities, prepare for sleep",
+      "duration": "30 min",
+      "instructions": "No screens 1 hour before bed, dim lights, practice relaxation",
+      "equipment": [],
+      "difficulty": "Easy"
     }
   ]
 }`;
 
-    // Try both Groq API keys for load balancing
+    // Try to call Groq API
     let activityData;
     let usedProvider = 'Groq-Primary';
 
     try {
-      // Try primary API key first
+      console.log("🔍 Calling Groq API...");
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -202,7 +284,7 @@ Respond in JSON format:
               content: prompt
             }
           ],
-          max_tokens: 3000,
+          max_tokens: 2000,
           temperature: 0.7
         })
       });
@@ -224,6 +306,7 @@ Respond in JSON format:
       
       try {
         activityData = JSON.parse(content);
+        console.log("✅ Successfully parsed Groq response");
       } catch (parseError) {
         console.error('❌ JSON parsing error:', parseError);
         throw new Error('Failed to parse Groq response');
@@ -241,7 +324,7 @@ Respond in JSON format:
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "llama-3.3-70b-versatile",
+              model: "llama-3.1-8b-instant",
               messages: [
                 {
                   role: "system",
@@ -252,7 +335,7 @@ Respond in JSON format:
                   content: prompt
                 }
               ],
-              max_tokens: 3000,
+              max_tokens: 2000,
               temperature: 0.7
             })
           });
@@ -273,46 +356,145 @@ Respond in JSON format:
           
           try {
             activityData = JSON.parse(content2);
+            usedProvider = 'Groq-Secondary';
+            console.log("✅ Successfully parsed Groq secondary response");
           } catch (parseError) {
             console.error('❌ JSON parsing error (secondary):', parseError);
             throw new Error('Failed to parse Groq secondary response');
           }
-          usedProvider = 'Groq-Secondary';
         } catch (secondaryError) {
-          console.error('❌ Both Groq APIs failed:', secondaryError);
-          throw new Error('All Groq API calls failed');
+          console.log('⚠️ Secondary Groq API failed, trying third...');
+          
+          // Try third API key if secondary fails
+          if (GROQ_API_KEY_3) {
+            try {
+              const response3 = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${GROQ_API_KEY_3}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "llama-3.1-8b-instant",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "You are a professional fitness activity generation AI. Create detailed, safe, and effective activities based on the selected plan and user profile. Always respond in valid JSON format."
+                    },
+                    {
+                      role: "user",
+                      content: prompt
+                    }
+                  ],
+                  max_tokens: 2000,
+                  temperature: 0.7
+                })
+              });
+
+              if (!response3.ok) {
+                throw new Error(`Groq Third API error: ${response3.status}`);
+              }
+
+              const data3 = await response3.json();
+              const responseText3 = data3.choices[0].message.content;
+              console.log('📨 Groq Third Response:', responseText3);
+
+              let content3 = responseText3;
+              const jsonMatch3 = content3.match(/\{[\s\S]*\}/);
+              if (jsonMatch3) {
+                content3 = jsonMatch3[0];
+              }
+              
+              try {
+                activityData = JSON.parse(content3);
+                usedProvider = 'Groq-Third';
+                console.log("✅ Successfully parsed Groq third response");
+              } catch (parseError) {
+                console.error('❌ JSON parsing error (third):', parseError);
+                throw new Error('Failed to parse Groq third response');
+              }
+            } catch (thirdError) {
+              console.error('❌ All Groq APIs failed:', thirdError);
+              throw new Error('All Groq API calls failed');
+            }
+          } else {
+            throw primaryError;
+          }
         }
       } else {
         throw primaryError;
       }
     }
 
-    // Fallback response if parsing fails
-    if (!activityData || !activityData.activities) {
-      activityData = {
-        activities: [
-          {
-            week: 1,
-            day: 1,
-            activities: [
-              {
-                name: "Morning Stretch",
-                duration: "15 minutes",
-                instructions: "Start with gentle stretching exercises to warm up your body",
-                equipment: ["Yoga mat"],
-                difficulty: "Beginner",
-                calories: 50
-              }
-            ]
-          }
-        ]
-      };
+    // Convert AI response to activities format
+    let activities: any[] = [];
+    
+    if (activityData && activityData.dailySchedule) {
+      // Sort daily schedule by time to ensure chronological order
+      const sortedSchedule = activityData.dailySchedule.sort((a, b) => {
+        // Convert time to minutes for proper sorting
+        const timeToMinutes = (timeStr) => {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          return hours * 60 + minutes;
+        };
+        return timeToMinutes(a.time) - timeToMinutes(b.time);
+      });
+      
+      console.log("📅 Sorted schedule times:", sortedSchedule.map(item => item.time));
+      
+      // Convert daily schedule to activities format
+      activities = [
+        {
+          week: 1,
+          day: "Monday",
+          activities: sortedSchedule.map(scheduleItem => ({
+            name: scheduleItem.activity,
+            time: scheduleItem.time,
+            duration: scheduleItem.duration,
+            instructions: scheduleItem.instructions,
+            equipment: scheduleItem.equipment || [],
+            difficulty: scheduleItem.difficulty,
+            calories: scheduleItem.calories || 0,
+            category: scheduleItem.category,
+            details: scheduleItem.details,
+            meal: scheduleItem.meal || null,
+            workout: scheduleItem.workout || null
+          }))
+        }
+      ];
+    } else if (activityData && activityData.activities) {
+      activities = activityData.activities;
+    } else {
+      // Fallback to basic activities if AI fails
+      activities = [
+        {
+          week: 1,
+          day: "Monday",
+          activities: [
+            {
+              name: "Morning Routine",
+              time: userProfile?.wake_up_time || "06:00",
+              duration: "20 minutes",
+              instructions: "Start your day with hydration and light stretching",
+              equipment: [],
+              difficulty: "Easy",
+              calories: 50,
+              category: "morning_routine",
+              details: "Wake up and hydrate",
+              meal: null,
+              workout: null
+            }
+          ]
+        }
+      ];
     }
+
+    console.log("✅ Returning activities:", activities.length, "weeks");
 
     return new Response(
       JSON.stringify({
         success: true,
-        activities: activityData.activities,
+        activities: activities,
         meta: {
           provider: usedProvider,
           timestamp: new Date().toISOString()
