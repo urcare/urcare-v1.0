@@ -183,9 +183,6 @@ const WorkoutDashboard: React.FC = () => {
           equipment: ["dumbbells", "yoga_mat"],
           duration: 45
         },
-        upcomingDays: getUpcomingDays(),
-        intensity: "moderate",
-        currentDay: getCurrentDayName(),
         daySummary: {
           totalTime: "1h 0m",
           focus: "heart health + stress management + sleep optimization",
