@@ -17,6 +17,7 @@ import { ChronicConditionsStep } from "./steps/ChronicConditionsStep";
 import { CompletionStep } from "./steps/CompletionStep";
 import { CriticalConditionsStep } from "./steps/CriticalConditionsStep";
 import { DateOfBirthStep } from "./steps/DateOfBirthStep";
+import { DemographicsStep } from "./steps/DemographicsStep";
 import { DietTypeStep } from "./steps/DietTypeStep";
 import { DrinkingStep } from "./steps/DrinkingStep";
 import { FullNameStep } from "./steps/FullNameStep";
@@ -73,6 +74,10 @@ interface OnboardingData {
   healthReports: string[];
   referralCode: string;
   saveProgress: string;
+  // Demographics fields
+  country: string;
+  state: string;
+  district: string;
 }
 
 interface SerialOnboardingProps {
@@ -94,6 +99,12 @@ const steps = [
     title: "Height & weight",
     type: "heightWeight",
     icon: Ruler,
+  },
+  {
+    id: "demographics",
+    title: "Where are you located?",
+    type: "demographics",
+    icon: User,
   },
   {
     id: "sleepSchedule",
@@ -665,6 +676,10 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
     healthReports: [],
     referralCode: "",
     saveProgress: "No",
+    // Demographics fields
+    country: "",
+    state: "",
+    district: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -693,6 +708,15 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
       case "heightWeight":
         if (!data.heightFeet || !data.heightInches || !data.weightKg) {
           newErrors.heightWeight = "Please enter your height and weight";
+        }
+        break;
+      case "demographics":
+        if (!data.country) {
+          newErrors.demographics = "Please select your country";
+        } else if (!data.state) {
+          newErrors.demographics = "Please select your state/province";
+        } else if (!data.district) {
+          newErrors.demographics = "Please select your district/city";
         }
         break;
       case "sleepSchedule":
@@ -993,6 +1017,16 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
             weightKg={data.weightKg}
             onChange={updateData}
             error={errors.heightWeight}
+          />
+        );
+      case "demographics":
+        return (
+          <DemographicsStep
+            country={data.country}
+            state={data.state}
+            district={data.district}
+            onChange={updateData}
+            error={errors.demographics}
           />
         );
       case "sleepSchedule":

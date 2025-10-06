@@ -56,7 +56,14 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
       try {
         console.log('🔍 Checking user flow for:', user.id);
 
-        // Check if user has active subscription (either Razorpay or main system)
+        // FIRST: Check if onboarding is completed
+        if (!profile?.onboarding_completed) {
+          console.log('🔄 Onboarding not completed, redirecting to onboarding');
+          navigate('/onboarding');
+          return;
+        }
+
+        // SECOND: Check if user has active subscription (either Razorpay or main system)
         const [razorpayStatus, mainSubscription] = await Promise.all([
           razorpaySubscriptionService.getSubscriptionStatus(user.id),
           subscriptionService.getSubscriptionStatus(user.id)
@@ -71,27 +78,24 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
         });
 
         if (hasActiveSubscription) {
-          // User has active subscription, check onboarding
-          if (!profile?.onboarding_completed) {
-            console.log('🔄 User has subscription but onboarding not completed, redirecting to onboarding');
-            navigate('/onboarding-health-assessment');
-            return;
-          }
-
           // User has subscription and onboarding completed, allow access to dashboard
           console.log('✅ User has active subscription and completed onboarding');
           return;
         } else {
-          // No active subscription, redirect to paywall
-          console.log('💳 No active subscription, redirecting to paywall');
-          navigate('/paywall');
+          // Onboarding completed but no active subscription, redirect to health assessment first
+          console.log('🏥 Onboarding completed but no active subscription, redirecting to health assessment');
+          navigate('/health-assessment');
           return;
         }
 
       } catch (error) {
         console.error('❌ Error checking user flow:', error);
-        // On error, redirect to paywall to be safe
-        navigate('/paywall');
+        // On error, check onboarding first
+        if (!profile?.onboarding_completed) {
+          navigate('/onboarding');
+        } else {
+          navigate('/health-assessment');
+        }
       } finally {
         setIsCheckingSubscription(false);
       }

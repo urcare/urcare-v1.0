@@ -127,6 +127,11 @@ class RazorpaySubscriptionService {
         .single();
 
       if (error) {
+        // If table doesn't exist, return false gracefully
+        if (error.code === '42P01') {
+          console.warn('Razorpay subscriptions table does not exist yet');
+          return false;
+        }
         console.error('Error checking Razorpay subscription:', error);
         return false;
       }
@@ -154,6 +159,11 @@ class RazorpaySubscriptionService {
         .single();
 
       if (error) {
+        // If table doesn't exist, return null gracefully
+        if (error.code === '42P01') {
+          console.warn('Razorpay subscriptions table does not exist yet');
+          return null;
+        }
         console.error('Error getting Razorpay subscription:', error);
         return null;
       }
