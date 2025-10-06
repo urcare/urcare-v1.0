@@ -4,32 +4,41 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EmailSignupPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (userData: any) => void;
   onNavigate?: (path: string) => void;
+  initialMode?: 'signup' | 'signin';
 }
 
 const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  onNavigate
+  onNavigate,
+  initialMode = 'signup'
 }) => {
+  const { signUp, signIn } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    fullName: '',
-    city: ''
+    fullName: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
+
+  // Update isSignUp when initialMode changes
+  React.useEffect(() => {
+    setIsSignUp(initialMode === 'signup');
+  }, [initialMode]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -53,12 +62,8 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
       setError('Password must be at least 6 characters long');
       return false;
     }
-    if (!formData.fullName.trim()) {
+    if (isSignUp && !formData.fullName.trim()) {
       setError('Please enter your full name');
-      return false;
-    }
-    if (!formData.city.trim()) {
-      setError('Please enter your city');
       return false;
     }
     return true;
@@ -75,77 +80,23 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
     setError('');
 
     try {
-      // Check for test credentials
-      if (formData.email === 'test@email.com' && formData.password === 'test123') {
-        // Auto-activate subscription for test user
-        const testUserData = {
-          id: 'test-user-' + Date.now(),
-          email: 'test@email.com',
-          full_name: formData.fullName || 'Test User',
-          city: formData.city,
-          subscription_status: 'active',
-          plan_name: 'premium',
-          billing_cycle: 'annual',
-          created_at: new Date().toISOString()
-        };
-
-        // Store in localStorage for session
-        localStorage.setItem('urcare_test_user', JSON.stringify(testUserData));
-        
-        toast.success('Test account created successfully!', {
-          description: 'Redirecting to onboarding...'
-        });
-        
-        // Store test user data
-        onSuccess(testUserData);
+      if (isSignUp) {
+        // Handle sign up
+        await signUp(formData.email, formData.password, formData.fullName);
+        toast.success('Account created successfully! Please check your email to verify your account.');
         onClose();
-        
-        // Redirect to onboarding after a short delay
-        if (onNavigate) {
-          setTimeout(() => {
-            onNavigate('/onboarding');
-          }, 1000);
-        }
-        return;
-      }
-
-      // Check for admin credentials
-      if (formData.email === 'admin' && formData.password === 'admin') {
-        const adminUserData = {
-          id: 'admin-user-' + Date.now(),
-          email: 'admin@urcare.com',
-          full_name: formData.fullName || 'Admin User',
-          city: formData.city,
-          subscription_status: 'active',
-          plan_name: 'admin',
-          billing_cycle: 'lifetime',
-          created_at: new Date().toISOString(),
-          is_admin: true
-        };
-
-        localStorage.setItem('urcare_admin_user', JSON.stringify(adminUserData));
-        
-        toast.success('Admin account created successfully!', {
-          description: 'You have been granted admin access.'
-        });
-        
-        onSuccess(adminUserData);
+      } else {
+        // Handle sign in
+        await signIn(formData.email, formData.password);
+        toast.success('Signed in successfully!');
+        onSuccess({ email: formData.email, fullName: formData.fullName });
         onClose();
-        return;
       }
-
-      // For other users, show coming soon message
-      toast.info('Email signup coming soon!', {
-        description: 'Please use Google or Apple sign-in for now.'
-      });
-      
-      onClose();
-
     } catch (error) {
-      console.error('Signup error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
+      console.error('Authentication error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
       setError(errorMessage);
-      toast.error('Signup failed', {
+      toast.error('Authentication failed', {
         description: errorMessage
       });
     } finally {
@@ -154,7 +105,7 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
   };
 
   const handleClose = () => {
-    setFormData({ email: '', password: '', fullName: '', city: '' });
+    setFormData({ email: '', password: '', fullName: '' });
     setError('');
     setShowPassword(false);
     onClose();
@@ -165,10 +116,10 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">
-            Sign Up with Email
+            {isSignUp ? 'Sign Up with Email' : 'Sign In with Email'}
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Create your UrCare account to get started
+            {isSignUp ? 'Create your UrCare account to get started' : 'Welcome back! Sign in to your account'}
           </DialogDescription>
         </DialogHeader>
 
@@ -184,24 +135,26 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
               </Alert>
             )}
 
-            {/* Full Name */}
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                Full Name
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  className="pl-10"
-                  required
-                />
+            {/* Full Name - Only for Sign Up */}
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+                  Full Name
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Email */}
             <div className="space-y-2">
@@ -232,7 +185,7 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a password"
+                  placeholder={isSignUp ? "Create a password" : "Enter your password"}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   className="pl-10 pr-10"
@@ -248,35 +201,6 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
               </div>
             </div>
 
-            {/* City */}
-            <div className="space-y-2">
-              <Label htmlFor="city" className="text-sm font-medium text-gray-700">
-                City
-              </Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  id="city"
-                  type="text"
-                  placeholder="Enter your city"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Test Credentials Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800">
-                <strong>Test Credentials:</strong><br />
-                Email: <code className="bg-blue-100 px-1 rounded">test@email.com</code><br />
-                Password: <code className="bg-blue-100 px-1 rounded">test123</code><br />
-                <span className="text-xs text-blue-600">Auto-activates premium subscription</span>
-              </p>
-            </div>
-
             {/* Submit Button */}
             <Button
               type="submit"
@@ -286,12 +210,30 @@ const EmailSignupPopup: React.FC<EmailSignupPopupProps> = ({
               {isLoading ? (
                 <div className="flex items-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Creating Account...
+                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
                 </div>
               ) : (
-                'Create Account'
+                isSignUp ? 'Create Account' : 'Sign In'
               )}
             </Button>
+
+            {/* Toggle between Sign Up and Sign In */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError('');
+                    setFormData({ email: '', password: '', fullName: '' });
+                  }}
+                  className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {isSignUp ? 'Sign In' : 'Sign Up'}
+                </button>
+              </p>
+            </div>
           </form>
 
           {/* Additional Info */}

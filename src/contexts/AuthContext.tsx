@@ -73,8 +73,10 @@ interface AuthContextType {
   isInitialized: boolean;
   showAdminPopup: boolean;
   showEmailSignupPopup: boolean;
+  emailAuthMode: 'signup' | 'signin';
   setShowAdminPopup: (show: boolean) => void;
   setShowEmailSignupPopup: (show: boolean) => void;
+  setEmailAuthMode: (mode: 'signup' | 'signin') => void;
   setUser: (user: User | null) => void;
   setProfile: (profile: UserProfile | null) => void;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
@@ -150,6 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [showAdminPopup, setShowAdminPopup] = useState(false);
   const [showEmailSignupPopup, setShowEmailSignupPopup] = useState(false);
+  const [emailAuthMode, setEmailAuthMode] = useState<'signup' | 'signin'>('signup');
 
   // Track if auth listener is initialized
   const authListenerRef = useRef<boolean>(false);
@@ -252,9 +255,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (reduced to 10s for faster response)
+        // Add timeout protection to prevent hanging (reduced to 5s for faster response)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
         );
         
         const profilePromise = Promise.all([
@@ -273,69 +276,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setProfile(userProfile);
           }
         } else {
+          // If no profile found, create minimal profile with onboarding_completed = true
+          // This prevents redirect loops when profile fetch fails
           const minimalProfile = createMinimalProfile(user);
           setProfile(minimalProfile);
         }
       } catch (error) {
         // Log errors for debugging in production
         if (error instanceof Error && error.message === 'Profile fetch timeout') {
-          console.warn("Profile operations timed out after 10 seconds:", error);
+          console.warn("Profile operations timed out after 5 seconds:", error);
         } else {
           console.error("Profile operations failed:", error);
         }
-        // Don't fail silently - this was causing white screens
+        // Create minimal profile with onboarding_completed = true to prevent redirect loops
         const minimalProfile = createMinimalProfile(user);
-        // Safety check to ensure we don't set an error object as profile
-        if (typeof minimalProfile === 'object' && ('success' in minimalProfile || 'error' in minimalProfile)) {
-          // Create a basic profile as fallback
-          const basicProfile = {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-            onboarding_completed: true,
-            status: "active",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            age: null,
-            date_of_birth: null,
-            gender: null,
-            unit_system: null,
-            height_feet: null,
-            height_inches: null,
-            height_cm: null,
-            weight_lb: null,
-            weight_kg: null,
-            wake_up_time: null,
-            sleep_time: null,
-            work_start: null,
-            work_end: null,
-            chronic_conditions: null,
-            takes_medications: null,
-            medications: null,
-            has_surgery: null,
-            surgery_details: null,
-            health_goals: null,
-            diet_type: null,
-            blood_group: null,
-            breakfast_time: null,
-            lunch_time: null,
-            dinner_time: null,
-            workout_time: null,
-            routine_flexibility: null,
-            workout_type: null,
-            smoking: null,
-            drinking: null,
-            track_family: null,
-            critical_conditions: null,
-            has_health_reports: null,
-            health_reports: null,
-            referral_code: null,
-            save_progress: null,
-            preferences: null,
-          } as UserProfile;
-          setProfile(basicProfile);
-        } else {
-          setProfile(minimalProfile);
-        }
+        setProfile(minimalProfile);
       }
     },
     [fetchUserProfile, ensureUserProfile]
@@ -623,7 +578,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInWithEmail = useCallback(async () => {
     setLoading(true);
     try {
-      // Show email signup popup instead of admin popup
+      // Set mode to signin and show email popup
+      setEmailAuthMode('signin');
       setShowEmailSignupPopup(true);
     } catch (error) {
       console.error("Email sign-in error:", error);
@@ -778,8 +734,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isInitialized,
       showAdminPopup,
       showEmailSignupPopup,
+      emailAuthMode,
       setShowAdminPopup,
       setShowEmailSignupPopup,
+      setEmailAuthMode,
       setUser,
       setProfile,
       signUp,
@@ -801,8 +759,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isInitialized,
       showAdminPopup,
       showEmailSignupPopup,
+      emailAuthMode,
       setShowAdminPopup,
       setShowEmailSignupPopup,
+      setEmailAuthMode,
       setUser,
       setProfile,
       signUp,
@@ -823,6 +783,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     <AuthContext.Provider value={value}>
       {children}
       <EmailSignupPopup
+        key={emailAuthMode} // Force re-render when mode changes
         isOpen={showEmailSignupPopup}
         onClose={() => setShowEmailSignupPopup(false)}
         onSuccess={(userData) => {
@@ -831,6 +792,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // You can add additional logic here to handle the user data
         }}
         onNavigate={navigate}
+        initialMode={emailAuthMode}
       />
     </AuthContext.Provider>
   );

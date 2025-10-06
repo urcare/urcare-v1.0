@@ -16,7 +16,7 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
   mode,
   showAdminPlaceholders = false
 }) => {
-  const { signInWithGoogle, signInWithApple, signInWithEmail } = useAuth();
+  const { signInWithGoogle, signInWithApple, signInWithEmail, setEmailAuthMode, setShowEmailSignupPopup } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -36,12 +36,14 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
     }
   };
 
-  const handleEmailSignIn = async () => {
+  const handleEmailAuth = async () => {
     try {
-      await signInWithEmail();
-      onAuthSuccess();
+      // Set the appropriate mode and show email popup
+      setEmailAuthMode(mode);
+      setShowEmailSignupPopup(true);
+      // Don't call onAuthSuccess here as the popup will handle it
     } catch (error) {
-      console.error('Email sign-in failed:', error);
+      console.error('Email authentication failed:', error);
     }
   };
 
@@ -67,9 +69,9 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
         <span>Continue with Apple</span>
       </Button>
 
-      {/* Email Sign In */}
+      {/* Email Authentication */}
       <Button
-        onClick={handleEmailSignIn}
+        onClick={handleEmailAuth}
         variant="outline"
         className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
       >
