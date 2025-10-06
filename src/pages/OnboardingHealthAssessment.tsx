@@ -178,8 +178,27 @@ const OnboardingHealthAssessment: React.FC = () => {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 mb-2">Health Analysis</h3>
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    {healthMetrics.analysis}
+                    {typeof healthMetrics.analysis === 'string' 
+                      ? healthMetrics.analysis 
+                      : healthMetrics.analysis?.overall || 'Analysis not available'
+                    }
                   </p>
+                  {typeof healthMetrics.analysis === 'object' && healthMetrics.analysis && (
+                    <div className="mt-3 space-y-2">
+                      {healthMetrics.analysis.strengths && healthMetrics.analysis.strengths.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-green-800 mb-1">Strengths:</h4>
+                          <p className="text-sm text-green-700">{healthMetrics.analysis.strengths.join(', ')}</p>
+                        </div>
+                      )}
+                      {healthMetrics.analysis.areasForImprovement && healthMetrics.analysis.areasForImprovement.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-orange-800 mb-1">Areas for Improvement:</h4>
+                          <p className="text-sm text-orange-700">{healthMetrics.analysis.areasForImprovement.join(', ')}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Strengths and Improvements */}

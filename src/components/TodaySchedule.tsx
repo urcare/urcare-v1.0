@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Clock, Activity, Utensils, Moon, Sun, Eye, ArrowRight, Heart, CheckCircle } from 'lucide-react';
@@ -9,7 +9,7 @@ interface Activity {
   title: string;
   time: string;
   duration: string;
-  type: 'exercise' | 'meal' | 'rest' | 'work' | 'mindfulness';
+  type: 'exercise' | 'meal' | 'rest' | 'work' | 'productivity' | 'hydration' | 'mindfulness';
   details?: string;
   instructions?: string[];
   equipment?: string[];
@@ -85,6 +85,8 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   const [isPlanExpanded, setIsPlanExpanded] = useState(false);
   const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+
+
 
   // Generate full day schedule grouped by categories
   const generateFullDaySchedule = (): Activity[] => {
@@ -405,7 +407,8 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
               activity.type === 'work_break' ? 'work' :
               activity.type === 'mindfulness' ? 'mindfulness' :
               activity.type === 'rest' ? 'rest' : 'rest',
-        details: activity.instructions || activity.details || activity.description || '',
+        details: activity.details || activity.description || '',
+        instructions: activity.instructions || [],
         calories: activity.calories || 0,
         subActivities: activity.subActivities?.map((sub: any, subIndex: number) => ({
           time: sub.time || activity.time,
@@ -466,14 +469,14 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   // console.log('🔍 TodaySchedule - aiSchedule length:', aiSchedule.length);
   // console.log('🔍 TodaySchedule - aiSchedule:', aiSchedule);
   
+  // Use AI-generated activities from the plan if available
   const schedule = aiSchedule.length > 0 
     ? aiSchedule 
     : (plan?.activities && plan.activities.length > 0 
     ? plan.activities 
         : generateFullDaySchedule());
     
-  // console.log('🔍 TodaySchedule - Final schedule length:', schedule.length);
-  // console.log('🔍 TodaySchedule - Final schedule:', schedule);
+    
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -485,6 +488,10 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
         return <Moon className="w-4 h-4" />;
       case 'work':
         return <Clock className="w-4 h-4" />;
+      case 'productivity':
+        return <Clock className="w-4 h-4" />;
+      case 'hydration':
+        return <Heart className="w-4 h-4" />;
       case 'mindfulness':
         return <Sun className="w-4 h-4" />;
       default:
@@ -502,6 +509,10 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'work':
         return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'productivity':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'hydration':
+        return 'bg-cyan-100 text-cyan-800 border-cyan-200';
       case 'mindfulness':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
@@ -587,7 +598,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
       )}
 
       {/* Show Protocols, Activities, or Health Insights */}
-      {sequentialAIResult && !showPlans ? (
+      {sequentialAIResult && !showPlans && !plan ? (
         // Algorithm-Generated Protocol View
         <div className="space-y-4">
           {/* Algorithm Protocol Header - Only show when no protocol is selected */}
@@ -1091,18 +1102,43 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
 
                       {/* Expanded Activity Details */}
                       {isExpanded && (
-                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                          {/* Activity Details */}
-                          {activity.details && (
-                            <div>
-                              <h5 className="font-medium text-gray-800 mb-2">Details</h5>
-                              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                                {activity.details}
-                              </p>
+                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
+                          {/* Always show Instructions section */}
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                              Instructions
+                            </h5>
+                            
+                            {/* Debug info first */}
+                            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                              <strong>Debug Info:</strong><br/>
+                              Instructions exists: {activity.instructions ? 'Yes' : 'No'}<br/>
+                              Instructions length: {activity.instructions?.length || 0}<br/>
+                              Instructions data: {JSON.stringify(activity.instructions)}
                             </div>
-                          )}
 
-                          {activity.subActivities && activity.subActivities.length > 0 ? (
+                            {/* Show instructions if available */}
+                            {activity.instructions && activity.instructions.length > 0 ? (
+                              <div className="space-y-2">
+                                {activity.instructions.map((instruction, index) => (
+                                  <div key={`${activity.id}-instruction-${index}`} className="flex items-start space-x-3">
+                                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                      {index + 1}
+                                    </span>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{instruction}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4">
+                                <p className="text-gray-500 text-sm">No instructions available for this activity.</p>
+                                <p className="text-xs text-gray-400 mt-1">This activity doesn't have detailed instructions yet.</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {activity.subActivities && activity.subActivities.length > 0 && (
                             <div>
                               <h5 className="font-medium text-gray-800 mb-2">Detailed Steps</h5>
                               <div className="space-y-2">
@@ -1114,15 +1150,6 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                                   </div>
                                 ))}
                               </div>
-                            </div>
-                          ) : activity.instructions && activity.instructions.length > 0 && (
-                            <div>
-                              <h5 className="font-medium text-gray-800 mb-2">Instructions</h5>
-                              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                                {activity.instructions.map((instruction, index) => (
-                                  <li key={`${activity.id}-instruction-${index}`}>{instruction}</li>
-                                ))}
-                              </ul>
                             </div>
                           )}
                           

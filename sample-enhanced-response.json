@@ -1,0 +1,578 @@
+{
+  "success": true,
+  "data": {
+    "dayTitle": "Day 1: Diabetes Reversal Protocol - Your Transformation Begins Today",
+    "welcomeMessage": "Welcome to your new life: Reversing Type 2 Diabetes Naturally. Today marks the beginning of your metabolic healing journey. Every action is designed to restore insulin sensitivity and normalize blood glucose.",
+    "criticalMetrics": {
+      "trackingPoints": [
+        "Fasting glucose: ___ mg/dL (measure immediately upon waking)",
+        "Post-meal glucose: ___ mg/dL (2 hours after each meal)",
+        "Blood pressure: ___/___",
+        "Weight: ___ lbs",
+        "Energy level: ___/10"
+      ]
+    },
+    "fullDayTimeline": {
+      "morning": {
+        "startTime": "06:00",
+        "endTime": "12:00",
+        "activities": [
+          {
+            "time": "06:00",
+            "title": "DAWN PHENOMENON MANAGEMENT PROTOCOL",
+            "duration": "20 minutes",
+            "description": "The dawn phenomenon causes glucose spikes in diabetics. We're intercepting it immediately.",
+            "detailedInstructions": {
+              "instantWakeProtocol": {
+                "duration": "2 minutes",
+                "steps": [
+                  {
+                    "action": "FIRST PRIORITY: Test fasting blood glucose",
+                    "instructions": "Use glucose meter immediately upon waking",
+                    "rationale": "This helps us track your baseline and monitor dawn phenomenon effects"
+                  },
+                  {
+                    "action": "Hydration Formula",
+                    "ingredients": ["500ml room temperature water", "½ tsp pink Himalayan salt", "2 tbsp apple cider vinegar", "juice of 1 whole lemon"],
+                    "instructions": "Mix ingredients and drink through straw to protect tooth enamel",
+                    "rationale": "ACV can reduce fasting glucose by 4-6% and improve insulin sensitivity"
+                  }
+                ]
+              },
+              "glucoseLoweringMovement": {
+                "duration": "8 minutes",
+                "exercises": [
+                  {
+                    "name": "Bodyweight squats",
+                    "reps": "20",
+                    "instructions": "Slow, controlled movement - 3 seconds down, 1 second up",
+                    "rationale": "Muscles pull glucose from blood, can lower by 10-20 mg/dL immediately"
+                  },
+                  {
+                    "name": "Wall push-ups",
+                    "reps": "15",
+                    "instructions": "Stand 2 feet from wall, hands at chest level, push away and return",
+                    "rationale": "Activates upper body muscles to increase glucose uptake"
+                  },
+                  {
+                    "name": "Calf raises",
+                    "reps": "30",
+                    "instructions": "Rise up on toes slowly, hold 2 seconds, lower slowly",
+                    "rationale": "Calf muscles are major glucose consumers, especially important for diabetics"
+                  }
+                ]
+              },
+              "circadianReset": {
+                "duration": "10 minutes",
+                "steps": [
+                  {
+                    "action": "Step outside",
+                    "duration": "5 minutes",
+                    "instructions": "Barefoot grounding on grass/earth if possible",
+                    "rationale": "Reduces inflammation and improves insulin sensitivity by 15-20%"
+                  },
+                  {
+                    "action": "Breathing protocol",
+                    "technique": "4-7-8 breathing",
+                    "rounds": "6",
+                    "instructions": "Inhale 4 counts (nose), Hold 7 counts, Exhale 8 counts (mouth)",
+                    "rationale": "Lowers cortisol by up to 16% and improves insulin sensitivity"
+                  }
+                ]
+              }
+            },
+            "tracking": ["Fasting glucose level", "How you feel (1-10)", "Hours of sleep", "Morning energy level"],
+            "equipment": ["Glucose meter", "Test strips", "Water bottle", "Apple cider vinegar"],
+            "safetyNotes": ["If glucose <70 mg/dL, eat 5-6 almonds before exercise", "If glucose >250 mg/dL, skip exercise and consult doctor"]
+          },
+          {
+            "time": "07:00",
+            "title": "STRATEGIC LOW-CARB BREAKFAST PROTOCOL",
+            "duration": "30 minutes",
+            "description": "The glucose-stabilizing breakfast designed for diabetes reversal",
+            "detailedInstructions": {
+              "preMealRitual": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "Test blood glucose",
+                    "instructions": "Record in diabetes journal",
+                    "rationale": "Tracks your baseline before eating"
+                  },
+                  {
+                    "action": "Vinegar preparation",
+                    "instructions": "1 tbsp apple cider vinegar in 200ml water",
+                    "rationale": "Reduces post-meal glucose spike by 20-30%"
+                  }
+                ]
+              },
+              "mealSequence": {
+                "duration": "25 minutes",
+                "steps": [
+                  {
+                    "step": "Fiber First",
+                    "duration": "5 minutes",
+                    "food": "Large plate of non-starchy vegetables",
+                    "ingredients": ["2 cups raw spinach", "½ cup cucumber", "½ cup bell peppers", "6 cherry tomatoes"],
+                    "preparation": "Dress with 1 tbsp olive oil + lemon juice + herbs",
+                    "rationale": "Fiber slows glucose absorption and improves satiety"
+                  },
+                  {
+                    "step": "Protein Power",
+                    "duration": "10 minutes",
+                    "food": "3-egg omelet with diabetes-friendly ingredients",
+                    "ingredients": ["3 eggs", "½ cup mushrooms", "¼ cup onions", "handful spinach", "1 tsp coconut oil"],
+                    "preparation": "Cook in coconut oil with turmeric + black pepper + herbs",
+                    "rationale": "High-quality protein supports muscle mass and glucose metabolism"
+                  },
+                  {
+                    "step": "Smart Carbs Last",
+                    "duration": "5 minutes",
+                    "food": "¼ cup steel-cut oats (cooked and cooled)",
+                    "preparation": "Cooked and cooled overnight (creates resistant starch)",
+                    "toppings": ["1 tbsp ground flax seeds", "extra cinnamon", "stevia if needed"],
+                    "rationale": "Resistant starch improves insulin sensitivity and feeds beneficial gut bacteria"
+                  }
+                ]
+              },
+              "postMealProtocol": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "MANDATORY walk",
+                    "duration": "5 minutes",
+                    "instructions": "Moderate pace, arms swinging naturally",
+                    "rationale": "Prevents glucose spike by activating muscles immediately after eating"
+                  }
+                ]
+              }
+            },
+            "nutrition": {
+              "calories": 420,
+              "protein": "35g",
+              "carbs": "22g",
+              "fat": "24g",
+              "fiber": "12g"
+            },
+            "equipment": ["Non-stick pan", "Cutting board", "Knife", "Mixing bowl"],
+            "alternatives": ["If no eggs: 1 cup Greek yogurt with nuts", "If no oats: ½ avocado with seeds"]
+          }
+        ]
+      },
+      "afternoon": {
+        "startTime": "12:00",
+        "endTime": "18:00",
+        "activities": [
+          {
+            "time": "12:30",
+            "title": "STRATEGIC LOW-CARB LUNCH PROTOCOL",
+            "duration": "35 minutes",
+            "description": "The blood sugar balancing lunch designed for diabetes reversal",
+            "detailedInstructions": {
+              "preMealRitual": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "Test blood glucose",
+                    "instructions": "Record in journal",
+                    "rationale": "Tracks your mid-day glucose levels"
+                  },
+                  {
+                    "action": "Stress reduction",
+                    "instructions": "10 deep breaths to activate parasympathetic nervous system",
+                    "rationale": "Stress increases cortisol which raises blood glucose"
+                  }
+                ]
+              },
+              "mealSequence": {
+                "duration": "25 minutes",
+                "steps": [
+                  {
+                    "step": "Fiber Shield",
+                    "duration": "5 minutes",
+                    "food": "Large mixed green salad",
+                    "ingredients": ["2 cups mixed greens", "1 cup raw broccoli", "½ cup shredded carrots", "½ cup sliced radishes"],
+                    "preparation": "Dress with 1 tbsp olive oil + balsamic vinegar + herbs",
+                    "rationale": "Fiber creates a protective barrier slowing glucose absorption"
+                  },
+                  {
+                    "step": "Protein Powerhouse",
+                    "duration": "10 minutes",
+                    "food": "6 oz grilled chicken breast",
+                    "ingredients": ["6 oz chicken breast", "herbs", "garlic", "lemon", "1 tsp olive oil"],
+                    "preparation": "Season with herbs and garlic, grill or bake, finish with lemon",
+                    "rationale": "High-quality protein supports muscle mass and glucose metabolism"
+                  },
+                  {
+                    "step": "Smart Carbs",
+                    "duration": "5 minutes",
+                    "food": "½ cup cooked quinoa",
+                    "preparation": "Cooked and cooled (creates resistant starch)",
+                    "toppings": ["Cinnamon", "herbs", "1 tsp olive oil"],
+                    "rationale": "Quinoa provides complete protein and resistant starch for gut health"
+                  }
+                ]
+              },
+              "postMealProtocol": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "MANDATORY walk",
+                    "duration": "10 minutes",
+                    "instructions": "Moderate pace, focus on posture",
+                    "rationale": "Can reduce post-meal glucose spike by 30-50%"
+                  }
+                ]
+              }
+            },
+            "nutrition": {
+              "calories": 520,
+              "protein": "42g",
+              "carbs": "28g",
+              "fat": "26g",
+              "fiber": "14g"
+            },
+            "equipment": ["Grill or oven", "Cutting board", "Mixing bowl"],
+            "alternatives": ["If no chicken: 1 cup lentils + 2 eggs", "If no quinoa: ½ cup black beans"]
+          }
+        ]
+      },
+      "evening": {
+        "startTime": "18:00",
+        "endTime": "22:00",
+        "activities": [
+          {
+            "time": "18:00",
+            "title": "STRATEGIC HOME WORKOUT FOR DIABETES REVERSAL",
+            "duration": "45 minutes",
+            "description": "This specific protocol can improve insulin sensitivity for 24-48 hours",
+            "detailedInstructions": {
+              "preWorkoutPrep": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "Check blood glucose",
+                    "instructions": "Should be 90-140 mg/dL for safe exercise",
+                    "rationale": "Ensures safe exercise parameters for diabetics"
+                  },
+                  {
+                    "action": "Dynamic warm-up",
+                    "exercises": [
+                      {
+                        "name": "Arm swings",
+                        "reps": "20 each direction",
+                        "instructions": "Full range of motion, gentle circles",
+                        "rationale": "Prepares shoulder joints and increases circulation"
+                      },
+                      {
+                        "name": "Leg swings",
+                        "reps": "15 each leg",
+                        "instructions": "Forward and backward, hold wall for support",
+                        "rationale": "Prepares hip joints and activates leg muscles"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "mainWorkout": {
+                "duration": "35 minutes",
+                "circuits": [
+                  {
+                    "name": "Circuit A - Lower Body Focus",
+                    "rounds": 3,
+                    "exercises": [
+                      {
+                        "name": "Bodyweight squats",
+                        "reps": "15",
+                        "sets": "3",
+                        "rest": "60 seconds",
+                        "instructions": [
+                          "Feet shoulder-width apart",
+                          "Slow descent (3 seconds)",
+                          "Pause at bottom for 1 second",
+                          "Drive up through heels"
+                        ],
+                        "formCues": [
+                          "Keep knees over toes",
+                          "Engage core throughout",
+                          "Breathe out on the way up"
+                        ],
+                        "modifications": {
+                          "beginner": "Reduce reps to 10, use chair for support",
+                          "advanced": "Add 30-second hold at bottom"
+                        },
+                        "rationale": "Large muscle groups consume the most glucose, improving insulin sensitivity"
+                      },
+                      {
+                        "name": "Wall sits",
+                        "reps": "30-45 seconds",
+                        "sets": "3",
+                        "rest": "60 seconds",
+                        "instructions": [
+                          "Back flat against wall",
+                          "Thighs parallel to ground",
+                          "Breathe deeply and hold"
+                        ],
+                        "formCues": [
+                          "Keep back flat against wall",
+                          "Knees at 90 degrees",
+                          "Weight in heels"
+                        ],
+                        "modifications": {
+                          "beginner": "Higher position, 20 seconds",
+                          "advanced": "Add leg lifts while holding"
+                        },
+                        "rationale": "Isometric exercise improves muscle endurance and glucose uptake"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Circuit B - Upper Body Focus",
+                    "rounds": 3,
+                    "exercises": [
+                      {
+                        "name": "Modified push-ups",
+                        "reps": "10-15",
+                        "sets": "3",
+                        "rest": "60 seconds",
+                        "instructions": [
+                          "On knees if needed",
+                          "Full range of motion",
+                          "Control the movement"
+                        ],
+                        "formCues": [
+                          "Keep body straight",
+                          "Engage core",
+                          "Breathe out on push"
+                        ],
+                        "modifications": {
+                          "beginner": "Wall push-ups",
+                          "advanced": "Full push-ups on toes"
+                        },
+                        "rationale": "Upper body strength training improves overall glucose metabolism"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "coolDown": {
+                "duration": "5 minutes",
+                "steps": [
+                  {
+                    "action": "Walk slowly",
+                    "duration": "2 minutes",
+                    "instructions": "Focus on deep breathing and recovery"
+                  },
+                  {
+                    "action": "Stretch all major muscle groups",
+                    "duration": "3 minutes",
+                    "instructions": "Hold each stretch for 30-60 seconds, focus on legs and back"
+                  }
+                ]
+              }
+            },
+            "equipment": ["Resistance bands", "Yoga mat", "Water bottle"],
+            "safetyConsiderations": [
+              "If glucose <90 mg/dL before workout, eat 5-6 almonds",
+              "If glucose >250 mg/dL, skip workout and consult doctor",
+              "Stop immediately if you feel dizzy or lightheaded"
+            ],
+            "expectedOutcomes": [
+              "Improved insulin sensitivity for 24-48 hours",
+              "Better glucose control throughout the day",
+              "Increased muscle mass and strength"
+            ]
+          }
+        ]
+      }
+    },
+    "supplementProtocol": {
+      "morning": [
+        {
+          "name": "Berberine",
+          "dosage": "500mg",
+          "timing": "With breakfast",
+          "purpose": "Improves insulin sensitivity and glucose metabolism",
+          "notes": "Take with food to avoid stomach upset, as effective as Metformin for many"
+        },
+        {
+          "name": "Alpha Lipoic Acid",
+          "dosage": "600mg",
+          "timing": "With breakfast",
+          "purpose": "Reduces oxidative stress and improves nerve function",
+          "notes": "Especially important for diabetics with nerve damage"
+        },
+        {
+          "name": "Chromium Picolinate",
+          "dosage": "400mcg",
+          "timing": "With breakfast",
+          "purpose": "Enhances insulin action and glucose metabolism",
+          "notes": "Most diabetics are deficient in chromium"
+        }
+      ],
+      "evening": [
+        {
+          "name": "Magnesium Glycinate",
+          "dosage": "400mg",
+          "timing": "Before bed",
+          "purpose": "Improves sleep quality and insulin sensitivity",
+          "notes": "Critical for glucose metabolism and muscle relaxation"
+        },
+        {
+          "name": "Omega-3",
+          "dosage": "2g EPA/DHA",
+          "timing": "With dinner",
+          "purpose": "Reduces inflammation and improves heart health",
+          "notes": "Essential for diabetics due to increased cardiovascular risk"
+        }
+      ]
+    },
+    "mealPlans": {
+      "breakfast": {
+        "time": "07:00",
+        "calories": 420,
+        "protein": "35g",
+        "carbs": "22g",
+        "fat": "24g",
+        "fiber": "12g",
+        "detailedRecipe": {
+          "ingredients": [
+            "3 large eggs",
+            "½ cup mushrooms, sliced",
+            "¼ cup onions, diced",
+            "2 cups fresh spinach",
+            "1 tsp coconut oil",
+            "2 cups mixed greens",
+            "½ cup cucumber, sliced",
+            "½ cup bell peppers, sliced",
+            "6 cherry tomatoes",
+            "1 tbsp olive oil",
+            "¼ cup steel-cut oats (cooked and cooled)",
+            "1 tbsp ground flax seeds",
+            "Cinnamon to taste"
+          ],
+          "preparation": [
+            "1. Prepare vegetables: Wash and slice all vegetables",
+            "2. Cook oats: Prepare steel-cut oats the night before and refrigerate",
+            "3. Make salad: Combine greens, cucumber, peppers, and tomatoes in large bowl",
+            "4. Dress salad: Drizzle with olive oil and lemon juice, toss well",
+            "5. Cook omelet: Heat coconut oil in pan, sauté mushrooms and onions",
+            "6. Add spinach: Add spinach to pan, cook until wilted",
+            "7. Add eggs: Beat eggs with herbs, pour over vegetables",
+            "8. Cook slowly: Cook on low heat until set, fold in half",
+            "9. Serve: Plate salad first, then omelet, then oats with flax seeds"
+          ],
+          "nutritionBreakdown": {
+            "calories": 420,
+            "macros": "35g protein, 22g carbs, 24g fat",
+            "micronutrients": "High in B vitamins, iron, magnesium, and antioxidants"
+          }
+        }
+      }
+    },
+    "sleepOptimization": {
+      "bedtime": "22:00",
+      "wakeTime": "06:00",
+      "windDownRoutine": {
+        "startTime": "20:00",
+        "activities": [
+          {
+            "time": "20:00",
+            "activity": "Digital sunset",
+            "instructions": "All screens to night mode, dim lights to 40%",
+            "rationale": "Reduces blue light exposure that disrupts melatonin production"
+          },
+          {
+            "time": "21:00",
+            "activity": "Relaxation beverage",
+            "ingredients": ["1 cup chamomile tea", "½ tsp Ceylon cinnamon", "1 tsp raw honey"],
+            "instructions": "Sip slowly while doing gentle stretching",
+            "rationale": "Promotes relaxation and supports blood sugar stability"
+          }
+        ]
+      },
+      "bedroomOptimization": {
+        "temperature": "65-67°F",
+        "lighting": "Complete darkness (use eye mask if needed)",
+        "noise": "White noise or silence",
+        "electronics": "Remove ALL electronics",
+        "air": "Fresh air (crack window if possible)"
+      }
+    },
+    "stressManagement": {
+      "techniques": [
+        {
+          "name": "4-7-8 Breathing",
+          "duration": "10 minutes",
+          "instructions": [
+            "Sit comfortably with back straight",
+            "Place tongue behind upper teeth",
+            "Inhale through nose for 4 counts",
+            "Hold breath for 7 counts",
+            "Exhale through mouth for 8 counts",
+            "Repeat 10 times"
+          ],
+          "whenToUse": "When feeling stressed or before meals",
+          "rationale": "Activates parasympathetic nervous system, reduces cortisol by up to 16%"
+        }
+      ]
+    },
+    "progressTracking": {
+      "dailyMetrics": [
+        "Fasting glucose (morning)",
+        "Post-meal glucose (2 hours after each meal)",
+        "Blood pressure (morning and evening)",
+        "Weight (morning, same time)",
+        "Energy level (1-10 scale)",
+        "Sleep quality (1-10 scale)"
+      ],
+      "weeklyAssessments": [
+        "Average glucose levels",
+        "Weight change",
+        "Energy improvement",
+        "Sleep quality improvement",
+        "Exercise adherence"
+      ],
+      "adaptationRules": {
+        "ifFeelingTired": "Reduce exercise intensity, increase sleep by 30 minutes",
+        "ifNotSeeingResults": "Increase exercise frequency, review meal portions",
+        "ifTooEasy": "Add resistance bands, increase exercise duration"
+      }
+    },
+    "safetyConsiderations": [
+      "Always test blood glucose before and after exercise",
+      "If glucose <70 mg/dL, eat 15g carbs before exercise",
+      "If glucose >250 mg/dL, skip exercise and consult doctor",
+      "Stop exercise immediately if you feel dizzy or lightheaded",
+      "Keep glucose tablets or juice nearby during workouts"
+    ],
+    "expectedOutcomes": {
+      "immediate": [
+        "Better glucose control within 24-48 hours",
+        "Improved energy levels",
+        "Better sleep quality"
+      ],
+      "week1": [
+        "Lower fasting glucose by 10-20 mg/dL",
+        "Improved post-meal glucose response",
+        "Increased energy and motivation"
+      ],
+      "month1": [
+        "Significant reduction in HbA1c",
+        "Weight loss of 5-10 lbs",
+        "Reduced medication needs (with doctor approval)"
+      ],
+      "longTerm": [
+        "Complete diabetes reversal",
+        "Optimal health and vitality",
+        "Reduced risk of complications"
+      ]
+    }
+  },
+  "meta": {
+    "provider": "Groq-Primary",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "planTitle": "Diabetes Reversal Protocol",
+    "userGoals": ["Reverse diabetes", "Lose weight", "Improve energy"]
+  }
+}
