@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Mail, Smartphone, User } from 'lucide-react';
@@ -17,22 +17,37 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
   showAdminPlaceholders = false
 }) => {
   const { signInWithGoogle, signInWithApple, signInWithEmail, setEmailAuthMode, setShowEmailSignupPopup } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    if (isRedirecting) return; // Prevent multiple clicks
+    
     try {
+      setIsRedirecting(true);
+      console.log('Google sign-in button clicked');
       await signInWithGoogle();
-      onAuthSuccess();
+      // Note: onAuthSuccess() will be called by the auth state change listener
+      // when the user returns from Google OAuth
     } catch (error) {
       console.error('Google sign-in failed:', error);
+      setIsRedirecting(false);
+      // Error handling is done in the AuthContext
     }
   };
 
   const handleAppleSignIn = async () => {
+    if (isRedirecting) return; // Prevent multiple clicks
+    
     try {
+      setIsRedirecting(true);
+      console.log('Apple sign-in button clicked');
       await signInWithApple();
-      onAuthSuccess();
+      // Note: onAuthSuccess() will be called by the auth state change listener
+      // when the user returns from Apple OAuth
     } catch (error) {
       console.error('Apple sign-in failed:', error);
+      setIsRedirecting(false);
+      // Error handling is done in the AuthContext
     }
   };
 
@@ -52,21 +67,23 @@ export const AuthOptions: React.FC<AuthOptionsProps> = ({
       {/* Google Sign In */}
       <Button
         onClick={handleGoogleSignIn}
+        disabled={isRedirecting}
         variant="outline"
-        className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
+        className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <User className="w-5 h-5" />
-        <span>Continue with Google</span>
+        <span>{isRedirecting ? 'Redirecting...' : 'Continue with Google'}</span>
       </Button>
 
       {/* Apple Sign In */}
       <Button
         onClick={handleAppleSignIn}
+        disabled={isRedirecting}
         variant="outline"
-        className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
+        className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Smartphone className="w-5 h-5" />
-        <span>Continue with Apple</span>
+        <span>{isRedirecting ? 'Redirecting...' : 'Continue with Apple'}</span>
       </Button>
 
       {/* Email Authentication */}

@@ -10,8 +10,8 @@ export const CleanAuthCallback: React.FC = () => {
       try {
         console.log("🔄 CleanAuthCallback: Starting authentication...");
         
-        // Wait for Supabase to process the OAuth callback
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Reduced wait time for faster processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -27,10 +27,11 @@ export const CleanAuthCallback: React.FC = () => {
           console.log("✅ Authentication successful:", session.user.id);
           setStatus('success');
 
-          // Redirect directly to dashboard to avoid landing page redirect conflicts
+          // Redirect directly to dashboard with a shorter delay for better UX
           setTimeout(() => {
-            window.location.href = "/dashboard"; // Go directly to dashboard
-          }, 1500);
+            // Use replace to prevent back button issues
+            window.location.replace("/dashboard");
+          }, 800);
         } else {
           console.log("⚠️ No session found");
           setError("No authentication session found. Please try logging in again.");

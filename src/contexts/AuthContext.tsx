@@ -544,6 +544,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Using production Google sign-in");
       console.log("Redirect URL:", `${window.location.origin}/auth/callback`);
 
+      // Show loading state to prevent user interaction during redirect
+      toast.loading("Redirecting to Google...", { id: "google-auth" });
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -555,14 +558,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        toast.dismiss("google-auth");
+        throw error;
+      }
 
       if (data?.url) {
         console.log("Redirecting to OAuth URL:", data.url);
-        window.location.href = data.url;
+        
+        // Use a more seamless redirect approach to prevent browser warnings
+        // Add a small delay to ensure the loading state is visible
+        setTimeout(() => {
+          // Use replace instead of href to prevent back button issues
+          window.location.replace(data.url);
+        }, 100);
       }
     } catch (error) {
       console.error("Google sign-in failed:", error);
+      toast.dismiss("google-auth");
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -570,7 +583,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.error("Google sign-in failed", { description: errorMessage });
       throw error;
     } finally {
-      setLoading(false);
+      // Don't set loading to false here as we're redirecting
+      // setLoading(false);
     }
   }, []);
 
@@ -583,6 +597,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
+      // Show loading state to prevent user interaction during redirect
+      toast.loading("Redirecting to Apple...", { id: "apple-auth" });
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "apple",
         options: {
@@ -594,13 +611,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        toast.dismiss("apple-auth");
+        throw error;
+      }
 
       if (data?.url) {
-        window.location.href = data.url;
+        console.log("Redirecting to Apple OAuth URL:", data.url);
+        
+        // Use a more seamless redirect approach to prevent browser warnings
+        // Add a small delay to ensure the loading state is visible
+        setTimeout(() => {
+          // Use replace instead of href to prevent back button issues
+          window.location.replace(data.url);
+        }, 100);
       }
     } catch (error) {
       console.error("Apple sign-in failed:", error);
+      toast.dismiss("apple-auth");
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -608,7 +636,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.error("Apple sign-in failed", { description: errorMessage });
       throw error;
     } finally {
-      setLoading(false);
+      // Don't set loading to false here as we're redirecting
+      // setLoading(false);
     }
   }, []);
 
