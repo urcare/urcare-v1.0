@@ -255,9 +255,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (reduced to 5s for faster response)
+        // Add timeout protection to prevent hanging (increased to 10s for better reliability)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
         );
         
         const profilePromise = Promise.all([
@@ -276,20 +276,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setProfile(userProfile);
           }
         } else {
-          // If no profile found, create minimal profile with onboarding_completed = true
-          // This prevents redirect loops when profile fetch fails
+          // If no profile found, create minimal profile with onboarding_completed = false
+          // This ensures new users go through onboarding
           const minimalProfile = createMinimalProfile(user);
+          minimalProfile.onboarding_completed = false;
           setProfile(minimalProfile);
         }
       } catch (error) {
         // Log errors for debugging in production
         if (error instanceof Error && error.message === 'Profile fetch timeout') {
-          console.warn("Profile operations timed out after 5 seconds:", error);
+          console.warn("Profile operations timed out after 10 seconds:", error);
         } else {
           console.error("Profile operations failed:", error);
         }
-        // Create minimal profile with onboarding_completed = true to prevent redirect loops
+        // Create minimal profile with onboarding_completed = false to ensure proper flow
         const minimalProfile = createMinimalProfile(user);
+        minimalProfile.onboarding_completed = false;
         setProfile(minimalProfile);
       }
     },

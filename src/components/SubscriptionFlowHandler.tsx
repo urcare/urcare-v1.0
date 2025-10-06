@@ -28,7 +28,9 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
     '/email-auth',
     '/email-signin',
     '/email-verification',
-    '/tasks-demo'
+    '/tasks-demo',
+    '/onboarding',
+    '/health-assessment'
   ];
 
   // Check if current route is public
@@ -48,6 +50,17 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
 
       // Skip if already checking
       if (isCheckingSubscription) {
+        return;
+      }
+
+      // Skip if we're already on the correct route to prevent redirect loops
+      if (location.pathname === '/onboarding' && !profile?.onboarding_completed) {
+        return;
+      }
+      if (location.pathname === '/health-assessment' && profile?.onboarding_completed && !profile?.subscription_status) {
+        return;
+      }
+      if (location.pathname === '/dashboard' && profile?.onboarding_completed && profile?.subscription_status === 'active') {
         return;
       }
 
@@ -80,11 +93,16 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
         if (hasActiveSubscription) {
           // User has subscription and onboarding completed, allow access to dashboard
           console.log('✅ User has active subscription and completed onboarding');
+          if (location.pathname !== '/dashboard') {
+            navigate('/dashboard');
+          }
           return;
         } else {
           // Onboarding completed but no active subscription, redirect to health assessment first
           console.log('🏥 Onboarding completed but no active subscription, redirecting to health assessment');
-          navigate('/health-assessment');
+          if (location.pathname !== '/health-assessment') {
+            navigate('/health-assessment');
+          }
           return;
         }
 
@@ -101,8 +119,10 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
       }
     };
 
-    checkUserFlow();
-  }, [user, profile, isInitialized, isPublicRoute, isCheckingSubscription, navigate]);
+    // Add debounce to prevent rapid successive calls
+    const timeoutId = setTimeout(checkUserFlow, 100);
+    return () => clearTimeout(timeoutId);
+  }, [user, profile, isInitialized, isPublicRoute, isCheckingSubscription, navigate, location.pathname]);
 
   // Show loading while checking subscription
   if (isCheckingSubscription && user && !isPublicRoute) {

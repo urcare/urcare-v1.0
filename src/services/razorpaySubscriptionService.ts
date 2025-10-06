@@ -132,6 +132,10 @@ class RazorpaySubscriptionService {
           console.warn('Razorpay subscriptions table does not exist yet');
           return false;
         }
+        // If no rows found (PGRST116), return false gracefully
+        if (error.code === 'PGRST116') {
+          return false;
+        }
         console.error('Error checking Razorpay subscription:', error);
         return false;
       }
@@ -162,6 +166,10 @@ class RazorpaySubscriptionService {
         // If table doesn't exist, return null gracefully
         if (error.code === '42P01') {
           console.warn('Razorpay subscriptions table does not exist yet');
+          return null;
+        }
+        // If no rows found (PGRST116), return null gracefully
+        if (error.code === 'PGRST116') {
           return null;
         }
         console.error('Error getting Razorpay subscription:', error);
