@@ -38,8 +38,9 @@ export const SmartRouteHandler: React.FC = () => {
       return;
     }
 
-    // If user exists but no profile, redirect to onboarding
-    if (user && !profile) {
+    // If user exists but no profile, wait a bit for profile to load
+    // Only redirect to onboarding if profile is explicitly false, not just null/undefined
+    if (user && profile && profile.onboarding_completed === false) {
       navigate('/onboarding', { replace: true });
       return;
     }

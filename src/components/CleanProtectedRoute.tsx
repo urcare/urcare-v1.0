@@ -73,6 +73,7 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
   // This prevents redirect loops when profile fetch times out
   if (requireOnboardingComplete && !profile) {
     debugLog('Profile is null/undefined, assuming onboarding complete to prevent redirect loops');
+    // Don't redirect, just continue to the protected route
   }
 
   // If onboarding is completed but user is trying to access onboarding, redirect to dashboard

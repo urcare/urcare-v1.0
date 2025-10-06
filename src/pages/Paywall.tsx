@@ -79,6 +79,7 @@ const Paywall: React.FC = () => {
     console.log("User:", user);
     console.log("Billing cycle:", billingCycle);
     console.log("Hostname:", window.location.hostname);
+    console.log("Current URL:", window.location.href);
     
     // For localhost development, allow navigation without user
     if (!user && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
@@ -86,26 +87,42 @@ const Paywall: React.FC = () => {
       return;
     }
 
-    console.log("✅ Proceeding with navigation to PhonePe checkout");
+    console.log("✅ Proceeding with Razorpay payment");
     
-    // Calculate amount based on billing cycle
-    const amount = billingCycle === 'annual' ? priceAnnualINR : priceMonthlyINR;
+    // Razorpay payment links
+    const monthlyRazorpayLink = "https://razorpay.me/@urcare?amount=vy%2F7jJNxh9pvHsb2%2Bqs52w%3D%3D";
+    const yearlyRazorpayLink = "https://razorpay.me/@urcare?amount=6zcPuaHTrIB8Jllw5habFw%3D%3D";
     
-    console.log("Amount calculated:", amount);
-    
-    // Navigate to paycheckout page
+    // Redirect to appropriate Razorpay link based on billing cycle
     try {
-      navigate("/paycheckout", {
-        state: {
-          planSlug: "basic",
-          billingCycle: billingCycle,
-          amount: amount
+      const razorpayLink = billingCycle === 'annual' ? yearlyRazorpayLink : monthlyRazorpayLink;
+      console.log("Redirecting to Razorpay:", razorpayLink);
+      console.log("Billing cycle selected:", billingCycle);
+      console.log("Razorpay link being used:", razorpayLink);
+      
+      // Add success redirect URL to Razorpay link
+      const successUrl = `${window.location.origin}/payment-success?plan=${billingCycle === 'annual' ? 'yearly' : 'monthly'}&cycle=${billingCycle}`;
+      const finalRazorpayLink = `${razorpayLink}&redirect_url=${encodeURIComponent(successUrl)}`;
+      
+      console.log("Final Razorpay link with redirect:", finalRazorpayLink);
+      console.log("About to redirect to:", finalRazorpayLink);
+      
+      // Open Razorpay link in the same tab
+      console.log("🚀 Executing redirect to Razorpay...");
+      window.location.href = finalRazorpayLink;
+      
+      // Fallback: if redirect doesn't work, try after a short delay
+      setTimeout(() => {
+        if (window.location.href.includes('paycheckout')) {
+          console.log("⚠️ Redirect to paycheckout detected, forcing Razorpay redirect");
+          window.location.replace(finalRazorpayLink);
         }
-      });
-      console.log("✅ Navigation successful");
+      }, 1000);
+      
+      console.log("✅ Razorpay redirect successful");
     } catch (error) {
-      console.error("❌ Navigation failed:", error);
-      toast.error("Navigation failed. Please try again.");
+      console.error("❌ Razorpay redirect failed:", error);
+      toast.error("Payment redirect failed. Please try again.");
     }
   };
 

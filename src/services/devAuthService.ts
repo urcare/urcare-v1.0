@@ -22,6 +22,8 @@ export class DevAuthService {
     }
 
     devUtils.log("Signing in with Google (development mode)");
+    devUtils.log("Using redirect URL:", DEV_CONFIG.URLS.callback);
+    devUtils.log("Current URL:", window.location.href);
 
     // For development, we'll use a mock OAuth flow
     // This avoids the complex redirect handling

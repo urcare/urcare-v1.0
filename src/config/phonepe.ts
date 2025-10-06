@@ -60,9 +60,9 @@ const uatConfig: PhonePeConfig = {
   merchantId: "PGTESTPAYUAT",
   keyIndex: "1",
   key: "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399",
-  frontendUrl: import.meta.env.VITE_FRONTEND_URL || "http://localhost:3000",
+  frontendUrl: import.meta.env.VITE_FRONTEND_URL || "http://localhost:8080",
   callbackUrl: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phonepe-payment-callback`,
-  redirectUrl: `${import.meta.env.VITE_FRONTEND_URL || "http://localhost:3000"}/payment/success`,
+  redirectUrl: `${import.meta.env.VITE_FRONTEND_URL || "http://localhost:8080"}/payment/success`,
 };
 
 // Production Configuration

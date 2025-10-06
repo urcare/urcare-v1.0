@@ -14,7 +14,8 @@
     "node-fetch": "^2.7.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "razorpay": "^2.9.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

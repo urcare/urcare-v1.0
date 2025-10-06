@@ -15,14 +15,15 @@ const Landing = () => {
 
   useEffect(() => {
     if (isInitialized && !loading && user && profile?.onboarding_completed) {
-      // Only redirect if we're not already on the landing page and user is fully authenticated
+      // Only redirect if we're on the landing page and user is fully authenticated
       // Skip redirect if we're coming from an OAuth callback to avoid conflicts
       if (
         window.location.pathname === "/" &&
         profile &&
         profile.onboarding_completed &&
         !window.location.search.includes('code=') && // Skip if OAuth callback
-        !window.location.href.includes('/auth/callback') // Skip if coming from auth callback
+        !window.location.href.includes('/auth/callback') && // Skip if coming from auth callback
+        !window.location.href.includes('/auth') // Skip if coming from any auth route
       ) {
         // Add a small delay to ensure auth state is stable and prevent redirect loops
         const redirectTimer = setTimeout(() => {
@@ -32,9 +33,10 @@ const Landing = () => {
             user &&
             profile?.onboarding_completed &&
             !window.location.search.includes('code=') && // Skip if OAuth callback
-            !window.location.href.includes('/auth/callback') // Skip if coming from auth callback
+            !window.location.href.includes('/auth/callback') && // Skip if coming from auth callback
+            !window.location.href.includes('/auth') // Skip if coming from any auth route
           ) {
-            navigate("/health-assessment", { replace: true });
+            navigate("/dashboard", { replace: true }); // Go to dashboard instead of health-assessment
           }
         }, 1000);
         return () => clearTimeout(redirectTimer);
@@ -102,12 +104,12 @@ const Landing = () => {
                 if (authMode === "signup") {
                   navigate("/onboarding");
                 } else if (authMode === "signin") {
-                  // For signin, check if user has completed onboarding
-                  if (profile?.onboarding_completed) {
-                    navigate("/health-assessment");
-                  } else {
-                    navigate("/onboarding");
-                  }
+                // For signin, check if user has completed onboarding
+                if (profile?.onboarding_completed) {
+                  navigate("/dashboard");
+                } else {
+                  navigate("/onboarding");
+                }
                 }
               }}
               mode={authMode}

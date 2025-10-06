@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AdminProvider } from "./contexts/AdminContext";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
+import SubscriptionFlowHandler from "./components/SubscriptionFlowHandler";
 import AdminLogin from "./pages/AdminLogin";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
@@ -41,7 +42,6 @@ import ProfileManagement from "./pages/ProfileManagement";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
-import TasksDemo from "./pages/TasksDemo";
 import Workout from "./pages/Workout";
 import WorkoutDashboard from "./pages/WorkoutDashboard";
 import WorkoutActivity from "./pages/WorkoutActivity";
@@ -72,13 +72,13 @@ function App() {
               v7_relativeSplatPath: true,
             }}
           >
-            <SmartRouteHandler />
-            <Routes>
+            <SubscriptionFlowHandler>
+              <SmartRouteHandler />
+              <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<CleanAuthCallback />} />
           <Route path="/auth/callback" element={<CleanAuthCallback />} />
-          <Route path="/tasks-demo" element={<TasksDemo />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/my-admin" element={<MyAdmin />} />
@@ -236,6 +236,7 @@ function App() {
                   />
 
           <Route path="/payment/phonepe/success" element={<PhonePeSuccess />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
 
           <Route
             path="/subscription"
@@ -400,6 +401,7 @@ function App() {
           {/* Catch all route */}
           <Route path="*" element={<Landing />} />
         </Routes>
+            </SubscriptionFlowHandler>
         </BrowserRouter>
         </AdminProvider>
       </AuthProvider>

@@ -27,9 +27,9 @@ export const CleanAuthCallback: React.FC = () => {
           console.log("✅ Authentication successful:", session.user.id);
           setStatus('success');
 
-          // Let the routing logic determine the correct destination based on subscription status
+          // Redirect directly to dashboard to avoid landing page redirect conflicts
           setTimeout(() => {
-            window.location.href = "/"; // Redirect to home, let SmartRouteHandler determine the correct route
+            window.location.href = "/dashboard"; // Go directly to dashboard
           }, 1500);
         } else {
           console.log("⚠️ No session found");

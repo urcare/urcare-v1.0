@@ -502,11 +502,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signInWithGoogle = useCallback(async () => {
     setLoading(true);
     try {
+      console.log("🔐 Google sign-in initiated");
+      console.log("Current URL:", window.location.href);
+      console.log("Is development:", isDevelopment());
+      
       if (isDevelopment()) {
         devUtils.log("Using development Google sign-in");
         await devAuthService.signInWithGoogle();
         return;
       }
+
+      console.log("Using production Google sign-in");
+      console.log("Redirect URL:", `${window.location.origin}/auth/callback`);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -522,6 +529,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) throw error;
 
       if (data?.url) {
+        console.log("Redirecting to OAuth URL:", data.url);
         window.location.href = data.url;
       }
     } catch (error) {
