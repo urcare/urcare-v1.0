@@ -566,7 +566,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   return (
     <div className="space-y-4">
       {/* Only show header for non-health insights views */}
-      {!(showPlans === false && !sequentialAIResult && !plan) && (
+      {showPlans && (
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             {showPlans ? 'Choose Your Protocol' : 

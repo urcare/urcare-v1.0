@@ -1127,13 +1127,20 @@ export const HealthContentNew = () => {
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4 relative flex-none">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
+                {sectionTitle === "Health Insights" && (
+                  <p className="text-gray-600 text-sm ml-11">
+                    Personalized tips to improve your health and wellness
+                  </p>
+                )}
               </div>
               <div className="relative">
                 <button
