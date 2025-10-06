@@ -93,6 +93,30 @@ export const HealthContentNew = () => {
   const [userGoals, setUserGoals] = useState<HealthGoal[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
+  // Save health insights to database
+  const saveHealthInsights = async (healthScore: number, analysis: string, recommendations: string[]) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('health_insights')
+        .insert({
+          user_id: user.id,
+          health_score: healthScore,
+          analysis: analysis,
+          recommendations: recommendations
+        });
+
+      if (error) {
+        console.error('Error saving health insights:', error);
+      } else {
+        console.log('Health insights saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving health insights:', error);
+    }
+  };
+
   const getFirstName = () => {
     if (profile?.full_name) {
       return profile.full_name.split(" ")[0];
@@ -101,6 +125,56 @@ export const HealthContentNew = () => {
       return user.email.split("@")[0];
     }
     return "User";
+  };
+
+  // Transform AI-generated health analysis into user-friendly format
+  const transformHealthAnalysis = (analysis: string) => {
+    // Remove AI-like language and make it more personal
+    let transformed = analysis
+      .replace(/The user's/g, 'Your')
+      .replace(/The user/g, 'You')
+      .replace(/user's/g, 'your')
+      .replace(/user/g, 'you')
+      .replace(/below-average health requiring attention/g, 'room for improvement in your health')
+      .replace(/poor sleep habits/g, 'sleep patterns that could be optimized')
+      .replace(/inadequate sleep duration/g, 'sleep duration that may need adjustment')
+      .replace(/former smoking history/g, 'past smoking history')
+      .replace(/negatively impacts/g, 'affects')
+      .replace(/uncertain if/g, 'unclear whether')
+      .replace(/essential nutritional requirements/g, 'all your nutritional needs')
+      .replace(/unknown/g, 'not provided')
+      .replace(/assessment challenging/g, 'complete picture difficult')
+      .replace(/not provided/g, 'not specified');
+
+    // Add encouraging tone
+    if (transformed.includes('room for improvement')) {
+      transformed = transformed.replace('room for improvement', 'opportunities to enhance your wellness');
+    }
+
+    return transformed;
+  };
+
+  // Transform AI recommendations into user-friendly format
+  const transformRecommendation = (recommendation: string) => {
+    // Remove AI-like language and make it more actionable
+    let transformed = recommendation
+      .replace(/Establish a consistent sleep schedule by/g, 'Create a regular sleep routine by')
+      .replace(/Focus on/g, 'Prioritize')
+      .replace(/Consider/g, 'Try')
+      .replace(/It is recommended/g, 'We suggest')
+      .replace(/should be/g, 'could be')
+      .replace(/must be/g, 'should be')
+      .replace(/need to/g, 'can')
+      .replace(/require/g, 'benefit from')
+      .replace(/essential/g, 'helpful')
+      .replace(/critical/g, 'important');
+
+    // Add encouraging tone
+    if (transformed.startsWith('Create') || transformed.startsWith('Prioritize') || transformed.startsWith('Try')) {
+      transformed = `💡 ${transformed}`;
+    }
+
+    return transformed;
   };
 
   const formatTime = (timeString: string) => {
@@ -201,11 +275,23 @@ export const HealthContentNew = () => {
     }
 
     if (aiHealthData && aiHealthData.healthScoreAnalysis) {
+      // Transform AI analysis into user-friendly format
+      const userFriendlyAnalysis = transformHealthAnalysis(aiHealthData.healthScoreAnalysis);
+      
+      // Save insights to database
+      if (aiHealthData.healthScore && aiHealthData.healthScoreRecommendations) {
+        saveHealthInsights(
+          aiHealthData.healthScore,
+          userFriendlyAnalysis,
+          aiHealthData.healthScoreRecommendations
+        );
+      }
+      
       // Use AI-generated health analysis as the main insight
       tips.push({
         id: "1",
-        title: "AI Health Analysis",
-        description: aiHealthData.healthScoreAnalysis,
+        title: "Your Health Overview",
+        description: userFriendlyAnalysis,
         icon: <Brain className="w-6 h-6 text-logo-text" />,
         time: "Updated",
         isHighlighted: true,
@@ -214,10 +300,11 @@ export const HealthContentNew = () => {
       // Add AI recommendations as individual tips
       if (aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0) {
         aiHealthData.healthScoreRecommendations.slice(0, 3).forEach((recommendation: string, index: number) => {
+          const userFriendlyRec = transformRecommendation(recommendation);
           tips.push({
             id: `ai-rec-${index + 2}`,
-            title: `Key Recommendation ${index + 1}`,
-            description: recommendation,
+            title: `Action Step ${index + 1}`,
+            description: userFriendlyRec,
             icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
             time: "Priority",
             isHighlighted: false,
@@ -1001,7 +1088,14 @@ export const HealthContentNew = () => {
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4 relative flex-none">
-              <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-black">{sectionTitle}</h2>
+              </div>
               <div className="relative">
                 <button
                   onClick={() => setScheduleMenuOpen((v) => !v)}
