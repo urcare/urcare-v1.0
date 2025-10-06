@@ -305,8 +305,10 @@ export const saveSelectedHealthPlan = async (userId: string, plan: HealthPlan) =
     
     localStorage.setItem('todaysActivities', JSON.stringify(todaysActivities));
     
-    console.log('✅ Health plan saved to localStorage:', selectedPlan);
-    console.log('✅ Today\'s activities created:', todaysActivities);
+    if (import.meta.env.DEV) {
+      console.log('✅ Health plan saved to localStorage:', selectedPlan);
+      console.log('✅ Today\'s activities created:', todaysActivities);
+    }
     
     return {
       success: true,

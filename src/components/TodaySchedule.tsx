@@ -1110,13 +1110,6 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                               Instructions
                             </h5>
                             
-                            {/* Debug info first */}
-                            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                              <strong>Debug Info:</strong><br/>
-                              Instructions exists: {activity.instructions ? 'Yes' : 'No'}<br/>
-                              Instructions length: {activity.instructions?.length || 0}<br/>
-                              Instructions data: {JSON.stringify(activity.instructions)}
-                            </div>
 
                             {/* Show instructions if available */}
                             {activity.instructions && activity.instructions.length > 0 ? (

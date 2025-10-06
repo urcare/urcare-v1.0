@@ -331,7 +331,9 @@ const Dashboard: React.FC = () => {
       // Use Supabase health-plans function to generate personalized plans
       const primaryGoal = userInput.trim() || transcript.trim() || "Boost energy, improve sleep, reduce stress";
       
-      console.log('🎯 Generating personalized health plans based on user input:', primaryGoal);
+      if (import.meta.env.DEV) {
+        console.log('🎯 Generating personalized health plans based on user input:', primaryGoal);
+      }
       
       const { data, error } = await supabase.functions.invoke('health-plans', {
         body: {
@@ -348,7 +350,9 @@ const Dashboard: React.FC = () => {
         throw new Error(`Failed to generate health plans: ${error.message}`);
       }
 
-      console.log('✅ Health plans generated successfully:', data);
+      if (import.meta.env.DEV) {
+        console.log('✅ Health plans generated successfully:', data);
+      }
 
       setSequentialAIResult(data);
       
@@ -420,7 +424,9 @@ const Dashboard: React.FC = () => {
       setIsProcessing(true);
       toast.info("Generating detailed daily schedule...");
 
-      console.log('🎯 Generating detailed schedule for plan:', plan.title);
+      if (import.meta.env.DEV) {
+        console.log('🎯 Generating detailed schedule for plan:', plan.title);
+      }
       
       // Get user profile for schedule generation
       const profileResult = await getUserProfileForHealthScore(user.id);
@@ -429,10 +435,12 @@ const Dashboard: React.FC = () => {
       }
 
       // Call Supabase plan-activities function to generate detailed daily schedule
-      console.log('🤖 Calling plan-activities function with:', {
-        selectedPlan: plan,
-        userProfile: profileResult.profile
-      });
+      if (import.meta.env.DEV) {
+        console.log('🤖 Calling plan-activities function with:', {
+          selectedPlan: plan,
+          userProfile: profileResult.profile
+        });
+      }
       
       const { data, error } = await supabase.functions.invoke('plan-activities', {
         body: {
@@ -555,8 +563,6 @@ const Dashboard: React.FC = () => {
         activities: activities
       };
 
-      console.log('🔍 Dashboard - Setting selected plan with activities:', detailedPlan.activities?.length || 0);
-      console.log('🔍 Dashboard - First activity:', detailedPlan.activities?.[0]);
       setSelectedPlan(detailedPlan);
       const result = await saveSelectedHealthPlan(user.id, detailedPlan);
       
@@ -604,7 +610,9 @@ const Dashboard: React.FC = () => {
       setIsProcessing(true);
       toast.info("Generating detailed daily schedule...");
 
-      console.log('🎯 Generating detailed schedule for Groq plan:', plan.title);
+      if (import.meta.env.DEV) {
+        console.log('🎯 Generating detailed schedule for Groq plan:', plan.title);
+      }
       
       // Get user profile for schedule generation
       const profileResult = await getUserProfileForHealthScore(user.id);
@@ -613,10 +621,12 @@ const Dashboard: React.FC = () => {
       }
 
       // Call Supabase plan-activities function to generate detailed daily schedule
-      console.log('🤖 Calling plan-activities function with:', {
-        selectedPlan: plan,
-        userProfile: profileResult.profile
-      });
+      if (import.meta.env.DEV) {
+        console.log('🤖 Calling plan-activities function with:', {
+          selectedPlan: plan,
+          userProfile: profileResult.profile
+        });
+      }
       
       const { data, error } = await supabase.functions.invoke('plan-activities', {
         body: {
@@ -739,8 +749,6 @@ const Dashboard: React.FC = () => {
         activities: activities
       };
 
-      console.log('🔍 Dashboard - Setting selected plan with activities:', detailedPlan.activities?.length || 0);
-      console.log('🔍 Dashboard - First activity:', detailedPlan.activities?.[0]);
       setSelectedPlan(detailedPlan);
       const result = await saveSelectedHealthPlan(user.id, detailedPlan);
       
