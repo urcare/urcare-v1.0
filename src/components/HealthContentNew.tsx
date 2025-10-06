@@ -151,6 +151,45 @@ export const HealthContentNew = () => {
       transformed = transformed.replace('room for improvement', 'opportunities to enhance your wellness');
     }
 
+    // Break down long paragraphs into readable sections
+    const sentences = transformed.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    if (sentences.length > 3) {
+      // Group sentences into logical sections
+      const sections = [];
+      let currentSection = '';
+      
+      sentences.forEach((sentence, index) => {
+        const trimmed = sentence.trim();
+        if (trimmed.length === 0) return;
+        
+        // Add period if missing
+        const cleanSentence = trimmed.endsWith('.') ? trimmed : trimmed + '.';
+        
+        if (index < 2) {
+          // First 2 sentences go together
+          currentSection += cleanSentence + ' ';
+        } else if (index === 2) {
+          // Start new section
+          if (currentSection.trim()) {
+            sections.push(currentSection.trim());
+          }
+          currentSection = cleanSentence + ' ';
+        } else {
+          currentSection += cleanSentence + ' ';
+        }
+      });
+      
+      if (currentSection.trim()) {
+        sections.push(currentSection.trim());
+      }
+      
+      // Format as readable sections
+      return sections.map((section, index) => 
+        `**${index === 0 ? 'Health Overview' : index === 1 ? 'Key Areas' : 'Recommendations'}:** ${section}`
+      ).join('\n\n');
+    }
+
     return transformed;
   };
 
@@ -1265,7 +1304,20 @@ export const HealthContentNew = () => {
                             <div className="pt-4">
                               <div className="space-y-3 text-gray-700">
                                 <div className="text-sm leading-relaxed whitespace-pre-line">
-                                  {item.description}
+                                  {item.description.split('\n').map((line, index) => {
+                                    if (line.startsWith('**') && line.includes(':**')) {
+                                      const [boldPart, ...rest] = line.split(':**');
+                                      const boldText = boldPart.replace('**', '');
+                                      const normalText = rest.join(':**');
+                                      return (
+                                        <div key={index} className="mb-2">
+                                          <span className="font-semibold text-gray-900">{boldText}:</span>
+                                          <span className="text-gray-700">{normalText}</span>
+                                        </div>
+                                      );
+                                    }
+                                    return <div key={index} className="mb-1">{line}</div>;
+                                  })}
                                 </div>
                                 {item.duration && (
                                   <div className="mt-3 p-2 bg-blue-50 rounded-lg">
