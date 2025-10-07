@@ -157,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Track if auth listener is initialized
   const authListenerRef = useRef<boolean>(false);
+  const isInitializingRef = useRef<boolean>(false);
 
   // Fetch user profile with caching and timeout
   const fetchUserProfile = useCallback(
@@ -341,9 +342,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
-    let isInitializing = true;
 
     const initializeAuth = async () => {
+      if (isInitializingRef.current) return;
+      isInitializingRef.current = true;
       try {
         // In production, always check authentication
         // Only skip auth checks in development for truly public routes
@@ -413,7 +415,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (mounted) {
           setLoading(false);
           setIsInitialized(true);
-          isInitializing = false;
+          isInitializingRef.current = false;
         }
       }
     };
@@ -444,7 +446,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!mounted) return;
 
         // Skip auth state changes during initialization to prevent duplicate calls
-        if (isInitializing) {
+        if (isInitializingRef.current) {
           return;
         }
 
@@ -464,6 +466,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return () => {
         mounted = false;
         authListenerRef.current = false;
+        isInitializingRef.current = false;
         if (subscription) {
           subscription.unsubscribe();
         }
