@@ -83,10 +83,20 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
         }
 
         // SECOND: Check if user has active subscription (either Razorpay or main system)
-        const [razorpayStatus, mainSubscription] = await Promise.all([
-          razorpaySubscriptionService.getSubscriptionStatus(user.id),
-          subscriptionService.getSubscriptionStatus(user.id)
-        ]);
+        let razorpayStatus = { hasActiveSubscription: false, subscription: null, daysUntilExpiry: 0, isExpired: false };
+        let mainSubscription = { isActive: false, subscription: null };
+        
+        try {
+          const [razorpayResult, mainResult] = await Promise.allSettled([
+            razorpaySubscriptionService.getSubscriptionStatus(user.id),
+            subscriptionService.getSubscriptionStatus(user.id)
+          ]);
+          
+          razorpayStatus = razorpayResult.status === 'fulfilled' ? razorpayResult.value : razorpayStatus;
+          mainSubscription = mainResult.status === 'fulfilled' ? mainResult.value : mainSubscription;
+        } catch (error) {
+          console.warn('Error checking subscription status:', error);
+        }
 
         const hasActiveSubscription = razorpayStatus.hasActiveSubscription || mainSubscription.isActive;
 

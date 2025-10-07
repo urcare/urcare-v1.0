@@ -331,27 +331,87 @@ const Dashboard: React.FC = () => {
       // Use Supabase health-plans function to generate personalized plans
       const primaryGoal = userInput.trim() || transcript.trim() || "Boost energy, improve sleep, reduce stress";
       
-      if (import.meta.env.DEV) {
-        console.log('🎯 Generating personalized health plans based on user input:', primaryGoal);
+      // Ensure we have a health score
+      let currentHealthScore = healthScore;
+      if (!currentHealthScore || currentHealthScore === 0) {
+        console.warn('⚠️ No health score available, using default value of 75');
+        currentHealthScore = 75;
       }
       
+      if (import.meta.env.DEV) {
+        console.log('🎯 Generating personalized health plans based on user input:', primaryGoal);
+        console.log('📊 User profile data:', userProfile);
+        console.log('🏥 Health score:', currentHealthScore);
+      }
+      
+      // Get health analysis data from localStorage
+      let healthAnalysis = null;
+      try {
+        const savedHealthData = localStorage.getItem('aiHealthData');
+        if (savedHealthData) {
+          const parsedData = JSON.parse(savedHealthData);
+          healthAnalysis = {
+            displayAnalysis: {
+              greeting: parsedData.healthScoreAnalysis?.split('\n')[0] || '',
+              negativeAnalysis: parsedData.healthScoreAnalysis?.split('\n').filter(line => line.includes('🚨')).map(line => line.replace('🚨', '').trim()) || [],
+              lifestyleRecommendations: parsedData.healthScoreRecommendations || []
+            },
+            detailedAnalysis: {
+              healthRisks: ['Based on current health assessment'],
+              nutritionalProfile: { mealTimings: [], dietaryNeeds: [], foodPreferences: [] },
+              exerciseProfile: { workoutSchedule: [], exerciseTypes: [], intensityLevels: [] },
+              sleepProfile: { bedtimeRoutine: [], wakeUpRoutine: [], sleepOptimization: [] },
+              stressManagement: { stressTriggers: [], relaxationTechniques: [], mindfulnessPractices: [] },
+              medicalConsiderations: { medicationInteractions: [], conditionManagement: [], preventiveMeasures: [] }
+            }
+          };
+        }
+        
+        if (import.meta.env.DEV) {
+          console.log('🧠 Health analysis data:', healthAnalysis);
+        }
+      } catch (error) {
+        console.warn('Failed to parse health analysis data:', error);
+      }
+
+      console.log('🚀 Calling health-plans function with data:', {
+        userProfile: userProfile,
+        healthScore: currentHealthScore,
+        healthAnalysis: healthAnalysis,
+        primaryGoal: primaryGoal,
+        userInput: primaryGoal,
+        uploadedFiles: uploadedFiles,
+        voiceTranscript: transcript
+      });
+
       const { data, error } = await supabase.functions.invoke('health-plans', {
         body: {
           userProfile: userProfile,
-          healthScore: healthScore,
+          healthScore: currentHealthScore,
+          healthAnalysis: healthAnalysis,
+          primaryGoal: primaryGoal,
           userInput: primaryGoal,
           uploadedFiles: uploadedFiles,
           voiceTranscript: transcript
         }
       });
 
+      console.log('📡 Function response:', { data, error });
+
       if (error) {
         console.error('❌ Supabase health-plans function failed:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
         throw new Error(`Failed to generate health plans: ${error.message}`);
+      }
+
+      if (!data) {
+        console.error('❌ No data returned from health-plans function');
+        throw new Error('No data returned from health plans generation');
       }
 
       if (import.meta.env.DEV) {
         console.log('✅ Health plans generated successfully:', data);
+        console.log('📋 Plans data:', data.plans);
       }
 
       setSequentialAIResult(data);
@@ -839,7 +899,25 @@ const Dashboard: React.FC = () => {
   // Calculate health score on component mount (only once)
   useEffect(() => {
     const calculateInitialHealthScore = async () => {
-      if (user && profile && !healthScoreCalculated) {
+      if (user && profile && !healthScoreCalculated && profile.onboarding_completed) {
+        // Check if health data already exists in localStorage
+        const existingHealthData = localStorage.getItem('aiHealthData');
+        if (existingHealthData) {
+          try {
+            const parsedData = JSON.parse(existingHealthData);
+            if (parsedData.healthScore && parsedData.healthScoreAnalysis) {
+              console.log('📋 Health data already exists, loading from cache...');
+              setHealthScore(parsedData.healthScore);
+              setHealthScoreAnalysis(parsedData.healthScoreAnalysis);
+              setHealthScoreRecommendations(parsedData.healthScoreRecommendations || []);
+              setHealthScoreCalculated(true);
+              return;
+            }
+          } catch (error) {
+            console.warn('Failed to parse existing health data:', error);
+          }
+        }
+
         try {
           console.log('🔍 Calculating health score (first time only)...', { user: user.id, profile: profile.id });
           setHealthScoreCalculated(true); // Prevent duplicate calls
@@ -850,18 +928,31 @@ const Dashboard: React.FC = () => {
             if (scoreResult.success && scoreResult.healthScore) {
               setHealthScore(scoreResult.healthScore);
               
-              // Handle analysis object properly
+              // Handle displayAnalysis object properly
               let analysisText = '';
-              if (typeof scoreResult.analysis === 'string') {
-                analysisText = scoreResult.analysis;
-              } else if (scoreResult.analysis && typeof scoreResult.analysis === 'object') {
-                // Convert analysis object to readable text
-                analysisText = scoreResult.analysis.overall || '';
-                if (scoreResult.analysis.strengths && scoreResult.analysis.strengths.length > 0) {
-                  analysisText += `\n\nStrengths: ${scoreResult.analysis.strengths.join(', ')}`;
+              if (scoreResult.displayAnalysis) {
+                const display = scoreResult.displayAnalysis;
+                analysisText = display.greeting || '';
+                
+                if (display.negativeAnalysis && display.negativeAnalysis.length > 0) {
+                  analysisText += '\n\n' + display.negativeAnalysis.join('\n');
                 }
-                if (scoreResult.analysis.areasForImprovement && scoreResult.analysis.areasForImprovement.length > 0) {
-                  analysisText += `\n\nAreas for Improvement: ${scoreResult.analysis.areasForImprovement.join(', ')}`;
+                
+                if (display.lifestyleRecommendations && display.lifestyleRecommendations.length > 0) {
+                  analysisText += '\n\nRecommendations:\n' + display.lifestyleRecommendations.join('\n');
+                }
+              } else if (scoreResult.analysis) {
+                // Fallback to old format
+                if (typeof scoreResult.analysis === 'string') {
+                  analysisText = scoreResult.analysis;
+                } else if (typeof scoreResult.analysis === 'object') {
+                  analysisText = scoreResult.analysis.overall || '';
+                  if (scoreResult.analysis.strengths && scoreResult.analysis.strengths.length > 0) {
+                    analysisText += `\n\nStrengths:\n` + scoreResult.analysis.strengths.map(item => `• ${item}`).join('\n');
+                  }
+                  if (scoreResult.analysis.areasForImprovement && scoreResult.analysis.areasForImprovement.length > 0) {
+                    analysisText += `\n\nAreas for Improvement:\n` + scoreResult.analysis.areasForImprovement.map(item => `• ${item}`).join('\n');
+                  }
                 }
               }
               

@@ -1,6 +1,5 @@
-// Health Plan Generation Service using Multi-AI (OpenAI, Gemini, Groq)
+// Health Plan Generation Service using Supabase Functions
 import { supabase } from '@/integrations/supabase/client';
-import { multiAIService } from './multiAIService';
 
 // Fallback health plan generation when API is not available
 const generateFallbackHealthPlans = (userProfile: any, healthScore: number, userInput?: string) => {

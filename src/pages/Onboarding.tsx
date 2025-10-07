@@ -45,8 +45,13 @@ const Onboarding: React.FC = () => {
       if (result.success) {
         toast.success("Onboarding completed successfully!");
         
-        // Refresh profile to update the context
-        await refreshProfile();
+        // Refresh profile to update the context (with timeout handling)
+        try {
+          await refreshProfile();
+        } catch (error) {
+          console.warn("Profile refresh failed, but onboarding was successful:", error);
+          // Continue with navigation even if profile refresh fails
+        }
         
         // Redirect to health assessment after a short delay
         setTimeout(() => {
@@ -75,7 +80,7 @@ const Onboarding: React.FC = () => {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-logo-text border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-text-secondary">
-            {authLoading ? "Checking authentication..." : "Saving your data..."}
+            {authLoading ? "Checking authentication..." : "Saving your data and updating profile..."}
           </p>
         </div>
       </div>

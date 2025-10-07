@@ -176,7 +176,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           .from("user_profiles")
           .select("*")
           .eq("id", userId)
-          .single();
+          .order("onboarding_completed", { ascending: false })
+          .order("updated_at", { ascending: false })
+          .limit(1);
 
         const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
@@ -185,7 +187,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return null;
         }
 
-        const result = data as UserProfile;
+        // Get the first (most recent) profile from the array
+        const result = data && data.length > 0 ? data[0] as UserProfile : null;
 
         // Cache the result
         if (result) {
@@ -211,14 +214,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Ensure user profile exists
   const ensureUserProfile = useCallback(async (user: User): Promise<void> => {
     try {
-      const { data, error } = await supabase
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
         .from("user_profiles")
-        .select("id")
+        .select("id, onboarding_completed")
         .eq("id", user.id)
         .single();
 
+      // If profile exists, don't create a new one
+      if (existingProfile) {
+        console.log("Profile already exists for user:", user.id, "onboarding_completed:", existingProfile.onboarding_completed);
+        return;
+      }
+
       // If profile doesn't exist, create it
-      if (error && error.code === "PGRST116") {
+      if (checkError && checkError.code === "PGRST116") {
+        console.log("Creating new profile for user:", user.id);
         const { error: insertError } = await supabase
           .from("user_profiles")
           .insert([
@@ -233,6 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (insertError) {
           console.warn("Profile creation failed:", insertError);
         } else {
+          console.log("Profile created successfully for user:", user.id);
           // Clear cache to force refresh
           profileCache.delete(user.id);
         }
@@ -255,9 +267,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (increased to 10s for better reliability)
+        // Add timeout protection to prevent hanging (increased to 30s for onboarding completion)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
         );
         
         const profilePromise = Promise.all([

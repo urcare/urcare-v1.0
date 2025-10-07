@@ -1242,40 +1242,45 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
               // Show AI-generated health insights
               return (
                 <div className="space-y-4">
-                  {/* AI Health Analysis */}
-                  <Card className="border-l-4 border-l-blue-500">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Heart className="w-5 h-5 text-blue-600" />
-                        <span>Health Insights</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {aiHealthData.healthScoreAnalysis}
-                        </p>
-                        
-                        {/* AI Recommendations */}
-                        {aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              Key Recommendations
-                            </h4>
-                            <ul className="space-y-2">
-                              {aiHealthData.healthScoreRecommendations.slice(0, 3).map((recommendation: string, index: number) => (
-                                <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
-                                  <span>{recommendation}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                  {/* Health Insights Header */}
+                  <div className="flex items-center justify-center gap-2 text-lg font-medium text-gray-800">
+                    <Heart className="w-5 h-5 text-blue-600" />
+                    <span>Health Insights</span>
+                  </div>
+                  
+                  {/* Health Analysis Content */}
+                  <div className="space-y-4 px-4 py-3">
+                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                      {aiHealthData.healthScoreAnalysis.split('\n').map((line, index) => {
+                        if (line.trim() === 'Recommendations:') {
+                          return (
+                            <div key={index} className="text-center font-bold text-gray-800 mt-4 mb-2">
+                              {line}
+                            </div>
+                          );
+                        }
+                        return <div key={index}>{line}</div>;
+                      })}
+                    </div>
+                    
+                    {/* AI Recommendations */}
+                    {aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          Key Recommendations
+                        </h4>
+                        <ul className="space-y-2">
+                          {aiHealthData.healthScoreRecommendations.slice(0, 3).map((recommendation: string, index: number) => (
+                            <li key={index} className="flex items-start gap-3 text-sm text-gray-600">
+                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                              <span>{recommendation}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
                 </div>
               );
             } else {

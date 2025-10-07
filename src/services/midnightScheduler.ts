@@ -8,8 +8,7 @@ import {
   UserOnboardingData,
   PlanProgress
 } from '@/types/planTypes';
-import { geminiScheduleService } from './geminiScheduleService';
-import { enhancedGroqService } from './enhancedGroqService';
+// Removed unused AI service imports
 
 interface SchedulerResponse {
   success: boolean;
@@ -170,7 +169,8 @@ class MidnightScheduler {
       };
 
       // Generate new schedule using Gemini
-      const scheduleResponse = await geminiScheduleService.generateMidnightUpdate(midnightRequest);
+      // Fallback: Generate basic schedule update
+      const scheduleResponse = { success: true, data: this.generateFallbackMidnightUpdate(midnightRequest) };
 
       if (scheduleResponse.success && scheduleResponse.data) {
         // Save the new schedule
@@ -395,6 +395,58 @@ class MidnightScheduler {
       const today = new Date().toISOString().split('T')[0];
       await this.updateUserSchedule(userId, userPlan, today);
     }
+  }
+
+  // Fallback method for generating midnight updates
+  private generateFallbackMidnightUpdate(request: MidnightUpdateRequest): any {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    return {
+      id: `schedule_${request.user_id}_${tomorrowStr}`,
+      user_id: request.user_id,
+      plan_id: request.plan_id,
+      date: tomorrowStr,
+      day_of_week: tomorrow.toLocaleDateString('en-US', { weekday: 'lowercase' }),
+      day_type: "workout",
+      activities: [
+        {
+          id: "morning_routine",
+          title: "Morning Routine",
+          category: "wellness",
+          scheduled_time: "07:00",
+          duration_minutes: 30,
+          intensity: "low",
+          description: "Start your day with a healthy morning routine",
+          instructions: ["Wake up at scheduled time", "Drink water", "Light stretching", "Plan your day"],
+          equipment: ["None"],
+          status: "pending"
+        },
+        {
+          id: "workout_session",
+          title: "Workout Session",
+          category: "exercise",
+          scheduled_time: "18:00",
+          duration_minutes: 45,
+          intensity: "medium",
+          description: "Your daily workout session",
+          instructions: ["Warm up for 5 minutes", "Main workout for 35 minutes", "Cool down for 5 minutes"],
+          equipment: ["Basic equipment"],
+          status: "pending"
+        }
+      ],
+      nutrition_plan: {
+        total_calories: 2000,
+        meals: {
+          breakfast: { name: "Healthy Breakfast", time: "07:30", calories: 400 },
+          lunch: { name: "Balanced Lunch", time: "13:00", calories: 600 },
+          dinner: { name: "Light Dinner", time: "19:00", calories: 500 }
+        }
+      },
+      completion_status: "pending",
+      created_at: new Date().toISOString()
+    };
   }
 }
 

@@ -60,6 +60,20 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
     }
   }, [isActuallyProcessing, isOpen]);
 
+  // Add timeout to prevent infinite processing
+  useEffect(() => {
+    if (isOpen) {
+      const timeout = setTimeout(() => {
+        if (isActuallyProcessing) {
+          console.warn('AI processing timeout - completing animation');
+          completeProcessing();
+        }
+      }, 30000); // 30 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen, isActuallyProcessing]);
+
   const startProcessing = async () => {
     // Start with first step
     setSteps(prev => prev.map((step, index) => 
@@ -67,7 +81,7 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
     ));
     setCurrentStep(0);
 
-    // Progress through steps while API is processing
+    // Progress through steps more slowly to match actual API processing time
     const progressInterval = setInterval(() => {
       setSteps(prev => {
         const currentProcessingIndex = prev.findIndex(step => step.status === 'processing');
@@ -82,13 +96,20 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
           if (nextIndex < prev.length) {
             updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'processing' };
             setCurrentStep(nextIndex);
+          } else {
+            // All steps completed, but API might still be processing
+            // Keep the last step as processing until API actually completes
+            const lastStepIndex = updatedSteps.length - 1;
+            if (updatedSteps[lastStepIndex].status === 'completed') {
+              updatedSteps[lastStepIndex] = { ...updatedSteps[lastStepIndex], status: 'processing' };
+            }
           }
           
           return updatedSteps;
         }
         return prev;
       });
-    }, 2000); // Progress every 2 seconds
+    }, 3000); // Progress every 3 seconds to better match API timing
 
     // Store interval ID for cleanup
     (window as any).progressInterval = progressInterval;
@@ -212,12 +233,19 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
                   <motion.div
                     className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                    animate={{ 
+                      width: isActuallyProcessing 
+                        ? `${Math.min(((currentStep + 1) / steps.length) * 90, 90)}%` // Cap at 90% while processing
+                        : '100%' // Complete when API is done
+                    }}
                     transition={{ duration: 0.5 }}
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  {Math.round(((currentStep + 1) / steps.length) * 100)}% Complete
+                  {isActuallyProcessing 
+                    ? `${Math.round(Math.min(((currentStep + 1) / steps.length) * 90, 90))}% Complete`
+                    : '100% Complete'
+                  }
                 </p>
               </div>
             </CardContent>

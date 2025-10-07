@@ -1,6 +1,5 @@
-// Health Score Calculation Service using Multi-AI (OpenAI, Gemini, Groq)
+// Health Score Calculation Service using Supabase Functions
 import { supabase } from '@/integrations/supabase/client';
-import { multiAIService } from './multiAIService';
 
 // Fallback health score calculation when API is not available
 const calculateFallbackHealthScore = (userProfile: any) => {
@@ -159,10 +158,12 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
 
     if (data && data.success) {
       console.log(`✅ Health Score calculated: ${data.healthScore}`);
+      console.log('📊 Analysis data:', data.displayAnalysis);
       return {
         success: true,
         healthScore: data.healthScore,
-        analysis: data.analysis,
+        displayAnalysis: data.displayAnalysis,
+        analysis: data.analysis, // Keep for backward compatibility
         recommendations: data.recommendations
       };
     } else {
@@ -176,6 +177,11 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       return {
         success: true,
         healthScore: fallbackScore.score,
+        displayAnalysis: {
+          greeting: `Hi ${request.userProfile?.full_name?.split(' ')[0] || 'there'}, based on your health profile analysis:`,
+          negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
+          lifestyleRecommendations: ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
+        },
         analysis: fallbackScore.analysis,
         recommendations: fallbackScore.recommendations
       };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,20 @@ const EmailSignIn: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user, profile, isInitialized } = useAuth();
+
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (isInitialized && user && !isLoading) {
+      // If user is authenticated and onboarding is complete, go to dashboard
+      if (profile?.onboarding_completed) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        // If onboarding not complete, go to onboarding
+        navigate('/onboarding', { replace: true });
+      }
+    }
+  }, [user, profile, isInitialized, isLoading, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -55,10 +68,9 @@ const EmailSignIn: React.FC = () => {
     try {
       await signIn(formData.email, formData.password);
       toast.success('Signed in successfully!', {
-        description: 'Redirecting to onboarding...'
+        description: 'Redirecting...'
       });
-      // Always redirect to onboarding after login
-      navigate('/onboarding', { replace: true });
+      // The useEffect will handle the redirect based on auth state
     } catch (error) {
       console.error('Sign in error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Sign in failed';

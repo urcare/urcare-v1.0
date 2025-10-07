@@ -123,9 +123,25 @@ class OnboardingService {
     try {
       console.log("Saving onboarding data for user:", user.id);
       console.log("Onboarding data received:", data);
+      console.log("Data types check:", {
+        fullName: typeof data.fullName,
+        age: typeof data.age,
+        gender: typeof data.gender,
+        wakeUpTime: typeof data.wakeUpTime,
+        sleepTime: typeof data.sleepTime
+      });
       
       // Calculate date of birth
       const dateOfBirth = this.calculateDateOfBirth(data.birthMonth, data.birthDay, data.birthYear);
+      console.log("Date of birth calculated:", dateOfBirth);
+      
+      // Test time conversion
+      console.log("Time conversion test:", {
+        wakeUpTime: data.wakeUpTime,
+        convertedWakeUp: this.convertTimeToFormat(data.wakeUpTime),
+        sleepTime: data.sleepTime,
+        convertedSleep: this.convertTimeToFormat(data.sleepTime)
+      });
       
       // Prepare profile data for user_profiles table
       const profileData = {
@@ -178,9 +194,29 @@ class OnboardingService {
 
       // Save to user_profiles table
       console.log("Saving profile data:", profileData);
+      console.log("Profile data sample fields:", {
+        full_name: profileData.full_name,
+        age: profileData.age,
+        gender: profileData.gender,
+        wake_up_time: profileData.wake_up_time,
+        sleep_time: profileData.sleep_time,
+        onboarding_completed: profileData.onboarding_completed
+      });
+      
+      // First, delete any existing profiles for this user to avoid duplicates
+      const { error: deleteError } = await supabase
+        .from("user_profiles")
+        .delete()
+        .eq("id", user.id);
+      
+      if (deleteError) {
+        console.warn("Error deleting existing profiles:", deleteError);
+      }
+      
+      // Then insert the new profile
       const { error: profileError } = await supabase
         .from("user_profiles")
-        .upsert(profileData, { onConflict: "id" });
+        .insert(profileData);
 
       if (profileError) {
         console.error("Error saving profile:", profileError);
