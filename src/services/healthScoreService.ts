@@ -134,6 +134,7 @@ interface HealthScoreResponse {
   healthScore?: number;
   analysis?: string;
   recommendations?: string[];
+  displayAnalysis?: any;
   error?: string;
 }
 
@@ -141,8 +142,12 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
   try {
     console.log('🔍 Calculating health score using Supabase function...');
     
-    // Call Supabase Edge Function for health score calculation
-    const { data, error } = await supabase.functions.invoke('health-score', {
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Health score calculation timeout')), 15000)
+    );
+    
+    const healthScorePromise = supabase.functions.invoke('health-score-optimized', {
       body: {
         userProfile: request.userProfile,
         userInput: request.userInput,
@@ -150,10 +155,20 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
         voiceTranscript: request.voiceTranscript
       }
     });
+    
+    const result = await Promise.race([healthScorePromise, timeoutPromise]) as any;
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Supabase function error:', error);
-      throw new Error(`Supabase function error: ${error.message}`);
+      
+      // Handle CORS errors specifically
+      if (error.message.includes('CORS') || error.message.includes('Failed to send a request')) {
+        console.warn('⚠️ CORS error detected, using fallback calculation');
+        // Don't throw error, let it fall through to fallback
+      } else {
+        throw new Error(`Supabase function error: ${error.message}`);
+      }
     }
 
     if (data && data.success) {
@@ -171,6 +186,8 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
     }
 
   } catch (error) {
+    console.warn('⚠️ Health score calculation failed, using fallback:', error);
+    
     // Fallback: Use local calculation
     try {
       const fallbackScore = calculateFallbackHealthScore(request.userProfile);
@@ -213,6 +230,379 @@ export const getUserProfileForHealthScore = async (userId: string) => {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch user profile'
+    };
+  }
+};
+
+// Check if health analysis exists for user
+export const checkHealthAnalysisExist = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('health_scores')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      throw error;
+    }
+
+    // Check if the analysis is complete (has score and recommendations)
+    const isComplete = data && data.length > 0 && data[0].score !== null && data[0].recommendations && data[0].recommendations.length > 0;
+
+    return {
+      success: true,
+      exists: data && data.length > 0,
+      isComplete: isComplete,
+      lastGenerated: data && data.length > 0 ? data[0].created_at : null
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check health analysis'
+    };
+  }
+};
+
+// Fetch existing health analysis from database
+export const fetchHealthAnalysis = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('health_scores')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return {
+          success: true,
+          data: null
+        };
+      }
+      throw error;
+    }
+
+    // Handle array response
+    const healthScoreData = data && data.length > 0 ? data[0] : null;
+    
+    if (!healthScoreData) {
+      return {
+        success: true,
+        data: null
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        healthScore: healthScoreData.score || 75,
+        analysis: `Health score: ${healthScoreData.score}/100`,
+        recommendations: healthScoreData.recommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
+        displayAnalysis: {
+          greeting: `Hi there, based on your health profile analysis:`,
+          negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
+          lifestyleRecommendations: healthScoreData.recommendations || ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
+        },
+        detailedAnalysis: healthScoreData.sub_scores || {},
+        profileAnalysis: healthScoreData.sub_scores || {},
+        createdAt: healthScoreData.created_at
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch health analysis'
+    };
+  }
+};
+
+// Save health analysis to database
+export const saveHealthAnalysis = async (
+  userId: string, 
+  healthScore: number, 
+  analysis: string, 
+  recommendations: string[], 
+  displayAnalysis?: any,
+  detailedAnalysis?: any,
+  profileAnalysis?: any
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('health_scores')
+      .insert({
+        user_id: userId,
+        score_type: 'overall',
+        score: healthScore,
+        calculation_date: new Date().toISOString().split('T')[0],
+        sub_scores: detailedAnalysis || {},
+        recommendations: recommendations
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      data
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to save health analysis'
+    };
+  }
+};
+
+// Generate detailed profile analysis based on user profile
+const generateDetailedProfileAnalysis = (userProfile: any) => {
+  const analysis = {
+    healthRisks: [],
+    nutritionalProfile: {
+      mealTimings: [],
+      dietaryNeeds: [],
+      foodPreferences: []
+    },
+    exerciseProfile: {
+      workoutSchedule: [],
+      exerciseTypes: [],
+      intensityLevels: []
+    },
+    sleepProfile: {
+      bedtimeRoutine: [],
+      wakeUpRoutine: [],
+      sleepOptimization: []
+    },
+    stressManagement: {
+      stressTriggers: [],
+      relaxationTechniques: [],
+      mindfulnessPractices: []
+    },
+    medicalConsiderations: {
+      medicationInteractions: [],
+      conditionManagement: [],
+      preventiveMeasures: []
+    }
+  };
+
+  // Analyze health risks based on profile
+  if (userProfile?.chronic_conditions && userProfile.chronic_conditions.length > 0) {
+    analysis.healthRisks.push(`Managing ${userProfile.chronic_conditions.join(', ')} requires careful monitoring`);
+  }
+  
+  if (userProfile?.age && userProfile.age > 50) {
+    analysis.healthRisks.push('Age-related health considerations require attention');
+  }
+
+  // Analyze nutritional profile
+  if (userProfile?.diet_type) {
+    analysis.nutritionalProfile.dietaryNeeds.push(userProfile.diet_type);
+  }
+  
+  if (userProfile?.health_goals && userProfile.health_goals.includes('weight loss')) {
+    analysis.nutritionalProfile.dietaryNeeds.push('Calorie deficit management');
+  }
+
+  // Analyze exercise profile
+  if (userProfile?.workout_time) {
+    analysis.exerciseProfile.workoutSchedule.push(`Regular workouts at ${userProfile.workout_time}`);
+  }
+  
+  if (userProfile?.health_goals && userProfile.health_goals.includes('fitness')) {
+    analysis.exerciseProfile.exerciseTypes.push('Strength training', 'Cardiovascular exercise');
+  }
+
+  // Analyze sleep profile
+  if (userProfile?.sleep_time && userProfile?.wake_up_time) {
+    analysis.sleepProfile.bedtimeRoutine.push(`Bedtime: ${userProfile.sleep_time}`);
+    analysis.sleepProfile.wakeUpRoutine.push(`Wake up: ${userProfile.wake_up_time}`);
+  }
+
+  // Analyze stress management
+  if (userProfile?.chronic_conditions && userProfile.chronic_conditions.includes('anxiety')) {
+    analysis.stressManagement.stressTriggers.push('Chronic condition management');
+    analysis.stressManagement.relaxationTechniques.push('Deep breathing', 'Meditation');
+  }
+
+  // Analyze medical considerations
+  if (userProfile?.medications && userProfile.medications.length > 0) {
+    analysis.medicalConsiderations.medicationInteractions.push('Monitor medication interactions');
+  }
+  
+  if (userProfile?.chronic_conditions && userProfile.chronic_conditions.length > 0) {
+    analysis.medicalConsiderations.conditionManagement.push('Regular health monitoring required');
+  }
+
+  return analysis;
+};
+
+// Check if analysis is already in progress to prevent duplicates
+const analysisInProgress = new Set<string>();
+const analysisTimeouts = new Map<string, NodeJS.Timeout>();
+
+// Get or calculate health analysis (checks database first, then calculates if needed)
+export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?: any) => {
+  try {
+    console.log('🔍 Checking for existing health analysis for user:', userId);
+    
+    // Prevent duplicate analysis for the same user
+    if (analysisInProgress.has(userId)) {
+      console.log('⏳ Analysis already in progress for this user, returning existing data...');
+      // Instead of waiting, return a timeout error to prevent infinite loops
+      return {
+        success: false,
+        error: 'Analysis already in progress, please try again in a moment'
+      };
+    }
+    
+    analysisInProgress.add(userId);
+    
+    // Set a timeout to clear the in-progress flag after 30 seconds
+    const timeoutId = setTimeout(() => {
+      analysisInProgress.delete(userId);
+      analysisTimeouts.delete(userId);
+      console.log('⏰ Analysis timeout - clearing in-progress flag for user:', userId);
+    }, 30000);
+    
+    analysisTimeouts.set(userId, timeoutId);
+    
+    // First, check if health analysis exists in database
+    const analysisCheck = await checkHealthAnalysisExist(userId);
+    
+    if (analysisCheck.success && analysisCheck.exists && analysisCheck.isComplete) {
+      console.log('✅ Complete health analysis already exists in database, fetching...');
+      
+      // Fetch existing analysis from database
+      const existingAnalysis = await fetchHealthAnalysis(userId);
+      
+      if (existingAnalysis.success && existingAnalysis.data) {
+        console.log('✅ Successfully loaded existing health analysis from database');
+        // Clear timeout and in-progress flag
+        const timeoutId = analysisTimeouts.get(userId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          analysisTimeouts.delete(userId);
+        }
+        analysisInProgress.delete(userId);
+        return {
+          success: true,
+          data: existingAnalysis.data,
+          source: 'database'
+        };
+      } else {
+        console.warn('⚠️ Failed to fetch existing analysis, will recalculate');
+      }
+    } else if (analysisCheck.success && analysisCheck.exists && !analysisCheck.isComplete) {
+      console.log('⚠️ Incomplete health analysis found, will recalculate...');
+    }
+
+    // Only calculate new analysis if none exist in database
+    console.log('🔄 No existing health analysis found, calculating new ones...');
+    
+    if (!userProfile) {
+      console.log('📋 Fetching user profile for analysis...');
+      const profileResult = await getUserProfileForHealthScore(userId);
+      if (!profileResult.success || !profileResult.profile) {
+        return {
+          success: false,
+          error: 'Failed to fetch user profile for health score calculation'
+        };
+      }
+      userProfile = profileResult.profile;
+    }
+
+    console.log('🧠 Starting health score calculation (API call)...');
+    const healthScoreResult = await calculateHealthScore({
+      userProfile,
+      userInput: '',
+      uploadedFiles: [],
+      voiceTranscript: ''
+    });
+
+    if (healthScoreResult.success) {
+      console.log('✅ Health score calculated successfully, generating detailed analysis...');
+      
+      // Generate detailed profile analysis
+      const detailedAnalysis = generateDetailedProfileAnalysis(userProfile);
+      
+      console.log('💾 Saving health analysis to database...');
+      // Save the new analysis to database
+      const saveResult = await saveHealthAnalysis(
+        userId,
+        healthScoreResult.healthScore!,
+        healthScoreResult.analysis!,
+        healthScoreResult.recommendations!,
+        healthScoreResult.displayAnalysis,
+        detailedAnalysis,
+        detailedAnalysis // Using detailedAnalysis as profileAnalysis for now
+      );
+
+      if (saveResult.success) {
+        console.log('✅ Health analysis successfully saved to database');
+        // Clear timeout and in-progress flag
+        const timeoutId = analysisTimeouts.get(userId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          analysisTimeouts.delete(userId);
+        }
+        analysisInProgress.delete(userId);
+        return {
+          success: true,
+          data: {
+            healthScore: healthScoreResult.healthScore,
+            analysis: healthScoreResult.analysis,
+            recommendations: healthScoreResult.recommendations,
+            displayAnalysis: healthScoreResult.displayAnalysis,
+            detailedAnalysis: detailedAnalysis,
+            profileAnalysis: detailedAnalysis,
+            createdAt: new Date().toISOString()
+          },
+          source: 'calculated'
+        };
+      } else {
+        console.error('❌ Failed to save health analysis to database:', saveResult.error);
+        // Clear timeout and in-progress flag
+        const timeoutId = analysisTimeouts.get(userId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          analysisTimeouts.delete(userId);
+        }
+        analysisInProgress.delete(userId);
+        return {
+          success: false,
+          error: 'Failed to save health analysis to database'
+        };
+      }
+    } else {
+      console.error('❌ Health score calculation failed:', healthScoreResult.error);
+      // Clear timeout and in-progress flag
+      const timeoutId = analysisTimeouts.get(userId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        analysisTimeouts.delete(userId);
+      }
+      analysisInProgress.delete(userId);
+      return {
+        success: false,
+        error: healthScoreResult.error || 'Failed to calculate health score'
+      };
+    }
+
+  } catch (error) {
+    console.error('❌ Error in getOrCalculateHealthAnalysis:', error);
+    // Clear timeout and in-progress flag
+    const timeoutId = analysisTimeouts.get(userId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      analysisTimeouts.delete(userId);
+    }
+    analysisInProgress.delete(userId);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get or calculate health analysis'
     };
   }
 };

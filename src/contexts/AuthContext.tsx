@@ -86,6 +86,7 @@ interface AuthContextType {
   signInWithEmail: () => Promise<void>;
   signInWithEmailVerification: (email: string, password: string, fullName: string, city: string) => Promise<User | undefined>;
   signOut: () => Promise<void>;
+  clearAuthData: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
   isOnboardingComplete: () => boolean;
@@ -169,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
         );
 
         const profilePromise = supabase
@@ -267,9 +268,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(user);
 
       try {
-        // Add timeout protection to prevent hanging (increased to 30s for onboarding completion)
+        // Add timeout protection to prevent hanging (increased to 15s for better reliability)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
         );
         
         const profilePromise = Promise.all([
@@ -310,7 +311,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (error) {
         // Log errors for debugging in production
         if (error instanceof Error && error.message === 'Profile fetch timeout') {
-          console.warn("Profile operations timed out after 10 seconds:", error);
+          console.warn("Profile operations timed out after 5 seconds:", error);
         } else {
           console.error("Profile operations failed:", error);
         }
@@ -397,12 +398,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           error.message.includes('Forbidden') ||
           error.message.includes('Invalid JWT')
         )) {
+          console.log("🔄 Clearing session due to auth error:", error.message);
           await supabase.auth.signOut();
           if (mounted) {
             setUser(null);
             setProfile(null);
             profileCache.clear();
           }
+          // Clear any stored session data
+          localStorage.removeItem('sb-lvnkpserdydhnqbigfbz-auth-token');
+          sessionStorage.clear();
         }
       } finally {
         if (mounted) {
@@ -732,6 +737,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
       setProfile(null);
       profileCache.clear();
+      
+      // Clear all stored session data
+      localStorage.removeItem('sb-lvnkpserdydhnqbigfbz-auth-token');
+      sessionStorage.clear();
+      
       toast.success("Signed out successfully");
 
       // Redirect to landing page
@@ -744,6 +754,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       throw error;
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  // Utility function to clear all auth data (useful for JWT issues)
+  const clearAuthData = useCallback(async () => {
+    try {
+      console.log("🧹 Clearing all authentication data...");
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      profileCache.clear();
+      
+      // Clear all possible stored session data
+      localStorage.removeItem('sb-lvnkpserdydhnqbigfbz-auth-token');
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+      
+      console.log("✅ All authentication data cleared");
+    } catch (error) {
+      console.error("❌ Error clearing auth data:", error);
     }
   }, []);
 

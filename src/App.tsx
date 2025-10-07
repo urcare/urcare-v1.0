@@ -29,13 +29,11 @@ import PaymentResult from "./pages/PaymentResult";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import MockPhonePePayment from "./pages/MockPhonePePayment";
 import PhonePeQRFallbackPage from "./pages/PhonePeQRFallbackPage";
-import PhonePeTest from "./pages/PhonePeTest";
 import PhonePeCheckoutSimple from "./pages/PhonePeCheckoutSimple";
 import PhonePeSuccess from "./pages/PhonePeSuccess";
 import Pay from "./pages/Pay";
 import Paycheckout from "./pages/Paycheckout";
 import MyAdmin from "./pages/MyAdmin";
-import PhonePeTestPage from "./pages/PhonePeTestPage";
 import PlanDetails from "./pages/Calendar";
 import Planner from "./pages/Planner";
 import ProfileManagement from "./pages/ProfileManagement";
@@ -214,20 +212,6 @@ function App() {
                     }
                   />
 
-                  <Route
-                    path="/phonepe-test"
-                    element={
-                      <CleanProtectedRoute requireOnboardingComplete={false}>
-                        <PhonePeTest />
-                      </CleanProtectedRoute>
-                    }
-                  />
-
-                  {/* Test route without onboarding requirement */}
-                  <Route
-                    path="/phonepe-test-no-auth"
-                    element={<PhonePeTest />}
-                  />
 
                   {/* Simple PhonePe checkout without auth */}
                   <Route
@@ -299,10 +283,6 @@ function App() {
             element={<Pay />}
           />
 
-          <Route
-            path="/phonepe-test"
-            element={<PhonePeTestPage />}
-          />
 
           <Route
             path="/custom-plan"

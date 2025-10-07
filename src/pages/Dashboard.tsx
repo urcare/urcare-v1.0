@@ -29,8 +29,9 @@ import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useDebounce } from "@/hooks/useDebounce";
 // Removed throttle and performanceMonitor imports to fix debugger issue
 import LazyImage from "@/components/LazyImage";
-import { calculateHealthScore, getUserProfileForHealthScore } from "@/services/healthScoreService";
-import { generateHealthPlans, saveSelectedHealthPlan } from "@/services/healthPlanService";
+import { calculateHealthScore, getUserProfileForHealthScore, getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
+import { saveSelectedHealthPlan, getActiveHealthPlan } from "@/services/healthSystemService";
+import { generateHealthPlans } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
 import HealthPlansVerticalList from "@/components/HealthPlansVerticalList";
 import HealthPlansDisplay from "@/components/HealthPlansDisplay";
@@ -40,6 +41,7 @@ import DynamicHealthSection from "@/components/DynamicHealthSection";
 import TodaySchedule from "@/components/TodaySchedule";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DailyActivitiesView } from "@/components/DailyActivitiesView";
 
 interface HealthPlan {
   id: string;
@@ -108,6 +110,7 @@ const Dashboard: React.FC = () => {
   const [showTips, setShowTips] = useState<boolean>(true);
   const [groqPlans, setGroqPlans] = useState<HealthPlan[]>([]);
   const [showGroqPlans, setShowGroqPlans] = useState<boolean>(false);
+  const [showDailyActivities, setShowDailyActivities] = useState<boolean>(false);
   const [profileImageError, setProfileImageError] = useState<boolean>(false);
   const [sequentialAIResult, setSequentialAIResult] = useState<any>(null);
 
@@ -344,27 +347,55 @@ const Dashboard: React.FC = () => {
         console.log('🏥 Health score:', currentHealthScore);
       }
       
-      // Get health analysis data from localStorage
+      // Get health analysis data from database or localStorage
       let healthAnalysis = null;
       try {
-        const savedHealthData = localStorage.getItem('aiHealthData');
-        if (savedHealthData) {
-          const parsedData = JSON.parse(savedHealthData);
-          healthAnalysis = {
-            displayAnalysis: {
-              greeting: parsedData.healthScoreAnalysis?.split('\n')[0] || '',
-              negativeAnalysis: parsedData.healthScoreAnalysis?.split('\n').filter(line => line.includes('🚨')).map(line => line.replace('🚨', '').trim()) || [],
-              lifestyleRecommendations: parsedData.healthScoreRecommendations || []
-            },
-            detailedAnalysis: {
-              healthRisks: ['Based on current health assessment'],
-              nutritionalProfile: { mealTimings: [], dietaryNeeds: [], foodPreferences: [] },
-              exerciseProfile: { workoutSchedule: [], exerciseTypes: [], intensityLevels: [] },
-              sleepProfile: { bedtimeRoutine: [], wakeUpRoutine: [], sleepOptimization: [] },
-              stressManagement: { stressTriggers: [], relaxationTechniques: [], mindfulnessPractices: [] },
-              medicalConsiderations: { medicationInteractions: [], conditionManagement: [], preventiveMeasures: [] }
-            }
-          };
+        // First try to get from database
+        if (user) {
+          const insightsResult = await getOrCalculateHealthAnalysis(user.id, userProfile);
+          if (insightsResult.success && insightsResult.data) {
+            const healthData = insightsResult.data;
+            healthAnalysis = {
+              displayAnalysis: healthData.displayAnalysis || {
+                greeting: healthData.analysis?.split('\n')[0] || '',
+                negativeAnalysis: healthData.analysis?.split('\n').filter(line => line.includes('🚨')).map(line => line.replace('🚨', '').trim()) || [],
+                lifestyleRecommendations: healthData.recommendations || []
+              },
+              detailedAnalysis: healthData.detailedAnalysis || {
+                healthRisks: ['Based on current health assessment'],
+                nutritionalProfile: { mealTimings: [], dietaryNeeds: [], foodPreferences: [] },
+                exerciseProfile: { workoutSchedule: [], exerciseTypes: [], intensityLevels: [] },
+                sleepProfile: { bedtimeRoutine: [], wakeUpRoutine: [], sleepOptimization: [] },
+                stressManagement: { stressTriggers: [], relaxationTechniques: [], mindfulnessPractices: [] },
+                medicalConsiderations: { medicationInteractions: [], conditionManagement: [], preventiveMeasures: [] }
+              }
+            };
+            console.log('✅ Health analysis loaded from database');
+          }
+        }
+        
+        // Fallback to localStorage if database fails
+        if (!healthAnalysis) {
+          const savedHealthData = localStorage.getItem('aiHealthData');
+          if (savedHealthData) {
+            const parsedData = JSON.parse(savedHealthData);
+            healthAnalysis = {
+              displayAnalysis: {
+                greeting: parsedData.healthScoreAnalysis?.split('\n')[0] || '',
+                negativeAnalysis: parsedData.healthScoreAnalysis?.split('\n').filter(line => line.includes('🚨')).map(line => line.replace('🚨', '').trim()) || [],
+                lifestyleRecommendations: parsedData.healthScoreRecommendations || []
+              },
+              detailedAnalysis: parsedData.detailedAnalysis || {
+                healthRisks: ['Based on current health assessment'],
+                nutritionalProfile: { mealTimings: [], dietaryNeeds: [], foodPreferences: [] },
+                exerciseProfile: { workoutSchedule: [], exerciseTypes: [], intensityLevels: [] },
+                sleepProfile: { bedtimeRoutine: [], wakeUpRoutine: [], sleepOptimization: [] },
+                stressManagement: { stressTriggers: [], relaxationTechniques: [], mindfulnessPractices: [] },
+                medicalConsiderations: { medicationInteractions: [], conditionManagement: [], preventiveMeasures: [] }
+              }
+            };
+            console.log('📱 Health analysis loaded from localStorage (fallback)');
+          }
         }
         
         if (import.meta.env.DEV) {
@@ -384,7 +415,12 @@ const Dashboard: React.FC = () => {
         voiceTranscript: transcript
       });
 
-      const { data, error } = await supabase.functions.invoke('health-plans', {
+      // Add timeout protection for health plan generation
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Health plan generation timeout')), 30000)
+      );
+      
+      const planGenerationPromise = supabase.functions.invoke('health-plans-optimized', {
         body: {
           userProfile: userProfile,
           healthScore: currentHealthScore,
@@ -395,6 +431,8 @@ const Dashboard: React.FC = () => {
           voiceTranscript: transcript
         }
       });
+
+      const { data, error } = await Promise.race([planGenerationPromise, timeoutPromise]) as any;
 
       console.log('📡 Function response:', { data, error });
 
@@ -407,6 +445,14 @@ const Dashboard: React.FC = () => {
       if (!data) {
         console.error('❌ No data returned from health-plans function');
         throw new Error('No data returned from health plans generation');
+      }
+
+      // Check if the response contains an error
+      if (data && !data.success && data.error) {
+        console.error('❌ Function returned error:', data.error);
+        console.error('❌ Error details:', data.errorDetails);
+        console.error('❌ Error type:', data.meta?.errorType);
+        throw new Error(`Health plans generation failed: ${data.error}`);
       }
 
       if (import.meta.env.DEV) {
@@ -502,25 +548,112 @@ const Dashboard: React.FC = () => {
         });
       }
       
-      const { data, error } = await supabase.functions.invoke('plan-activities', {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Plan activities timeout')), 70000)
+      );
+      
+      const planActivitiesPromise = supabase.functions.invoke('plan-activities-optimized', {
         body: {
           selectedPlan: plan,
           userProfile: profileResult.profile
         }
       });
+      
+      const planResult = await Promise.race([planActivitiesPromise, timeoutPromise]);
+      const { data, error } = planResult;
 
       if (error) {
         console.error('❌ Supabase plan-activities function failed:', error);
+        if (error.message === 'Plan activities timeout') {
+          console.warn('⚠️ Plan activities timed out, using fallback schedule');
+          // Create a simple fallback schedule
+          const fallbackData = {
+            success: true,
+            data: {
+              healthWarnings: ["⚠️ Schedule generation timed out", "⚠️ Using fallback schedule"],
+              dailySchedule: [
+                {
+                  time: "07:00",
+                  activity: "Morning Routine",
+                  duration: "30 min",
+                  category: "morning",
+                  calories: 0,
+                  detailedInstructions: [{"step": 1, "action": "Wake up and hydrate", "items": ["water"], "description": "Start day refreshed", "instructions": "Drink 1 glass water, stretch"}],
+                  why: "Boost energy",
+                  healthNote: "Lifestyle improvement"
+                },
+                {
+                  time: "18:00",
+                  activity: "Workout Session",
+                  duration: "45 min",
+                  category: "exercise",
+                  calories: 300,
+                  detailedInstructions: [{"step": 1, "action": "Exercise routine", "items": [], "description": "Stay active", "instructions": "Complete your workout"}],
+                  why: "Build strength and fitness",
+                  healthNote: "Regular exercise benefits"
+                }
+              ],
+              disclaimer: "⚠️ Fallback schedule due to timeout."
+            },
+            meta: {
+              provider: "Fallback-Timeout",
+              timestamp: new Date().toISOString(),
+              note: "Using fallback due to timeout"
+            }
+          };
+          
+          // Use the fallback data
+          const scheduleData = fallbackData.data;
+          const fallbackActivities = scheduleData.schedule || scheduleData.dailySchedule || [];
+          
+          console.log('📋 Fallback Activities Count:', fallbackActivities.length);
+          
+          if (fallbackActivities.length > 0) {
+            console.log('📅 Fallback Activities:');
+            fallbackActivities.forEach((activity, i) => {
+              console.log(`  ${i + 1}. ${activity.time} - ${activity.activity} (${activity.category})`);
+            });
+          }
+          
+          // Continue with the fallback data
+          const mappedActivities = fallbackActivities.map(activity => ({
+            id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
+            title: activity.activity || activity.title || 'Activity',
+            time: activity.time || '09:00',
+            duration: activity.duration || '30 min',
+            type: activity.category || 'exercise',
+            details: activity.details || '',
+            instructions: Array.isArray(activity.instructions) ? activity.instructions : [],
+            equipment: activity.equipment || [],
+            difficulty: plan.difficulty || 'Beginner',
+            calories: activity.calories || 200
+          }));
+          
+          const detailedPlan = {
+            ...plan,
+            activities: mappedActivities
+          };
+          
+          setSelectedPlan(detailedPlan);
+          setShowAIPopup(false);
+          return;
+        }
         throw new Error(`Failed to generate schedule: ${error.message}`);
       }
 
       console.log('✅ Plan Activities AI Response:', data);
-      console.log('📋 Activities Count:', data.dailySchedule?.length || 0);
+      console.log('🔍 Full response structure:', JSON.stringify(data, null, 2));
+      // Handle the response structure from plan-activities function
+      const scheduleData = data.data || data;
+      const rawActivities = scheduleData.schedule || scheduleData.dailySchedule || [];
+      
+      console.log('📋 Activities Count:', rawActivities.length);
       console.log('🤖 Provider:', data.meta?.provider || 'Unknown');
       
-      if (data.dailySchedule?.length > 0) {
+      if (rawActivities.length > 0) {
         console.log('📅 Generated Activities:');
-        data.dailySchedule.forEach((activity, i) => {
+        rawActivities.forEach((activity, i) => {
           console.log(`  ${i + 1}. ${activity.time} - ${activity.activity} (${activity.category})`);
           console.log(`     Duration: ${activity.duration} | Calories: ${activity.calories}`);
           console.log(`     Instructions: ${activity.instructions?.length || 0} steps`);
@@ -533,11 +666,11 @@ const Dashboard: React.FC = () => {
       }
 
       // Convert the response to activities format
-      let activities = [];
+      let mappedActivities = [];
       
-      if (data.dailySchedule && Array.isArray(data.dailySchedule)) {
+      if (rawActivities && Array.isArray(rawActivities)) {
         // Handle the new response format from plan-activities function
-        activities = data.dailySchedule.map(activity => ({
+        mappedActivities = rawActivities.map(activity => ({
           id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
           title: activity.activity || activity.title || 'Activity',
           time: activity.time || '09:00',
@@ -551,7 +684,7 @@ const Dashboard: React.FC = () => {
         }));
       } else if (data.weeklySchedules?.[0]?.dailySchedules?.[0]) {
         // Fallback to old format if needed
-        activities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+        mappedActivities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
           typeof item === 'object' && item !== null
         ).flatMap(daySchedule => {
           const dayActivities = [];
@@ -613,20 +746,26 @@ const Dashboard: React.FC = () => {
       }
       
       // If no activities generated, show empty state
-      if (activities.length === 0) {
+      if (mappedActivities.length === 0) {
         console.warn('⚠️ No activities generated from plan-activities function');
-        activities = [];
+        mappedActivities = [];
       }
 
       const detailedPlan = {
         ...plan,
-        activities: activities
+        activities: mappedActivities
       };
 
       setSelectedPlan(detailedPlan);
-      const result = await saveSelectedHealthPlan(user.id, detailedPlan);
+      const saveResult = await saveSelectedHealthPlan(
+        user.id,
+        detailedPlan.title,
+        detailedPlan.plan_type || 'custom',
+        detailedPlan.primary_goal || 'Health improvement',
+        detailedPlan
+      );
       
-      if (result.success) {
+      if (saveResult.success) {
         toast.success(`Plan "${plan.title}" is now active with detailed schedule!`);
         
         // Update today's activities based on generated schedule
@@ -650,7 +789,7 @@ const Dashboard: React.FC = () => {
         // Navigate to health plan generation page
         navigate('/health-plan-generation', { state: { selectedPlan: detailedPlan } });
       } else {
-        throw new Error(result.error || "Failed to save selected plan");
+        throw new Error(saveResult.error || "Failed to save selected plan");
       }
     } catch (error) {
       console.error("Error selecting plan:", error);
@@ -688,25 +827,112 @@ const Dashboard: React.FC = () => {
         });
       }
       
-      const { data, error } = await supabase.functions.invoke('plan-activities', {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Plan activities timeout')), 70000)
+      );
+      
+      const planActivitiesPromise = supabase.functions.invoke('plan-activities-optimized', {
         body: {
           selectedPlan: plan,
           userProfile: profileResult.profile
         }
       });
+      
+      const planResult = await Promise.race([planActivitiesPromise, timeoutPromise]);
+      const { data, error } = planResult;
 
       if (error) {
         console.error('❌ Supabase plan-activities function failed:', error);
+        if (error.message === 'Plan activities timeout') {
+          console.warn('⚠️ Plan activities timed out, using fallback schedule');
+          // Create a simple fallback schedule
+          const fallbackData = {
+            success: true,
+            data: {
+              healthWarnings: ["⚠️ Schedule generation timed out", "⚠️ Using fallback schedule"],
+              dailySchedule: [
+                {
+                  time: "07:00",
+                  activity: "Morning Routine",
+                  duration: "30 min",
+                  category: "morning",
+                  calories: 0,
+                  detailedInstructions: [{"step": 1, "action": "Wake up and hydrate", "items": ["water"], "description": "Start day refreshed", "instructions": "Drink 1 glass water, stretch"}],
+                  why: "Boost energy",
+                  healthNote: "Lifestyle improvement"
+                },
+                {
+                  time: "18:00",
+                  activity: "Workout Session",
+                  duration: "45 min",
+                  category: "exercise",
+                  calories: 300,
+                  detailedInstructions: [{"step": 1, "action": "Exercise routine", "items": [], "description": "Stay active", "instructions": "Complete your workout"}],
+                  why: "Build strength and fitness",
+                  healthNote: "Regular exercise benefits"
+                }
+              ],
+              disclaimer: "⚠️ Fallback schedule due to timeout."
+            },
+            meta: {
+              provider: "Fallback-Timeout",
+              timestamp: new Date().toISOString(),
+              note: "Using fallback due to timeout"
+            }
+          };
+          
+          // Use the fallback data
+          const scheduleData = fallbackData.data;
+          const fallbackActivities = scheduleData.schedule || scheduleData.dailySchedule || [];
+          
+          console.log('📋 Fallback Activities Count:', fallbackActivities.length);
+          
+          if (fallbackActivities.length > 0) {
+            console.log('📅 Fallback Activities:');
+            fallbackActivities.forEach((activity, i) => {
+              console.log(`  ${i + 1}. ${activity.time} - ${activity.activity} (${activity.category})`);
+            });
+          }
+          
+          // Continue with the fallback data
+          const mappedActivities = fallbackActivities.map(activity => ({
+            id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
+            title: activity.activity || activity.title || 'Activity',
+            time: activity.time || '09:00',
+            duration: activity.duration || '30 min',
+            type: activity.category || 'exercise',
+            details: activity.details || '',
+            instructions: Array.isArray(activity.instructions) ? activity.instructions : [],
+            equipment: activity.equipment || [],
+            difficulty: plan.difficulty || 'Beginner',
+            calories: activity.calories || 200
+          }));
+          
+          const detailedPlan = {
+            ...plan,
+            activities: mappedActivities
+          };
+          
+          setSelectedPlan(detailedPlan);
+          setShowAIPopup(false);
+          return;
+        }
         throw new Error(`Failed to generate schedule: ${error.message}`);
       }
 
       console.log('✅ Plan Activities AI Response:', data);
-      console.log('📋 Activities Count:', data.dailySchedule?.length || 0);
+      console.log('🔍 Full response structure:', JSON.stringify(data, null, 2));
+      // Handle the response structure from plan-activities function
+      const scheduleData = data.data || data;
+      const rawActivities = scheduleData.schedule || scheduleData.dailySchedule || [];
+      
+      console.log('📋 Activities Count:', rawActivities.length);
       console.log('🤖 Provider:', data.meta?.provider || 'Unknown');
       
-      if (data.dailySchedule?.length > 0) {
+      if (rawActivities.length > 0) {
         console.log('📅 Generated Activities:');
-        data.dailySchedule.forEach((activity, i) => {
+        rawActivities.forEach((activity, i) => {
           console.log(`  ${i + 1}. ${activity.time} - ${activity.activity} (${activity.category})`);
           console.log(`     Duration: ${activity.duration} | Calories: ${activity.calories}`);
           console.log(`     Instructions: ${activity.instructions?.length || 0} steps`);
@@ -719,11 +945,11 @@ const Dashboard: React.FC = () => {
       }
 
       // Convert the response to activities format (same logic as handleSelectPlan)
-      let activities = [];
+      let mappedActivities = [];
       
-      if (data.dailySchedule && Array.isArray(data.dailySchedule)) {
+      if (rawActivities && Array.isArray(rawActivities)) {
         // Handle the new response format from plan-activities function
-        activities = data.dailySchedule.map(activity => ({
+        mappedActivities = rawActivities.map(activity => ({
           id: activity.id || `activity-${Math.random().toString(36).substr(2, 9)}`,
           title: activity.activity || activity.title || 'Activity',
           time: activity.time || '09:00',
@@ -737,7 +963,7 @@ const Dashboard: React.FC = () => {
         }));
       } else if (data.weeklySchedules?.[0]?.dailySchedules?.[0]) {
         // Fallback to old format if needed
-        activities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
+        mappedActivities = Object.values(data.weeklySchedules[0].dailySchedules[0]).filter(item => 
           typeof item === 'object' && item !== null
         ).flatMap(daySchedule => {
           const dayActivities = [];
@@ -799,20 +1025,26 @@ const Dashboard: React.FC = () => {
       }
       
       // If no activities generated, show empty state
-      if (activities.length === 0) {
+      if (mappedActivities.length === 0) {
         console.warn('⚠️ No activities generated from plan-activities function');
-        activities = [];
+        mappedActivities = [];
       }
 
       const detailedPlan = {
         ...plan,
-        activities: activities
+        activities: mappedActivities
       };
 
       setSelectedPlan(detailedPlan);
-      const result = await saveSelectedHealthPlan(user.id, detailedPlan);
+      const saveResult = await saveSelectedHealthPlan(
+        user.id,
+        detailedPlan.title,
+        detailedPlan.plan_type || 'custom',
+        detailedPlan.primary_goal || 'Health improvement',
+        detailedPlan
+      );
       
-      if (result.success) {
+      if (saveResult.success) {
         toast.success(`Plan "${plan.title}" is now active with detailed schedule!`);
         
         // Update today's activities based on generated schedule
@@ -832,7 +1064,7 @@ const Dashboard: React.FC = () => {
         // Hide the health plans and show the updated Today's Schedule
         setShowGroqPlans(false);
       } else {
-        throw new Error(result.error || "Failed to save selected plan");
+        throw new Error(saveResult.error || "Failed to save selected plan");
       }
     } catch (error) {
       console.error("Error selecting plan:", error);
@@ -900,77 +1132,75 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const calculateInitialHealthScore = async () => {
       if (user && profile && !healthScoreCalculated && profile.onboarding_completed) {
-        // Check if health data already exists in localStorage
-        const existingHealthData = localStorage.getItem('aiHealthData');
-        if (existingHealthData) {
-          try {
-            const parsedData = JSON.parse(existingHealthData);
-            if (parsedData.healthScore && parsedData.healthScoreAnalysis) {
-              console.log('📋 Health data already exists, loading from cache...');
-              setHealthScore(parsedData.healthScore);
-              setHealthScoreAnalysis(parsedData.healthScoreAnalysis);
-              setHealthScoreRecommendations(parsedData.healthScoreRecommendations || []);
-              setHealthScoreCalculated(true);
-              return;
-            }
-          } catch (error) {
-            console.warn('Failed to parse existing health data:', error);
-          }
-        }
-
         try {
-          console.log('🔍 Calculating health score (first time only)...', { user: user.id, profile: profile.id });
+          console.log('🔍 Getting or calculating health insights...', { user: user.id, profile: profile.id });
           setHealthScoreCalculated(true); // Prevent duplicate calls
           
-          const profileResult = await getUserProfileForHealthScore(user.id);
-          if (profileResult.success) {
-            const scoreResult = await calculateHealthScore({ userProfile: profileResult.profile });
-            if (scoreResult.success && scoreResult.healthScore) {
-              setHealthScore(scoreResult.healthScore);
+          // Use the new database-first approach
+          const insightsResult = await getOrCalculateHealthAnalysis(user.id, profile);
+          
+          if (insightsResult.success && insightsResult.data) {
+            const healthData = insightsResult.data;
+            console.log(`✅ Health insights loaded from ${insightsResult.source}`);
+            
+            setHealthScore(healthData.healthScore);
+            
+            // Handle displayAnalysis object properly
+            let analysisText = '';
+            if (healthData.displayAnalysis) {
+              const display = healthData.displayAnalysis;
+              analysisText = display.greeting || '';
               
-              // Handle displayAnalysis object properly
-              let analysisText = '';
-              if (scoreResult.displayAnalysis) {
-                const display = scoreResult.displayAnalysis;
-                analysisText = display.greeting || '';
-                
-                if (display.negativeAnalysis && display.negativeAnalysis.length > 0) {
-                  analysisText += '\n\n' + display.negativeAnalysis.join('\n');
-                }
-                
-                if (display.lifestyleRecommendations && display.lifestyleRecommendations.length > 0) {
-                  analysisText += '\n\nRecommendations:\n' + display.lifestyleRecommendations.join('\n');
-                }
-              } else if (scoreResult.analysis) {
-                // Fallback to old format
-                if (typeof scoreResult.analysis === 'string') {
-                  analysisText = scoreResult.analysis;
-                } else if (typeof scoreResult.analysis === 'object') {
-                  analysisText = scoreResult.analysis.overall || '';
-                  if (scoreResult.analysis.strengths && scoreResult.analysis.strengths.length > 0) {
-                    analysisText += `\n\nStrengths:\n` + scoreResult.analysis.strengths.map(item => `• ${item}`).join('\n');
-                  }
-                  if (scoreResult.analysis.areasForImprovement && scoreResult.analysis.areasForImprovement.length > 0) {
-                    analysisText += `\n\nAreas for Improvement:\n` + scoreResult.analysis.areasForImprovement.map(item => `• ${item}`).join('\n');
-                  }
-                }
+              if (display.negativeAnalysis && display.negativeAnalysis.length > 0) {
+                analysisText += '\n\n' + display.negativeAnalysis.join('\n');
               }
               
-              setHealthScoreAnalysis(analysisText);
-              setHealthScoreRecommendations(scoreResult.recommendations || []);
+              if (display.lifestyleRecommendations && display.lifestyleRecommendations.length > 0) {
+                analysisText += '\n\nRecommendations:\n' + display.lifestyleRecommendations.join('\n');
+              }
+            } else if (healthData.analysis) {
+              // Fallback to old format
+              if (typeof healthData.analysis === 'string') {
+                analysisText = healthData.analysis;
+              } else if (typeof healthData.analysis === 'object') {
+                analysisText = healthData.analysis.overall || '';
+                if (healthData.analysis.strengths && healthData.analysis.strengths.length > 0) {
+                  analysisText += `\n\nStrengths:\n` + healthData.analysis.strengths.map(item => `• ${item}`).join('\n');
+                }
+                if (healthData.analysis.areasForImprovement && healthData.analysis.areasForImprovement.length > 0) {
+                  analysisText += `\n\nAreas for Improvement:\n` + healthData.analysis.areasForImprovement.map(item => `• ${item}`).join('\n');
+                }
+              }
+            }
+            
+            setHealthScoreAnalysis(analysisText);
+            setHealthScoreRecommendations(healthData.recommendations || []);
+            setAiError('');
+            
+            // Store AI health data in localStorage for backward compatibility
+            const aiHealthData = {
+              healthScore: healthData.healthScore,
+              healthScoreAnalysis: analysisText,
+              healthScoreRecommendations: healthData.recommendations || [],
+              displayAnalysis: healthData.displayAnalysis,
+              detailedAnalysis: healthData.detailedAnalysis,
+              profileAnalysis: healthData.profileAnalysis
+            };
+            localStorage.setItem('aiHealthData', JSON.stringify(aiHealthData));
+          } else {
+            console.warn('Failed to get health insights:', insightsResult.error);
+            // Don't set error for "already in progress" - just use fallback
+            if (insightsResult.error?.includes('already in progress')) {
+              console.log('Health analysis in progress, using fallback data');
+              setHealthScore(75);
+              setHealthScoreAnalysis('Health analysis in progress...');
+              setHealthScoreRecommendations(['Please wait for analysis to complete']);
               setAiError('');
-              
-              // Store AI health data in localStorage for HealthContentNew component
-              const aiHealthData = {
-                healthScore: scoreResult.healthScore,
-                healthScoreAnalysis: analysisText,
-                healthScoreRecommendations: scoreResult.recommendations || []
-              };
-              localStorage.setItem('aiHealthData', JSON.stringify(aiHealthData));
             } else {
               setHealthScore(75);
               setHealthScoreAnalysis('Unable to generate AI analysis');
               setHealthScoreRecommendations(['Please try again later']);
+              setAiError(insightsResult.error || 'Failed to generate health insights');
             }
           }
         } catch (error) {
@@ -1084,6 +1314,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
 
         {/* Health Score Section - Transparent Blur */}
         <div className="max-w-md mx-auto px-4 sm:px-6">
@@ -1297,9 +1528,13 @@ const Dashboard: React.FC = () => {
             <div className={`py-3 flex-1 shadow-lg rounded-3xl transition-colors duration-300 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
-              <TodaySchedule 
-                sequentialAIResult={sequentialAIResult}
-              />
+              {showDailyActivities ? (
+                <DailyActivitiesView />
+              ) : (
+                <TodaySchedule 
+                  sequentialAIResult={sequentialAIResult}
+                />
+              )}
             </div>
           )}
         </div>

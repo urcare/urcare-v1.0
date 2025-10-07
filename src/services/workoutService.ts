@@ -46,32 +46,9 @@ interface WorkoutDashboardData {
 
 export class WorkoutService {
   async generateWorkoutSchedule(plan: any, userProfile: any, preferences: any): Promise<WorkoutDashboardData> {
-    try {
-      // Try to generate workout data using AI
-      const response = await supabase.functions.invoke('generate-workout-schedule', {
-        body: {
-          plan: plan,
-          userProfile: userProfile,
-          preferences: preferences
-        },
-        headers: {
-          Authorization: `Bearer ${
-            (await supabase.auth.getSession()).data.session?.access_token
-          }`,
-        },
-      });
-
-      if (response.data && !response.error) {
-        console.log('AI generation successful');
-        return response.data;
-      } else {
-        console.warn('AI generation failed, using fallback data:', response.error);
-        return this.generateFallbackWorkoutData(plan, userProfile, preferences);
-      }
-    } catch (error) {
-      console.warn('Error generating workout schedule, using fallback data:', error);
-      return this.generateFallbackWorkoutData(plan, userProfile, preferences);
-    }
+    // Generate workout data using fallback (AI function not implemented)
+    console.log('Generating workout schedule using fallback data');
+    return this.generateFallbackWorkoutData(plan, userProfile, preferences);
   }
 
   private generateFallbackWorkoutData(plan: any, userProfile: any, preferences: any): WorkoutDashboardData {

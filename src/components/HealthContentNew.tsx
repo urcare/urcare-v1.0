@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { EnhancedPlanNamingService } from "@/services/enhancedPlanNamingService";
+import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
 import {
   Brain,
   CheckCircle2,
@@ -93,29 +94,6 @@ export const HealthContentNew = () => {
   const [userGoals, setUserGoals] = useState<HealthGoal[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
-  // Save health insights to database
-  const saveHealthInsights = async (healthScore: number, analysis: string, recommendations: string[]) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('health_insights')
-        .insert({
-          user_id: user.id,
-          health_score: healthScore,
-          analysis: analysis,
-          recommendations: recommendations
-        });
-
-      if (error) {
-        console.error('Error saving health insights:', error);
-      } else {
-        console.log('Health insights saved successfully');
-      }
-    } catch (error) {
-      console.error('Error saving health insights:', error);
-    }
-  };
 
   const getFirstName = () => {
     if (profile?.full_name) {
@@ -301,32 +279,48 @@ export const HealthContentNew = () => {
   const loadPersonalizedTips = useCallback(async () => {
     const tips = [] as DynamicContentItem[];
 
-    // Try to get AI-generated health data from Dashboard state or localStorage
-    let aiHealthData = null;
-    try {
-      // Check if we have AI data in localStorage (passed from Dashboard)
-      const storedHealthData = localStorage.getItem('aiHealthData');
-      if (storedHealthData) {
-        aiHealthData = JSON.parse(storedHealthData);
+    // First, try to get health insights from database
+    let healthInsightsData = null;
+    if (user) {
+      try {
+        console.log('🔍 Checking for existing health insights in database...');
+        const insightsResult = await getOrCalculateHealthAnalysis(user.id, profile);
+        
+        if (insightsResult.success && insightsResult.data) {
+          healthInsightsData = insightsResult.data;
+          console.log(`✅ Health insights loaded from ${insightsResult.source}`);
+        }
+      } catch (error) {
+        console.warn('Failed to load health insights from database:', error);
       }
-    } catch (error) {
-      console.warn('Failed to load AI health data:', error);
     }
 
-    if (aiHealthData && aiHealthData.healthScoreAnalysis) {
-      // Transform AI analysis into user-friendly format
-      const userFriendlyAnalysis = transformHealthAnalysis(aiHealthData.healthScoreAnalysis);
-      
-      // Save insights to database
-      if (aiHealthData.healthScore && aiHealthData.healthScoreRecommendations) {
-        saveHealthInsights(
-          aiHealthData.healthScore,
-          userFriendlyAnalysis,
-          aiHealthData.healthScoreRecommendations
-        );
+    // Fallback: Try to get AI-generated health data from localStorage (for backward compatibility)
+    if (!healthInsightsData) {
+      try {
+        const storedHealthData = localStorage.getItem('aiHealthData');
+        if (storedHealthData) {
+          const aiHealthData = JSON.parse(storedHealthData);
+          if (aiHealthData && aiHealthData.healthScoreAnalysis) {
+            healthInsightsData = {
+              healthScore: aiHealthData.healthScore,
+              analysis: aiHealthData.healthScoreAnalysis,
+              recommendations: aiHealthData.healthScoreRecommendations || [],
+              displayAnalysis: aiHealthData.displayAnalysis
+            };
+            console.log('📱 Using health insights from localStorage (fallback)');
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load AI health data from localStorage:', error);
       }
+    }
+
+    if (healthInsightsData && healthInsightsData.analysis) {
+      // Transform AI analysis into user-friendly format
+      const userFriendlyAnalysis = transformHealthAnalysis(healthInsightsData.analysis);
       
-      // Use AI-generated health analysis as the main insight
+      // Use health insights as the main insight
       tips.push({
         id: "1",
         title: "Your Health Overview",
@@ -336,9 +330,9 @@ export const HealthContentNew = () => {
         isHighlighted: true,
       });
 
-      // Add AI recommendations as individual tips
-      if (aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0) {
-        aiHealthData.healthScoreRecommendations.slice(0, 3).forEach((recommendation: string, index: number) => {
+      // Add recommendations as individual tips
+      if (healthInsightsData.recommendations && healthInsightsData.recommendations.length > 0) {
+        healthInsightsData.recommendations.slice(0, 3).forEach((recommendation: string, index: number) => {
           const userFriendlyRec = transformRecommendation(recommendation);
           tips.push({
             id: `ai-rec-${index + 2}`,
@@ -605,13 +599,25 @@ export const HealthContentNew = () => {
             window.location.reload();
           }, 1000);
         } else if (item.action === "generate_quick") {
-          // Use existing health plan service
+          // Use existing health plan service with timeout protection
           const { supabase } = await import("@/integrations/supabase/client");
-          const { data, error } = await supabase.functions.invoke(
-            "generate-ai-health-coach-plan",
+          
+          console.log('🚀 Starting health plan generation...');
+          
+          // Add timeout protection
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Health plan generation timeout')), 30000)
+          );
+          
+          const planGenerationPromise = supabase.functions.invoke(
+            "health-plans-optimized",
             {
               method: "POST",
-              body: {},
+              body: {
+                userProfile: userProfile,
+                primaryGoal: "General wellness",
+                healthScore: 75
+              },
               headers: {
                 Authorization: `Bearer ${
                   (
@@ -622,18 +628,28 @@ export const HealthContentNew = () => {
             }
           );
 
-          if (error) {
-            throw new Error(error.message);
-          }
+          try {
+            const { data, error } = await Promise.race([planGenerationPromise, timeoutPromise]) as any;
 
-          if (data.success) {
-            toast.success("Quick start protocol generated!");
-            // Refresh to show new tasks
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
-          } else {
-            throw new Error(data.error || "Failed to generate protocol");
+            if (error) {
+              console.error('❌ Health plan generation error:', error);
+              throw new Error(error.message || 'Failed to generate health plans');
+            }
+
+            if (data && data.success) {
+              console.log('✅ Health plans generated successfully:', data);
+              toast.success("Quick start protocol generated!");
+              // Refresh to show new tasks
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else {
+              console.error('❌ Health plan generation failed:', data);
+              throw new Error(data?.error || "Failed to generate protocol");
+            }
+          } catch (timeoutError) {
+            console.error('⏰ Health plan generation timed out:', timeoutError);
+            throw new Error('Health plan generation timed out. Please try again.');
           }
         } else if (item.action === "view_plan_option" && item.planData) {
           // Navigate to calendar with the selected plan details

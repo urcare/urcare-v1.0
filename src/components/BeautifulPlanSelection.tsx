@@ -24,9 +24,11 @@ interface HealthPlan {
   id: string;
   name: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'Gentle' | 'Balanced' | 'Intensive';
   duration_weeks: number;
+  duration?: string;
   focus_areas: string[];
+  focusAreas?: string[];
   expected_outcomes: string[];
   activities: any[];
   health_metrics: {
@@ -36,6 +38,63 @@ interface HealthPlan {
     energy_level: number;
     sleep_quality: number;
     stress_reduction: number;
+  };
+  
+  // Enhanced personalization fields
+  personalizedReasoning?: {
+    whyThisPlan: string;
+    userProfileFit: string;
+    adaptations: string[];
+  };
+  predictedOutcomes?: {
+    weightChange: {
+      week2: string;
+      week6: string;
+      week12: string;
+      final: string;
+    };
+    bmiChange: {
+      current: string;
+      target: string;
+      improvement: string;
+    };
+    healthScoreImprovement: {
+      current: number;
+      target: number;
+      timeline: string;
+    };
+    energyLevels: string;
+    fitnessGains: string;
+    milestones: Array<{
+      week: number;
+      achievement: string;
+      metrics: string;
+    }>;
+  };
+  effortAnalysis?: {
+    timeCommitment: string;
+    intensityLevel: string;
+    difficultyProgression: string;
+    sustainabilityScore: number;
+  };
+  riskAssessment?: {
+    challenges: string[];
+    injuryRisk: string;
+    burnoutRisk: string;
+    mitigationStrategies: string[];
+    conditionWarnings?: string[];
+  };
+  successFactors?: {
+    criticalFactors: string[];
+    potentialBarriers: string[];
+    supportNeeded: string[];
+    probability: number;
+  };
+  comparisonMetrics?: {
+    speedToResults: string;
+    intensityVsOthers: string;
+    resultsVsEffort: number;
+    sustainabilityRanking: number;
   };
 }
 
@@ -57,13 +116,19 @@ interface BeautifulPlanSelectionProps {
 const difficultyColors = {
   beginner: "bg-green-100 text-green-800 border-green-200",
   intermediate: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  advanced: "bg-red-100 text-red-800 border-red-200"
+  advanced: "bg-red-100 text-red-800 border-red-200",
+  Gentle: "bg-green-100 text-green-800 border-green-200",
+  Balanced: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  Intensive: "bg-red-100 text-red-800 border-red-200"
 };
 
 const difficultyIcons = {
   beginner: "🟢",
   intermediate: "🟡", 
-  advanced: "🔴"
+  advanced: "🔴",
+  Gentle: "🟢",
+  Balanced: "🟡",
+  Intensive: "🔴"
 };
 
 export const BeautifulPlanSelection: React.FC<BeautifulPlanSelectionProps> = ({
@@ -239,6 +304,146 @@ export const BeautifulPlanSelection: React.FC<BeautifulPlanSelectionProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Enhanced Personalization Sections */}
+              
+              {/* Personalized Reasoning */}
+              {plan.personalizedReasoning && (
+                <div className="mb-6 bg-blue-900/30 rounded-lg p-4 border border-blue-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain className="w-4 h-4 text-blue-300" />
+                    <h4 className="text-blue-300 font-semibold text-sm">Why This Plan Fits You</h4>
+                  </div>
+                  <p className="text-white text-xs leading-relaxed mb-2">
+                    {plan.personalizedReasoning.whyThisPlan}
+                  </p>
+                  <p className="text-blue-200 text-xs">
+                    {plan.personalizedReasoning.userProfileFit}
+                  </p>
+                </div>
+              )}
+
+              {/* Predicted Outcomes */}
+              {plan.predictedOutcomes && (
+                <div className="mb-6 bg-green-900/30 rounded-lg p-4 border border-green-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-green-300" />
+                    <h4 className="text-green-300 font-semibold text-sm">Your Predicted Results</h4>
+                  </div>
+                  {plan.predictedOutcomes.weightChange && (
+                    <div className="text-white text-xs space-y-1 mb-2">
+                      <div className="flex justify-between">
+                        <span>Week 6:</span>
+                        <span className="text-green-300">{plan.predictedOutcomes.weightChange.week6}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Week 12:</span>
+                        <span className="text-green-300">{plan.predictedOutcomes.weightChange.week12}</span>
+                      </div>
+                    </div>
+                  )}
+                  {plan.predictedOutcomes.healthScoreImprovement && (
+                    <div className="text-white text-xs">
+                      <div className="flex justify-between">
+                        <span>Health Score:</span>
+                        <span className="text-green-300">
+                          {plan.predictedOutcomes.healthScoreImprovement.current} → {plan.predictedOutcomes.healthScoreImprovement.target}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Effort Analysis */}
+              {plan.effortAnalysis && (
+                <div className="mb-6 bg-orange-900/30 rounded-lg p-4 border border-orange-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-orange-300" />
+                    <h4 className="text-orange-300 font-semibold text-sm">Effort & Commitment</h4>
+                  </div>
+                  <div className="text-white text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span>Time:</span>
+                      <span className="text-orange-300">{plan.effortAnalysis.timeCommitment}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Intensity:</span>
+                      <span className="text-orange-300">{plan.effortAnalysis.intensityLevel}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sustainability:</span>
+                      <span className="text-orange-300">{plan.effortAnalysis.sustainabilityScore}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Factors */}
+              {plan.successFactors && (
+                <div className="mb-6 bg-purple-900/30 rounded-lg p-4 border border-purple-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Heart className="w-4 h-4 text-purple-300" />
+                    <h4 className="text-purple-300 font-semibold text-sm">Success Probability</h4>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex-1 bg-gray-600 rounded-full h-2">
+                      <div 
+                        className="bg-purple-400 h-2 rounded-full" 
+                        style={{ width: `${plan.successFactors.probability}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-purple-300 font-bold text-sm">{plan.successFactors.probability}%</span>
+                  </div>
+                  <p className="text-white text-xs">
+                    Based on your profile and commitment level
+                  </p>
+                </div>
+              )}
+
+              {/* Risk Assessment */}
+              {plan.riskAssessment && (
+                <div className="mb-6 bg-red-900/30 rounded-lg p-4 border border-red-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-red-300" />
+                    <h4 className="text-red-300 font-semibold text-sm">Risk Assessment</h4>
+                  </div>
+                  <div className="text-white text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span>Injury Risk:</span>
+                      <span className="text-red-300">{plan.riskAssessment.injuryRisk}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Burnout Risk:</span>
+                      <span className="text-red-300">{plan.riskAssessment.burnoutRisk}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Comparison Metrics */}
+              {plan.comparisonMetrics && (
+                <div className="mb-6 bg-indigo-900/30 rounded-lg p-4 border border-indigo-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-indigo-300" />
+                    <h4 className="text-indigo-300 font-semibold text-sm">Plan Comparison</h4>
+                  </div>
+                  <div className="text-white text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span>Speed:</span>
+                      <span className="text-indigo-300">{plan.comparisonMetrics.speedToResults}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>ROI:</span>
+                      <span className="text-indigo-300">{plan.comparisonMetrics.resultsVsEffort}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ranking:</span>
+                      <span className="text-indigo-300">#{plan.comparisonMetrics.sustainabilityRanking}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Action Button */}
               <Button

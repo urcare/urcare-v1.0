@@ -68,7 +68,7 @@ const AIProcessingPopup: React.FC<AIProcessingPopupProps> = ({ isOpen, onComplet
           console.warn('AI processing timeout - completing animation');
           completeProcessing();
         }
-      }, 30000); // 30 second timeout
+      }, 15000); // 15 second timeout
 
       return () => clearTimeout(timeout);
     }

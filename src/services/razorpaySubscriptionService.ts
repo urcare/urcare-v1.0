@@ -157,14 +157,12 @@ class RazorpaySubscriptionService {
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'active')
-        .gte('end_date', new Date().toISOString())
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
       if (error) {
         // If table doesn't exist, return null gracefully
-        if (error.code === '42P01') {
+        if (error.code === '42P01' || error.status === 404) {
           console.warn('Razorpay subscriptions table does not exist yet');
           return null;
         }
@@ -176,7 +174,18 @@ class RazorpaySubscriptionService {
         return null;
       }
 
-      return data;
+      // Check if subscription is still active (not expired)
+      if (data && data.length > 0) {
+        const subscription = data[0];
+        const now = new Date();
+        const endDate = new Date(subscription.end_date);
+        
+        if (endDate >= now) {
+          return subscription;
+        }
+      }
+
+      return null;
     } catch (error) {
       console.error('Error in getUserRazorpaySubscription:', error);
       return null;

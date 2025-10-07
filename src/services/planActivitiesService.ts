@@ -45,7 +45,7 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
     console.log('🔍 Generating plan activities using Supabase function...');
     
     // Call Supabase Edge Function for plan activities generation
-    const { data, error } = await supabase.functions.invoke('plan-activities', {
+    const { data, error } = await supabase.functions.invoke('plan-activities-optimized', {
       body: {
         selectedPlan: request.selectedPlan,
         userProfile: request.userProfile

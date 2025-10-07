@@ -18,6 +18,7 @@
     "start:dev": "concurrently \"npm run dev\" \"node unified-server.js\"",
     "dev:unified": "node dev-unified.js",
     "dev:combined": "node dev-server-unified.js",
+    "test:functions": "node test-functions-cli.js",
     "unified": "node unified-server.js",
     "serve": "node unified-server.js",
     "serve:forever": "node unified-server.js",
