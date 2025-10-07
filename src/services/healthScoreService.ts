@@ -532,6 +532,14 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
         clearTimeout(timeoutId);
         analysisTimeouts.delete(userId);
       }
+    } else {
+      // No analysis exists, clear the in-progress flag
+      analysisInProgress.delete(userId);
+      const timeoutId = analysisTimeouts.get(userId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        analysisTimeouts.delete(userId);
+      }
     }
 
     // Only calculate new analysis if none exist in database

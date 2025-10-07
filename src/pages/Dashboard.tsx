@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +100,7 @@ const Dashboard: React.FC = () => {
   const [showHealthPlans, setShowHealthPlans] = useState<boolean>(false);
   const [healthPlans, setHealthPlans] = useState<HealthPlan[]>([]);
   const [healthScoreCalculated, setHealthScoreCalculated] = useState<boolean>(false);
+  const analysisInProgressRef = useRef<boolean>(false);
   const [showFileManager, setShowFileManager] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState<boolean>(false);
@@ -1131,9 +1132,10 @@ const Dashboard: React.FC = () => {
   // Calculate health score on component mount (only once)
   useEffect(() => {
     const calculateInitialHealthScore = async () => {
-      if (user && profile && !healthScoreCalculated && profile.onboarding_completed) {
+      if (user && profile && !healthScoreCalculated && !analysisInProgressRef.current && profile.onboarding_completed) {
         try {
           console.log('🔍 Getting or calculating health insights...', { user: user.id, profile: profile.id });
+          analysisInProgressRef.current = true; // Prevent duplicate calls
           setHealthScoreCalculated(true); // Prevent duplicate calls
           
           // First, check if user has an existing health plan
@@ -1267,12 +1269,15 @@ const Dashboard: React.FC = () => {
           setHealthScore(75);
           setHealthScoreAnalysis('Unable to generate AI analysis');
           setHealthScoreRecommendations(['Please try again later']);
+        } finally {
+          // Reset the analysis in progress flag
+          analysisInProgressRef.current = false;
         }
       }
     };
 
     calculateInitialHealthScore();
-  }, [user, profile, healthScoreCalculated]);
+  }, [user, profile]);
 
   return (
     <UserFlowHandler>
