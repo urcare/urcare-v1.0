@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { razorpaySubscriptionService } from '@/services/razorpaySubscriptionService';
 import { subscriptionService } from '@/services/subscriptionService';
@@ -14,6 +14,8 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
   const navigate = useNavigate();
   const location = useLocation();
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+  const isCheckingRef = useRef(false);
+  const lastCheckTimeRef = useRef(0);
 
   // Routes that don't require subscription
   const publicRoutes = [
@@ -49,9 +51,17 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
       }
 
       // Skip if already checking
-      if (isCheckingSubscription) {
+      if (isCheckingRef.current) {
         return;
       }
+
+      // Throttle checks to prevent too frequent calls (minimum 2 seconds between checks)
+      const now = Date.now();
+      if (now - lastCheckTimeRef.current < 2000) {
+        console.log('🔄 Throttling subscription check (too frequent)');
+        return;
+      }
+      lastCheckTimeRef.current = now;
 
       // Skip if profile is still loading (null means loading, undefined means not fetched)
       if (profile === null) {
@@ -70,6 +80,7 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
         return;
       }
 
+      isCheckingRef.current = true;
       setIsCheckingSubscription(true);
 
       try {
@@ -131,6 +142,7 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
           navigate('/health-assessment');
         }
       } finally {
+        isCheckingRef.current = false;
         setIsCheckingSubscription(false);
       }
     };
@@ -138,7 +150,7 @@ const SubscriptionFlowHandler: React.FC<SubscriptionFlowHandlerProps> = ({ child
     // Add debounce to prevent rapid successive calls
     const timeoutId = setTimeout(checkUserFlow, 100);
     return () => clearTimeout(timeoutId);
-  }, [user, profile, isInitialized, isPublicRoute, isCheckingSubscription, navigate, location.pathname]);
+  }, [user, profile, isInitialized, isPublicRoute, navigate, location.pathname]);
 
   // Show loading while checking subscription
   if (isCheckingSubscription && user && !isPublicRoute) {
