@@ -443,6 +443,27 @@ const generateDetailedProfileAnalysis = (userProfile: any) => {
 const analysisInProgress = new Set<string>();
 const analysisTimeouts = new Map<string, NodeJS.Timeout>();
 
+// Clear any stale analysis flags on service initialization
+const clearStaleAnalysisFlags = () => {
+  const now = Date.now();
+  const staleThreshold = 60000; // 1 minute
+  
+  // Clear any analysis flags that have been in progress for too long
+  for (const userId of analysisInProgress) {
+    const timeoutId = analysisTimeouts.get(userId);
+    if (timeoutId) {
+      // If timeout exists, it means analysis started recently, keep it
+      continue;
+    }
+    // If no timeout exists, it might be stale, remove it
+    analysisInProgress.delete(userId);
+    console.log('🧹 Cleared stale analysis flag for user:', userId);
+  }
+};
+
+// Clear stale flags every 30 seconds
+setInterval(clearStaleAnalysisFlags, 30000);
+
 // Get or calculate health analysis (checks database first, then calculates if needed)
 export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?: any) => {
   try {
@@ -494,9 +515,23 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
         };
       } else {
         console.warn('⚠️ Failed to fetch existing analysis, will recalculate');
+        // Clear the in-progress flag since we're going to recalculate
+        analysisInProgress.delete(userId);
+        const timeoutId = analysisTimeouts.get(userId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          analysisTimeouts.delete(userId);
+        }
       }
     } else if (analysisCheck.success && analysisCheck.exists && !analysisCheck.isComplete) {
       console.log('⚠️ Incomplete health analysis found, will recalculate...');
+      // Clear the in-progress flag since we're going to recalculate
+      analysisInProgress.delete(userId);
+      const timeoutId = analysisTimeouts.get(userId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        analysisTimeouts.delete(userId);
+      }
     }
 
     // Only calculate new analysis if none exist in database

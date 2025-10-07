@@ -1,6 +1,72 @@
 // Comprehensive Health System Service
 import { supabase } from '@/integrations/supabase/client';
 
+// Check if user has an existing health plan
+export const checkExistingUserPlan = async (userId: string): Promise<HealthPlan | null> => {
+  try {
+    console.log('🔍 Checking for existing user plan for user:', userId);
+    
+    const { data, error } = await supabase
+      .from('user_selected_health_plans')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('selected_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        console.log('📋 No existing plan found for user');
+        return null;
+      }
+      throw error;
+    }
+
+    console.log('✅ Found existing plan:', data.plan_name);
+    return data;
+  } catch (error) {
+    console.error('❌ Error checking existing user plan:', error);
+    return null;
+  }
+};
+
+// Load existing user plan with activities
+export const loadExistingUserPlan = async (userId: string): Promise<{
+  plan: HealthPlan;
+  activities: any[];
+} | null> => {
+  try {
+    console.log('🔄 Loading existing user plan and activities for user:', userId);
+    
+    // Get the user's active plan
+    const plan = await checkExistingUserPlan(userId);
+    if (!plan) {
+      console.log('📋 No active plan found');
+      return null;
+    }
+
+    // Extract activities from plan_data JSON
+    let activities: any[] = [];
+    if (plan.plan_data && typeof plan.plan_data === 'object') {
+      if (plan.plan_data.activities && Array.isArray(plan.plan_data.activities)) {
+        activities = plan.plan_data.activities;
+        console.log(`✅ Extracted ${activities.length} activities from plan_data`);
+      } else {
+        console.log('📋 No activities found in plan_data');
+      }
+    } else {
+      console.log('📋 plan_data is not a valid object');
+    }
+
+    console.log(`✅ Loaded ${activities.length} activities for plan: ${plan.plan_name}`);
+    return { plan, activities };
+  } catch (error) {
+    console.error('❌ Error loading existing user plan:', error);
+    return null;
+  }
+};
+
 // Types for the health system
 export interface HealthPlan {
   id: string;

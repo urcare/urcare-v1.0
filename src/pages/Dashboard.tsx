@@ -30,7 +30,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 // Removed throttle and performanceMonitor imports to fix debugger issue
 import LazyImage from "@/components/LazyImage";
 import { calculateHealthScore, getUserProfileForHealthScore, getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
-import { saveSelectedHealthPlan, getActiveHealthPlan } from "@/services/healthSystemService";
+import { saveSelectedHealthPlan, getActiveHealthPlan, checkExistingUserPlan, loadExistingUserPlan } from "@/services/healthSystemService";
 import { generateHealthPlans } from "@/services/healthPlanService";
 import AIProcessingPopup from "@/components/AIProcessingPopup";
 import HealthPlansVerticalList from "@/components/HealthPlansVerticalList";
@@ -1135,6 +1135,64 @@ const Dashboard: React.FC = () => {
         try {
           console.log('🔍 Getting or calculating health insights...', { user: user.id, profile: profile.id });
           setHealthScoreCalculated(true); // Prevent duplicate calls
+          
+          // First, check if user has an existing health plan
+          console.log('🔍 Checking for existing user plan...');
+          const existingPlan = await checkExistingUserPlan(user.id);
+          
+          if (existingPlan) {
+            console.log('✅ Found existing plan:', existingPlan.plan_name);
+            console.log('📋 Loading existing plan activities...');
+            
+            // Load existing plan with activities
+            const planData = await loadExistingUserPlan(user.id);
+            if (planData) {
+              console.log('✅ Loaded existing plan with activities:', planData.plan.plan_name);
+              
+              // Create a plan object for display
+              const existingPlan = {
+                id: planData.plan.id,
+                title: planData.plan.plan_name,
+                name: planData.plan.plan_name,
+                description: `Your personalized ${planData.plan.plan_name} plan with ${planData.activities.length} activities`,
+                difficulty: 'Balanced' as const,
+                duration: '12-16w',
+                focusAreas: ['stress management', 'sleep regulation', 'strength training'],
+                estimatedCalories: 2000,
+                calorieTarget: 1800,
+                macros: { protein: 30, carbs: 40, fats: 30 },
+                workoutFrequency: '4 days/week',
+                workoutStyle: 'balanced',
+                timeline: {
+                  'week1-2': 'Initial adaptation phase',
+                  'week3-4': 'Building momentum',
+                  'month2': 'Significant progress',
+                  'month3': 'Advanced results'
+                },
+                benefits: ['improved stress management', 'regulated sleep patterns', 'increased strength'],
+                equipment: ['Basic equipment'],
+                activities: planData.activities.map(activity => ({
+                  time: activity.time,
+                  activity: activity.title,
+                  duration: activity.duration,
+                  category: activity.type,
+                  food: activity.details || '',
+                  instructions: activity.instructions || [],
+                  exercise: activity.details || '',
+                  health_tip: activity.details || ''
+                }))
+              };
+
+              // Set the plan in the healthPlans array and mark as selected
+              setHealthPlans([existingPlan]);
+              setSelectedPlan(existingPlan);
+              setShowHealthPlans(true);
+              console.log('🎯 Existing plan loaded, skipping health insights generation');
+              return; // Skip health insights generation
+            }
+          }
+          
+          console.log('📋 No existing plan found, generating new health insights...');
           
           // Use the new database-first approach
           const insightsResult = await getOrCalculateHealthAnalysis(user.id, profile);

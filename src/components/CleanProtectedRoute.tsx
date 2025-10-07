@@ -38,8 +38,18 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
     if (isInitialized && !loading) {
       debugLog('Setting isReady to true');
       setIsReady(true);
+    } else if (!isInitialized || loading) {
+      // Reset isReady when auth is not ready
+      setIsReady(false);
     }
   }, [isInitialized, loading]);
+
+  // Reset isReady when user changes
+  useEffect(() => {
+    if (user?.id) {
+      setIsReady(false);
+    }
+  }, [user?.id]);
 
   // Show loading while checking authentication
   if (!isReady || loading) {
