@@ -104,13 +104,8 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
       return { type: 'onboarding' as const };
     }
 
-    // If onboarding is completed but user is trying to access onboarding, redirect to dashboard
-    if (profile?.onboarding_completed && location.pathname === "/onboarding") {
-      console.log("🛡️ PROTECTED_ROUTE: Onboarding already completed but on onboarding page - redirecting to dashboard");
-      debugLog('Redirecting to dashboard - onboarding already completed');
-      hasRedirected.current = true;
-      return { type: 'dashboard' as const };
-    }
+    // REMOVED: This logic conflicts with SubscriptionFlowHandler
+    // The SubscriptionFlowHandler already handles onboarding completion redirects
 
     console.log("🛡️ PROTECTED_ROUTE: No redirect needed - rendering children");
     return { type: 'render' as const };

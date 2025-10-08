@@ -61,12 +61,8 @@ export const SmartRouteHandler: React.FC = () => {
       return;
     }
 
-    // If user is on onboarding but already completed it, redirect to dashboard
-    if (location.pathname === '/onboarding' && profile?.onboarding_completed) {
-      console.log("🧭 SMART_ROUTE: Onboarding completed but on onboarding page - redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
-      return;
-    }
+    // REMOVED: This logic conflicts with SubscriptionFlowHandler
+    // The SubscriptionFlowHandler already handles onboarding completion redirects
 
     // If user is on dashboard but onboarding not completed, redirect to onboarding
     if (location.pathname === '/dashboard' && !profile?.onboarding_completed) {
