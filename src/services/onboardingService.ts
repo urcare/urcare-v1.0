@@ -205,7 +205,7 @@ class OnboardingService {
       
       // First, delete any existing profiles for this user to avoid duplicates
       const { error: deleteError } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .delete()
         .eq("id", user.id);
       
@@ -215,7 +215,7 @@ class OnboardingService {
       
       // Then insert the new profile
       const { error: profileError } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .insert(profileData);
 
       if (profileError) {
@@ -238,17 +238,7 @@ class OnboardingService {
       };
       console.log("Saving onboarding details:", onboardingData);
       
-      const { error: onboardingError } = await supabase
-        .from("onboarding_profiles")
-        .upsert(onboardingData, { onConflict: "user_id" });
-
-      if (onboardingError) {
-        console.error("Error saving onboarding details:", onboardingError);
-        // Don't fail the entire process if onboarding_profiles save fails
-        console.warn("Onboarding details save failed, but profile was saved successfully");
-      } else {
-        console.log("Onboarding details saved successfully");
-      }
+      // Onboarding data is now part of the unified user profile, no separate table needed
 
       console.log("Onboarding data saved successfully");
       return { success: true };
@@ -268,7 +258,7 @@ class OnboardingService {
   async hasCompletedOnboarding(userId: string): Promise<boolean> {
     try {
       const { data, error } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .select("onboarding_completed")
         .eq("id", userId)
         .single();
@@ -291,9 +281,9 @@ class OnboardingService {
   async getOnboardingData(userId: string): Promise<OnboardingData | null> {
     try {
       const { data, error } = await supabase
-        .from("onboarding_profiles")
-        .select("details")
-        .eq("user_id", userId)
+        .from("unified_user_profiles")
+        .select("onboarding_data")
+        .eq("id", userId)
         .single();
 
       if (error) {
@@ -301,7 +291,7 @@ class OnboardingService {
         return null;
       }
 
-      return data?.details || null;
+      return data?.onboarding_data || null;
     } catch (error) {
       console.error("Error in getOnboardingData:", error);
       return null;

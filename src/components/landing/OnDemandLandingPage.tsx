@@ -1,12 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GRID_IMAGES } from './constants';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AuthOptions } from '@/components/auth/AuthOptions';
-import { Mail } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { GRID_IMAGES, COMMON_STYLES } from './constants';
 
 interface OnDemandLandingPageProps {
   showModal?: boolean;
@@ -14,16 +9,11 @@ interface OnDemandLandingPageProps {
   onAlreadyMember?: () => void;
 }
 
-export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlreadyMember }: OnDemandLandingPageProps) => {
-  const navigate = useNavigate();
-  // Remove showLogin state and related modal logic
-
-  // Unified login handler - removed as OAuth is now handled by AuthOptions component
-  const handleLogin = async (provider: 'apple' | 'google' | 'email') => {
-    // This function is no longer used as OAuth is handled by AuthOptions
-    console.log('handleLogin called but not used');
-  };
-
+export const OnDemandLandingPage = ({ 
+  showModal = false, 
+  onGetStarted, 
+  onAlreadyMember 
+}: OnDemandLandingPageProps) => {
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
       {/* Main Content */}
@@ -33,7 +23,7 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="grid grid-cols-3 gap-2 sm:gap-3 h-[35vh] sm:h-[45vh] mb-4 sm:mb-6 flex-shrink-0"
+          className={COMMON_STYLES.grid}
         >
           {GRID_IMAGES.map((image, index) => (
             <motion.div
@@ -76,7 +66,7 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
             >
               <Button
                 onClick={onGetStarted}
-                className="w-full max-w-sm bg-gray-900 hover:bg-gray-800 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className={COMMON_STYLES.button.primary}
               >
                 Get started
               </Button>
@@ -89,7 +79,7 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
               <Button
                 onClick={onAlreadyMember}
                 variant="outline"
-                className="w-full max-w-sm bg-transparent border-gray-300 text-gray-900 hover:bg-gray-50 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300"
+                className={COMMON_STYLES.button.secondary}
               >
                 I'm already a member
               </Button>
@@ -99,4 +89,4 @@ export const OnDemandLandingPage = ({ showModal = false, onGetStarted, onAlready
       </div>
     </div>
   );
-}; 
+};

@@ -1,8 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { PhonePeService, PhonePeUtils } from "@/services/phonepeService";
+import { phonepeService as PhonePeService, PhonePeUtils } from "@/services/phonepeService";
 import { ArrowLeft, CheckCircle, Loader2, XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 

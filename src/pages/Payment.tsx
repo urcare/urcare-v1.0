@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan } from "@/types/subscription";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const Payment: React.FC = () => {

@@ -161,4 +161,8 @@ class PhonePeService {
 
 // Export singleton instance
 export const phonepeService = new PhonePeService();
+export const PhonePeUtils = {
+  generateOrderId: () => phonepeService.generateOrderId(),
+  validateWebhookSignature: (payload: any, signature: string) => phonepeService.validateWebhookSignature(payload, signature)
+};
 export default phonepeService;

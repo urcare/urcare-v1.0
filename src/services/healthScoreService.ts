@@ -215,7 +215,7 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
 export const getUserProfileForHealthScore = async (userId: string) => {
   try {
     const { data: profile, error } = await supabase
-      .from('user_profiles')
+      .from('unified_user_profiles')
       .select('*')
       .eq('id', userId)
         .single();
@@ -238,7 +238,7 @@ export const getUserProfileForHealthScore = async (userId: string) => {
 export const checkHealthAnalysisExist = async (userId: string) => {
   try {
     const { data, error } = await supabase
-      .from('health_scores')
+      .from('unified_health_analysis')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -249,7 +249,7 @@ export const checkHealthAnalysisExist = async (userId: string) => {
     }
 
     // Check if the analysis is complete (has score and recommendations)
-    const isComplete = data && data.length > 0 && data[0].score !== null && data[0].recommendations && data[0].recommendations.length > 0;
+    const isComplete = data && data.length > 0 && data[0].health_score !== null && data[0].recommendations && data[0].recommendations.length > 0;
 
     return {
       success: true,
@@ -269,7 +269,7 @@ export const checkHealthAnalysisExist = async (userId: string) => {
 export const fetchHealthAnalysis = async (userId: string) => {
   try {
     const { data, error } = await supabase
-      .from('health_scores')
+      .from('unified_health_analysis')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -298,16 +298,16 @@ export const fetchHealthAnalysis = async (userId: string) => {
     return {
       success: true,
       data: {
-        healthScore: healthScoreData.score || 75,
-        analysis: `Health score: ${healthScoreData.score}/100`,
+        healthScore: healthScoreData.health_score || 75,
+        analysis: `Health score: ${healthScoreData.health_score}/100`,
         recommendations: healthScoreData.recommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
         displayAnalysis: {
           greeting: `Hi there, based on your health profile analysis:`,
           negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
           lifestyleRecommendations: healthScoreData.recommendations || ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
         },
-        detailedAnalysis: healthScoreData.sub_scores || {},
-        profileAnalysis: healthScoreData.sub_scores || {},
+        detailedAnalysis: healthScoreData.detailed_analysis || {},
+        profileAnalysis: healthScoreData.profile_analysis || {},
         createdAt: healthScoreData.created_at
       }
     };
@@ -331,14 +331,16 @@ export const saveHealthAnalysis = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from('health_scores')
+      .from('unified_health_analysis')
       .insert({
         user_id: userId,
-        score_type: 'overall',
-        score: healthScore,
-        calculation_date: new Date().toISOString().split('T')[0],
-        sub_scores: detailedAnalysis || {},
-        recommendations: recommendations
+        health_score: healthScore,
+        analysis_text: analysis,
+        display_analysis: displayAnalysis || {},
+        detailed_analysis: detailedAnalysis || {},
+        profile_analysis: profileAnalysis || {},
+        recommendations: recommendations,
+        is_latest: true
       })
       .select()
       .single();

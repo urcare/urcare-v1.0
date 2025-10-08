@@ -7,14 +7,7 @@ const redirectUrl = isLocalhost
   ? `${window.location.origin}/auth/callback`
   : config.supabase.redirectUrl;
 
-console.log('🔧 Supabase Client Configuration:', {
-  hostname: window.location.hostname,
-  port: window.location.port,
-  origin: window.location.origin,
-  isLocalhost,
-  redirectUrl,
-  configRedirectUrl: config.supabase.redirectUrl
-});
+// Supabase client configuration - Cache bust: 2024-01-15
 
 export const supabase = createClient(
   config.supabase.url,

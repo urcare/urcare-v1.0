@@ -185,7 +185,7 @@ class SubscriptionService {
       };
 
       const { data, error } = await supabase
-        .from('subscriptions')
+        .from('unified_subscriptions')
         .insert(subscriptionData)
         .select()
         .single();
@@ -228,7 +228,7 @@ class SubscriptionService {
       }
 
       const { data, error } = await supabase
-        .from('subscriptions')
+        .from('unified_subscriptions')
         .update(updateData)
         .eq('id', subscriptionId)
         .select()
@@ -261,7 +261,7 @@ class SubscriptionService {
       }
 
       const { error } = await supabase
-        .from('subscriptions')
+        .from('unified_subscriptions')
         .update(updateData)
         .eq('id', subscriptionId);
 

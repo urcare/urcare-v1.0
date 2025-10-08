@@ -78,8 +78,8 @@ class NotificationService {
     try {
       // Check if service worker is supported
       if ('serviceWorker' in navigator) {
-        // Register service worker for background notifications
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        // Service worker disabled for now
+        // const registration = await navigator.serviceWorker.register('/sw.js');
         this.notificationWorker = registration.active;
         
         // Register background sync for offline support

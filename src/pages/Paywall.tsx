@@ -1,5 +1,3 @@
-// import RazorpayPaymentButton from "@/components/payment/RazorpayPaymentButton";
-// import PhonePeCheckout from "@/components/payment/PhonePeCheckout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscriptionService } from "@/services/subscriptionService";

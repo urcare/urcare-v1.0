@@ -60,7 +60,7 @@ class RazorpaySubscriptionService {
 
       // Save to database
       const { error: subscriptionError } = await supabase
-        .from('razorpay_subscriptions')
+        .from('unified_subscriptions')
         .insert([subscriptionData]);
 
       if (subscriptionError) {
@@ -86,7 +86,7 @@ class RazorpaySubscriptionService {
 
       // Save payment record
       const { error: paymentError } = await supabase
-        .from('razorpay_payments')
+        .from('unified_payments')
         .insert([{
           payment_id: paymentData.paymentId,
           order_id: paymentData.orderId,

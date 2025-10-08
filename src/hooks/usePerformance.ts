@@ -223,7 +223,8 @@ export const usePerformance = () => {
     if ('serviceWorker' in navigator) {
       try {
         setIsInstalling(true);
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        // Service worker disabled for now
+        // const registration = await navigator.serviceWorker.register('/sw.js');
         setSwRegistration(registration);
 
         registration.addEventListener('updatefound', () => {

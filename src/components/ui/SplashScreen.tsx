@@ -1,36 +1,19 @@
 import React, { useEffect, useRef } from 'react';
-// Remove Lottie import
-// import Lottie from 'lottie-react';
-// import animationData from '../../logoAnimation.json';
-
-// Import lottie-player web component
 import '@lottiefiles/lottie-player';
-
-// Add custom element type for lottie-player
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'lottie-player': any;
-    }
-  }
-}
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
-  const playerRef = useRef(null);
+  const playerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const player = playerRef.current;
     if (player) {
-      // Listen for complete event
-      player.addEventListener('complete', onComplete);
-      return () => {
-        player.removeEventListener('complete', onComplete);
-      };
+      const handleComplete = () => onComplete();
+      player.addEventListener('complete', handleComplete);
+      return () => player.removeEventListener('complete', handleComplete);
     }
   }, [onComplete]);
 
@@ -49,4 +32,4 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       </div>
     </div>
   );
-}; 
+};

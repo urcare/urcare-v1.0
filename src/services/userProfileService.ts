@@ -164,9 +164,9 @@ export class UserProfileService {
         onboarding_completed: true,
       };
 
-      // Save to user_profiles table
+      // Save to unified_user_profiles table
       const { error: profileError } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .upsert(
           {
             id: userId,
@@ -185,28 +185,8 @@ export class UserProfileService {
         return { success: false, error: profileError.message };
       }
 
-      // Save raw onboarding data to onboarding_profiles table
-      const { error: onboardingError } = await supabase
-        .from("onboarding_profiles")
-        .upsert(
-          {
-            user_id: userId,
-            details: data as any,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id",
-          }
-        );
-
-      if (onboardingError) {
-        console.error("Error saving onboarding details:", onboardingError);
-        // Don't fail the whole operation for this
-        console.warn(
-          "Onboarding details not saved, but profile was saved successfully"
-        );
-      }
+      // Save raw onboarding data to unified_user_profiles table (onboarding data is now part of the unified profile)
+      // The onboarding data is already included in the profileData above
 
       return { success: true };
     } catch (error) {
@@ -225,7 +205,7 @@ export class UserProfileService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       const { data, error } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .select("*")
         .eq("id", userId)
         .single();
@@ -254,7 +234,7 @@ export class UserProfileService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("user_profiles")
+        .from("unified_user_profiles")
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
