@@ -10,8 +10,8 @@ export const CleanAuthCallback: React.FC = () => {
       try {
         console.log("🔄 CleanAuthCallback: Starting authentication...");
         
-        // Reduced wait time for faster processing
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Minimal wait time for faster processing
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -31,7 +31,7 @@ export const CleanAuthCallback: React.FC = () => {
           setTimeout(() => {
             // Use replace to prevent back button issues
             window.location.replace("/onboarding");
-          }, 800);
+          }, 1000);
         } else {
           console.log("⚠️ No session found");
           setError("No authentication session found. Please try logging in again.");
