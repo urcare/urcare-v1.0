@@ -5,20 +5,20 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 // Debug logging for production troubleshooting
 const debugLog = (message: string, data?: any) => {
   if (import.meta.env.PROD) {
-    console.log(`🔍 CleanProtectedRoute: ${message}`, data || '');
+    console.log(`🔍 OptimizedCleanProtectedRoute: ${message}`, data || '');
   }
 };
 
-interface CleanProtectedRouteProps {
+interface OptimizedCleanProtectedRouteProps {
   children: React.ReactNode;
   requireOnboardingComplete?: boolean;
 }
 
-export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
+export const OptimizedCleanProtectedRoute: React.FC<OptimizedCleanProtectedRouteProps> = ({
   children,
   requireOnboardingComplete = false,
 }) => {
-  const { user, profile, loading, isInitialized } = useAuth();
+  const { user, profile, loading, isInitialized, onboardingStatus } = useAuth();
   const location = useLocation();
   const hasRedirected = useRef(false);
 
@@ -29,92 +29,64 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
     loading,
     isInitialized,
     requireOnboardingComplete,
-    pathname: location.pathname
-  }), [user?.id, profile?.id, loading, isInitialized, requireOnboardingComplete, location.pathname]);
+    pathname: location.pathname,
+    onboardingStatus
+  }), [user?.id, profile?.id, loading, isInitialized, requireOnboardingComplete, location.pathname, onboardingStatus]);
 
   debugLog('Component rendered', authState);
-  
-  // Log all checks happening in CleanProtectedRoute
-  console.log("🛡️ PROTECTED_ROUTE: CleanProtectedRoute checks:", {
-    hasUser: !!user,
-    userId: user?.id,
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    onboardingCompleted: profile?.onboarding_completed,
-    loading,
-    isInitialized,
-    requireOnboardingComplete,
-    pathname: location.pathname,
-    timestamp: new Date().toISOString()
-  });
 
   // Reset hasRedirected when location changes
   useEffect(() => {
     hasRedirected.current = false;
   }, [location.pathname]);
 
-  // Memoize the loading state check
+  // OPTIMIZED: Use cached onboarding status instead of multiple checks
   const isLoading = useMemo(() => {
     const baseLoading = !isInitialized || loading;
     
-    // If we require onboarding completion and user exists but profile doesn't exist, keep loading
-    if (requireOnboardingComplete && user && !profile) {
+    // If we require onboarding completion and user exists but onboarding status not checked yet, keep loading
+    if (requireOnboardingComplete && user && !onboardingStatus.checked) {
       return true;
     }
     
     return baseLoading;
-  }, [isInitialized, loading, requireOnboardingComplete, user, profile]);
+  }, [isInitialized, loading, requireOnboardingComplete, user, onboardingStatus.checked]);
 
-  // Memoize the redirect logic
+  // OPTIMIZED: Use cached onboarding status for redirect logic
   const redirectLogic = useMemo(() => {
-    console.log("🛡️ PROTECTED_ROUTE: Evaluating redirect logic:", {
-      hasRedirected: hasRedirected.current,
-      hasUser: !!user,
-      hasProfile: !!profile,
-      requireOnboardingComplete,
-      onboardingCompleted: profile?.onboarding_completed,
-      pathname: location.pathname
-    });
-
     // If we've already made a redirect decision, just render
     if (hasRedirected.current) {
-      console.log("🛡️ PROTECTED_ROUTE: Already redirected, rendering children");
       return { type: 'render' as const };
     }
 
     // Redirect to landing if not authenticated
     if (!user) {
-      console.log("🛡️ PROTECTED_ROUTE: No user - redirecting to landing");
       debugLog('Redirecting to landing - no user');
       hasRedirected.current = true;
       return { type: 'landing' as const };
     }
 
-    // If we require onboarding completion but profile doesn't exist, wait for it to load
-    if (requireOnboardingComplete && !profile) {
-      console.log("🛡️ PROTECTED_ROUTE: Require onboarding but no profile - waiting for profile to load");
+    // If we require onboarding completion but onboarding status not checked yet, wait
+    if (requireOnboardingComplete && !onboardingStatus.checked) {
       return { type: 'render' as const };
     }
 
-    // Check onboarding completion if required
-    if (requireOnboardingComplete && profile && profile.onboarding_completed === false) {
-      console.log("🛡️ PROTECTED_ROUTE: Onboarding not completed - redirecting to onboarding");
-      debugLog('Redirecting to onboarding - onboarding not complete');
+    // OPTIMIZED: Use cached onboarding status instead of profile check
+    if (requireOnboardingComplete && onboardingStatus.checked && !onboardingStatus.completed) {
+      debugLog('Redirecting to onboarding - onboarding not complete (cached status)');
       hasRedirected.current = true;
       return { type: 'onboarding' as const };
     }
 
     // If onboarding is completed but user is trying to access onboarding, redirect to dashboard
-    if (profile?.onboarding_completed && location.pathname === "/onboarding") {
-      console.log("🛡️ PROTECTED_ROUTE: Onboarding already completed but on onboarding page - redirecting to dashboard");
-      debugLog('Redirecting to dashboard - onboarding already completed');
+    if (onboardingStatus.checked && onboardingStatus.completed && location.pathname === "/onboarding") {
+      debugLog('Redirecting to dashboard - onboarding already completed (cached status)');
       hasRedirected.current = true;
       return { type: 'dashboard' as const };
     }
 
-    console.log("🛡️ PROTECTED_ROUTE: No redirect needed - rendering children");
     return { type: 'render' as const };
-  }, [user, profile, requireOnboardingComplete, location.pathname]);
+  }, [user, onboardingStatus, requireOnboardingComplete, location.pathname]);
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -124,7 +96,9 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-logo-text border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-text-secondary">Loading...</p>
-          <p className="text-xs text-text-secondary mt-2">Initializing authentication...</p>
+          <p className="text-xs text-text-secondary mt-2">
+            {loading ? "Checking authentication..." : "Initializing..."}
+          </p>
         </div>
       </div>
     );
@@ -147,7 +121,8 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
     pathname: location.pathname,
     requireOnboardingComplete,
     hasProfile: !!profile,
-    onboardingComplete: profile?.onboarding_completed
+    onboardingComplete: onboardingStatus.completed,
+    onboardingChecked: onboardingStatus.checked
   });
 
   return <>{children}</>;
