@@ -84,6 +84,19 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
       return { type: 'dashboard' as const };
     }
 
+    // STEP 5: Handle health assessment access
+    if (location.pathname === "/health-assessment") {
+      // Allow access to health assessment if onboarding is completed
+      if (profile?.onboarding_completed) {
+        return { type: 'render' as const };
+      } else {
+        // If onboarding not completed, redirect to onboarding
+        debugLog('Redirecting to onboarding - required for health assessment');
+        hasRedirected.current = true;
+        return { type: 'onboarding' as const };
+      }
+    }
+
     return { type: 'render' as const };
   }, [user, profile, requireOnboardingComplete, location.pathname]);
 
