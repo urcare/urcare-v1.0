@@ -33,20 +33,6 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
   }), [user?.id, profile?.id, loading, isInitialized, requireOnboardingComplete, location.pathname]);
 
   debugLog('Component rendered', authState);
-  
-  // Log all checks happening in CleanProtectedRoute
-  console.log("🛡️ PROTECTED_ROUTE: CleanProtectedRoute checks:", {
-    hasUser: !!user,
-    userId: user?.id,
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    onboardingCompleted: profile?.onboarding_completed,
-    loading,
-    isInitialized,
-    requireOnboardingComplete,
-    pathname: location.pathname,
-    timestamp: new Date().toISOString()
-  });
 
   // Reset hasRedirected when location changes
   useEffect(() => {
@@ -65,51 +51,23 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
     return baseLoading;
   }, [isInitialized, loading, requireOnboardingComplete, user, profile]);
 
-  // Memoize the redirect logic
+  // SIMPLIFIED: Just check authentication, no complex routing
   const redirectLogic = useMemo(() => {
-    console.log("🛡️ PROTECTED_ROUTE: Evaluating redirect logic:", {
-      hasRedirected: hasRedirected.current,
-      hasUser: !!user,
-      hasProfile: !!profile,
-      requireOnboardingComplete,
-      onboardingCompleted: profile?.onboarding_completed,
-      pathname: location.pathname
-    });
-
     // If we've already made a redirect decision, just render
     if (hasRedirected.current) {
-      console.log("🛡️ PROTECTED_ROUTE: Already redirected, rendering children");
       return { type: 'render' as const };
     }
 
     // Redirect to landing if not authenticated
     if (!user) {
-      console.log("🛡️ PROTECTED_ROUTE: No user - redirecting to landing");
       debugLog('Redirecting to landing - no user');
       hasRedirected.current = true;
       return { type: 'landing' as const };
     }
 
-    // If we require onboarding completion but profile doesn't exist, wait for it to load
-    if (requireOnboardingComplete && !profile) {
-      console.log("🛡️ PROTECTED_ROUTE: Require onboarding but no profile - waiting for profile to load");
-      return { type: 'render' as const };
-    }
-
-    // Check onboarding completion if required
-    if (requireOnboardingComplete && profile && profile.onboarding_completed === false) {
-      console.log("🛡️ PROTECTED_ROUTE: Onboarding not completed - redirecting to onboarding");
-      debugLog('Redirecting to onboarding - onboarding not complete');
-      hasRedirected.current = true;
-      return { type: 'onboarding' as const };
-    }
-
-    // REMOVED: This logic conflicts with SubscriptionFlowHandler
-    // The SubscriptionFlowHandler already handles onboarding completion redirects
-
-    console.log("🛡️ PROTECTED_ROUTE: No redirect needed - rendering children");
+    // SIMPLIFIED: Just render if user is authenticated
     return { type: 'render' as const };
-  }, [user, profile, requireOnboardingComplete, location.pathname]);
+  }, [user]);
 
   // Show loading while checking authentication
   if (isLoading) {

@@ -162,24 +162,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Fetch user profile with caching and timeout
   const fetchUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
-      console.log("🔐 AUTH: fetchUserProfile - Starting profile fetch for user:", userId);
-      
       try {
         // Check cache first
         const cached = profileCache.get(userId);
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          console.log("🔐 AUTH: fetchUserProfile - Using cached profile (age:", Date.now() - cached.timestamp, "ms)");
           return cached.profile;
         }
 
-        console.log("🔐 AUTH: fetchUserProfile - Cache miss or expired, fetching from database");
-        
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
         );
 
-        console.log("🔐 AUTH: fetchUserProfile - Querying user_profiles with timeout protection");
         const profilePromise = supabase
           .from("user_profiles")
           .select("*")
@@ -190,45 +184,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
-        console.log("🔐 AUTH: fetchUserProfile - Database query result:", {
-          hasData: !!data,
-          dataLength: data?.length,
-          error: error?.message,
-          errorCode: error?.code
-        });
-
         if (error) {
-          console.warn("🔐 AUTH: fetchUserProfile - Profile fetch error:", error);
+          console.warn("Profile fetch error:", error);
           return null;
         }
 
         // Get the first (most recent) profile from the array
         const result = data && data.length > 0 ? data[0] as UserProfile : null;
 
-        console.log("🔐 AUTH: fetchUserProfile - Profile processing result:", {
-          hasResult: !!result,
-          resultId: result?.id,
-          onboardingCompleted: result?.onboarding_completed,
-          profileKeys: result ? Object.keys(result) : null
-        });
-
         // Cache the result
         if (result) {
-          console.log("🔐 AUTH: fetchUserProfile - Caching profile result");
           profileCache.set(userId, {
             profile: result,
             timestamp: Date.now(),
           });
-        } else {
-          console.log("🔐 AUTH: fetchUserProfile - No profile data to cache");
         }
 
         return result;
       } catch (error) {
         if (error instanceof Error && error.message === 'Profile fetch timeout') {
-          console.warn("🔐 AUTH: fetchUserProfile - Profile fetch timed out after 8 seconds:", error);
+          console.warn("Profile fetch timed out after 5 seconds:", error);
         } else {
-          console.warn("🔐 AUTH: fetchUserProfile - Profile fetch failed:", error);
+          console.warn("Profile fetch failed:", error);
         }
         return null;
       }
@@ -238,34 +215,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Ensure user profile exists
   const ensureUserProfile = useCallback(async (user: User): Promise<void> => {
-    console.log("🔐 AUTH: ensureUserProfile - Checking if profile exists for user:", user.id);
-    
     try {
       // Check if profile already exists
-      console.log("🔐 AUTH: ensureUserProfile - Querying user_profiles table");
       const { data: existingProfile, error: checkError } = await supabase
         .from("user_profiles")
         .select("id, onboarding_completed")
         .eq("id", user.id)
         .single();
 
-      console.log("🔐 AUTH: ensureUserProfile - Query result:", {
-        hasProfile: !!existingProfile,
-        profileId: existingProfile?.id,
-        onboardingCompleted: existingProfile?.onboarding_completed,
-        error: checkError?.message,
-        errorCode: checkError?.code
-      });
-
       // If profile exists, don't create a new one
       if (existingProfile) {
-        console.log("🔐 AUTH: ensureUserProfile - Profile already exists, skipping creation");
+        console.log("Profile already exists for user:", user.id, "onboarding_completed:", existingProfile.onboarding_completed);
         return;
       }
 
       // If profile doesn't exist, create it
       if (checkError && checkError.code === "PGRST116") {
-        console.log("🔐 AUTH: ensureUserProfile - Profile not found (PGRST116), creating new profile");
+        console.log("Creating new profile for user:", user.id);
         const { error: insertError } = await supabase
           .from("user_profiles")
           .insert([
@@ -277,154 +243,98 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             },
           ]);
 
-        console.log("🔐 AUTH: ensureUserProfile - Profile creation result:", {
-          success: !insertError,
-          error: insertError?.message,
-          errorCode: insertError?.code
-        });
-
         if (insertError) {
-          console.warn("🔐 AUTH: ensureUserProfile - Profile creation failed:", insertError);
+          console.warn("Profile creation failed:", insertError);
         } else {
-          console.log("🔐 AUTH: ensureUserProfile - Profile created successfully, clearing cache");
+          console.log("Profile created successfully for user:", user.id);
           // Clear cache to force refresh
           profileCache.delete(user.id);
         }
-      } else {
-        console.log("🔐 AUTH: ensureUserProfile - Unexpected error checking profile:", checkError);
       }
     } catch (error) {
-      console.warn("🔐 AUTH: ensureUserProfile - Profile ensure failed:", error);
+      console.warn("Profile ensure failed:", error);
     }
   }, []);
 
   // Handle user authentication
   const handleUserAuth = useCallback(
     async (user: User | null) => {
-      console.log("🔐 AUTH: Starting user authentication process");
-      
       if (!user) {
-        console.log("🔐 AUTH: No user provided, clearing auth state");
         setUser(null);
         setProfile(null);
         profileCache.clear();
         return;
       }
 
-      console.log("🔐 AUTH: User authenticated:", {
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-        last_sign_in: user.last_sign_in_at
-      });
-
       setUser(user);
 
       try {
-        console.log("🔐 AUTH: Starting profile operations with timeout protection");
-        
         // Add timeout protection to prevent hanging (increased to 15s for better reliability)
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
         );
         
-        console.log("🔐 AUTH: Step 1 - Ensuring user profile exists");
         const profilePromise = Promise.all([
           ensureUserProfile(user),
           fetchUserProfile(user.id)
         ]);
 
-        console.log("🔐 AUTH: Step 2 - Fetching user profile with timeout");
         const [, userProfile] = await Promise.race([profilePromise, timeoutPromise]) as [void, UserProfile | null];
-
-        console.log("🔐 AUTH: Profile fetch result:", {
-          hasProfile: !!userProfile,
-          profileId: userProfile?.id,
-          onboardingCompleted: userProfile?.onboarding_completed,
-          profileKeys: userProfile ? Object.keys(userProfile) : null
-        });
 
         if (userProfile) {
           // Safety check to ensure we don't set an error object as profile
           if (typeof userProfile === 'object' && ('success' in userProfile || 'error' in userProfile)) {
-            console.log("🔐 AUTH: Profile data appears to be error object, creating minimal profile");
             const minimalProfile = createMinimalProfile(user);
             setProfile(minimalProfile);
           } else {
-            console.log("🔐 AUTH: Setting user profile from database");
             setProfile(userProfile);
           }
         } else {
-          console.log("🔐 AUTH: No profile found in user_profiles, checking onboarding_profiles");
           // If no profile found, check if user has completed onboarding in onboarding_profiles
           try {
-            console.log("🔐 AUTH: Step 3 - Checking onboarding_profiles table");
-            const { data: onboardingData, error: onboardingError } = await supabase
+            const { data: onboardingData } = await supabase
               .from('onboarding_profiles')
               .select('onboarding_completed')
               .eq('user_id', user.id)
               .single();
             
-            console.log("🔐 AUTH: Onboarding profiles check result:", {
-              hasData: !!onboardingData,
-              onboardingCompleted: onboardingData?.onboarding_completed,
-              error: onboardingError?.message
-            });
-            
             const minimalProfile = createMinimalProfile(user);
             // Use onboarding status from onboarding_profiles if available
             minimalProfile.onboarding_completed = onboardingData?.onboarding_completed || false;
-            console.log("🔐 AUTH: Created minimal profile with onboarding status:", minimalProfile.onboarding_completed);
             setProfile(minimalProfile);
           } catch (onboardingError) {
-            console.log("🔐 AUTH: Onboarding profiles check failed, using fallback");
             // Fallback: assume onboarding not completed
             const minimalProfile = createMinimalProfile(user);
             minimalProfile.onboarding_completed = false;
-            console.log("🔐 AUTH: Fallback - created minimal profile with onboarding_completed: false");
             setProfile(minimalProfile);
           }
         }
       } catch (error) {
-        console.log("🔐 AUTH: Profile operations failed, attempting recovery");
-        
         // Log errors for debugging in production
         if (error instanceof Error && error.message === 'Profile fetch timeout') {
-          console.warn("🔐 AUTH: Profile operations timed out after 15 seconds:", error);
+          console.warn("Profile operations timed out after 5 seconds:", error);
         } else {
-          console.error("🔐 AUTH: Profile operations failed:", error);
+          console.error("Profile operations failed:", error);
         }
         
         // Try to get onboarding status from onboarding_profiles before creating minimal profile
         try {
-          console.log("🔐 AUTH: Recovery - checking onboarding_profiles as fallback");
-          const { data: onboardingData, error: onboardingError } = await supabase
+          const { data: onboardingData } = await supabase
             .from('onboarding_profiles')
             .select('onboarding_completed')
             .eq('user_id', user.id)
             .single();
           
-          console.log("🔐 AUTH: Recovery onboarding check result:", {
-            hasData: !!onboardingData,
-            onboardingCompleted: onboardingData?.onboarding_completed,
-            error: onboardingError?.message
-          });
-          
           const minimalProfile = createMinimalProfile(user);
           minimalProfile.onboarding_completed = onboardingData?.onboarding_completed || false;
-          console.log("🔐 AUTH: Recovery - created minimal profile with onboarding status:", minimalProfile.onboarding_completed);
           setProfile(minimalProfile);
         } catch (onboardingError) {
-          console.log("🔐 AUTH: Recovery failed, using final fallback");
           // Fallback: assume onboarding not completed
           const minimalProfile = createMinimalProfile(user);
           minimalProfile.onboarding_completed = false;
-          console.log("🔐 AUTH: Final fallback - created minimal profile with onboarding_completed: false");
           setProfile(minimalProfile);
         }
       }
-      
-      console.log("🔐 AUTH: Authentication process completed");
     },
     [fetchUserProfile, ensureUserProfile]
   );

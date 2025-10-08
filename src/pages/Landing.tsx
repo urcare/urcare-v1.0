@@ -27,17 +27,16 @@ const Landing = () => {
       ) {
         // Add a small delay to ensure auth state is stable and prevent redirect loops
         const redirectTimer = setTimeout(() => {
-          // Double-check that we're still on the landing page and user is still authenticated
-          if (
-            window.location.pathname === "/" &&
-            user &&
-            profile?.onboarding_completed &&
-            !window.location.search.includes('code=') && // Skip if OAuth callback
-            !window.location.href.includes('/auth/callback') && // Skip if coming from auth callback
-            !window.location.href.includes('/auth') // Skip if coming from any auth route
-          ) {
-            navigate("/dashboard", { replace: true }); // Go to dashboard instead of health-assessment
-          }
+        // SIMPLIFIED: If user is authenticated, go to onboarding
+        if (
+          window.location.pathname === "/" &&
+          user &&
+          !window.location.search.includes('code=') && // Skip if OAuth callback
+          !window.location.href.includes('/auth/callback') && // Skip if coming from auth callback
+          !window.location.href.includes('/auth') // Skip if coming from any auth route
+        ) {
+          navigate("/onboarding", { replace: true }); // SIMPLIFIED: Always go to onboarding
+        }
         }, 1000);
         return () => clearTimeout(redirectTimer);
       }

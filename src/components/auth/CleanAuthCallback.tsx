@@ -27,10 +27,10 @@ export const CleanAuthCallback: React.FC = () => {
           console.log("✅ Authentication successful:", session.user.id);
           setStatus('success');
 
-          // Redirect directly to dashboard with a shorter delay for better UX
+          // SIMPLIFIED: Redirect to onboarding
           setTimeout(() => {
             // Use replace to prevent back button issues
-            window.location.replace("/dashboard");
+            window.location.replace("/onboarding");
           }, 800);
         } else {
           console.log("⚠️ No session found");
@@ -72,7 +72,7 @@ export const CleanAuthCallback: React.FC = () => {
         <div className="text-center">
           <div className="text-green-500 text-6xl mb-4">✅</div>
           <h2 className="text-2xl font-bold text-text-primary mb-4">Authentication Successful!</h2>
-          <p className="text-text-secondary mb-6">Redirecting you to your dashboard...</p>
+          <p className="text-text-secondary mb-6">Redirecting you to onboarding...</p>
           <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AdminProvider } from "./contexts/AdminContext";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
-import SubscriptionFlowHandler from "./components/SubscriptionFlowHandler";
+// import SubscriptionFlowHandler from "./components/SubscriptionFlowHandler"; // TEMPORARILY REMOVED
 import AdminLogin from "./pages/AdminLogin";
 import Camera from "./pages/Camera";
 import Dashboard from "./pages/Dashboard";
@@ -49,7 +49,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { CleanProtectedRoute } from "./components/CleanProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
-import { SmartRouteHandler } from "./components/SmartRouteHandler";
+// import { SmartRouteHandler } from "./components/SmartRouteHandler"; // TEMPORARILY REMOVED
 import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
@@ -70,9 +70,7 @@ function App() {
               v7_relativeSplatPath: true,
             }}
           >
-            <SubscriptionFlowHandler>
-              <SmartRouteHandler />
-              <Routes>
+            <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<CleanAuthCallback />} />
@@ -381,7 +379,6 @@ function App() {
           {/* Catch all route */}
           <Route path="*" element={<Landing />} />
         </Routes>
-            </SubscriptionFlowHandler>
         </BrowserRouter>
         </AdminProvider>
       </AuthProvider>

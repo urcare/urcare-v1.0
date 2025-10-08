@@ -19,8 +19,13 @@ const Onboarding: React.FC = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // REMOVED: This logic conflicts with SubscriptionFlowHandler
-  // The SubscriptionFlowHandler already handles onboarding completion redirects
+  // Check if onboarding already completed
+  useEffect(() => {
+    if (profile?.onboarding_completed) {
+      console.log("Onboarding already completed - redirecting to dashboard");
+      navigate("/dashboard", { replace: true });
+    }
+  }, [profile, navigate]);
 
   const handleOnboardingComplete = async (data: OnboardingData) => {
     if (!user) {
