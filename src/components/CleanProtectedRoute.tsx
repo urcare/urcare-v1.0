@@ -51,7 +51,7 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
     return baseLoading;
   }, [isInitialized, loading, requireOnboardingComplete, user, profile]);
 
-  // SIMPLIFIED: Just check authentication, no complex routing
+  // STEP 1: Add onboarding completion check
   const redirectLogic = useMemo(() => {
     // If we've already made a redirect decision, just render
     if (hasRedirected.current) {
@@ -65,9 +65,27 @@ export const CleanProtectedRoute: React.FC<CleanProtectedRouteProps> = ({
       return { type: 'landing' as const };
     }
 
-    // SIMPLIFIED: Just render if user is authenticated
+    // If we require onboarding completion but profile doesn't exist, wait for it to load
+    if (requireOnboardingComplete && !profile) {
+      return { type: 'render' as const };
+    }
+
+    // Check onboarding completion if required
+    if (requireOnboardingComplete && profile && profile.onboarding_completed === false) {
+      debugLog('Redirecting to onboarding - onboarding not complete');
+      hasRedirected.current = true;
+      return { type: 'onboarding' as const };
+    }
+
+    // If onboarding is completed but user is trying to access onboarding, redirect to dashboard
+    if (profile?.onboarding_completed && location.pathname === "/onboarding") {
+      debugLog('Redirecting to dashboard - onboarding already completed');
+      hasRedirected.current = true;
+      return { type: 'dashboard' as const };
+    }
+
     return { type: 'render' as const };
-  }, [user]);
+  }, [user, profile, requireOnboardingComplete, location.pathname]);
 
   // Show loading while checking authentication
   if (isLoading) {

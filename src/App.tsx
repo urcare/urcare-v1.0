@@ -50,6 +50,7 @@ import { CleanProtectedRoute } from "./components/CleanProtectedRoute";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { CleanAuthCallback } from "./components/auth/CleanAuthCallback";
 // import { SmartRouteHandler } from "./components/SmartRouteHandler"; // TEMPORARILY REMOVED
+import { SimpleSubscriptionHandler } from "./components/SimpleSubscriptionHandler";
 import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
               v7_relativeSplatPath: true,
             }}
           >
+            <SimpleSubscriptionHandler />
             <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
