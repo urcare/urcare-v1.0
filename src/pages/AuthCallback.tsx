@@ -58,12 +58,53 @@ const AuthCallback = () => {
           }
           
           setStatus('success');
-          setMessage('Authentication successful! Profile saved. Redirecting...');
+          setMessage('Authentication successful! Profile saved. Checking user status...');
           
-          // Simple redirect to landing page
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 2000);
+          // Check user status and redirect accordingly
+          try {
+            // Check onboarding completion
+            const { data: onboardingData, error: onboardingError } = await supabase
+              .from('onboarding_profiles')
+              .select('onboarding_completed')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (onboardingError || !onboardingData?.onboarding_completed) {
+              // User hasn't completed onboarding - redirect to welcome
+              console.log('📝 User needs to complete onboarding, redirecting to welcome');
+              setTimeout(() => {
+                navigate('/welcome', { replace: true });
+              }, 2000);
+            } else {
+              // User has completed onboarding - check subscription status
+              const { data: subscriptionData, error: subscriptionError } = await supabase
+                .from('user_subscriptions')
+                .select('status')
+                .eq('user_id', session.user.id)
+                .eq('status', 'active')
+                .single();
+
+              if (subscriptionError || !subscriptionData) {
+                // No active subscription - redirect to health assessment
+                console.log('💳 No active subscription, redirecting to health assessment');
+                setTimeout(() => {
+                  navigate('/health-assessment', { replace: true });
+                }, 2000);
+              } else {
+                // User has active subscription - redirect to dashboard
+                console.log('✅ User has active subscription, redirecting to dashboard');
+                setTimeout(() => {
+                  navigate('/dashboard', { replace: true });
+                }, 2000);
+              }
+            }
+          } catch (error) {
+            console.error('Error checking user status:', error);
+            // Fallback to welcome screen
+            setTimeout(() => {
+              navigate('/welcome', { replace: true });
+            }, 2000);
+          }
         } else {
           setStatus('error');
           setMessage('No user session found. Please try again.');
