@@ -20,13 +20,24 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
   const [routeDecision, setRouteDecision] = useState<RouteDecision | null>(null);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const checkAuthAndRoute = async () => {
       try {
         setIsChecking(true);
         
+        // Add timeout to prevent infinite loops
+        timeoutId = setTimeout(() => {
+          console.log('⚠️ RouteGuard: Timeout reached, allowing access to prevent infinite loop');
+          setIsChecking(false);
+        }, 5000); // 5 second timeout
+        
         // Get current auth state
         const currentAuthState = await authUtils.getAuthState();
         setAuthState(currentAuthState);
+        
+        // Clear timeout since we got a response
+        if (timeoutId) clearTimeout(timeoutId);
 
         // Quick check: If not authenticated and auth is required, redirect immediately
         if (requiredAuth && !currentAuthState.isAuthenticated) {
@@ -80,6 +91,11 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     };
 
     checkAuthAndRoute();
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [location.pathname, navigate, requiredAuth, allowedPaths]);
 
   // Show loading while checking auth

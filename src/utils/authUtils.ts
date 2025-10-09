@@ -77,12 +77,19 @@ class AuthUtils {
         .eq('user_id', userId)
         .single();
 
-      if (error || !onboardingProfile) {
+      if (error) {
+        console.log('Onboarding check error:', error);
+        // If table doesn't exist or no record, assume onboarding not completed
+        return false;
+      }
+
+      if (!onboardingProfile) {
         return false;
       }
 
       return onboardingProfile.onboarding_completed === true;
-    } catch {
+    } catch (error) {
+      console.log('Onboarding check exception:', error);
       return false;
     }
   }
@@ -114,12 +121,18 @@ class AuthUtils {
         .eq('user_id', userId)
         .single();
 
-      if (error || !onboardingProfile) {
+      if (error) {
+        console.log('Health assessment check error:', error);
+        return false;
+      }
+
+      if (!onboardingProfile) {
         return false;
       }
 
       return onboardingProfile.health_assessment_completed === true;
-    } catch {
+    } catch (error) {
+      console.log('Health assessment check exception:', error);
       return false;
     }
   }
