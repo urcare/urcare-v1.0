@@ -4,8 +4,18 @@ import { createClient } from "@supabase/supabase-js";
 // Determine redirect URL based on environment
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const redirectUrl = isLocalhost 
-  ? `${window.location.origin}/auth/callback`
+  ? `${window.location.origin}/auth/callback`  // Use auth/callback for localhost
   : config.supabase.redirectUrl;
+
+// Debug logging
+console.log('🔧 Supabase redirect configuration:', {
+  hostname: window.location.hostname,
+  origin: window.location.origin,
+  isLocalhost,
+  redirectUrl,
+  configRedirectUrl: config.supabase.redirectUrl,
+  finalRedirectUrl: redirectUrl
+});
 
 // Supabase client configuration - Cache bust: 2024-01-15
 

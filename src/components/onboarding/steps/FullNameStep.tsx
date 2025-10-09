@@ -27,4 +27,4 @@ export const FullNameStep: React.FC<FullNameStepProps> = ({ value, onChange, err
       )}
     </div>
   </div>
-); 
+);

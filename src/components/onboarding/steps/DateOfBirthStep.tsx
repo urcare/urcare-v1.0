@@ -1,5 +1,4 @@
 import React from 'react';
-import { getMonths, getDays, getYears } from '../common/helpers';
 
 interface DateOfBirthStepProps {
   month: string;
@@ -8,6 +7,33 @@ interface DateOfBirthStepProps {
   onChange: (field: 'birthMonth' | 'birthDay' | 'birthYear', value: string) => void;
   error?: string;
 }
+
+// Helper functions for date picker
+const getMonths = () => [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const getDays = () => Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+
+const getYears = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = currentYear - 100; year <= currentYear; year++) {
+    years.push(year.toString());
+  }
+  return years;
+};
 
 // Custom Wheel Picker Component
 interface WheelPickerProps {
@@ -308,4 +334,4 @@ export const DateOfBirthStep: React.FC<DateOfBirthStepProps> = ({ month, day, ye
       </div>
     )}
   </div>
-); 
+);

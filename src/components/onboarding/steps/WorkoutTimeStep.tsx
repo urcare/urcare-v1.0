@@ -31,11 +31,15 @@ export const WorkoutTimeStep: React.FC<WorkoutTimeStepProps> = ({
               <button
                 key={option.value}
                 onClick={() => onChange(option.value)}
-                className={`p-6 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-3 ${
-                  value === option.value
-                    ? "border-primary bg-primary text-white shadow-lg scale-105"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
-                }`}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-3 ${
+                      value === option.value
+                        ? "text-white shadow-lg scale-105"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                    style={value === option.value ? { 
+                      borderColor: '#008000', 
+                      backgroundColor: '#008000' 
+                    } : {}}
               >
                 <IconComponent
                   className={`w-8 h-8 ${

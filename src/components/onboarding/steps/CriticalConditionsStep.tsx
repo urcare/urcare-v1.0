@@ -25,4 +25,4 @@ export const CriticalConditionsStep: React.FC<CriticalConditionsStepProps> = ({ 
       </div>
     )}
   </div>
-); 
+);

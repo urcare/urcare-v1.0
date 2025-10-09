@@ -139,9 +139,13 @@ export const RoutineFlexibilityStep: React.FC<RoutineFlexibilityStepProps> = ({
               onClick={() => onChange("3")}
               className={`p-3 rounded-xl border-2 transition-all duration-200 text-sm ${
                 value === "3"
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+                  ? "text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={value === "3" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               Somewhat Rigid
             </button>
@@ -149,9 +153,13 @@ export const RoutineFlexibilityStep: React.FC<RoutineFlexibilityStepProps> = ({
               onClick={() => onChange("5")}
               className={`p-3 rounded-xl border-2 transition-all duration-200 text-sm ${
                 value === "5"
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+                  ? "text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={value === "5" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               Flexible
             </button>
@@ -159,9 +167,13 @@ export const RoutineFlexibilityStep: React.FC<RoutineFlexibilityStepProps> = ({
               onClick={() => onChange("7")}
               className={`p-3 rounded-xl border-2 transition-all duration-200 text-sm ${
                 value === "7"
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+                  ? "text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={value === "7" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               Very Flexible
             </button>
@@ -169,9 +181,13 @@ export const RoutineFlexibilityStep: React.FC<RoutineFlexibilityStepProps> = ({
               onClick={() => onChange("10")}
               className={`p-3 rounded-xl border-2 transition-all duration-200 text-sm ${
                 value === "10"
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+                  ? "text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={value === "10" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               Maximum Flexibility
             </button>

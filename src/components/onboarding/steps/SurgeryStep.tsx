@@ -30,9 +30,13 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
           onClick={() => onHasSurgeryChange("Yes")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
             hasSurgery === "Yes"
-              ? "border-gray-900 bg-gray-900 text-white"
-              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+              ? "text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
           }`}
+          style={hasSurgery === "Yes" ? { 
+            borderColor: '#008000', 
+            backgroundColor: '#008000' 
+          } : {}}
         >
           Yes
         </button>
@@ -40,9 +44,13 @@ export const SurgeryStep: React.FC<SurgeryStepProps> = ({
           onClick={() => onHasSurgeryChange("No")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
             hasSurgery === "No"
-              ? "border-gray-900 bg-gray-900 text-white"
-              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+              ? "text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
           }`}
+          style={hasSurgery === "No" ? { 
+            borderColor: '#008000', 
+            backgroundColor: '#008000' 
+          } : {}}
         >
           No
         </button>

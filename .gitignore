@@ -37,3 +37,6 @@ env.production
 .env
 .env
 .vercel
+
+# Backup folders
+backup1/

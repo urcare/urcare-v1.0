@@ -41,9 +41,13 @@ export const HealthReportsStep: React.FC<HealthReportsStepProps> = ({
               onClick={() => onHasHealthReportsChange("Yes")}
               className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
                 hasHealthReports === "Yes"
-                  ? "border-primary bg-primary text-white shadow-lg scale-105"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
+                  ? "text-white shadow-lg scale-105"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={hasHealthReports === "Yes" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               <FileText className="w-6 h-6" />
               <span className="font-semibold">Yes</span>
@@ -52,9 +56,13 @@ export const HealthReportsStep: React.FC<HealthReportsStepProps> = ({
               onClick={() => onHasHealthReportsChange("No")}
               className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
                 hasHealthReports === "No"
-                  ? "border-primary bg-primary text-white shadow-lg scale-105"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
+                  ? "text-white shadow-lg scale-105"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
+              style={hasHealthReports === "No" ? { 
+                borderColor: '#008000', 
+                backgroundColor: '#008000' 
+              } : {}}
             >
               <X className="w-6 h-6" />
               <span className="font-semibold">No</span>

@@ -1,135 +1,127 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { razorpaySubscriptionService } from '@/services/razorpaySubscriptionService';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { subscriptionService } from '@/services/subscriptionService';
+import { supabase } from '@/integrations/supabase/client';
+import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PaymentSuccess: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isProcessing, setIsProcessing] = useState(true);
-  const [subscriptionCreated, setSubscriptionCreated] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState('Processing your payment...');
 
   useEffect(() => {
-    const handlePaymentSuccess = async () => {
-      if (!user) {
-        console.error('No user found for payment success');
-        navigate('/');
-        return;
-      }
-
+    const processPayment = async () => {
       try {
-        // Get payment data from URL parameters or location state
-        const urlParams = new URLSearchParams(location.search);
-        const paymentId = urlParams.get('payment_id') || location.state?.paymentId;
-        const orderId = urlParams.get('order_id') || location.state?.orderId;
-        const amount = urlParams.get('amount') || location.state?.amount;
-        const planSlug = urlParams.get('plan') || location.state?.planSlug || 'basic';
-        const billingCycle = urlParams.get('cycle') || location.state?.billingCycle || 'monthly';
+        // Get URL parameters
+        const plan = searchParams.get('plan');
+        const cycle = searchParams.get('cycle');
+        const paymentId = searchParams.get('razorpay_payment_id');
+        const orderId = searchParams.get('razorpay_order_id');
 
-        console.log('🎉 Payment success data:', {
-          paymentId,
-          orderId,
-          amount,
-          planSlug,
-          billingCycle
-        });
+        console.log('Payment success callback:', { plan, cycle, paymentId, orderId });
 
-        if (!paymentId) {
-          console.error('No payment ID found');
-          toast.error('Payment verification failed');
-          navigate('/paywall');
-          return;
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          throw new Error('User not authenticated');
         }
 
-        // Create subscription from payment
-        const paymentData = {
-          paymentId,
-          orderId,
-          amount: amount ? parseInt(amount) : 0,
-          currency: 'INR',
-          status: 'captured' as const,
-          userId: user.id,
-          planSlug,
-          billingCycle: billingCycle as 'monthly' | 'yearly',
-          timestamp: new Date().toISOString()
-        };
+        // Convert plan parameter to billing cycle
+        const billingCycle = cycle === 'yearly' ? 'annual' : 'monthly';
 
-        console.log('💳 Creating subscription from payment:', paymentData);
+        if (paymentId) {
+          // Handle payment success
+          await subscriptionService.handlePaymentSuccess(
+            user.id,
+            billingCycle,
+            paymentId,
+            'UrCare Basic'
+          );
 
-        const success = await razorpaySubscriptionService.createSubscriptionFromPayment(paymentData);
+          setStatus('success');
+          setMessage('Payment successful! Welcome to UrCare Pro!');
+          toast.success('🎉 Payment successful! Welcome to UrCare Pro!');
 
-        if (success) {
-          setSubscriptionCreated(true);
-          toast.success('🎉 Payment successful! Your subscription is now active!');
-          
-          // Wait a moment then redirect to dashboard
+          // Redirect to dashboard after 3 seconds
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
           }, 3000);
         } else {
-          toast.error('Failed to create subscription. Please contact support.');
-          navigate('/paywall');
+          throw new Error('Payment ID not found');
         }
-
       } catch (error) {
-        console.error('❌ Error processing payment success:', error);
-        toast.error('Error processing payment. Please contact support.');
-        navigate('/paywall');
-      } finally {
-        setIsProcessing(false);
+        console.error('Payment processing error:', error);
+        setStatus('error');
+        setMessage('Payment processing failed. Please contact support.');
+        toast.error('Payment processing failed. Please contact support.');
       }
     };
 
-    handlePaymentSuccess();
-  }, [user, navigate, location]);
+    processPayment();
+  }, [searchParams, navigate]);
 
-  if (isProcessing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#88ba82] to-[#95c190]">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 text-white animate-spin mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Processing Payment...</h2>
-          <p className="text-white/80">Please wait while we verify your payment and activate your subscription.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleRetry = () => {
+    navigate('/paywall');
+  };
 
-  if (subscriptionCreated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#88ba82] to-[#95c190]">
-        <div className="text-center max-w-md mx-auto px-6">
-          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-white mb-4">Payment Successful!</h1>
-          <p className="text-white/90 text-lg mb-6">
-            Your subscription has been activated successfully. You now have access to all UrCare features.
-          </p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
-            <p className="text-white text-sm">
-              Redirecting you to your dashboard in a moment...
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="bg-white text-[#88ba82] px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#88ba82] to-[#95c190]">
-      <div className="text-center max-w-md mx-auto px-6">
-        <h1 className="text-3xl font-bold text-white mb-4">Payment Processing</h1>
-        <p className="text-white/90 text-lg mb-6">
-          We're setting up your subscription. Please wait...
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+        {status === 'loading' && (
+          <>
+            <Loader2 className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Processing Payment</h1>
+            <p className="text-gray-600">{message}</p>
+          </>
+        )}
+
+        {status === 'success' && (
+          <>
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+            <p className="text-gray-600 mb-6">{message}</p>
+            <div className="space-y-3">
+              <button
+                onClick={handleDashboard}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+              >
+                Go to Dashboard
+              </button>
+              <p className="text-sm text-gray-500">
+                Redirecting automatically in a few seconds...
+              </p>
+            </div>
+          </>
+        )}
+
+        {status === 'error' && (
+          <>
+            <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Failed</h1>
+            <p className="text-gray-600 mb-6">{message}</p>
+            <div className="space-y-3">
+              <button
+                onClick={handleRetry}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={handleDashboard}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

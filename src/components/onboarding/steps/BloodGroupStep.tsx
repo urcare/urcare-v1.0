@@ -22,11 +22,15 @@ export const BloodGroupStep: React.FC<BloodGroupStepProps> = ({
             <button
               key={bloodGroup}
               onClick={() => onChange(bloodGroup)}
-              className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-2 ${
-                value === bloodGroup
-                  ? "border-red-500 bg-red-500 text-white shadow-lg scale-105"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
-              }`}
+                  className={`p-4 rounded-2xl border-2 transition-all duration-200 text-center font-medium flex flex-col items-center gap-2 ${
+                    value === bloodGroup
+                      ? "text-white shadow-lg scale-105"
+                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                  style={value === bloodGroup ? { 
+                    borderColor: '#008000', 
+                    backgroundColor: '#008000' 
+                  } : {}}
             >
               <Droplets
                 className={`w-6 h-6 ${

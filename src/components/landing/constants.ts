@@ -59,7 +59,7 @@ export const GRID_IMAGES = [
 // Common styles for the landing page
 export const COMMON_STYLES = {
   button: {
-    primary: "w-full max-w-sm bg-gray-900 hover:bg-gray-800 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl",
+    primary: "w-full max-w-sm text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl",
     secondary: "w-full max-w-sm bg-transparent border-gray-300 text-gray-900 hover:bg-gray-50 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl text-base sm:text-lg font-medium transition-all duration-300",
   },
   grid: "grid grid-cols-3 gap-2 sm:gap-3 h-[35vh] sm:h-[45vh] mb-4 sm:mb-6 flex-shrink-0"

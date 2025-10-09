@@ -26,4 +26,4 @@ export const ReferralCodeStep: React.FC<ReferralCodeStepProps> = ({ value, onCha
       </div>
     )}
   </div>
-); 
+);

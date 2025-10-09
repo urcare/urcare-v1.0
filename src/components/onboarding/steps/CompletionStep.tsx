@@ -17,7 +17,7 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
           <div className="w-48 h-48 rounded-full bg-gradient-to-r from-pink-200 to-blue-200 p-1">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
               {/* Large tick mark */}
-              <CheckCircle className="w-20 h-20 text-primary" />
+              <CheckCircle className="w-20 h-20" style={{ color: '#008000' }} />
             </div>
           </div>
         </div>
@@ -42,10 +42,10 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
       <div className="pt-4">
         <button
           onClick={() => {
-            console.log("CompletionStep: Continue to Health Assessment clicked");
             onContinue();
           }}
-          className="w-full bg-primary text-white py-4 px-6 rounded-2xl font-medium hover:bg-primary/90 transition-colors"
+          className="w-full text-white py-4 px-6 rounded-2xl font-medium transition-colors"
+          style={{ backgroundColor: '#008000' }}
         >
           Continue to Health Assessment
         </button>

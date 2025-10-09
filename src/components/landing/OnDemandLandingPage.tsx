@@ -67,6 +67,7 @@ export const OnDemandLandingPage = ({
               <Button
                 onClick={onGetStarted}
                 className={COMMON_STYLES.button.primary}
+                style={{ backgroundColor: '#008000' }}
               >
                 Get started
               </Button>

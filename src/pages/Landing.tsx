@@ -1,5 +1,6 @@
 // Cache bust: 2024-01-15 - Clean authentication popup
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SplashScreen } from "@/components/ui/SplashScreen";
@@ -12,6 +13,7 @@ const Landing = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
   const [splashDone, setSplashDone] = useState(false);
+  const navigate = useNavigate();
 
   // Handle splash screen completion
   const handleSplashComplete = () => {
@@ -30,6 +32,28 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
+  // Check for authenticated user and redirect to welcome screen
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log('🔐 User authenticated, redirecting to welcome screen');
+          navigate('/welcome', { replace: true });
+        }
+      } catch (error) {
+        console.log('🔐 No authenticated user found');
+      }
+    };
+
+    // Check auth after splash screen is done
+    if (splashDone) {
+      checkAuth();
+    }
+  }, [splashDone, navigate]);
+
   // Auth handlers (now with real authentication)
   const handleGetStarted = () => {
     setAuthMode("signup");
@@ -43,26 +67,36 @@ const Landing = () => {
 
   const handleAuthOptionClick = async (provider: string) => {
     try {
+      const redirectUrl = `${window.location.origin}/auth/callback`; // Use auth/callback for localhost
+      console.log('🔗 Current origin:', window.location.origin); // Debug log
+      console.log('🔗 Redirect URL:', redirectUrl); // Debug log
+      
       if (provider === "Google") {
         const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/`,
+            redirectTo: redirectUrl, // Explicitly set localhost redirect
           },
         });
         if (error) throw error;
-        if (data?.url) window.location.replace(data.url);
+        if (data?.url) {
+          console.log('🔗 OAuth URL:', data.url); // Debug log
+          window.location.replace(data.url);
+        }
       } else if (provider === "Apple") {
         const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'apple',
           options: {
-            redirectTo: `${window.location.origin}/`,
+            redirectTo: redirectUrl, // Explicitly set localhost redirect
           },
         });
         if (error) throw error;
-        if (data?.url) window.location.replace(data.url);
+        if (data?.url) {
+          console.log('🔗 OAuth URL:', data.url); // Debug log
+          window.location.replace(data.url);
+        }
       } else if (provider === "Email") {
         // Show email form
         toast.info("Email authentication coming soon!");

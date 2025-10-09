@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -86,6 +85,7 @@ interface SerialOnboardingProps {
 }
 
 const steps = [
+  // Basic Information (1-4)
   { id: "fullName", title: "What's your full name?", type: "text", icon: User },
   {
     id: "dateOfBirth",
@@ -100,12 +100,16 @@ const steps = [
     type: "heightWeight",
     icon: Ruler,
   },
+  
+  // Demographics (5)
   {
     id: "demographics",
     title: "Where are you located?",
     type: "demographics",
     icon: User,
   },
+  
+  // Daily Schedule (6-7)
   {
     id: "sleepSchedule",
     title: "Sleep schedule",
@@ -118,6 +122,8 @@ const steps = [
     type: "timeRange",
     icon: Briefcase,
   },
+  
+  // Health Information (8-12)
   {
     id: "chronicConditions",
     title: "Do you have these conditions?",
@@ -126,6 +132,15 @@ const steps = [
   },
   { id: "medications", title: "Medications", type: "medications", icon: User },
   { id: "surgery", title: "Surgery history", type: "surgery", icon: User },
+  { id: "bloodGroup", title: "Blood group", type: "bloodGroup", icon: Weight },
+  {
+    id: "criticalConditions",
+    title: "Critical conditions",
+    type: "textArea",
+    icon: User,
+  },
+  
+  // Health Goals & Lifestyle (13-16)
   {
     id: "healthGoals",
     title: "What do you want to achieve?",
@@ -133,12 +148,31 @@ const steps = [
     icon: User,
   },
   { id: "dietType", title: "Diet type", type: "dietChoice", icon: User },
-  { id: "bloodGroup", title: "Blood group", type: "bloodGroup", icon: Weight },
   {
     id: "mealTimings",
     title: "Meal timings",
     type: "mealTimings",
     icon: Clock,
+  },
+  {
+    id: "smoking",
+    title: "Smoking habits",
+    type: "smoking",
+    icon: User,
+  },
+  
+  // Exercise & Fitness (17-20)
+  {
+    id: "drinking",
+    title: "Alcohol consumption",
+    type: "drinking",
+    icon: User,
+  },
+  {
+    id: "workoutType",
+    title: "Workout type",
+    type: "workoutType",
+    icon: User,
   },
   {
     id: "workoutTime",
@@ -152,35 +186,13 @@ const steps = [
     type: "slider",
     icon: User,
   },
-  {
-    id: "workoutType",
-    title: "Workout type",
-    type: "workoutType",
-    icon: User,
-  },
-  {
-    id: "smoking",
-    title: "Smoking habits",
-    type: "smoking",
-    icon: User,
-  },
-  {
-    id: "drinking",
-    title: "Alcohol consumption",
-    type: "drinking",
-    icon: User,
-  },
+  
+  // Additional Features (21-24)
   {
     id: "trackFamily",
     title: "Family tracking",
     type: "yesNoChoice",
     icon: Users,
-  },
-  {
-    id: "criticalConditions",
-    title: "Critical conditions",
-    type: "textArea",
-    icon: User,
   },
   {
     id: "healthReports",
@@ -637,7 +649,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
   onComplete,
   onBack,
 }) => {
-  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     fullName: "",
@@ -825,13 +836,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
   };
 
   const handleNext = () => {
-    console.log(
-      "SerialOnboarding: handleNext called, currentStep:",
-      currentStep,
-      "totalSteps:",
-      steps.length
-    );
-
     if (validateStep(currentStep)) {
       // Calculate age when completing date of birth step
       if (steps[currentStep].id === "dateOfBirth") {
@@ -858,30 +862,13 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         setData(updatedData);
       }
 
-      // Check if this is the referral step (second to last)
-      if (currentStep === steps.length - 2) {
-        console.log("SerialOnboarding: Moving to completion step");
-        // Move to completion step
-        setCurrentStep(currentStep + 1);
-        return;
-      }
-
       // Check if this is the completion step (last step)
       if (currentStep === steps.length - 1) {
-        console.log(
-          "SerialOnboarding: Completion step - calling onComplete with data:",
-          data
-        );
-        // Save all onboarding data to database
-        console.log("Saving onboarding data at completion step:", data);
         onComplete(data);
         return;
       } else {
-        console.log("SerialOnboarding: Moving to next step");
         setCurrentStep(currentStep + 1);
       }
-    } else {
-      console.log("SerialOnboarding: Validation failed for step:", currentStep);
     }
   };
 
@@ -1197,8 +1184,6 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         return (
           <CompletionStep
             onContinue={() => {
-              console.log("SerialOnboarding: Completion step continue clicked - calling onComplete with data:", data);
-              // Call onComplete to trigger the parent's completion handler
               onComplete(data);
             }}
           />
@@ -1225,8 +1210,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
         <div className="flex-1 max-w-xs">
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
+              className="h-2 rounded-full transition-all duration-300"
+              style={{ backgroundColor: '#008000', width: `${progress}%` }}
             ></div>
           </div>
         </div>
@@ -1282,7 +1267,8 @@ export const SerialOnboarding: React.FC<SerialOnboardingProps> = ({
           >
             <Button
               onClick={handleNext}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full text-white py-4 px-8 rounded-2xl text-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              style={{ backgroundColor: '#008000' }}
             >
               {currentStep === steps.length - 2 ? "Continue" : "Continue"}
             </Button>

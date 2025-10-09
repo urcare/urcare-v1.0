@@ -1,99 +1,57 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { onboardingService, type OnboardingData } from "@/services/onboardingService";
-import { SerialOnboarding } from "@/components/onboarding/SerialOnboarding";
-import { AuthOptions } from "@/components/auth/AuthOptions";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SerialOnboarding } from '@/components/onboarding/SerialOnboarding';
+import { onboardingService } from '@/services/onboardingService';
 
-const Onboarding: React.FC = () => {
+const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, profile, refreshProfile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Redirect if user is not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log("No user detected - redirecting to landing page");
-      navigate("/", { replace: true });
-    }
-  }, [user, authLoading, navigate]);
+  // Auth checks are now handled by RouteGuard
 
-  // Check if onboarding already completed
-  useEffect(() => {
-    if (profile?.onboarding_completed) {
-      console.log("Onboarding already completed - redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
-    }
-  }, [profile, navigate]);
-
-  const handleOnboardingComplete = async (data: OnboardingData) => {
-    if (!user) {
-      toast.error("User not found. Please log in again.");
-      navigate("/", { replace: true });
-      return;
-    }
-
+  const handleComplete = async (data: any) => {
     setLoading(true);
-
     try {
-      console.log("Completing onboarding with data:", data);
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Save onboarding data with authenticated user
-      const result = await onboardingService.saveOnboardingData(user, data);
-      
-      if (result.success) {
-        toast.success("Onboarding completed successfully!");
+      if (session?.user) {
+        console.log("💾 Saving onboarding data for user:", session.user.id);
+        console.log("📊 Data being saved:", data);
         
-        // Refresh profile to update the context (with timeout handling)
-        try {
-          await refreshProfile();
-        } catch (error) {
-          console.warn("Profile refresh failed, but onboarding was successful:", error);
-          // Continue with navigation even if profile refresh fails
-        }
+        // Save onboarding data to database
+        await onboardingService.saveOnboardingData(session.user.id, data);
         
-        // Redirect to health assessment after a short delay
-        setTimeout(() => {
-          navigate("/health-assessment", { replace: true });
-        }, 1000);
-      } else {
-        console.error("Onboarding save failed:", result.error);
-        toast.error("Failed to save onboarding data", {
-          description: result.error || "Please try again."
-        });
+        console.log("✅ Onboarding data saved successfully!");
+        
+        // Navigate to health assessment (next step in flow)
+        navigate("/health-assessment", { replace: true });
       }
     } catch (error) {
-      console.error("Error completing onboarding:", error);
-      toast.error("Failed to complete onboarding", {
-        description: error instanceof Error ? error.message : "Please try again."
-      });
+      console.error("❌ Error saving onboarding data:", error);
+      // Still navigate to health assessment even if save fails
+      navigate("/health-assessment", { replace: true });
     } finally {
       setLoading(false);
     }
   };
 
-  // Show loading while auth is being checked or data is being saved
-  if (authLoading || loading) {
+  const handleBack = () => {
+    navigate("/welcome", { replace: true });
+  };
+
+  if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-app-bg">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-logo-text border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-secondary">
-            {authLoading ? "Checking authentication..." : "Saving your data and updating profile..."}
-          </p>
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Saving your information...</p>
         </div>
       </div>
     );
   }
 
-  // Show onboarding form
-  return (
-    <SerialOnboarding
-      onComplete={handleOnboardingComplete}
-      onBack={() => navigate("/")}
-    />
-  );
+  return <SerialOnboarding onComplete={handleComplete} onBack={handleBack} />;
 };
 
 export default Onboarding;

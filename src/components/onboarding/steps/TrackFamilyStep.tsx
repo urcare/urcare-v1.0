@@ -24,22 +24,30 @@ export const TrackFamilyStep: React.FC<TrackFamilyStepProps> = ({
         <div className="flex justify-center space-x-4">
           <button
             onClick={() => onChange("Yes")}
-            className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
-              value === "Yes"
-                ? "border-primary bg-primary text-white shadow-lg scale-105"
-                : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
-            }`}
+                className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
+                  value === "Yes"
+                    ? "text-white shadow-lg scale-105"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+                style={value === "Yes" ? { 
+                  borderColor: '#008000', 
+                  backgroundColor: '#008000' 
+                } : {}}
           >
             <Users className="w-6 h-6" />
             <span className="font-semibold">Yes</span>
           </button>
           <button
             onClick={() => onChange("No")}
-            className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
-              value === "No"
-                ? "border-primary bg-primary text-white shadow-lg scale-105"
-                : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
-            }`}
+                className={`px-8 py-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 ${
+                  value === "No"
+                    ? "text-white shadow-lg scale-105"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+                style={value === "No" ? { 
+                  borderColor: '#008000', 
+                  backgroundColor: '#008000' 
+                } : {}}
           >
             <UserX className="w-6 h-6" />
             <span className="font-semibold">No</span>

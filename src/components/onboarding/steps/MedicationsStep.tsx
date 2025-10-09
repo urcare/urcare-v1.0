@@ -30,9 +30,13 @@ export const MedicationsStep: React.FC<MedicationsStepProps> = ({
           onClick={() => onTakesMedicationsChange("Yes")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
             takesMedications === "Yes"
-              ? "border-gray-900 bg-gray-900 text-white"
-              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+              ? "text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
           }`}
+          style={takesMedications === "Yes" ? { 
+            borderColor: '#008000', 
+            backgroundColor: '#008000' 
+          } : {}}
         >
           Yes
         </button>
@@ -40,9 +44,13 @@ export const MedicationsStep: React.FC<MedicationsStepProps> = ({
           onClick={() => onTakesMedicationsChange("No")}
           className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
             takesMedications === "No"
-              ? "border-gray-900 bg-gray-900 text-white"
-              : "border-gray-200 bg-white text-gray-700 hover:border-primary/30"
+              ? "text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
           }`}
+          style={takesMedications === "No" ? { 
+            borderColor: '#008000', 
+            backgroundColor: '#008000' 
+          } : {}}
         >
           No
         </button>

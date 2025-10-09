@@ -132,9 +132,13 @@ export const HealthGoalsStep: React.FC<HealthGoalsStepProps> = ({
                   onClick={() => onToggle(goal.id)}
                   className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
                     selected.includes(goal.id)
-                      ? "border-gray-900 bg-gray-900 text-white shadow-lg scale-105"
-                      : "border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-primary/5"
+                      ? "text-white shadow-lg scale-105"
+                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
                   }`}
+                  style={selected.includes(goal.id) ? { 
+                    borderColor: '#008000', 
+                    backgroundColor: '#008000' 
+                  } : {}}
                 >
                   <div className="space-y-1">
                     <span className="font-medium text-sm block">
