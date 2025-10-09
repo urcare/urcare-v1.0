@@ -32,27 +32,7 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Check for authenticated user and redirect to welcome screen
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log('🔐 User authenticated, redirecting to welcome screen');
-          navigate('/welcome', { replace: true });
-        }
-      } catch (error) {
-        console.log('🔐 No authenticated user found');
-      }
-    };
-
-    // Check auth after splash screen is done
-    if (splashDone) {
-      checkAuth();
-    }
-  }, [splashDone, navigate]);
+  // Removed authentication check - no more auto-redirect
 
   // Auth handlers (now with real authentication)
   const handleGetStarted = () => {
