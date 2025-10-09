@@ -179,7 +179,7 @@ const Planner: React.FC = () => {
       case "low":
         return "border-green-200 bg-green-50";
       default:
-        return "border-gray-200 bg-gray-50";
+        return "border-gray-200 bg-white";
     }
   };
 

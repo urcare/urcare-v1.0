@@ -175,7 +175,7 @@ const OnboardingHealthAssessment: React.FC = () => {
                 </div>
 
                 {/* Analysis */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-white rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 mb-2">Health Analysis</h3>
                   <p className="text-gray-700 text-sm leading-relaxed">
                     {typeof healthMetrics.analysis === 'string' 

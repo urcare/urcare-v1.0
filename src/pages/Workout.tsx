@@ -457,7 +457,7 @@ const Workout: React.FC = () => {
 
                   {/* Muscle Impact Visualization */}
                   {showMuscleAnimation && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-white p-4 rounded-lg">
                       <h4 className="font-semibold mb-3">Muscle Impact</h4>
                       <div className="grid grid-cols-4 gap-2">
                         {updateMuscleIntensity(currentExercise).map(

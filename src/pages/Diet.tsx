@@ -363,9 +363,9 @@ const Diet: React.FC = () => {
                     {foodEntries.map((entry) => (
                       <div
                         key={entry.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-white rounded-lg"
                       >
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
                           <Utensils className="w-6 h-6 text-gray-400" />
                         </div>
                         <div className="flex-1">

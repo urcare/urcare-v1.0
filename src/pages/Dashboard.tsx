@@ -1359,7 +1359,7 @@ const Dashboard: React.FC = () => {
                 className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   isDarkMode 
                     ? 'bg-gray-700 hover:bg-gray-600' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    : 'bg-white hover:bg-gray-200'
                 }`}
               >
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
@@ -1369,7 +1369,7 @@ const Dashboard: React.FC = () => {
                 className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   isDarkMode 
                     ? 'bg-gray-700 hover:bg-gray-600' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    : 'bg-white hover:bg-gray-200'
                 }`}
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -1467,7 +1467,7 @@ const Dashboard: React.FC = () => {
               <div className="mt-2 space-y-1">
                 {uploadedFiles.map((file) => (
                   <div key={file.id} className={`flex items-center justify-between p-2 rounded-lg transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-600' : 'bg-gray-50'
+                    isDarkMode ? 'bg-gray-600' : 'bg-white'
                   }`}>
                     <div className="flex items-center space-x-2">
                       <FileText className={`w-4 h-4 transition-colors duration-300 ${
@@ -1500,8 +1500,8 @@ const Dashboard: React.FC = () => {
                 onClick={openFileDialog}
                 className={`flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 transition-colors duration-300 ${
                   isDarkMode 
-                    ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-gray-500' 
-                    : 'bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-white0' 
+                    : 'bg-white/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Paperclip className="w-3.5 h-3.5" />
@@ -1514,8 +1514,8 @@ const Dashboard: React.FC = () => {
                     isRecording 
                       ? 'bg-red-500 text-white border-red-500' 
                       : isDarkMode
-                      ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-gray-500'
-                      : 'bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-gray-600/80 border-gray-500/50 text-gray-200 hover:bg-white0'
+                      : 'bg-white/80 border-gray-300/60 text-gray-700 hover:bg-gray-200'
                   }`}
                   disabled={!isVoiceSupported}
                   title={!isVoiceSupported ? "Voice recording not supported" : isRecording ? "Stop recording" : "Start recording"}
@@ -1625,7 +1625,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-4">
                   {/* Dark Mode Toggle */}
                   <div className={`flex items-center justify-between p-4 rounded-lg transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                    isDarkMode ? 'bg-gray-700' : 'bg-white'
                   }`}>
                     <div className="flex items-center space-x-3">
                       {isDarkMode ? (
@@ -1658,7 +1658,7 @@ const Dashboard: React.FC = () => {
                     <button
                       onClick={() => navigate('/my-admin')}
                       className={`w-full flex items-center space-x-3 p-4 rounded-lg transition-colors duration-300 ${
-                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
+                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-200'
                       }`}
                     >
                       <Shield className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -1675,7 +1675,7 @@ const Dashboard: React.FC = () => {
                     <button
                       onClick={handleViewPlanDetails}
                       className={`w-full flex items-center space-x-3 p-4 rounded-lg transition-colors duration-300 ${
-                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
+                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-200'
                       }`}
                     >
                       <Eye className="w-5 h-5 text-[#88ba82]" />
@@ -1691,7 +1691,7 @@ const Dashboard: React.FC = () => {
                   <button
                     onClick={() => navigate('/workout-dashboard')}
                     className={`w-full flex items-center space-x-3 p-4 rounded-lg transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
+                      isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-200'
                     }`}
                   >
                     <Activity className="w-5 h-5 text-[#88ba82]" />

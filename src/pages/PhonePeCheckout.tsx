@@ -120,7 +120,7 @@ export default function PhonePeCheckout() {
         
         <CardContent className="space-y-6">
           {/* Payment Details */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-white rounded-lg p-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600">Plan:</span>
               <span className="font-medium capitalize">{finalPlan}</span>

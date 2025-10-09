@@ -708,7 +708,7 @@ const WorkoutDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto">
             <Activity className="w-8 h-8 text-slate-600" />
           </div>
           <div className="space-y-2">
@@ -744,7 +744,7 @@ const WorkoutDashboard: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className="px-4 py-2 bg-slate-200 text-slate-700 font-medium">
+            <Badge className="px-4 py-2 bg-white text-slate-700 font-medium">
               {getCurrentDayName()}
             </Badge>
             <Badge className="px-4 py-2 bg-blue-100 text-blue-700 font-medium">
@@ -765,7 +765,7 @@ const WorkoutDashboard: React.FC = () => {
             <Button
               onClick={clearCompletionData}
               variant="outline"
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2"
+              className="border-slate-300 text-slate-700 hover:bg-white px-4 py-2"
             >
               Clear Progress
             </Button>
@@ -821,7 +821,7 @@ const WorkoutDashboard: React.FC = () => {
                         </h3>
                         <div className="flex items-center gap-6 text-sm text-slate-600">
                           <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-slate-100 rounded-lg">
+                            <div className="p-1.5 bg-white rounded-lg">
                               <Clock className="w-4 h-4 text-slate-600" />
                             </div>
                             <span className="font-medium">
@@ -832,7 +832,7 @@ const WorkoutDashboard: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-slate-100 rounded-lg">
+                            <div className="p-1.5 bg-white rounded-lg">
                               {getActivityIcon(activity.icon || '')}
                             </div>
                             <span className="font-medium">{activity.type}</span>
@@ -913,15 +913,15 @@ const WorkoutDashboard: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="p-3 bg-white rounded-lg">
                     <div className="text-sm text-slate-600 font-medium mb-1">Yoga level</div>
                     <div className="font-bold text-slate-800 capitalize">{workoutData.preferences.yogaLevel}</div>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="p-3 bg-white rounded-lg">
                     <div className="text-sm text-slate-600 font-medium mb-1">Equipment</div>
                     <div className="font-bold text-slate-800">{workoutData.preferences.equipment.join(", ")}</div>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
+                  <div className="p-3 bg-white rounded-lg">
                     <div className="text-sm text-slate-600 font-medium mb-1">Location</div>
                     <div className="font-bold text-slate-800 capitalize">{workoutData.preferences.location}</div>
                   </div>
@@ -973,9 +973,9 @@ const WorkoutDashboard: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   {weeklyProgress.map((day, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
                           {day.day}
                         </div>
                         <div>
@@ -987,7 +987,7 @@ const WorkoutDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="w-16 h-2 bg-white rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
                           style={{ width: `${day.completionRate}%` }}
@@ -1013,7 +1013,7 @@ const WorkoutDashboard: React.FC = () => {
                 size="sm"
                 onClick={handlePreviousDay}
                 disabled={currentDayIndex === 0}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                className="border-slate-300 text-slate-700 hover:bg-white"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
@@ -1022,7 +1022,7 @@ const WorkoutDashboard: React.FC = () => {
                 size="sm"
                 onClick={handleNextDay}
                 disabled={workoutData && currentDayIndex >= workoutData.upcomingDays.length - 1}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                className="border-slate-300 text-slate-700 hover:bg-white"
               >
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -1058,7 +1058,7 @@ const WorkoutDashboard: React.FC = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleViewPlan(index)}
-                      className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 group-hover:border-slate-400 transition-all duration-300"
+                      className="w-full border-slate-300 text-slate-700 hover:bg-white group-hover:border-slate-400 transition-all duration-300"
                     >
                       View plan
                       <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

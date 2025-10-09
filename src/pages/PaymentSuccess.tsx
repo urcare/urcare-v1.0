@@ -115,7 +115,7 @@ const PaymentSuccess: React.FC = () => {
               </button>
               <button
                 onClick={handleDashboard}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors"
+                className="w-full bg-white hover:bg-gray-100 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors border border-gray-300"
               >
                 Go to Dashboard
               </button>

@@ -172,7 +172,7 @@ export default function PhonePeSuccess() {
             </button>
             <button
               onClick={() => navigate("/health-assessment")}
-              className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+              className="w-full bg-white text-gray-800 py-2 px-4 rounded-lg hover:bg-white transition-colors"
             >
               Go to Health Assessment Now
             </button>

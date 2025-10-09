@@ -212,7 +212,7 @@ export default function PaymentPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Preparing Payment...</h2>
@@ -224,7 +224,7 @@ export default function PaymentPage() {
 
   if (status === "success") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
@@ -243,7 +243,7 @@ export default function PaymentPage() {
 
   if (status === "failed") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Failed</h2>
@@ -259,7 +259,7 @@ export default function PaymentPage() {
             </button>
             <button
               onClick={() => navigate("/health-assessment")}
-              className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+              className="w-full bg-white text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Go to Health Assessment
             </button>
@@ -270,14 +270,14 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
             <button
               onClick={handleGoBack}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 hover:bg-white rounded-full transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
@@ -354,7 +354,7 @@ export default function PaymentPage() {
             <div className="text-sm text-gray-600">
               Creating payment... Please wait
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="w-full bg-white rounded-full h-2 mt-2">
               <div className="bg-blue-600 h-2 rounded-full animate-pulse"></div>
             </div>
           </div>

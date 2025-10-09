@@ -70,7 +70,7 @@ const getPriorityColor = (priority: string) => {
     case 'high': return 'bg-red-100 text-red-800';
     case 'medium': return 'bg-yellow-100 text-yellow-800';
     case 'low': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
+    default: return 'bg-white text-gray-800';
   }
 };
 
@@ -236,7 +236,7 @@ const HealthPlanGeneration: React.FC = () => {
       <div className="bg-white rounded-t-3xl relative z-10 min-h-screen -mt-8">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          <div className="w-12 h-1 bg-white rounded-full"></div>
         </div>
 
         <div className="px-6">

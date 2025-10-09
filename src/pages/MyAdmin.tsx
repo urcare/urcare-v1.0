@@ -409,7 +409,7 @@ const MyAdmin: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -482,7 +482,7 @@ const MyAdmin: React.FC = () => {
                     {filteredUsers.map((user) => (
                       <div
                         key={user.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-white"
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -665,7 +665,7 @@ const MyAdmin: React.FC = () => {
                             className={`max-w-xs p-3 rounded-lg ${
                               message.is_admin
                                 ? 'bg-blue-500 text-white'
-                                : 'bg-gray-100 text-gray-900'
+                                : 'bg-white text-gray-900'
                             }`}
                           >
                             <p className="text-sm">{message.message}</p>

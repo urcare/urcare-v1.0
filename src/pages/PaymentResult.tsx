@@ -171,7 +171,7 @@ export default function PaymentResult() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
@@ -185,7 +185,7 @@ export default function PaymentResult() {
 
   if (status === "success") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             {/* Success Animation */}
@@ -252,7 +252,7 @@ export default function PaymentResult() {
 
   if (status === "failed") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             {/* Failure Icon */}
