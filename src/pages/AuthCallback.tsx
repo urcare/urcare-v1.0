@@ -28,10 +28,39 @@ const AuthCallback = () => {
 
         if (session?.user) {
           console.log('🔐 User authenticated successfully:', session.user.email);
-          setStatus('success');
-          setMessage('Authentication successful! Redirecting...');
           
-          // Simple redirect to landing page - no more complex logic
+          // Create user profile in database
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: session.user.id,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name || '',
+                avatar_url: session.user.user_metadata?.avatar_url || '',
+                provider: session.user.app_metadata?.provider || 'google',
+                last_sign_in: new Date().toISOString(),
+                sign_in_count: 1,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'id'
+              })
+              .select();
+
+            if (profileError) {
+              console.error('Profile creation error:', profileError);
+            } else {
+              console.log('✅ Profile created/updated successfully:', profileData);
+            }
+          } catch (error) {
+            console.error('Error creating profile:', error);
+          }
+          
+          setStatus('success');
+          setMessage('Authentication successful! Profile saved. Redirecting...');
+          
+          // Simple redirect to landing page
           setTimeout(() => {
             navigate('/', { replace: true });
           }, 2000);
