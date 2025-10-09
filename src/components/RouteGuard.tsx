@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authUtils, AuthState, RouteDecision } from '@/utils/authUtils_simple';
+import { authUtils, AuthState, RouteDecision } from '@/utils/authUtils';
 
 interface RouteGuardProps {
   children: React.ReactNode;

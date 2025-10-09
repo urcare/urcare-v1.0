@@ -25,7 +25,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { authUtils } from "@/utils/authUtils";
+import { authUtils } from "@/utils/authUtils_simple";
 
 interface HealthMetric {
   id: string;
