@@ -74,7 +74,7 @@ class AuthUtils {
       // First check if user has any onboarding data at all
       const { data: onboardingProfile, error } = await supabase
         .from('onboarding_profiles')
-        .select('onboarding_completed, completion_percentage')
+        .select('onboarding_completed')
         .eq('user_id', userId)
         .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
 
@@ -84,17 +84,17 @@ class AuthUtils {
       }
 
       if (!onboardingProfile) {
-        console.log('No onboarding profile found for user');
-        return false;
+        console.log('No onboarding profile found for user - creating default profile');
+        // Create a default onboarding profile for the user
+        await this.createDefaultOnboardingProfile(userId);
+        return false; // Return false so they get redirected to onboarding
       }
 
-      // Check if onboarding is completed (either by flag or completion percentage)
-      const isCompleted = onboardingProfile.onboarding_completed === true || 
-                         (onboardingProfile.completion_percentage && onboardingProfile.completion_percentage >= 100);
+      // Check if onboarding is completed
+      const isCompleted = onboardingProfile.onboarding_completed === true;
       
       console.log('Onboarding status:', { 
-        onboarding_completed: onboardingProfile.onboarding_completed, 
-        completion_percentage: onboardingProfile.completion_percentage,
+        onboarding_completed: onboardingProfile.onboarding_completed,
         isCompleted 
       });
       
@@ -102,6 +102,32 @@ class AuthUtils {
     } catch (error) {
       console.log('Onboarding check exception:', error);
       return false;
+    }
+  }
+
+  // =====================================================
+  // Helper Methods
+  // =====================================================
+  
+  async createDefaultOnboardingProfile(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('onboarding_profiles')
+        .insert({
+          user_id: userId,
+          full_name: 'New User',
+          onboarding_completed: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error creating default onboarding profile:', error);
+      } else {
+        console.log('✅ Default onboarding profile created for user');
+      }
+    } catch (error) {
+      console.error('Error creating default onboarding profile:', error);
     }
   }
 

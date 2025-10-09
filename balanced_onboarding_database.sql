@@ -68,6 +68,7 @@ CREATE TABLE onboarding_profiles (
     
     -- System Fields
     onboarding_completed BOOLEAN DEFAULT FALSE,
+    completion_percentage INTEGER DEFAULT 0 CHECK (completion_percentage >= 0 AND completion_percentage <= 100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -223,6 +224,7 @@ BEGIN
         surgery_details,
         health_goals,
         onboarding_completed,
+        completion_percentage,
         updated_at
     ) VALUES (
         p_user_id,
@@ -261,6 +263,7 @@ BEGIN
         COALESCE(p_onboarding_data->'surgeryDetails', '[]'::jsonb),
         COALESCE(p_onboarding_data->'healthGoals', '[]'::jsonb),
         TRUE,
+        COALESCE((p_onboarding_data->>'completion_percentage')::INTEGER, 0),
         NOW()
     )
     ON CONFLICT (user_id) DO UPDATE SET
@@ -299,6 +302,7 @@ BEGIN
         surgery_details = EXCLUDED.surgery_details,
         health_goals = EXCLUDED.health_goals,
         onboarding_completed = EXCLUDED.onboarding_completed,
+        completion_percentage = EXCLUDED.completion_percentage,
         updated_at = NOW()
     RETURNING id INTO profile_id;
 
@@ -355,6 +359,7 @@ BEGIN
         'track_family', profile_data.track_family,
         'referral_code', profile_data.referral_code,
         'onboarding_completed', profile_data.onboarding_completed,
+        'completion_percentage', profile_data.completion_percentage,
         'created_at', profile_data.created_at,
         'updated_at', profile_data.updated_at,
         'medications', profile_data.medications,

@@ -11,6 +11,9 @@
 -- Finally, add the health assessment field
 \i add_health_assessment_field.sql
 
+-- Fix the missing completion_percentage column
+\i fix_completion_percentage.sql
+
 -- =====================================================
 -- Quick Fix: Create a simple onboarding_profiles record for testing
 -- =====================================================
@@ -21,6 +24,7 @@ INSERT INTO onboarding_profiles (
     full_name,
     onboarding_completed,
     health_assessment_completed,
+    completion_percentage,
     created_at,
     updated_at
 ) 
@@ -29,6 +33,7 @@ SELECT
     COALESCE(raw_user_meta_data->>'full_name', 'Test User'),
     false,
     false,
+    0,
     NOW(),
     NOW()
 FROM auth.users 
@@ -46,3 +51,4 @@ BEGIN
     RAISE NOTICE '⚡ Functions created and granted permissions';
     RAISE NOTICE '🎯 Infinite loop should be fixed now!';
 END $$;
+

@@ -57,6 +57,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
 
         // For authenticated users, get route decision
         const decision = await authUtils.getRouteDecision(location.pathname, currentAuthState);
+        setRouteDecision(decision);
 
         // Handle redirects for authenticated users
         if (decision.shouldRedirect && decision.redirectTo) {
