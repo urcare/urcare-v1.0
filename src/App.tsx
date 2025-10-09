@@ -8,7 +8,7 @@ const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
 const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
-const Dashboard = React.lazy(() => import("./pages/SimpleDashboard"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 
 function App() {
