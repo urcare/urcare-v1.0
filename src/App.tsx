@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
-import RouteGuard from "./components/RouteGuard";
 
 const Landing = React.lazy(() => import("./pages/Landing"));
 const Welcome = React.lazy(() => import("./pages/Welcome"));
@@ -26,52 +25,18 @@ function App() {
         </div>
       }>
         <Routes>
-          {/* Public routes - no auth required */}
-          <Route path="/" element={
-            <RouteGuard requiredAuth={false} allowedPaths={['/']}>
-              <Landing />
-            </RouteGuard>
-          } />
+          {/* Simple routing - no guards */}
+          <Route path="/" element={<Landing />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/health-assessment" element={<HealthAssessment />} />
+          <Route path="/paywall" element={<Paywall />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           
-          {/* Protected routes - auth required */}
-          <Route path="/welcome" element={
-            <RouteGuard requiredAuth={true}>
-              <Welcome />
-            </RouteGuard>
-          } />
-          <Route path="/onboarding" element={
-            <RouteGuard requiredAuth={true}>
-              <Onboarding />
-            </RouteGuard>
-          } />
-          <Route path="/health-assessment" element={
-            <RouteGuard requiredAuth={true}>
-              <HealthAssessment />
-            </RouteGuard>
-          } />
-          <Route path="/paywall" element={
-            <RouteGuard requiredAuth={true}>
-              <Paywall />
-            </RouteGuard>
-          } />
-          <Route path="/payment-success" element={
-            <RouteGuard requiredAuth={true}>
-              <PaymentSuccess />
-            </RouteGuard>
-          } />
-          <Route path="/dashboard" element={
-            <RouteGuard requiredAuth={true}>
-              <Dashboard />
-            </RouteGuard>
-          } />
-          
-          {/* Fallback */}
-          <Route path="*" element={
-            <RouteGuard requiredAuth={false} allowedPaths={['/']}>
-              <Landing />
-            </RouteGuard>
-          } />
+          {/* Fallback to landing */}
+          <Route path="*" element={<Landing />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

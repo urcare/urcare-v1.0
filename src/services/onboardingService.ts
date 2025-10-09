@@ -46,23 +46,62 @@ export interface OnboardingData {
 class OnboardingService {
   async saveOnboardingData(userId: string, data: OnboardingData): Promise<void> {
     try {
-      console.log("🔧 Calling save_onboarding_data function with:", {
+      console.log("🔧 Saving onboarding data directly to database:", {
         userId,
         dataKeys: Object.keys(data)
       });
       
-      // Use the database function to save onboarding data
-      const { data: result, error } = await supabase.rpc('save_onboarding_data', {
-        p_user_id: userId,
-        p_onboarding_data: data
-      });
+      // Direct database update - insert or update onboarding profile
+      const { data: result, error } = await supabase
+        .from('onboarding_profiles')
+        .upsert({
+          user_id: userId,
+          full_name: data.fullName,
+          age: parseInt(data.age) || null,
+          birth_month: data.birthMonth,
+          birth_day: data.birthDay,
+          birth_year: data.birthYear,
+          gender: data.gender,
+          height_feet: data.heightFeet,
+          height_inches: data.heightInches,
+          height_cm: data.heightCm,
+          weight_kg: data.weightKg,
+          country: data.country,
+          state: data.state,
+          district: data.district,
+          wake_up_time: data.wakeUpTime,
+          sleep_time: data.sleepTime,
+          work_start: data.workStart,
+          work_end: data.workEnd,
+          blood_group: data.bloodGroup,
+          critical_conditions: data.criticalConditions,
+          diet_type: data.dietType,
+          breakfast_time: data.breakfastTime,
+          lunch_time: data.lunchTime,
+          dinner_time: data.dinnerTime,
+          workout_time: data.workoutTime,
+          routine_flexibility: data.routineFlexibility,
+          workout_type: data.workoutType,
+          smoking: data.smoking,
+          drinking: data.drinking,
+          track_family: data.trackFamily,
+          referral_code: data.referralCode,
+          medications: data.medications || [],
+          chronic_conditions: data.chronicConditions || [],
+          surgery_details: data.surgeryDetails || [],
+          health_goals: data.healthGoals || [],
+          onboarding_completed: true, // Set to true when saving
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
-        console.error("❌ Database function error:", error);
+        console.error("❌ Database error:", error);
         throw error;
       }
       
-      console.log("✅ Database function result:", result);
+      console.log("✅ Onboarding data saved successfully:", result);
     } catch (error) {
       console.error("❌ Service error:", error);
       throw error;

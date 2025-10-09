@@ -25,7 +25,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { authUtils } from "@/utils/authUtils_simple";
+// Removed authUtils import - no more routing checks
 
 interface HealthMetric {
   id: string;
@@ -224,21 +224,7 @@ const HealthAssessment: React.FC = () => {
   };
 
   const handleGetSolution = async () => {
-    try {
-      // Get current user
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        // Mark health assessment as completed
-        await authUtils.markHealthAssessmentCompleted(session.user.id);
-        console.log("✅ Health assessment marked as completed");
-      }
-    } catch (error) {
-      console.error("❌ Error marking health assessment completed:", error);
-    }
-    
-    // Navigate to paywall
+    // Navigate to paywall - no more auth checks
     navigate("/paywall");
   };
 
