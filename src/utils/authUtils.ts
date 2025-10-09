@@ -71,23 +71,34 @@ class AuthUtils {
   
   async checkOnboardingCompleted(userId: string): Promise<boolean> {
     try {
+      // First check if user has any onboarding data at all
       const { data: onboardingProfile, error } = await supabase
         .from('onboarding_profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, completion_percentage')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
 
       if (error) {
         console.log('Onboarding check error:', error);
-        // If table doesn't exist or no record, assume onboarding not completed
         return false;
       }
 
       if (!onboardingProfile) {
+        console.log('No onboarding profile found for user');
         return false;
       }
 
-      return onboardingProfile.onboarding_completed === true;
+      // Check if onboarding is completed (either by flag or completion percentage)
+      const isCompleted = onboardingProfile.onboarding_completed === true || 
+                         (onboardingProfile.completion_percentage && onboardingProfile.completion_percentage >= 100);
+      
+      console.log('Onboarding status:', { 
+        onboarding_completed: onboardingProfile.onboarding_completed, 
+        completion_percentage: onboardingProfile.completion_percentage,
+        isCompleted 
+      });
+      
+      return isCompleted;
     } catch (error) {
       console.log('Onboarding check exception:', error);
       return false;
@@ -113,13 +124,11 @@ class AuthUtils {
   async checkHealthAssessmentCompleted(userId: string): Promise<boolean> {
     try {
       // Check if user has completed health assessment
-      // This could be stored in a separate table or as a flag
-      // For now, we'll assume it's completed if they have onboarding data
       const { data: onboardingProfile, error } = await supabase
         .from('onboarding_profiles')
         .select('health_assessment_completed')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single()
 
       if (error) {
         console.log('Health assessment check error:', error);
@@ -127,10 +136,17 @@ class AuthUtils {
       }
 
       if (!onboardingProfile) {
+        console.log('No onboarding profile found for health assessment check');
         return false;
       }
 
-      return onboardingProfile.health_assessment_completed === true;
+      const isCompleted = onboardingProfile.health_assessment_completed === true;
+      console.log('Health assessment status:', { 
+        health_assessment_completed: onboardingProfile.health_assessment_completed,
+        isCompleted 
+      });
+      
+      return isCompleted;
     } catch (error) {
       console.log('Health assessment check exception:', error);
       return false;
