@@ -102,7 +102,6 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
         console.log('💾 Saving daily activities to daily_activities table:', data.data.schedule.length, 'activities');
         const { error: saveError } = await supabase.rpc('save_daily_activities', {
           p_user_id: request.userProfile.id,
-          p_plan_id: planId,
           p_activity_date: new Date().toISOString().split('T')[0],
           p_activities: data.data.schedule
         });

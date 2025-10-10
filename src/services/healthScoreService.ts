@@ -383,19 +383,19 @@ export const saveHealthAnalysis = async (
       // Continue with insert even if update fails
     }
 
-    // Insert new analysis
+    // Insert new analysis with all required fields
     const { data, error } = await supabase
       .from('health_analysis')
       .insert({
         user_id: userId,
         health_score: healthScore,
-        analysis: analysis,
-        recommendations: recommendations,
         display_analysis: displayAnalysis || {},
-        detailed_analysis: detailedAnalysis || {},
         factors_considered: Array.isArray(profileAnalysis) ? profileAnalysis : [],
+        generation_parameters: detailedAnalysis || {},
         ai_provider: 'groq',
         ai_model: 'llama-3.3-70b-versatile',
+        calculation_method: 'groq_ai_analysis',
+        analysis_date: new Date().toISOString().split('T')[0],
         is_latest: true
       })
       .select()
