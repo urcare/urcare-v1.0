@@ -542,12 +542,14 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
     
     // Prevent duplicate analysis for the same user
     if (analysisInProgress.has(userId)) {
-      console.log('⏳ Analysis already in progress for this user, returning existing data...');
-      // Instead of waiting, return a timeout error to prevent infinite loops
-      return {
-        success: false,
-        error: 'Analysis already in progress, please try again in a moment'
-      };
+      console.log('⏳ Analysis already in progress for this user, clearing flag and proceeding...');
+      // Clear the flag and proceed to prevent infinite loops
+      analysisInProgress.delete(userId);
+      const timeoutId = analysisTimeouts.get(userId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        analysisTimeouts.delete(userId);
+      }
     }
     
     analysisInProgress.add(userId);
