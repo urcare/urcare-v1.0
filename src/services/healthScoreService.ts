@@ -237,6 +237,8 @@ export const getUserProfileForHealthScore = async (userId: string) => {
 // Check if health analysis exists for user
 export const checkHealthAnalysisExist = async (userId: string) => {
   try {
+    console.log('🔍 Checking health analysis for user:', userId);
+    
     const { data, error } = await supabase
       .from('health_analysis')
       .select('*')
@@ -244,7 +246,31 @@ export const checkHealthAnalysisExist = async (userId: string) => {
       .eq('is_latest', true)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+    if (error) {
+      console.error('❌ Error checking health analysis:', error);
+      
+      // Handle specific error codes
+      if (error.code === 'PGRST116') { // No rows returned
+        console.log('ℹ️ No health analysis found for user');
+        return {
+          success: true,
+          exists: false,
+          isComplete: false,
+          lastGenerated: null
+        };
+      }
+      
+      // Handle 406 Not Acceptable or other permission errors
+      if (error.code === 'PGRST301' || error.message?.includes('406')) {
+        console.warn('⚠️ Permission error accessing health_analysis table, will use fallback');
+        return {
+          success: true,
+          exists: false,
+          isComplete: false,
+          lastGenerated: null
+        };
+      }
+      
       throw error;
     }
 
@@ -268,6 +294,8 @@ export const checkHealthAnalysisExist = async (userId: string) => {
 // Fetch existing health analysis from database
 export const fetchHealthAnalysis = async (userId: string) => {
   try {
+    console.log('🔍 Fetching health analysis for user:', userId);
+    
     const { data, error } = await supabase
       .from('health_analysis')
       .select('*')
@@ -276,12 +304,25 @@ export const fetchHealthAnalysis = async (userId: string) => {
       .single();
 
     if (error) {
+      console.error('❌ Error fetching health analysis:', error);
+      
       if (error.code === 'PGRST116') { // No rows returned
+        console.log('ℹ️ No health analysis found for user');
         return {
           success: true,
           data: null
         };
       }
+      
+      // Handle 406 Not Acceptable or other permission errors
+      if (error.code === 'PGRST301' || error.message?.includes('406')) {
+        console.warn('⚠️ Permission error accessing health_analysis table, returning null');
+        return {
+          success: true,
+          data: null
+        };
+      }
+      
       throw error;
     }
 
@@ -329,11 +370,18 @@ export const saveHealthAnalysis = async (
   profileAnalysis?: any
 ) => {
   try {
+    console.log('💾 Attempting to save health analysis for user:', userId);
+    
     // First, mark all existing analyses as not latest
-    await supabase
+    const { error: updateError } = await supabase
       .from('health_analysis')
       .update({ is_latest: false })
       .eq('user_id', userId);
+
+    if (updateError) {
+      console.warn('⚠️ Warning: Could not update existing analyses:', updateError);
+      // Continue with insert even if update fails
+    }
 
     // Insert new analysis
     const { data, error } = await supabase
@@ -341,18 +389,32 @@ export const saveHealthAnalysis = async (
       .insert({
         user_id: userId,
         health_score: healthScore,
+        analysis: analysis,
+        recommendations: recommendations,
         display_analysis: displayAnalysis || {},
+        detailed_analysis: detailedAnalysis || {},
+        factors_considered: Array.isArray(profileAnalysis) ? profileAnalysis : [],
         ai_provider: 'groq',
         ai_model: 'llama-3.3-70b-versatile',
-        calculation_method: 'groq_ai_analysis',
-        factors_considered: profileAnalysis || [],
-        generation_parameters: detailedAnalysis || {},
         is_latest: true
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Database insert error:', error);
+      
+      // Handle specific error cases
+      if (error.code === 'PGRST301' || error.message?.includes('406')) {
+        console.warn('⚠️ Permission error saving to health_analysis table, analysis will not be saved');
+        return {
+          success: false,
+          error: 'Permission denied - analysis not saved to database'
+        };
+      }
+      
+      throw error;
+    }
 
     return {
       success: true,
@@ -502,6 +564,11 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
     // First, check if health analysis exists in database
     const analysisCheck = await checkHealthAnalysisExist(userId);
     
+    // If database check fails, proceed with calculation
+    if (!analysisCheck.success) {
+      console.warn('⚠️ Database check failed, proceeding with calculation:', analysisCheck.error);
+    }
+    
     if (analysisCheck.success && analysisCheck.exists && analysisCheck.isComplete) {
       console.log('✅ Complete health analysis already exists in database, fetching...');
       
@@ -616,7 +683,7 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
           source: 'calculated'
         };
       } else {
-        console.error('❌ Failed to save health analysis to database:', saveResult.error);
+        console.warn('⚠️ Failed to save health analysis to database, but returning calculated data:', saveResult.error);
         // Clear timeout and in-progress flag
         const timeoutId = analysisTimeouts.get(userId);
         if (timeoutId) {
@@ -624,9 +691,20 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
           analysisTimeouts.delete(userId);
         }
         analysisInProgress.delete(userId);
+        // Return calculated data even if database save failed
         return {
-          success: false,
-          error: 'Failed to save health analysis to database'
+          success: true,
+          data: {
+            healthScore: healthScoreResult.healthScore,
+            analysis: healthScoreResult.analysis,
+            recommendations: healthScoreResult.recommendations,
+            displayAnalysis: healthScoreResult.displayAnalysis,
+            detailedAnalysis: detailedAnalysis,
+            profileAnalysis: detailedAnalysis,
+            createdAt: new Date().toISOString()
+          },
+          source: 'calculated',
+          warning: 'Data calculated but not saved to database'
         };
       }
     } else {
