@@ -426,7 +426,7 @@ const generateFreshDailyActivities = async (
       .single();
 
     // Call your existing AI service to generate fresh activities
-    const { data, error } = await supabase.functions.invoke('plan-activities-optimized', {
+    const { data, error } = await supabase.functions.invoke('plan-activities', {
       body: {
         userProfile: userProfile,
         selectedPlan: activePlan.plan_data,

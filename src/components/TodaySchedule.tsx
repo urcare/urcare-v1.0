@@ -71,6 +71,7 @@ interface TodayScheduleProps {
   onSelectPlan?: (plan: Plan) => void;
   onViewPlanDetails?: (plan: Plan) => void;
   sequentialAIResult?: any;
+  profile?: any;
 }
 
 const TodaySchedule: React.FC<TodayScheduleProps> = ({ 
@@ -79,7 +80,8 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   showPlans = false, 
   onSelectPlan, 
   onViewPlanDetails,
-  sequentialAIResult
+  sequentialAIResult,
+  profile
 }) => {
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
   const [isPlanExpanded, setIsPlanExpanded] = useState(false);
@@ -1250,19 +1252,49 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                   
                   {/* Health Analysis Content */}
                   <div className="space-y-4 px-4 py-3">
+                    {/* Add personalized greeting */}
+                    {aiHealthData.displayAnalysis && aiHealthData.displayAnalysis.greeting && (
+                      <div className="text-sm font-medium text-gray-800 mb-3">
+                        {aiHealthData.displayAnalysis.greeting.replace('Hi A,', `Hi ${profile?.full_name?.split(" ")[0] || 'User'},`)}
+                      </div>
+                    )}
+                    
                     <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                      {aiHealthData.healthScoreAnalysis.split('\n').map((line, index) => {
-                        if (line.trim() === 'Recommendations:') {
-                          return (
-                            <div key={index} className="text-center font-bold text-gray-800 mt-4 mb-2">
-                              {line}
-                            </div>
-                          );
-                        }
-                        return <div key={index}>{line}</div>;
-                      })}
+                      {aiHealthData.healthScoreAnalysis
+                        .replace(/Health score: \d+\/100/g, '') // Remove health score display
+                        .split('\n')
+                        .filter(line => line.trim() !== '') // Remove empty lines
+                        .map((line, index) => {
+                          if (line.trim() === 'Recommendations:') {
+                            return (
+                              <div key={index} className="text-center font-bold text-gray-800 mt-4 mb-2">
+                                {line}
+                              </div>
+                            );
+                          }
+                          return <div key={index}>{line}</div>;
+                        })}
                     </div>
                     
+                    {/* Negative Analysis Points */}
+                    {aiHealthData.displayAnalysis && aiHealthData.displayAnalysis.negativeAnalysis && (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                          Areas for Improvement
+                        </h4>
+                    <div className="space-y-2">
+                      {aiHealthData.displayAnalysis.negativeAnalysis.map((point: string, index: number) => (
+                        <div key={index} className="text-sm text-gray-600">
+                          🚨 {point.replace(/🚨\s*/, '')}
+                        </div>
+                      ))}
+                    </div>
+                      </div>
+                    )}
+
                     {/* AI Recommendations */}
                     {aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0 && (
                       <div className="mt-4">
@@ -1270,14 +1302,13 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                           <CheckCircle className="w-4 h-4 text-green-600" />
                           Key Recommendations
                         </h4>
-                        <ul className="space-y-2">
+                        <div className="space-y-2">
                           {aiHealthData.healthScoreRecommendations.slice(0, 3).map((recommendation: string, index: number) => (
-                            <li key={index} className="flex items-start gap-3 text-sm text-gray-600">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
-                              <span>{recommendation}</span>
-                            </li>
+                            <div key={index} className="text-sm text-gray-600">
+                              💚 {recommendation.replace(/💚\s*/, '')}
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>

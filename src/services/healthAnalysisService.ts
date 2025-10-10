@@ -53,7 +53,7 @@ class UnifiedHealthAnalysisService {
         setTimeout(() => reject(new Error('Health score calculation timeout')), 15000)
       );
       
-      const healthScorePromise = supabase.functions.invoke('health-score-optimized', {
+      const healthScorePromise = supabase.functions.invoke('health-score', {
         body: {
           userProfile: request.userProfile,
           userInput: request.userInput,
@@ -114,7 +114,7 @@ class UnifiedHealthAnalysisService {
     else if (age < 70) score -= 5;
     else score -= 10;
 
-    // Weight factor (BMI calculation)
+    // Weight factor (BMI calculation) - using height_cm and weight_kg from onboarding_profiles
     const height = parseFloat(userProfile.height_cm) || 170;
     const weight = parseFloat(userProfile.weight_kg) || 70;
     const bmi = weight / ((height / 100) ** 2);
@@ -136,15 +136,15 @@ class UnifiedHealthAnalysisService {
       recommendations.push("Consider a structured weight management program with professional guidance");
     }
 
-    // Health goals factor
-    if (userProfile.health_goals && userProfile.health_goals.length > 0) {
+    // Health goals factor - using health_goals from onboarding_profiles
+    if (userProfile.health_goals && Array.isArray(userProfile.health_goals) && userProfile.health_goals.length > 0) {
       score += 10;
       analysis.push("Having specific health goals is excellent for motivation.");
     } else {
       recommendations.push("Set specific, measurable health goals to improve your wellness journey");
     }
 
-    // Diet type factor
+    // Diet type factor - using diet_type from onboarding_profiles
     const dietType = userProfile.diet_type?.toLowerCase() || '';
     if (dietType.includes('balanced') || dietType.includes('mediterranean')) {
       score += 10;
@@ -157,7 +157,7 @@ class UnifiedHealthAnalysisService {
       recommendations.push("Consider adopting a more balanced, nutrient-rich diet");
     }
 
-    // Exercise factor
+    // Exercise factor - using workout_time from onboarding_profiles
     if (userProfile.workout_time) {
       score += 10;
       analysis.push("Having a regular workout schedule is great for your health.");
@@ -166,7 +166,7 @@ class UnifiedHealthAnalysisService {
       recommendations.push("Establish a regular exercise routine, even if it's just 30 minutes daily");
     }
 
-    // Sleep factor
+    // Sleep factor - using sleep_time and wake_up_time from onboarding_profiles
     if (userProfile.sleep_time && userProfile.wake_up_time) {
       const sleepTime = new Date(`2000-01-01 ${userProfile.sleep_time}`);
       const wakeTime = new Date(`2000-01-02 ${userProfile.wake_up_time}`);
@@ -183,15 +183,15 @@ class UnifiedHealthAnalysisService {
       recommendations.push("Establish a consistent sleep schedule for better health");
     }
 
-    // Chronic conditions factor
-    if (userProfile.chronic_conditions && userProfile.chronic_conditions.length > 0) {
+    // Chronic conditions factor - using chronic_conditions from onboarding_profiles
+    if (userProfile.chronic_conditions && Array.isArray(userProfile.chronic_conditions) && userProfile.chronic_conditions.length > 0) {
       score -= 15;
       analysis.push("Managing chronic conditions requires careful attention to your health.");
       recommendations.push("Work closely with healthcare providers to manage your conditions effectively");
     }
 
-    // Medications factor
-    if (userProfile.medications && userProfile.medications.length > 0) {
+    // Medications factor - using medications from onboarding_profiles
+    if (userProfile.medications && Array.isArray(userProfile.medications) && userProfile.medications.length > 0) {
       score -= 5;
       analysis.push("Taking medications as prescribed is important for your health.");
       recommendations.push("Continue taking medications as prescribed and discuss any concerns with your doctor");
@@ -319,7 +319,7 @@ class UnifiedHealthAnalysisService {
   async getUserProfileForHealthScore(userId: string) {
     try {
       const { data: profile, error } = await supabase
-        .from('user_profiles_unified')
+        .from('onboarding_profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -344,24 +344,24 @@ class UnifiedHealthAnalysisService {
   async checkHealthAnalysisExist(userId: string) {
     try {
       const { data, error } = await supabase
-        .from('health_analysis_unified')
+        .from('health_analysis')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('is_latest', true)
+        .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
         throw error;
       }
 
-      // Check if the analysis is complete (has score and recommendations)
-      const isComplete = data && data.length > 0 && data[0].health_score !== null && data[0].recommendations && data[0].recommendations.length > 0;
+      // Check if the analysis is complete (has score and display_analysis)
+      const isComplete = data && data.health_score !== null && data.display_analysis && data.display_analysis.lifestyleRecommendations && data.display_analysis.lifestyleRecommendations.length > 0;
 
       return {
         success: true,
-        exists: data && data.length > 0,
+        exists: !!data,
         isComplete: isComplete,
-        lastGenerated: data && data.length > 0 ? data[0].created_at : null
+        lastGenerated: data ? data.created_at : null
       };
     } catch (error) {
       return {
@@ -377,11 +377,11 @@ class UnifiedHealthAnalysisService {
   async fetchHealthAnalysis(userId: string) {
     try {
       const { data, error } = await supabase
-        .from('health_analysis_unified')
+        .from('health_analysis')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('is_latest', true)
+        .single();
 
       if (error) {
         if (error.code === 'PGRST116') { // No rows returned
@@ -393,10 +393,7 @@ class UnifiedHealthAnalysisService {
         throw error;
       }
 
-      // Handle array response
-      const healthScoreData = data && data.length > 0 ? data[0] : null;
-      
-      if (!healthScoreData) {
+      if (!data) {
         return {
           success: true,
           data: null
@@ -406,17 +403,19 @@ class UnifiedHealthAnalysisService {
       return {
         success: true,
         data: {
-          healthScore: healthScoreData.health_score || 75,
-          analysis: `Health score: ${healthScoreData.health_score}/100`,
-          recommendations: healthScoreData.recommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
-          displayAnalysis: {
+          healthScore: data.health_score || 75,
+          analysis: `Health score: ${data.health_score}/100`,
+          recommendations: data.display_analysis?.lifestyleRecommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
+          displayAnalysis: data.display_analysis || {
             greeting: `Hi there, based on your health profile analysis:`,
             negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
-            lifestyleRecommendations: healthScoreData.recommendations || ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
+            lifestyleRecommendations: ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
           },
-          detailedAnalysis: healthScoreData.detailed_analysis || {},
-          profileAnalysis: healthScoreData.detailed_analysis || {},
-          createdAt: healthScoreData.created_at
+          detailedAnalysis: data.generation_parameters || {},
+          profileAnalysis: data.factors_considered || [],
+          createdAt: data.created_at,
+          aiProvider: data.ai_provider,
+          aiModel: data.ai_model
         }
       };
     } catch (error) {
@@ -440,23 +439,24 @@ class UnifiedHealthAnalysisService {
     profileAnalysis?: any
   ) {
     try {
+      // First, mark all existing analyses as not latest
+      await supabase
+        .from('health_analysis')
+        .update({ is_latest: false })
+        .eq('user_id', userId);
+
+      // Insert new analysis
       const { data, error } = await supabase
-        .from('health_analysis_unified')
+        .from('health_analysis')
         .insert({
           user_id: userId,
           health_score: healthScore,
           display_analysis: displayAnalysis || {},
-          detailed_analysis: detailedAnalysis || {},
-          analysis: analysis,
-          recommendations: recommendations,
-          user_input: '',
-          uploaded_files: [],
-          voice_transcript: '',
-          ai_provider: 'unified_service',
-          ai_model: 'health_analysis_v1',
-          calculation_method: 'comprehensive',
-          factors_considered: ['age', 'bmi', 'lifestyle', 'health_goals'],
-          analysis_date: new Date().toISOString().split('T')[0],
+          ai_provider: 'groq',
+          ai_model: 'llama-3.3-70b-versatile',
+          calculation_method: 'groq_ai_analysis',
+          factors_considered: profileAnalysis || [],
+          generation_parameters: detailedAnalysis || {},
           is_latest: true
         })
         .select()

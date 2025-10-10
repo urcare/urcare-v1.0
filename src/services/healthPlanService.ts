@@ -34,7 +34,7 @@ export const generateHealthPlans = async (request: HealthPlanRequest): Promise<H
       setTimeout(() => reject(new Error('Health plan generation timeout')), 30000)
     );
     
-    const planGenerationPromise = supabase.functions.invoke('health-plans-optimized', {
+    const planGenerationPromise = supabase.functions.invoke('health-plans', {
       body: {
         userProfile: request.userProfile,
         healthScore: request.healthScore,

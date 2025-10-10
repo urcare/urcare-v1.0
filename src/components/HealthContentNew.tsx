@@ -107,8 +107,9 @@ export const HealthContentNew = () => {
 
   // Transform AI-generated health analysis into user-friendly format
   const transformHealthAnalysis = (analysis: string) => {
-    // Remove AI-like language and make it more personal
+    // Remove health score display and AI-like language
     let transformed = analysis
+      .replace(/Health score: \d+\/100/g, '') // Remove health score display
       .replace(/The user's/g, 'Your')
       .replace(/The user/g, 'You')
       .replace(/user's/g, 'your')
@@ -122,7 +123,8 @@ export const HealthContentNew = () => {
       .replace(/essential nutritional requirements/g, 'all your nutritional needs')
       .replace(/unknown/g, 'not provided')
       .replace(/assessment challenging/g, 'complete picture difficult')
-      .replace(/not provided/g, 'not specified');
+      .replace(/not provided/g, 'not specified')
+      .trim(); // Remove any extra whitespace
 
     // Add encouraging tone
     if (transformed.includes('room for improvement')) {
@@ -185,6 +187,21 @@ export const HealthContentNew = () => {
       .replace(/require/g, 'benefit from')
       .replace(/essential/g, 'helpful')
       .replace(/critical/g, 'important');
+
+    // Fix punctuation issues
+    transformed = transformed
+      .replace(/for at least 5 days a wee$/, 'for at least 5 days a week.')
+      .replace(/for at least 5 days a wee\.$/, 'for at least 5 days a week.')
+      .replace(/for at least 5 days a wee\s*$/, 'for at least 5 days a week.')
+      .replace(/such as meditation or yoga$/, 'such as meditation or yoga.')
+      .replace(/such as meditation or yoga\.$/, 'such as meditation or yoga.')
+      .replace(/to improve sleep quality$/, 'to improve sleep quality.')
+      .replace(/to improve sleep quality\.$/, 'to improve sleep quality.');
+
+    // Ensure proper sentence endings
+    if (!transformed.endsWith('.') && !transformed.endsWith('!') && !transformed.endsWith('?')) {
+      transformed += '.';
+    }
 
     // Add encouraging tone
     if (transformed.startsWith('Create') || transformed.startsWith('Prioritize') || transformed.startsWith('Try')) {
@@ -289,6 +306,13 @@ export const HealthContentNew = () => {
         if (insightsResult.success && insightsResult.data) {
           healthInsightsData = insightsResult.data;
           console.log(`✅ Health insights loaded from ${insightsResult.source}`);
+          console.log('📊 Available health data:', {
+            analysis: healthInsightsData.analysis,
+            displayAnalysis: healthInsightsData.displayAnalysis,
+            detailedAnalysis: healthInsightsData.detailedAnalysis,
+            recommendations: healthInsightsData.recommendations
+          });
+          console.log('🔍 Processing health insights for display...');
         }
       } catch (error) {
         console.warn('Failed to load health insights from database:', error);
@@ -317,25 +341,144 @@ export const HealthContentNew = () => {
     }
 
     if (healthInsightsData && healthInsightsData.analysis) {
-      // Transform AI analysis into user-friendly format
-      const userFriendlyAnalysis = transformHealthAnalysis(healthInsightsData.analysis);
-      
-      // Use health insights as the main insight
-      tips.push({
-        id: "1",
-        title: "Your Health Overview",
-        description: userFriendlyAnalysis,
-        icon: <Brain className="w-6 h-6 text-logo-text" />,
-        time: "Updated",
-        isHighlighted: true,
-      });
+      // Use displayAnalysis content if available, otherwise skip the main overview
+      if (healthInsightsData.displayAnalysis && healthInsightsData.displayAnalysis.greeting) {
+        const analysisText = `${healthInsightsData.displayAnalysis.greeting}\n\n${healthInsightsData.displayAnalysis.analysis || ''}`;
+        
+        // Transform AI analysis into user-friendly format
+        const userFriendlyAnalysis = transformHealthAnalysis(analysisText);
+        
+        // Use health insights as the main insight
+        tips.push({
+          id: "1",
+          title: "Your Health Overview",
+          description: userFriendlyAnalysis,
+          icon: <Brain className="w-6 h-6 text-logo-text" />,
+          time: "Updated",
+          isHighlighted: true,
+        });
+      }
+
+      // Add negative analysis points from displayAnalysis
+      if (healthInsightsData.displayAnalysis && healthInsightsData.displayAnalysis.negativeAnalysis) {
+        tips.push({
+          id: "2",
+          title: "Areas for Improvement",
+          description: healthInsightsData.displayAnalysis.negativeAnalysis.map((point: string, index: number) => 
+            `${index + 1}. ${point}`
+          ).join('\n'),
+          icon: <svg className="w-6 h-6 text-logo-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>,
+          time: "Focus Areas",
+          isHighlighted: false,
+        });
+      }
+
+      // Add lifestyle recommendations from displayAnalysis
+      if (healthInsightsData.displayAnalysis && healthInsightsData.displayAnalysis.lifestyleRecommendations) {
+        tips.push({
+          id: "3",
+          title: "Lifestyle Recommendations",
+          description: healthInsightsData.displayAnalysis.lifestyleRecommendations.map((rec: string, index: number) => 
+            `${index + 1}. ${rec}`
+          ).join('\n'),
+          icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
+          time: "Lifestyle",
+          isHighlighted: false,
+        });
+      }
+
+      // Add detailed analysis sections if available
+      if (healthInsightsData.detailedAnalysis) {
+        const detailedAnalysis = healthInsightsData.detailedAnalysis;
+        
+        // Add health risks if available
+        if (detailedAnalysis.healthRisks && Array.isArray(detailedAnalysis.healthRisks)) {
+          tips.push({
+            id: "4",
+            title: "Health Risk Assessment",
+            description: detailedAnalysis.healthRisks.map((risk: string, index: number) => 
+              `${index + 1}. ${risk}`
+            ).join('\n'),
+            icon: <svg className="w-6 h-6 text-logo-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>,
+            time: "Risk Assessment",
+            isHighlighted: false,
+          });
+        }
+
+        // Add sleep profile if available
+        if (detailedAnalysis.sleepProfile) {
+          const sleepInfo = [];
+          if (detailedAnalysis.sleepProfile.wakeUpRoutine) {
+            sleepInfo.push(`Wake up: ${detailedAnalysis.sleepProfile.wakeUpRoutine.join(', ')}`);
+          }
+          if (detailedAnalysis.sleepProfile.bedtimeRoutine) {
+            sleepInfo.push(`Bedtime: ${detailedAnalysis.sleepProfile.bedtimeRoutine.join(', ')}`);
+          }
+          if (sleepInfo.length > 0) {
+            tips.push({
+              id: "5",
+              title: "Sleep Profile",
+              description: sleepInfo.join('\n'),
+              icon: <Moon className="w-6 h-6 text-logo-text" />,
+              time: "Sleep Schedule",
+              isHighlighted: false,
+            });
+          }
+        }
+
+        // Add exercise profile if available
+        if (detailedAnalysis.exerciseProfile && detailedAnalysis.exerciseProfile.workoutSchedule) {
+          tips.push({
+            id: "6",
+            title: "Exercise Schedule",
+            description: detailedAnalysis.exerciseProfile.workoutSchedule.map((schedule: string, index: number) => 
+              `${index + 1}. ${schedule}`
+            ).join('\n'),
+            icon: <Dumbbell className="w-6 h-6 text-logo-text" />,
+            time: "Workout Plan",
+            isHighlighted: false,
+          });
+        }
+
+        // Add nutritional profile if available
+        if (detailedAnalysis.nutritionalProfile && detailedAnalysis.nutritionalProfile.dietaryNeeds) {
+          tips.push({
+            id: "7",
+            title: "Nutritional Profile",
+            description: `Dietary needs: ${detailedAnalysis.nutritionalProfile.dietaryNeeds.join(', ')}`,
+            icon: <Utensils className="w-6 h-6 text-logo-text" />,
+            time: "Diet",
+            isHighlighted: false,
+          });
+        }
+
+        // Add medical considerations if available
+        if (detailedAnalysis.medicalConsiderations && detailedAnalysis.medicalConsiderations.conditionManagement) {
+          tips.push({
+            id: "8",
+            title: "Medical Considerations",
+            description: detailedAnalysis.medicalConsiderations.conditionManagement.map((consideration: string, index: number) => 
+              `${index + 1}. ${consideration}`
+            ).join('\n'),
+            icon: <svg className="w-6 h-6 text-logo-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>,
+            time: "Health Monitoring",
+            isHighlighted: false,
+          });
+        }
+      }
 
       // Add recommendations as individual tips
       if (healthInsightsData.recommendations && healthInsightsData.recommendations.length > 0) {
         healthInsightsData.recommendations.slice(0, 3).forEach((recommendation: string, index: number) => {
           const userFriendlyRec = transformRecommendation(recommendation);
           tips.push({
-            id: `ai-rec-${index + 2}`,
+            id: `ai-rec-${index + 4}`,
             title: `Action Step ${index + 1}`,
             description: userFriendlyRec,
             icon: <CheckCircle2 className="w-6 h-6 text-logo-text" />,
@@ -407,6 +550,8 @@ export const HealthContentNew = () => {
       }
     }
 
+    console.log('📋 Generated tips for display:', tips.length, 'items');
+    console.log('📋 Tips details:', tips.map(tip => ({ id: tip.id, title: tip.title })));
     setDynamicContent(tips);
   }, [profile]);
 
@@ -610,7 +755,7 @@ export const HealthContentNew = () => {
           );
           
           const planGenerationPromise = supabase.functions.invoke(
-            "health-plans-optimized",
+            "health-plans",
             {
               method: "POST",
               body: {
