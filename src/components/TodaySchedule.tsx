@@ -475,7 +475,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
     : (plan?.activities && plan.activities.length > 0 
     ? plan.activities 
         : generateFullDaySchedule());
-    
+        
     
 
   const getActivityIcon = (type: string) => {
@@ -944,8 +944,8 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
                             <div><strong>Week 1-2:</strong> {planItem.timeline['week1-2']}</div>
                             <div><strong>Week 3-4:</strong> {planItem.timeline['week3-4']}</div>
-                            <div><strong>Month 2:</strong> {planItem.timeline.month2}</div>
-                            <div><strong>Month 3:</strong> {planItem.timeline.month3}</div>
+                            <div><strong>Month 2:</strong> {planItem.timeline['month2']}</div>
+                            <div><strong>Month 3:</strong> {planItem.timeline['month3']}</div>
                           </div>
                         </div>
                       )}

@@ -9,6 +9,9 @@ const SimpleDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [healthScore, setHealthScore] = useState<number>(0);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [dynamicData, setDynamicData] = useState<any>(null);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -51,6 +54,43 @@ const SimpleDashboard = () => {
 
     checkAuth();
   }, [navigate]);
+
+  // Load dynamic data
+  useEffect(() => {
+    const loadDynamicData = async () => {
+      if (user) {
+        try {
+          // Simulate loading dynamic data
+          const mockData = {
+            healthScore: Math.floor(Math.random() * 40) + 60, // 60-100
+            lastUpdated: new Date().toLocaleString(),
+            activities: [
+              { id: 1, name: 'Morning Walk', completed: true, time: '7:00 AM' },
+              { id: 2, name: 'Meditation', completed: false, time: '8:00 AM' },
+              { id: 3, name: 'Workout', completed: false, time: '6:00 PM' }
+            ],
+            recommendations: [
+              'Drink more water',
+              'Get 8 hours of sleep',
+              'Take your medication'
+            ]
+          };
+          
+          setHealthScore(mockData.healthScore);
+          setLastUpdated(mockData.lastUpdated);
+          setDynamicData(mockData);
+        } catch (error) {
+          console.error('Error loading dynamic data:', error);
+        }
+      }
+    };
+
+    loadDynamicData();
+    
+    // Update data every 30 seconds
+    const interval = setInterval(loadDynamicData, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -121,6 +161,26 @@ const SimpleDashboard = () => {
                 You've successfully completed the authentication and onboarding flow.
               </p>
               
+              {/* Dynamic Health Score Card */}
+              {dynamicData && (
+                <div className="mb-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-lg text-white">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold">Your Health Score</h3>
+                      <span className="text-sm opacity-90">Updated: {lastUpdated}</span>
+                    </div>
+                    <div className="text-4xl font-bold mb-2">{healthScore}%</div>
+                    <div className="w-full bg-white/20 rounded-full h-2 mb-4">
+                      <div 
+                        className="bg-white rounded-full h-2 transition-all duration-500" 
+                        style={{ width: `${healthScore}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm opacity-90">Based on your recent activities and health data</p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <h3 className="text-lg font-semibold text-blue-900 mb-2">Health Assessment</h3>
@@ -137,6 +197,45 @@ const SimpleDashboard = () => {
                   <p className="text-purple-700 text-sm">Track your health journey and see your progress.</p>
                 </div>
               </div>
+
+              {/* Dynamic Activities Card */}
+              {dynamicData && (
+                <div className="mt-6">
+                  <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Activities</h3>
+                    <div className="space-y-3">
+                      {dynamicData.activities.map((activity: any) => (
+                        <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-3 h-3 rounded-full ${activity.completed ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                            <span className={`font-medium ${activity.completed ? 'text-green-700' : 'text-gray-700'}`}>
+                              {activity.name}
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-500">{activity.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Recommendations Card */}
+              {dynamicData && (
+                <div className="mt-6">
+                  <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Health Recommendations</h3>
+                    <div className="space-y-2">
+                      {dynamicData.recommendations.map((rec: string, index: number) => (
+                        <div key={index} className="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                          <span className="text-sm text-yellow-800">{rec}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

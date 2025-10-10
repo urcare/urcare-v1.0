@@ -566,5 +566,3 @@ const DynamicHealthSection: React.FC<DynamicHealthSectionProps> = ({
 };
 
 export default DynamicHealthSection;
-
-
