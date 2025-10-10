@@ -141,6 +141,13 @@ export const fetchDailyActivities = async (userId: string, activityDate?: string
     
     const date = activityDate || new Date().toISOString().split('T')[0];
     
+    console.log('🔍 Function call parameters:', {
+      userId,
+      date,
+      userIdType: typeof userId,
+      dateType: typeof date
+    });
+    
     const { data, error } = await supabase.rpc('get_user_daily_activities', {
       p_user_id: userId,
       p_activity_date: date
