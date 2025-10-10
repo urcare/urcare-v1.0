@@ -1,8 +1,8 @@
--- Grant Annual Subscription for Specific User
--- User ID: 52aa4c14-f4db-4ab9-b538-75a0be9e0661
+-- Grant Monthly Subscription for Specific User
+-- User ID: b73be2d4-b0c2-4d2b-837d-100d486aa32f
 -- Plan ID: 345e51d4-31d7-4619-bcb3-5d441f1e636b
 
--- Insert annual subscription for the user
+-- Insert monthly subscription for the user
 INSERT INTO "public"."user_subscriptions" (
     "id", 
     "user_id", 
@@ -19,14 +19,14 @@ INSERT INTO "public"."user_subscriptions" (
     "updated_at"
 ) VALUES (
     gen_random_uuid(),
-    '52aa4c14-f4db-4ab9-b538-75a0be9e0661',
+    'b73be2d4-b0c2-4d2b-837d-100d486aa32f',
     '345e51d4-31d7-4619-bcb3-5d441f1e636b',
     'active',
-    'annual',
+    'monthly',
     null,
     null,
     NOW(),
-    NOW() + INTERVAL '1 year',
+    NOW() + INTERVAL '1 month',
     null,
     null,
     NOW(),

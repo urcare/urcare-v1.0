@@ -569,6 +569,7 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
       console.warn('⚠️ Database check failed, proceeding with calculation:', analysisCheck.error);
     }
     
+    // Always proceed with calculation if no complete analysis exists
     if (analysisCheck.success && analysisCheck.exists && analysisCheck.isComplete) {
       console.log('✅ Complete health analysis already exists in database, fetching...');
       
@@ -619,8 +620,8 @@ export const getOrCalculateHealthAnalysis = async (userId: string, userProfile?:
       }
     }
     
-    // Only proceed with calculation if no existing data was found
-    console.log('🔄 No existing health analysis found, calculating new ones...');
+    // Always generate health analysis if we reach this point
+    console.log('🔄 Proceeding with health analysis calculation...');
     
     if (!userProfile) {
       console.log('📋 Fetching user profile for analysis...');
