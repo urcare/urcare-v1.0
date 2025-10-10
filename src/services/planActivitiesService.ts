@@ -148,6 +148,12 @@ export const fetchDailyActivities = async (userId: string, activityDate?: string
     
     if (error) {
       console.error('❌ Error fetching activities from database:', error);
+      console.error('❌ Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw new Error(error.message || 'Failed to fetch daily activities');
     }
     
