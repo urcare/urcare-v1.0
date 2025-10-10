@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Clock, Activity, Utensils, Moon, Sun, Eye, ArrowRight, Heart, CheckCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Activity, Utensils, Moon, Sun, Eye, ArrowRight, Heart, CheckCircle, Coffee, Dumbbell, BookOpen, Zap, Bed, Briefcase, Home, Car, ShoppingCart, Gamepad2, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { markActivityCompleted } from '@/services/planActivitiesService';
 
 interface Activity {
   id: string;
@@ -72,6 +74,12 @@ interface TodayScheduleProps {
   onViewPlanDetails?: (plan: Plan) => void;
   sequentialAIResult?: any;
   profile?: any;
+  generatedPlans?: any[];
+  onBackToInsights?: () => void;
+  generatedActivities?: any[];
+  activitiesGenerating?: boolean;
+  selectedPlan?: any;
+  user?: any;
 }
 
 const TodaySchedule: React.FC<TodayScheduleProps> = ({ 
@@ -81,14 +89,184 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
   onSelectPlan, 
   onViewPlanDetails,
   sequentialAIResult,
-  profile
+  profile,
+  generatedPlans = [],
+  onBackToInsights,
+  generatedActivities = [],
+  activitiesGenerating = false,
+  selectedPlan,
+  user
 }) => {
+  console.log("🎯 TodaySchedule props:", { 
+    showPlans, 
+    generatedPlansLength: generatedPlans?.length, 
+    hasGeneratedPlans: generatedPlans && generatedPlans.length > 0,
+    generatedActivitiesLength: generatedActivities?.length,
+    hasGeneratedActivities: generatedActivities && generatedActivities.length > 0,
+    activitiesGenerating
+  });
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
   const [isPlanExpanded, setIsPlanExpanded] = useState(false);
   const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
+  const [expandedHealthPlans, setExpandedHealthPlans] = useState<Set<string>>(new Set());
+  const [expandedDailyActivities, setExpandedDailyActivities] = useState<Set<string>>(new Set());
+  const [completedActivities, setCompletedActivities] = useState<Set<string>>(new Set());
+  const [markingCompleted, setMarkingCompleted] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
+  // Debug activities prop changes
+  useEffect(() => {
+    console.log("🎯 TodaySchedule activities prop changed:", {
+      length: generatedActivities?.length,
+      activities: generatedActivities,
+      hasActivities: generatedActivities && generatedActivities.length > 0
+    });
+  }, [generatedActivities]);
 
+  // Toggle health plan expansion
+  const toggleHealthPlanExpansion = (planId: string) => {
+    setExpandedHealthPlans(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(planId)) {
+        newSet.delete(planId);
+      } else {
+        newSet.add(planId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle daily activity expansion
+  const toggleDailyActivityExpansion = (activityId: string) => {
+    setExpandedDailyActivities(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(activityId)) {
+        newSet.delete(activityId);
+      } else {
+        newSet.add(activityId);
+      }
+      return newSet;
+    });
+  };
+
+  // Mark activity as completed
+  const handleMarkCompleted = async (activityId: string, userId: string) => {
+    if (!userId) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    setMarkingCompleted(prev => new Set(prev).add(activityId));
+    
+    try {
+      const success = await markActivityCompleted(activityId, userId);
+      
+      if (success) {
+        setCompletedActivities(prev => new Set(prev).add(activityId));
+        toast.success('Activity marked as completed! 🎉');
+      } else {
+        toast.error('Failed to mark activity as completed');
+      }
+    } catch (error) {
+      console.error('Error marking activity as completed:', error);
+      toast.error('Failed to mark activity as completed');
+    } finally {
+      setMarkingCompleted(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(activityId);
+        return newSet;
+      });
+    }
+  };
+
+  // Get custom icon for activity based on activity name and category
+  const getActivityIcon = (activity: any) => {
+    const activityName = activity.activity?.toLowerCase() || '';
+    const category = activity.category?.toLowerCase() || '';
+    
+    // Morning routine & breakfast
+    if (activityName.includes('morning') || activityName.includes('breakfast') || activityName.includes('routine')) {
+      return <Coffee className="w-5 h-5 text-orange-600" />;
+    }
+    
+    // Exercise & workout
+    if (activityName.includes('exercise') || activityName.includes('workout') || activityName.includes('gym') || 
+        activityName.includes('pushup') || activityName.includes('squat') || activityName.includes('plank')) {
+      return <Dumbbell className="w-5 h-5 text-red-600" />;
+    }
+    
+    // Meal & food
+    if (activityName.includes('meal') || activityName.includes('lunch') || activityName.includes('dinner') || 
+        activityName.includes('snack') || activityName.includes('food')) {
+      return <Utensils className="w-5 h-5 text-green-600" />;
+    }
+    
+    // Work & preparation
+    if (activityName.includes('work') || activityName.includes('preparation') || activityName.includes('office') || 
+        activityName.includes('meeting') || activityName.includes('focus')) {
+      return <Briefcase className="w-5 h-5 text-blue-600" />;
+    }
+    
+    // Study & learning
+    if (activityName.includes('study') || activityName.includes('learn') || activityName.includes('read') || 
+        activityName.includes('education') || activityName.includes('book')) {
+      return <BookOpen className="w-5 h-5 text-purple-600" />;
+    }
+    
+    // Sleep & rest
+    if (activityName.includes('sleep') || activityName.includes('rest') || activityName.includes('nap') || 
+        activityName.includes('bedtime')) {
+      return <Bed className="w-5 h-5 text-indigo-600" />;
+    }
+    
+    // Energy & motivation
+    if (activityName.includes('energy') || activityName.includes('motivation') || activityName.includes('boost') || 
+        activityName.includes('power')) {
+      return <Zap className="w-5 h-5 text-yellow-600" />;
+    }
+    
+    // Home activities
+    if (activityName.includes('home') || activityName.includes('house') || activityName.includes('clean') || 
+        activityName.includes('chore')) {
+      return <Home className="w-5 h-5 text-teal-600" />;
+    }
+    
+    // Travel & commute
+    if (activityName.includes('travel') || activityName.includes('commute') || activityName.includes('drive') || 
+        activityName.includes('transport')) {
+      return <Car className="w-5 h-5 text-gray-600" />;
+    }
+    
+    // Shopping & errands
+    if (activityName.includes('shop') || activityName.includes('grocery') || activityName.includes('errand') || 
+        activityName.includes('buy')) {
+      return <ShoppingCart className="w-5 h-5 text-pink-600" />;
+    }
+    
+    // Entertainment & leisure
+    if (activityName.includes('entertainment') || activityName.includes('leisure') || activityName.includes('game') || 
+        activityName.includes('fun') || activityName.includes('relax')) {
+      return <Gamepad2 className="w-5 h-5 text-cyan-600" />;
+    }
+    
+    // Default based on category
+    switch (category) {
+      case 'morning':
+        return <Sun className="w-5 h-5 text-yellow-600" />;
+      case 'exercise':
+        return <Activity className="w-5 h-5 text-red-600" />;
+      case 'meal':
+        return <Utensils className="w-5 h-5 text-green-600" />;
+      case 'work':
+        return <Briefcase className="w-5 h-5 text-blue-600" />;
+      case 'evening':
+        return <Moon className="w-5 h-5 text-indigo-600" />;
+      case 'sleep':
+        return <Bed className="w-5 h-5 text-indigo-600" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-600" />;
+    }
+  };
 
   // Generate full day schedule grouped by categories
   const generateFullDaySchedule = (): Activity[] => {
@@ -477,29 +655,9 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
     : (plan?.activities && plan.activities.length > 0 
     ? plan.activities 
         : generateFullDaySchedule());
-        
+    
     
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'exercise':
-        return <Activity className="w-4 h-4" />;
-      case 'meal':
-        return <Utensils className="w-4 h-4" />;
-      case 'rest':
-        return <Moon className="w-4 h-4" />;
-      case 'work':
-        return <Clock className="w-4 h-4" />;
-      case 'productivity':
-        return <Clock className="w-4 h-4" />;
-      case 'hydration':
-        return <Heart className="w-4 h-4" />;
-      case 'mindfulness':
-        return <Sun className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
 
   const getActivityColor = (type: string) => {
     switch (type) {
@@ -592,7 +750,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
               : sequentialAIResult && !plan
               ? 'Your personalized protocol generated by our advanced algorithms'
               : plan 
-              ? 'Follow your personalized daily activities'
+              ? 'Follow your personalized daily protocol'
               : 'Personalized tips to improve your health and wellness'
             }
           </p>
@@ -600,7 +758,286 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
       )}
 
       {/* Show Protocols, Activities, or Health Insights */}
-      {sequentialAIResult && !showPlans && !plan ? (
+      {generatedActivities && generatedActivities.length > 0 ? (
+        // Generated Daily Protocol View
+        <div className="space-y-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Your Daily Protocol
+            </h2>
+            <p className="text-gray-600">
+              {selectedPlan ? `Following your ${selectedPlan.name} protocol` : 'Your personalized daily protocol'}
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            {generatedActivities.map((activity, index) => {
+              const activityId = activity.id || `activity-${index}`;
+              const isExpanded = expandedDailyActivities.has(activityId);
+              
+              return (
+                <Card key={index} className="border border-gray-200 hover:border-gray-300 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                          {getActivityIcon(activity)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{activity.activity}</h3>
+                          <p className="text-sm text-gray-600">{activity.activity_time || activity.time} • {activity.duration}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                          {activity.category}
+                        </span>
+                        <button
+                          onClick={() => toggleDailyActivityExpansion(activityId)}
+                          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-600" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {isExpanded && (
+                      <div className="space-y-3">
+                        {activity.food && (
+                          <div className="mb-3">
+                            <h4 className="text-sm font-medium text-gray-700 mb-1">Food:</h4>
+                            <p className="text-sm text-gray-600">{activity.food}</p>
+                          </div>
+                        )}
+                        
+                        {activity.exercise && (
+                          <div className="mb-3">
+                            <h4 className="text-sm font-medium text-gray-700 mb-1">Exercise:</h4>
+                            <p className="text-sm text-gray-600">{activity.exercise}</p>
+                          </div>
+                        )}
+                        
+                        {activity.instructions && activity.instructions.length > 0 && (
+                          <div className="mb-3">
+                            <h4 className="text-sm font-medium text-gray-700 mb-1">Instructions:</h4>
+                            <ul className="space-y-1">
+                              {activity.instructions.map((instruction: string, instIndex: number) => (
+                                <li key={instIndex} className="text-sm text-gray-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <span>{instruction}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {activity.health_tip && (
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-medium text-green-800 mb-1">💡 Health Tip:</h4>
+                            <p className="text-sm text-green-700">{activity.health_tip}</p>
+                          </div>
+                        )}
+                        
+                        {/* Mark as Completed Button */}
+                        <div className="pt-3 border-t border-gray-100">
+                          <Button
+                            onClick={() => handleMarkCompleted(activityId, user?.id)}
+                            disabled={markingCompleted.has(activityId) || completedActivities.has(activityId)}
+                            className={`w-full ${
+                              completedActivities.has(activityId)
+                                ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            {markingCompleted.has(activityId) ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Marking...
+                              </>
+                            ) : completedActivities.has(activityId) ? (
+                              <>
+                                <Check className="w-4 h-4 mr-2" />
+                                Completed ✓
+                              </>
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4 mr-2" />
+                                Mark as Completed
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : generatedPlans && generatedPlans.length > 0 ? (
+        // Generated Health Protocols View
+        <div className="space-y-4">
+          
+          <div className="space-y-4">
+            {generatedPlans.map((plan, index) => {
+              const planId = plan.id || `plan-${index}`;
+              const isExpanded = expandedHealthPlans.has(planId);
+              
+              return (
+                <Card key={planId} className="border-2 border-green-100 hover:border-green-200 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg text-gray-800">{plan.name}</CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">{plan.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          {plan.difficulty}
+                        </span>
+                        <button
+                          onClick={() => toggleHealthPlanExpansion(planId)}
+                          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-600" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                
+                <CardContent className="pt-0">
+                  {isExpanded && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                        <div>
+                          <strong>Duration:</strong> {plan.duration}
+                        </div>
+                        <div>
+                          <strong>Frequency:</strong> {plan.workoutFrequency}
+                        </div>
+                        <div>
+                          <strong>Calories:</strong> {plan.calorieTarget}
+                        </div>
+                        <div>
+                          <strong>Focus:</strong> {plan.focusAreas?.join(', ')}
+                        </div>
+                      </div>
+                      
+                      {plan.benefits && plan.benefits.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="font-medium text-gray-800 mb-2">Benefits</h4>
+                          <ul className="space-y-1">
+                            {plan.benefits.map((benefit: string, benefitIndex: number) => (
+                              <li key={benefitIndex} className="flex items-start gap-2 text-sm text-gray-600">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                <span>{benefit}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      disabled={activitiesGenerating}
+                      onClick={() => {
+                        // Call the plan selection handler
+                        console.log('Selected plan:', plan);
+                        onSelectPlan?.(plan);
+                      }}
+                    >
+                      {activitiesGenerating ? 'Generating Protocol...' : 'Select This Protocol'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : generatedActivities && generatedActivities.length > 0 ? (
+        // Generated Daily Activities View
+        <div className="space-y-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Your Daily Schedule
+            </h2>
+            <p className="text-gray-600">
+              {selectedPlan ? `Following your ${selectedPlan.name} plan` : 'Your personalized daily activities'}
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            {generatedActivities.map((activity, index) => (
+              <Card key={index} className="border border-gray-200 hover:border-gray-300 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800">{activity.activity}</h3>
+                        <p className="text-sm text-gray-600">{activity.activity_time || activity.time} • {activity.duration}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                      {activity.category}
+                    </span>
+                  </div>
+                  
+                  {activity.food && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Food:</h4>
+                      <p className="text-sm text-gray-600">{activity.food}</p>
+                    </div>
+                  )}
+                  
+                  {activity.exercise && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Exercise:</h4>
+                      <p className="text-sm text-gray-600">{activity.exercise}</p>
+                    </div>
+                  )}
+                  
+                  {activity.instructions && activity.instructions.length > 0 && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Instructions:</h4>
+                      <ul className="space-y-1">
+                        {activity.instructions.map((instruction: string, instIndex: number) => (
+                          <li key={instIndex} className="text-sm text-gray-600 flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                            <span>{instruction}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {activity.health_tip && (
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <h4 className="text-sm font-medium text-green-800 mb-1">💡 Health Tip:</h4>
+                      <p className="text-sm text-green-700">{activity.health_tip}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : sequentialAIResult && !showPlans && !plan ? (
         // Algorithm-Generated Protocol View
         <div className="space-y-4">
           {/* Algorithm Protocol Header - Only show when no protocol is selected */}
@@ -1265,15 +1702,15 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                         .split('\n')
                         .filter(line => line.trim() !== '') // Remove empty lines
                         .map((line, index) => {
-                          if (line.trim() === 'Recommendations:') {
-                            return (
-                              <div key={index} className="text-center font-bold text-gray-800 mt-4 mb-2">
-                                {line}
-                              </div>
-                            );
-                          }
-                          return <div key={index}>{line}</div>;
-                        })}
+                        if (line.trim() === 'Recommendations:') {
+                          return (
+                            <div key={index} className="text-center font-bold text-gray-800 mt-4 mb-2">
+                              {line}
+                            </div>
+                          );
+                        }
+                        return <div key={index}>{line}</div>;
+                      })}
                     </div>
                     
                     {/* Negative Analysis Points */}
@@ -1294,7 +1731,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                     </div>
                       </div>
                     )}
-
+                    
                     {/* AI Recommendations */}
                     {aiHealthData.healthScoreRecommendations && aiHealthData.healthScoreRecommendations.length > 0 && (
                       <div className="mt-4">

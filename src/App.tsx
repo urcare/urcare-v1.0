@@ -9,6 +9,7 @@ const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
 const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const HealthPlanGeneration = React.lazy(() => import("./pages/HealthPlanGeneration"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/paywall" element={<Paywall />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/health-plan-generation" element={<HealthPlanGeneration />} />
           
           {/* Fallback to landing */}
           <Route path="*" element={<Landing />} />

@@ -7,6 +7,8 @@ import TodaySchedule from "@/components/TodaySchedule";
 import FloatingChat from "@/components/FloatingChat";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
+import { generateHealthPlans } from "@/services/healthPlanService";
+import { generatePlanActivities, fetchDailyActivities } from "@/services/planActivitiesService";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +18,75 @@ const Dashboard: React.FC = () => {
   const [healthData, setHealthData] = useState<any>(null);
   const [healthScore, setHealthScore] = useState<number>(75);
   const [healthLoading, setHealthLoading] = useState(false);
+  const [userInput, setUserInput] = useState<string>('');
+  const [planGenerating, setPlanGenerating] = useState(false);
+  const [generatedPlans, setGeneratedPlans] = useState<any[]>([]);
+  const [showPlans, setShowPlans] = useState(false);
+  const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
+  const [activitiesGenerating, setActivitiesGenerating] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string>('Generate Your Protocol');
+
+  // Debug activities state changes
+  useEffect(() => {
+    console.log("🎯 Activities state changed:", {
+      length: generatedActivities?.length,
+      activities: generatedActivities,
+      hasActivities: generatedActivities && generatedActivities.length > 0
+    });
+  }, [generatedActivities]);
+
+  // Fetch saved daily activities
+  const fetchSavedActivities = async (userId: string) => {
+    try {
+      console.log('🔍 Fetching saved daily activities for user:', userId);
+      
+      const result = await fetchDailyActivities(userId);
+      
+      if (result.success && result.data) {
+        console.log('✅ Saved activities loaded:', result.data.schedule?.length);
+        console.log('📊 Saved activities data:', result.data.schedule);
+        const activities = result.data.schedule || [];
+        setGeneratedActivities(activities);
+        console.log('🎯 Activities state updated:', activities.length);
+    } else {
+        console.log('ℹ️ No saved activities found');
+        setGeneratedActivities([]); // Ensure state is cleared
+    }
+    } catch (error) {
+      console.error('❌ Error fetching saved activities:', error);
+      setGeneratedActivities([]); // Ensure state is cleared on error
+    }
+  };
+
+  // Fetch current plan name from database
+  const fetchCurrentPlanName = async (userId: string) => {
+    try {
+      console.log('🔍 Fetching current plan name for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('health_plans')
+        .select('plan_name')
+        .eq('user_id', userId)
+        .eq('status', 'selected')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error) {
+        console.log('ℹ️ No plan found or error:', error.message);
+        setCurrentPlanName('Generate Your Protocol');
+      } else if (data && data.plan_name) {
+        console.log('✅ Current plan name found:', data.plan_name);
+        setCurrentPlanName(data.plan_name);
+      } else {
+        setCurrentPlanName('Generate Your Protocol');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching current plan name:', error);
+      setCurrentPlanName('Generate Your Plan');
+    }
+  };
 
   // Fetch health data
   const fetchHealthData = async (userId: string) => {
@@ -39,8 +110,8 @@ const Dashboard: React.FC = () => {
         }));
       } else {
         console.warn('⚠️ Failed to fetch health data:', result.error);
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error('❌ Error fetching health data:', error);
     } finally {
       setHealthLoading(false);
@@ -57,8 +128,8 @@ const Dashboard: React.FC = () => {
           console.log("No user detected - redirecting to landing page");
           navigate("/", { replace: true });
           return;
-        }
-        
+    }
+
         setUser(session.user);
 
         // Fetch user profile
@@ -70,7 +141,7 @@ const Dashboard: React.FC = () => {
 
         if (profileError) {
           console.error("Error fetching profile:", profileError);
-        } else {
+      } else {
           setProfile(profileData);
         }
 
@@ -90,14 +161,24 @@ const Dashboard: React.FC = () => {
           }
         }
 
-        // Fetch health data
-        if (session.user.id) {
-          await fetchHealthData(session.user.id);
-        }
+          // Fetch health data, saved activities, and current plan name
+          if (session.user.id) {
+            await fetchHealthData(session.user.id);
+            await fetchSavedActivities(session.user.id);
+            await fetchCurrentPlanName(session.user.id);
+            
+            // Debug: Check if activities were loaded
+            setTimeout(() => {
+              console.log('🔍 Final activities state check:', {
+                length: generatedActivities?.length,
+                activities: generatedActivities
+              });
+            }, 1000);
+          }
       } catch (error) {
         console.error("Auth check error:", error);
         navigate("/", { replace: true });
-      } finally {
+    } finally {
         setLoading(false);
       }
     };
@@ -114,28 +195,105 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleGenerateHealthPlan = async () => {
+  const handleSelectPlan = async (plan: any) => {
     if (!user?.id) {
-      toast.error("Please log in to generate health plans");
+      toast.error("Please log in to select a protocol");
       return;
     }
 
     try {
-      toast.loading("Generating your personalized health plan...", { id: "health-plan" });
+      setActivitiesGenerating(true);
+      setSelectedPlan(plan);
       
-      navigate("/health-plan-generation", { 
-        state: { 
-          userProfile: profile,
-          healthScore: healthScore,
-          healthData: healthData
-        } 
+      // Update current protocol name
+      setCurrentPlanName(plan.name || 'Selected Protocol');
+      
+      toast.loading("Generating your daily protocol...", { id: "plan-activities" });
+      
+      // Generate daily protocol for the selected plan
+      const result = await generatePlanActivities({
+          selectedPlan: plan,
+        userProfile: profile,
+        primaryGoal: userInput.trim() || plan.name
       });
       
-      toast.dismiss("health-plan");
+      if (result.success && result.data) {
+        toast.success("Daily protocol generated successfully!", { id: "plan-activities" });
+        
+        console.log("🎯 Generated activities:", result.data.schedule?.length);
+        console.log("🎯 Activities data structure:", result.data);
+        
+        // Store the generated protocol
+        const activities = result.data.schedule || [];
+        setGeneratedActivities(activities);
+        console.log("🎯 Protocol stored in state:", activities.length);
+        console.log("🎯 Protocol data:", activities);
+        setShowPlans(false); // Hide plans view, show protocol
+        
+        // Clear the input
+        setUserInput('');
+      } else {
+        console.error("❌ Protocol generation failed:", result.error);
+        toast.error(result.error || "Failed to generate daily protocol", { id: "plan-activities" });
+      }
+      
     } catch (error) {
-      console.error("Error generating health plan:", error);
-      toast.error("Failed to generate health plan. Please try again.");
-      toast.dismiss("health-plan");
+      console.error("Error generating protocol:", error);
+      toast.error("Failed to generate protocol. Please try again.", { id: "plan-activities" });
+    } finally {
+      setActivitiesGenerating(false);
+    }
+  };
+
+  const handleGenerateHealthPlan = async () => {
+    if (!user?.id) {
+      toast.error("Please log in to generate health protocols");
+          return;
+    }
+
+    if (!userInput.trim()) {
+      toast.error("Please enter your health goal");
+      return;
+    }
+
+    try {
+      setPlanGenerating(true);
+      toast.loading("Generating your personalized health protocol...", { id: "health-plan" });
+      
+      // Generate health plans using the service
+      const result = await generateHealthPlans({
+        userProfile: profile,
+        primaryGoal: userInput.trim(),
+        userInput: userInput.trim(),
+        healthScore: healthScore,
+        healthAnalysis: healthData
+      });
+      
+      if (result.success && result.plans) {
+        toast.success("Health protocols generated successfully!", { id: "health-plan" });
+        
+        console.log("🎯 Generated health plans:", result.plans.length);
+        console.log("🎯 User context:", result.userContext);
+        
+        // Store the generated protocols and show them in the dashboard
+        setGeneratedPlans(result.plans);
+        setShowPlans(true);
+        
+        console.log("🎯 Protocols stored in state:", result.plans.length);
+        console.log("🎯 Show protocols set to:", true);
+        
+        // Clear the input
+        setUserInput('');
+      } else {
+        console.error("❌ Health protocol generation failed:", result.error);
+        toast.error(result.error || "Failed to generate health protocols", { id: "health-plan" });
+      }
+      
+    } catch (error) {
+      console.error("Error generating health protocol:", error);
+      toast.error("Failed to generate health protocol. Please try again.", { id: "health-plan" });
+    } finally {
+      setPlanGenerating(false);
     }
   };
 
@@ -151,20 +309,20 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <ErrorBoundary>
+      <ErrorBoundary>
       <div className="min-h-screen" style={{ backgroundColor: '#008000' }}>
-        <div className="max-w-md mx-auto pb-6">
+      <div className="max-w-md mx-auto pb-6">
           {/* Header Section */}
           <div className="rounded-b-[2rem] px-4 sm:px-6 py-4 shadow-lg bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-3 border-gray-200 shadow-md overflow-hidden bg-gradient-to-br from-[#88ba82] to-[#95c190] flex items-center justify-center">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-3 border-gray-200 shadow-md overflow-hidden bg-gradient-to-br from-[#88ba82] to-[#95c190] flex items-center justify-center">
                     {profile?.avatar_url ? (
                       <img 
                         src={profile.avatar_url} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
+                          alt="Profile"
+                          className="w-full h-full object-cover"
                         crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         onLoad={() => console.log('Profile image loaded:', profile.avatar_url)}
@@ -181,119 +339,137 @@ const Dashboard: React.FC = () => {
                     ) : null}
                     <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg sm:text-xl" style={{ display: profile?.avatar_url ? 'none' : 'flex' }}>
                       {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      </div>
                 </div>
-                
-                <div className="flex flex-col min-w-0 flex-1">
-                  <h1 className="text-lg font-semibold text-gray-800 truncate">
-                    Hi {profile?.full_name?.split(" ")[0] || 'User'}
-                  </h1>
-                  <p className="text-sm text-gray-600">
-                    Welcome back!
-                  </p>
-                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
               </div>
               
-              <div className="flex items-center gap-2 sm:gap-3">
-                <button 
-                  onClick={handleSignOut}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200"
-                >
-                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-                </button>
-                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200">
-                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                </button>
+              <div className="flex flex-col min-w-0 flex-1">
+                  <h1 className="text-lg font-semibold text-gray-800 truncate">
+                    Hi {profile?.full_name?.split(" ")[0] || 'User'}
+                </h1>
+                  <p className="text-sm text-gray-600">
+                  Welcome back!
+                </p>
               </div>
             </div>
+              
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button 
+                  onClick={handleSignOut}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200"
+              >
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+              </button>
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200">
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+              </button>
+            </div>
           </div>
+        </div>
 
           {/* Health Score Section */}
-          <div className="max-w-md mx-auto px-4 sm:px-6">
+        <div className="max-w-md mx-auto px-4 sm:px-6">
             <div className="backdrop-blur-md py-4 px-4 shadow-lg rounded-[2rem] mt-2 bg-white/20">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-shrink-0">
-                  <div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-shrink-0">
+                <div>
                     <h2 className="text-sm font-medium mb-2 text-center text-white">
-                      HEALTH SCORE
-                    </h2>
+                    HEALTH SCORE
+                  </h2>
                     <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 rounded-full flex items-center justify-center border-white/50">
                       {healthLoading ? (
                         <div className="w-6 h-6 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
                       ) : (
                         <span className="text-xl sm:text-2xl font-bold text-white">
-                          {healthScore}
-                        </span>
+                      {healthScore}
+                    </span>
                       )}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="text-right">
-                    <h3 className="text-xs font-medium mb-1 text-white/80">
-                      YOUR PLAN
-                    </h3>
-                    <p className="text-sm font-semibold text-white truncate">
-                      Generate Your Plan
-                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Input Section */}
-          <div className="max-w-md mx-auto px-4 sm:px-6 mt-3">
-            <div className="backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 bg-white/90 border-gray-300/60">
-              <textarea 
-                placeholder="Set your health goals or ask for advice..."
-                className="w-full bg-transparent text-sm focus:outline-none resize-none min-h-[40px] border-2 rounded-2xl px-3 py-2 mb-2 text-gray-800 placeholder-gray-500 border-gray-300/60 focus:border-gray-400"
-                rows={2}
-              />
               
-              <div className="flex items-center justify-between gap-2 mt-2">
-                <button className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200">
-                  <Paperclip className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Attach</span>
-                </button>
-                
-                <div className="flex items-center gap-2">
-                  <button className="w-8 h-8 rounded-full flex items-center justify-center border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200">
-                    <Mic className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={handleGenerateHealthPlan}
-                    disabled={healthLoading}
-                    className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
-                    style={{ backgroundColor: '#008000' }}
-                    title="Generate AI Health Plan"
-                  >
-                    {healthLoading ? (
-                      <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
-                    ) : (
-                      <Activity className="w-4 h-4 text-white" />
-                    )}
-                  </button>
+              <div className="flex-1 min-w-0">
+                <div className="text-right">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {currentPlanName}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+          {/* Input Section - Hide when activities are generated */}
+        {!(generatedActivities && generatedActivities.length > 0) && (
+        <div className="max-w-md mx-auto px-4 sm:px-6 mt-3">
+              <div className="backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 bg-white/90 border-gray-300/60">
+              <textarea 
+                  placeholder="Set your health goals or ask for protocol advice..."
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+                  className="w-full bg-transparent text-sm focus:outline-none resize-none min-h-[40px] border-2 rounded-2xl px-3 py-2 mb-2 text-gray-800 placeholder-gray-500 border-gray-300/60 focus:border-gray-400"
+              rows={2}
+            />
+            
+            <div className="flex items-center justify-between gap-2 mt-2">
+                  <button className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200">
+                <Paperclip className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Attach</span>
+              </button>
+                  
+              <div className="flex items-center gap-2">
+                    <button className="w-8 h-8 rounded-full flex items-center justify-center border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200">
+                  <Mic className="w-4 h-4" />
+                </button>
+                <button 
+                        onClick={handleGenerateHealthPlan}
+                        disabled={healthLoading || planGenerating}
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+                        style={{ backgroundColor: '#008000' }}
+                  title="Generate AI Health Protocol"
+                >
+                        {(healthLoading || planGenerating) ? (
+                          <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <Activity className="w-4 h-4 text-white" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+          </div>
+        )}
 
           {/* Main Content */}
-          <div className="max-w-md mx-auto px-4 sm:px-6 mt-2">
+        <div className="max-w-md mx-auto px-4 sm:px-6 mt-2">
             <div className="py-3 flex-1 shadow-lg rounded-3xl bg-white">
-              <TodaySchedule profile={profile} />
+              <TodaySchedule 
+                profile={profile} 
+                generatedPlans={generatedPlans}
+                showPlans={showPlans}
+                onBackToInsights={() => setShowPlans(false)}
+                generatedActivities={generatedActivities}
+                activitiesGenerating={activitiesGenerating}
+                selectedPlan={selectedPlan}
+                onSelectPlan={handleSelectPlan}
+                user={user}
+              />
+              {console.log("🎯 Dashboard passing to TodaySchedule:", {
+                showPlans,
+                generatedPlansLength: generatedPlans?.length,
+                generatedActivitiesLength: generatedActivities?.length,
+                activitiesGenerating,
+                selectedPlanName: selectedPlan?.name
+              })}
             </div>
-          </div>
-
-          {/* Floating Chat */}
-          <FloatingChat />
         </div>
-      </div>
-    </ErrorBoundary>
+
+      {/* Floating Chat */}
+      <FloatingChat />
+        </div>
+        </div>
+      </ErrorBoundary>
   );
 };
 

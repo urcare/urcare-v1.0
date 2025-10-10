@@ -1,108 +1,273 @@
-// Plan Activities Service using Supabase Edge Functions
 import { supabase } from '@/integrations/supabase/client';
 
-export interface Activity {
-  id: string;
-  name: string;
-  duration: string;
-  instructions: string;
-  equipment: string[];
-  difficulty: string;
-  calories: number;
+interface PlanActivitiesRequest {
+  selectedPlan: any;
+  userProfile: any;
+  primaryGoal: string;
 }
 
-export interface WeekActivity {
-  week: number;
-  day: number;
-  activities: Activity[];
-}
-
-export interface PlanActivitiesRequest {
-  selectedPlan: {
-    title: string;
-    description?: string;
-    duration?: string;
-    difficulty?: string;
-    focusAreas?: string[];
-    equipment?: string[];
-  };
-  userProfile: {
-    age?: string;
-    gender?: string;
-    health_goals?: string[];
-    workout_time?: string;
-  };
-}
-
-export interface PlanActivitiesResponse {
+interface PlanActivitiesResponse {
   success: boolean;
-  activities?: WeekActivity[];
+  data?: any;
+  meta?: any;
   error?: string;
 }
 
+// Generate daily activities for selected plan
 export const generatePlanActivities = async (request: PlanActivitiesRequest): Promise<PlanActivitiesResponse> => {
   try {
-    console.log('🔍 Generating plan activities using Supabase function...');
+    console.log('🔍 Generating daily activities for selected plan...');
     
-    // Call Supabase Edge Function for plan activities generation
-    const { data, error } = await supabase.functions.invoke('plan-activities', {
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Plan activities generation timeout')), 60000)
+    );
+    
+    const activitiesPromise = supabase.functions.invoke('plan-activities', {
       body: {
         selectedPlan: request.selectedPlan,
-        userProfile: request.userProfile
+        userProfile: request.userProfile,
+        primaryGoal: request.primaryGoal
       }
     });
-
-    if (error) {
-      console.error('❌ Supabase function error:', error);
-      throw new Error(`Supabase function error: ${error.message}`);
+    
+    const response = await Promise.race([activitiesPromise, timeoutPromise]) as any;
+    
+    console.log('📊 Plan activities response:', response);
+    
+    if (response.error) {
+      console.error('❌ Plan activities response error:', response.error);
+      throw new Error(response.error.message || 'Plan activities generation failed');
     }
-
-    if (data && data.success && data.activities) {
-      console.log(`✅ Plan Activities generated: ${data.activities.length} weeks`);
-      return {
-        success: true,
-        activities: data.activities
-      };
-    } else {
-      throw new Error(data?.error || 'Plan activities generation failed');
+    
+    const data = response.data;
+    console.log('📊 Plan activities data:', data);
+    
+    if (!data.success) {
+      console.error('❌ Plan activities generation failed:', data.error);
+      throw new Error(data.error || 'Plan activities generation failed');
     }
+    
+    console.log('✅ Daily activities generated successfully');
+    
+    // Save activities to database
+    if (data.data && data.data.schedule) {
+      try {
+        // First, save the selected plan with complete JSON data
+        console.log('💾 Saving selected plan to health_plans table:', request.selectedPlan.name);
+        const { data: planData, error: planError } = await supabase
+          .from('health_plans')
+          .insert({
+            user_id: request.userProfile.id,
+            plan_name: `${request.selectedPlan.name} Plan`,
+            plan_type: 'health_transformation',
+            primary_goal: request.primaryGoal,
+            start_date: new Date().toISOString().split('T')[0],
+            target_end_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            duration_weeks: parseInt(request.selectedPlan.duration?.split('-')[1]?.replace('w', '')) || 12,
+            plan_data: {
+              selected_plan: request.selectedPlan,
+              user_context: {
+                primaryGoal: request.primaryGoal,
+                healthScore: request.healthScore
+              }
+            },
+            plan_data_json: {
+              selected_plan: request.selectedPlan,
+              user_context: {
+                primaryGoal: request.primaryGoal,
+                healthScore: request.healthScore
+              },
+              generation_meta: {
+                ai_provider: 'Groq-API',
+                model: 'llama-3.3-70b-versatile',
+                generated_at: new Date().toISOString()
+              }
+            },
+            status: 'selected',
+            generation_model: 'llama-3.3-70b-versatile'
+          })
+          .select('id')
+          .single();
 
+        let planId = null;
+        if (planError) {
+          console.error('❌ Error saving plan to database:', planError);
+        } else {
+          planId = planData?.id;
+          console.log('✅ Plan saved to database successfully');
+        }
+
+        // Then save the daily activities
+        console.log('💾 Saving daily activities to daily_activities table:', data.data.schedule.length, 'activities');
+        const { error: saveError } = await supabase.rpc('save_daily_activities', {
+          p_user_id: request.userProfile.id,
+          p_plan_id: planId,
+          p_activity_date: new Date().toISOString().split('T')[0],
+          p_activities: data.data.schedule
+        });
+        
+        if (saveError) {
+          console.error('❌ Error saving activities to database:', saveError);
+        } else {
+          console.log('✅ Activities saved to database successfully');
+        }
+      } catch (dbError) {
+        console.error('❌ Database save error:', dbError);
+      }
+    }
+    
+    return {
+      success: true,
+      data: data.data,
+      meta: data.meta
+    };
+    
   } catch (error) {
     console.error('❌ Plan activities generation error:', error);
     
-    // Fallback: Return basic activities
-    console.log('🔄 Using fallback plan activities generation');
-    
-    const fallbackActivities: WeekActivity[] = [
-      {
-        week: 1,
-        day: 1,
-        activities: [
-          {
-            id: 'morning-stretch',
-            name: 'Morning Stretch',
-            duration: '15 minutes',
-            instructions: 'Start with gentle stretching exercises to warm up your body',
-            equipment: ['Yoga mat'],
-            difficulty: 'Beginner',
-            calories: 50
-          },
-          {
-            id: 'cardio-walk',
-            name: 'Cardio Walk',
-            duration: '30 minutes',
-            instructions: 'Take a brisk walk around your neighborhood or on a treadmill',
-            equipment: ['Comfortable shoes'],
-            difficulty: 'Beginner',
-            calories: 150
-          }
-        ]
-      }
-    ];
-
+    // Return fallback activities if API fails
     return {
-      success: true,
-      activities: fallbackActivities
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate plan activities',
+      data: generateFallbackActivities(request.selectedPlan, request.userProfile)
     };
   }
+};
+
+// Fetch saved daily activities from database
+export const fetchDailyActivities = async (userId: string, activityDate?: string): Promise<PlanActivitiesResponse> => {
+  try {
+    console.log('🔍 Fetching daily activities from database...');
+    
+    const date = activityDate || new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase.rpc('get_user_daily_activities', {
+      p_user_id: userId,
+      p_activity_date: date
+    });
+    
+    if (error) {
+      console.error('❌ Error fetching activities from database:', error);
+      throw new Error(error.message || 'Failed to fetch daily activities');
+    }
+    
+    console.log('✅ Daily activities fetched from database:', data?.length);
+    console.log('📊 Activities data structure:', data);
+    
+    return {
+      success: true,
+      data: { schedule: data || [] },
+      meta: {
+        source: 'database',
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+  } catch (error) {
+    console.error('❌ Error fetching daily activities:', error);
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch daily activities'
+    };
+  }
+};
+
+// Mark activity as completed
+export const markActivityCompleted = async (activityId: string, userId: string, notes?: string): Promise<boolean> => {
+  try {
+    console.log('🔍 Marking activity as completed:', activityId);
+    
+    const { data, error } = await supabase.rpc('mark_activity_completed', {
+      p_activity_id: activityId,
+      p_user_id: userId,
+      p_notes: notes || null
+    });
+    
+    if (error) {
+      console.error('❌ Error marking activity as completed:', error);
+      return false;
+    }
+    
+    console.log('✅ Activity marked as completed');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error marking activity as completed:', error);
+    return false;
+  }
+};
+
+// Fallback activities when API is not available
+const generateFallbackActivities = (selectedPlan: any, userProfile: any) => {
+  const wakeTime = userProfile.wake_up_time || '07:00';
+  const workStart = userProfile.work_start || '09:00';
+  const workEnd = userProfile.work_end || '17:00';
+  const sleepTime = userProfile.sleep_time || '23:00';
+  
+  return {
+    schedule: [
+      {
+        time: wakeTime,
+        activity: "Morning Routine",
+        duration: "30min",
+        category: "morning",
+        food: "Oatmeal 50g + Banana 1 medium + Almonds 10g",
+        instructions: ["Step 1: Boil water", "Step 2: Add oats", "Step 3: Cook 5 minutes"],
+        exercise: "10 pushups, 15 squats",
+        health_tip: "Start slow to avoid stress"
+      },
+      {
+        time: "08:00",
+        activity: "Workout Session",
+        duration: "45min",
+        category: "exercise",
+        food: "Water 500ml",
+        instructions: ["Step 1: Warm up 5 minutes", "Step 2: Main workout 30 minutes", "Step 3: Cool down 10 minutes"],
+        exercise: selectedPlan.workoutFrequency || "3 days/week",
+        health_tip: "Listen to your body and adjust intensity"
+      },
+      {
+        time: "09:00",
+        activity: "Breakfast",
+        duration: "20min",
+        category: "meal",
+        food: selectedPlan.calorieTarget ? `${selectedPlan.calorieTarget} calories` : "Balanced meal",
+        instructions: ["Step 1: Prepare ingredients", "Step 2: Cook according to plan", "Step 3: Enjoy mindfully"],
+        exercise: "Light stretching",
+        health_tip: "Eat slowly and mindfully"
+      },
+      {
+        time: workStart,
+        activity: "Work Session",
+        duration: "8 hours",
+        category: "work",
+        food: "Healthy snacks every 2 hours",
+        instructions: ["Step 1: Set up workspace", "Step 2: Focus on tasks", "Step 3: Take regular breaks"],
+        exercise: "Desk stretches every hour",
+        health_tip: "Take breaks to maintain productivity"
+      },
+      {
+        time: workEnd,
+        activity: "Evening Routine",
+        duration: "60min",
+        category: "evening",
+        food: "Dinner according to plan",
+        instructions: ["Step 1: Wind down from work", "Step 2: Prepare dinner", "Step 3: Relax and unwind"],
+        exercise: "Light yoga or stretching",
+        health_tip: "Create a relaxing environment"
+      },
+      {
+        time: sleepTime,
+        activity: "Sleep Preparation",
+        duration: "30min",
+        category: "sleep",
+        food: "Herbal tea or warm milk",
+        instructions: ["Step 1: Turn off screens", "Step 2: Prepare for bed", "Step 3: Practice relaxation"],
+        exercise: "Gentle breathing exercises",
+        health_tip: "Maintain consistent sleep schedule"
+      }
+    ]
+  };
 };

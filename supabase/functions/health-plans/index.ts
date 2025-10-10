@@ -117,7 +117,7 @@ serve(async (req) => {
   console.log("🔓 Skipping JWT verification for testing");
 
   try {
-    const { userProfile, primaryGoal, userInput, healthScore, healthAnalysis } = await req.json();
+    const { userProfile, primaryGoal, userInput, healthScore, healthAnalysis, saveToDatabase = false } = await req.json();
     
     console.log("🔍 Generating Groq-optimized health plans for user:", userProfile?.id);
 
@@ -281,48 +281,52 @@ serve(async (req) => {
       console.log(`💰 Cost: $${tokenUsage.cost_estimate.toFixed(4)} | Tokens: ${tokenUsage.total_tokens} | Model: ${tokenUsage.model}`);
     }
 
-    // Save plans data to database
-    try {
-      const { error: plansError } = await supabase
-        .from('health_plans')
-        .insert({
-          user_id: userProfile.id,
-          plan_name: `${goal} Plans`,
-          plan_type: 'health_transformation',
-          primary_goal: goal,
-          secondary_goals: userProfile.health_goals?.filter(g => g !== goal) || [],
-          start_date: new Date().toISOString().split('T')[0],
-          target_end_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          duration_weeks: 12,
-          health_analysis_id: healthAnalysis?.id || null,
-          user_input: userInput || null,
-          plan_data: {
-            plans: plansData.plans,
-            user_context: {
-              primaryGoal: goal,
-              secondaryGoals: userProfile.health_goals?.filter(g => g !== goal) || [],
-              healthScore
+    // Save plans data to database only if explicitly requested
+    if (saveToDatabase) {
+      try {
+        const { error: plansError } = await supabase
+          .from('health_plans')
+          .insert({
+            user_id: userProfile.id,
+            plan_name: `${goal} Plans`,
+            plan_type: 'health_transformation',
+            primary_goal: goal,
+            secondary_goals: userProfile.health_goals?.filter(g => g !== goal) || [],
+            start_date: new Date().toISOString().split('T')[0],
+            target_end_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            duration_weeks: 12,
+            health_analysis_id: healthAnalysis?.id || null,
+            user_input: userInput || null,
+            plan_data: {
+              plans: plansData.plans,
+              user_context: {
+                primaryGoal: goal,
+                secondaryGoals: userProfile.health_goals?.filter(g => g !== goal) || [],
+                healthScore
+              }
+            },
+            status: 'draft',
+            generation_model: 'llama-3.3-70b-versatile',
+            generation_parameters: {
+              ai_provider: 'Groq-API',
+              used_key: usedKey,
+              health_score: healthScore,
+              cost_optimized: true,
+              token_usage: tokenUsage
             }
-          },
-          status: 'draft',
-          generation_model: 'llama-3.3-70b-versatile',
-          generation_parameters: {
-            ai_provider: 'Groq-API',
-            used_key: usedKey,
-            health_score: healthScore,
-            cost_optimized: true,
-            token_usage: tokenUsage
-          }
-        });
+          });
 
-      if (plansError) {
-        console.error('❌ Error saving health plans to database:', plansError);
-      } else {
-        console.log('✅ Health plans saved to database successfully');
+        if (plansError) {
+          console.error('❌ Error saving health plans to database:', plansError);
+        } else {
+          console.log('✅ Health plans saved to database successfully');
+        }
+      } catch (dbError) {
+        console.error('❌ Database error:', dbError);
+        // Continue execution even if database save fails
       }
-    } catch (dbError) {
-      console.error('❌ Database error:', dbError);
-      // Continue execution even if database save fails
+    } else {
+      console.log('📝 Plans generated but not saved to database (saveToDatabase=false)');
     }
 
     console.log("✅ Groq health plans generated successfully");
