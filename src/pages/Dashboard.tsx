@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-3 border-gray-200 shadow-md overflow-hidden bg-gradient-to-br from-[#88ba82] to-[#95c190] flex items-center justify-center">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-3 border-white shadow-md overflow-hidden bg-gradient-to-br from-[#88ba82] to-[#95c190] flex items-center justify-center">
                       <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg sm:text-xl">
                       {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
@@ -129,10 +129,10 @@ const Dashboard: React.FC = () => {
               </div>
               
               <div className="flex flex-col min-w-0 flex-1">
-                  <h1 className="text-lg font-semibold text-gray-800 truncate">
+                  <h1 className="text-lg font-semibold text-black truncate">
                     Hi {profile?.full_name?.split(" ")[0] || 'User'}
                 </h1>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-black">
                   Welcome back!
                 </p>
               </div>
@@ -140,12 +140,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-2 sm:gap-3">
               <button 
                   onClick={handleSignOut}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white hover:bg-gray-100"
               >
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
               </button>
-                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200">
-                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white hover:bg-gray-100">
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
               </button>
             </div>
           </div>
@@ -184,23 +184,23 @@ const Dashboard: React.FC = () => {
 
           {/* Input Section */}
         <div className="max-w-md mx-auto px-4 sm:px-6 mt-3">
-            <div className="backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 bg-white/90 border-gray-300/60">
+            <div className="backdrop-blur-md rounded-3xl p-2 shadow-lg border-2 bg-white/80 border-white/60">
             <textarea 
               placeholder="Set your health goals or ask for advice..."
-                className="w-full bg-transparent text-sm focus:outline-none resize-none min-h-[40px] border-2 rounded-2xl px-3 py-2 mb-2 text-gray-800 placeholder-gray-500 border-gray-300/60 focus:border-gray-400"
+                className="w-full bg-transparent text-sm focus:outline-none resize-none min-h-[40px] border-2 rounded-2xl px-3 py-2 mb-2 text-black placeholder-black border-white focus:border-white"
               rows={2}
             />
             
             <div className="flex items-center justify-between gap-2 mt-2">
               <button 
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium border-2 bg-white border-white text-black hover:bg-gray-100"
               >
                 <Paperclip className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Attach</span>
               </button>
               <div className="flex items-center gap-2">
                 <button 
-                    className="w-8 h-8 rounded-full flex items-center justify-center border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200"
+                    className="w-8 h-8 rounded-full flex items-center justify-center border-2 bg-white border-white text-black hover:bg-gray-100"
                 >
                   <Mic className="w-4 h-4" />
                 </button>
