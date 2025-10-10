@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { supabase } from './integrations/supabase/client'
+import { AuthProvider } from './contexts/AuthContext'
 
 // Make supabase globally accessible for console debugging (only in development)
 if (import.meta.env.DEV) {
@@ -11,6 +12,8 @@ if (import.meta.env.DEV) {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
