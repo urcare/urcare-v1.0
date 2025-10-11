@@ -9,6 +9,7 @@ import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
 import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { handleUserRouting } from "@/utils/authRouting";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -75,7 +76,6 @@ const Landing = () => {
     setIsLoading(true);
     try {
       if (authMode === "signup") {
-        console.log("🔐 Attempting to sign up with email:", email);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -85,11 +85,8 @@ const Landing = () => {
         });
         
         if (error) {
-          console.error("Sign up error:", error);
           throw error;
         }
-        
-        console.log("✅ Sign up response:", data);
         
         if (data.user && !data.user.email_confirmed_at) {
           toast.success("Please check your email to confirm your account");
@@ -100,20 +97,37 @@ const Landing = () => {
           navigate("/welcome");
         }
       } else {
-        console.log("🔐 Attempting to sign in with email:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (error) {
-          console.error("Sign in error:", error);
           throw error;
         }
         
-        console.log("✅ Sign in response:", data);
-        toast.success("Signed in successfully!");
-        navigate("/welcome");
+        // Check if user needs email confirmation
+        if (data.user && !data.user.email_confirmed_at) {
+          toast.error("Please check your email and click the confirmation link before signing in");
+          return;
+        }
+        
+        // Wait a moment for session to be established
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verify session is active
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          toast.success("Signed in successfully!");
+          
+          // Use the same routing logic as AuthCallback
+          const routingResult = await handleUserRouting(session.user);
+          if (routingResult.shouldRedirect) {
+            navigate(routingResult.redirectPath, { replace: true });
+          }
+        } else {
+          toast.error("Sign in failed. Please try again.");
+        }
       }
     } catch (error: any) {
       console.error("Auth error:", error);
@@ -121,11 +135,15 @@ const Landing = () => {
       
       // Handle specific error cases
       if (error.message?.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password";
+        errorMessage = "Invalid email or password. Please check your credentials and try again.";
       } else if (error.message?.includes("User already registered")) {
         errorMessage = "An account with this email already exists. Try signing in instead.";
       } else if (error.message?.includes("Password should be at least")) {
         errorMessage = "Password must be at least 6 characters long";
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Please check your email and click the confirmation link before signing in";
+      } else if (error.message?.includes("Too many requests")) {
+        errorMessage = "Too many attempts. Please wait a moment and try again";
       }
       
       toast.error(errorMessage);

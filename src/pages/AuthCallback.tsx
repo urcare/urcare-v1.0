@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { handleUserRouting } from '@/utils/authRouting';
 
 const AuthCallback = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -27,82 +28,14 @@ const AuthCallback = () => {
         }
 
         if (session?.user) {
-          console.log('🔐 User authenticated successfully:', session.user.email);
-          
-          // Create user profile in database
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: session.user.id,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name || '',
-                avatar_url: session.user.user_metadata?.avatar_url || '',
-                provider: session.user.app_metadata?.provider || 'google',
-                last_sign_in: new Date().toISOString(),
-                sign_in_count: 1,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'id'
-              })
-              .select();
-
-            if (profileError) {
-              console.error('Profile creation error:', profileError);
-            } else {
-              console.log('✅ Profile created/updated successfully:', profileData);
-            }
-          } catch (error) {
-            console.error('Error creating profile:', error);
-          }
-          
           setStatus('success');
           setMessage('Authentication successful! Profile saved. Checking user status...');
           
-          // Check user status and redirect accordingly
-          try {
-            // Check onboarding completion
-            const { data: onboardingData, error: onboardingError } = await supabase
-              .from('onboarding_profiles')
-              .select('onboarding_completed')
-              .eq('user_id', session.user.id)
-              .single();
-
-            if (onboardingError || !onboardingData?.onboarding_completed) {
-              // User hasn't completed onboarding - redirect to welcome
-              console.log('📝 User needs to complete onboarding, redirecting to welcome');
-              setTimeout(() => {
-                navigate('/welcome', { replace: true });
-              }, 2000);
-            } else {
-              // User has completed onboarding - check subscription status
-              const { data: subscriptionData, error: subscriptionError } = await supabase
-                .from('user_subscriptions')
-                .select('status')
-                .eq('user_id', session.user.id)
-                .eq('status', 'active')
-                .single();
-
-              if (subscriptionError || !subscriptionData) {
-                // No active subscription - redirect to health assessment
-                console.log('💳 No active subscription, redirecting to health assessment');
-                setTimeout(() => {
-                  navigate('/health-assessment', { replace: true });
-                }, 2000);
-              } else {
-                // User has active subscription - redirect to dashboard
-                console.log('✅ User has active subscription, redirecting to dashboard');
-                setTimeout(() => {
-                  navigate('/dashboard', { replace: true });
-                }, 2000);
-              }
-            }
-          } catch (error) {
-            console.error('Error checking user status:', error);
-            // Fallback to welcome screen
+          // Use the centralized routing logic
+          const routingResult = await handleUserRouting(session.user);
+          if (routingResult.shouldRedirect) {
             setTimeout(() => {
-              navigate('/welcome', { replace: true });
+              navigate(routingResult.redirectPath, { replace: true });
             }, 2000);
           }
         } else {
