@@ -50,3 +50,4 @@ GRANT EXECUTE ON FUNCTION get_user_daily_activities(UUID, DATE) TO service_role;
 
 -- Test the function
 SELECT 'Function created with actual table schema' as status;
+

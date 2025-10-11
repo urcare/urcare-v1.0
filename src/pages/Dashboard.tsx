@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Bell, Mic, Paperclip, Activity } from "lucide-react";
@@ -26,6 +26,7 @@ const Dashboard: React.FC = () => {
   const [activitiesGenerating, setActivitiesGenerating] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [currentPlanName, setCurrentPlanName] = useState<string>('Generate Your Protocol');
+  const [isInitializing, setIsInitializing] = useState(false);
 
   // Debug activities state changes
   useEffect(() => {
@@ -36,8 +37,9 @@ const Dashboard: React.FC = () => {
     });
   }, [generatedActivities]);
 
+
   // Fetch saved daily activities
-  const fetchSavedActivities = async (userId: string) => {
+  const fetchSavedActivities = useCallback(async (userId: string) => {
     try {
       console.log('🔍 Fetching saved daily activities for user:', userId);
       
@@ -49,18 +51,18 @@ const Dashboard: React.FC = () => {
         const activities = result.data.schedule || [];
         setGeneratedActivities(activities);
         console.log('🎯 Activities state updated:', activities.length);
-    } else {
+      } else {
         console.log('ℹ️ No saved activities found');
         setGeneratedActivities([]); // Ensure state is cleared
-    }
+      }
     } catch (error) {
       console.error('❌ Error fetching saved activities:', error);
       setGeneratedActivities([]); // Ensure state is cleared on error
     }
-  };
+  }, []);
 
   // Fetch current plan name from database
-  const fetchCurrentPlanName = async (userId: string) => {
+  const fetchCurrentPlanName = useCallback(async (userId: string) => {
     try {
       console.log('🔍 Fetching current plan name for user:', userId);
       
@@ -86,10 +88,10 @@ const Dashboard: React.FC = () => {
       console.error('❌ Error fetching current plan name:', error);
       setCurrentPlanName('Generate Your Plan');
     }
-  };
+  }, []);
 
   // Fetch health data
-  const fetchHealthData = async (userId: string) => {
+  const fetchHealthData = useCallback(async (userId: string) => {
     try {
       setHealthLoading(true);
       console.log('🔍 Fetching health data for user:', userId);
@@ -116,19 +118,23 @@ const Dashboard: React.FC = () => {
     } finally {
       setHealthLoading(false);
     }
-  };
+  }, []);
 
   // Check authentication and load data
   useEffect(() => {
     const checkAuth = async () => {
+      // Prevent multiple simultaneous initializations
+      if (isInitializing) return;
+      
       try {
+        setIsInitializing(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
           console.log("No user detected - redirecting to landing page");
           navigate("/", { replace: true });
           return;
-    }
+        }
 
         setUser(session.user);
 
@@ -180,11 +186,12 @@ const Dashboard: React.FC = () => {
         navigate("/", { replace: true });
     } finally {
         setLoading(false);
+        setIsInitializing(false);
       }
     };
     
     checkAuth();
-  }, [navigate]);
+  }, []); // Remove navigate from dependencies to prevent infinite loop
 
   const handleSignOut = async () => {
     try {
@@ -194,6 +201,36 @@ const Dashboard: React.FC = () => {
       console.error("Error signing out:", error);
     }
   };
+
+  // Handle refresh without causing infinite loops
+  const handleRefresh = useCallback(async () => {
+    if (isInitializing || loading) return;
+    
+    try {
+      setLoading(true);
+      if (user?.id) {
+        await fetchHealthData(user.id);
+        await fetchSavedActivities(user.id);
+        await fetchCurrentPlanName(user.id);
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, isInitializing, loading, fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]);
+
+  // Handle window focus to refresh data when user returns to tab
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      if (user?.id && !isInitializing) {
+        handleRefresh();
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, [user?.id, isInitializing, handleRefresh]);
 
   const handleSelectPlan = async (plan: any) => {
     if (!user?.id) {
@@ -455,13 +492,7 @@ const Dashboard: React.FC = () => {
                 onSelectPlan={handleSelectPlan}
                 user={user}
               />
-              {console.log("🎯 Dashboard passing to TodaySchedule:", {
-                showPlans,
-                generatedPlansLength: generatedPlans?.length,
-                generatedActivitiesLength: generatedActivities?.length,
-                activitiesGenerating,
-                selectedPlanName: selectedPlan?.name
-              })}
+              {/* Debug info removed to fix linting */}
             </div>
         </div>
 

@@ -1,10 +1,8 @@
--- Final fix for get_user_daily_activities RPC function
--- This ensures the function works with the correct parameter names and table schema
+-- Fix get_user_daily_activities function to match actual table schema
+-- This migration only fixes the function without touching existing policies
 
--- Drop the function if it exists
 DROP FUNCTION IF EXISTS get_user_daily_activities(UUID, DATE);
 
--- Create function with correct parameter names and table schema
 CREATE OR REPLACE FUNCTION get_user_daily_activities(
     p_user_id UUID,
     p_activity_date DATE
@@ -50,9 +48,3 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant permissions
 GRANT EXECUTE ON FUNCTION get_user_daily_activities(UUID, DATE) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_daily_activities(UUID, DATE) TO service_role;
-
--- Test the function with a sample call
-SELECT 'Function created successfully' as status;
-
--- Test with a sample user ID (replace with actual user ID for testing)
--- SELECT * FROM get_user_daily_activities('f82ffd7a-0cff-446f-9285-d8a4d01de94e'::UUID, CURRENT_DATE);
