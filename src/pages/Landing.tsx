@@ -106,17 +106,28 @@ const Landing = () => {
         console.log('🔐 Attempting sign-in...');
         console.log('🌐 Environment:', window.location.hostname);
         console.log('🔧 Supabase URL:', config.supabase.url);
+        console.log('🔑 Supabase Key:', config.supabase.anonKey ? 'Present' : 'Missing');
         
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        console.log('📊 Sign-in response:', { data, error });
-        
-        if (error) {
-          console.error("Sign in error:", error);
-          throw error;
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          console.log('📊 Sign-in response:', { data, error });
+          
+          if (error) {
+            console.error('❌ Supabase sign-in error:', error);
+            console.error('❌ Error details:', {
+              message: error.message,
+              status: error.status,
+              statusText: error.statusText
+            });
+            throw error;
+          }
+        } catch (supabaseError) {
+          console.error('❌ Supabase request failed:', supabaseError);
+          throw new Error(`Authentication failed: ${supabaseError.message}`);
         }
         
         console.log('✅ Sign-in successful:', data.user?.email);
@@ -346,7 +357,6 @@ const Landing = () => {
                       console.log('📧 Email value:', email);
                       console.log('🔒 Password value:', password);
                       console.log('⏳ Loading state:', isLoading);
-                      alert('Button clicked! Email: ' + email);
                       handleEmailAuth();
                     }}
                     disabled={isLoading || !email || !password}
