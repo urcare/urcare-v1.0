@@ -216,7 +216,7 @@ export const getUserProfileForHealthScore = async (userId: string) => {
   try {
     const { data: profile, error } = await supabase
       .from('onboarding_profiles')
-      .select('*')
+      .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
       .eq('user_id', userId)
       .single();
 
@@ -241,7 +241,7 @@ export const checkHealthAnalysisExist = async (userId: string) => {
     
     const { data, error } = await supabase
       .from('health_analysis')
-      .select('*')
+      .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
       .eq('user_id', userId)
       .eq('is_latest', true)
       .single();
@@ -298,7 +298,7 @@ export const fetchHealthAnalysis = async (userId: string) => {
     
     const { data, error } = await supabase
       .from('health_analysis')
-      .select('*')
+      .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
       .eq('user_id', userId)
       .eq('is_latest', true)
       .single();
