@@ -160,7 +160,16 @@ const Dashboard: React.FC = () => {
         setIsInitializing(true);
         console.log('🔍 Starting dashboard initialization...');
         
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔍 Getting user session...');
+        
+        // Add timeout to getSession to prevent hanging
+        const sessionTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+        );
+        
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
+        console.log('✅ User session loaded');
         
         if (!session?.user) {
           console.log("No user detected - redirecting to landing page");
