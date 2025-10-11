@@ -10,7 +10,6 @@ import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { handleUserRouting } from "@/utils/authRouting";
-import { productionSignIn } from "@/utils/productionAuth";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -98,134 +97,33 @@ const Landing = () => {
           navigate("/welcome");
         }
       } else {
-        // Check if we're in production and use enhanced sign-in
-        const isProduction = window.location.hostname !== 'localhost' && 
-                            window.location.hostname !== '127.0.0.1';
+        // Simple sign-in for both localhost and production
+        console.log('🔐 Attempting sign-in...');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         
-        if (isProduction) {
-          console.log('🌐 Using production sign-in flow');
-          
-          // Try simple sign-in first as fallback
-          try {
-            console.log('🔐 Attempting simple production sign-in...');
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-            
-            if (error) {
-              console.error("Production sign in error:", error);
-              throw error;
-            }
-            
-            console.log('✅ Simple production sign-in successful:', data.user?.email);
-            
-            // Check if user needs email confirmation
-            if (data.user && !data.user.email_confirmed_at) {
-              toast.error("Please check your email and click the confirmation link before signing in");
-              return;
-            }
-            
-            // Wait for session
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Get session
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              console.log("✅ Production session verified:", session.user.email);
-              toast.success("Signed in successfully!");
-              
-              // Use the same routing logic as AuthCallback
-              const routingResult = await handleUserRouting(session.user);
-              if (routingResult.shouldRedirect) {
-                navigate(routingResult.redirectPath, { replace: true });
-              }
-            } else {
-              throw new Error("Session not found after sign-in");
-            }
-            
-          } catch (simpleError) {
-            console.error('❌ Simple production sign-in failed, trying enhanced flow:', simpleError);
-            
-            // Fallback to enhanced production sign-in
-            const productionTimeout = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Production sign-in timeout')), 20000);
-            });
-            
-            try {
-              const result = await Promise.race([
-                productionSignIn(email, password),
-                productionTimeout
-              ]);
-              
-              if (result.success && result.user) {
-                toast.success("Signed in successfully!");
-                
-                // Use the same routing logic as AuthCallback
-                const routingResult = await handleUserRouting(result.user);
-                if (routingResult.shouldRedirect) {
-                  navigate(routingResult.redirectPath, { replace: true });
-                }
-              } else {
-                throw new Error(result.error || 'Production sign-in failed');
-              }
-            } catch (timeoutError) {
-              console.error('❌ Production sign-in timeout or error:', timeoutError);
-              throw new Error('Sign-in is taking too long. Please try again.');
-            }
-          }
-        } else {
-          // Use regular sign-in for localhost
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          
-          if (error) {
-            console.error("Sign in error:", error);
-            throw error;
-          }
-          
-          // Check if user needs email confirmation
-          if (data.user && !data.user.email_confirmed_at) {
-            toast.error("Please check your email and click the confirmation link before signing in");
-            return;
-          }
-          
-          // Wait a moment for session to be established
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Verify session is active with retry logic
-          let session = null;
-          let attempts = 0;
-          const maxAttempts = 3;
-          
-          while (attempts < maxAttempts && !session) {
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError) {
-              console.error("Session error:", sessionError);
-            }
-            session = currentSession;
-            attempts++;
-            
-            if (!session && attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-          
-          if (session?.user) {
-            console.log("✅ Session verified, user authenticated:", session.user.email);
-            toast.success("Signed in successfully!");
-            
-            // Use the same routing logic as AuthCallback
-            const routingResult = await handleUserRouting(session.user);
-            if (routingResult.shouldRedirect) {
-              navigate(routingResult.redirectPath, { replace: true });
-            }
-          } else {
-            console.error("❌ No session found after sign in");
-            toast.error("Sign in failed. Please try again.");
-          }
+        if (error) {
+          console.error("Sign in error:", error);
+          throw error;
+        }
+        
+        console.log('✅ Sign-in successful:', data.user?.email);
+        
+        // Check if user needs email confirmation
+        if (data.user && !data.user.email_confirmed_at) {
+          toast.error("Please check your email and click the confirmation link before signing in");
+          return;
+        }
+        
+        // Simple success and redirect
+        toast.success("Signed in successfully!");
+        
+        // Use the same routing logic as AuthCallback
+        const routingResult = await handleUserRouting(data.user);
+        if (routingResult.shouldRedirect) {
+          navigate(routingResult.redirectPath, { replace: true });
         }
       }
     } catch (error: any) {
