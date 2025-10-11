@@ -169,6 +169,21 @@ const Paywall: React.FC = () => {
                 </p>
               </div>
             </div>
+
+            {/* Transformation Story Contest */}
+            <div className="flex items-start gap-4 py-2">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <div className="text-2xl">🏆</div>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg mb-1">
+                  Share Your Best Transformation Story
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Win up to ₹1,00,000 every month by sharing your health transformation journey with us.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
