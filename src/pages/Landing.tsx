@@ -56,12 +56,12 @@ const Landing = () => {
 
   // Email authentication handlers
   const handleEmailAuth = async () => {
-    console.log('🚀 handleEmailAuth called in production!');
-    console.log('📧 Email:', email);
-    console.log('🔒 Password length:', password.length);
+    alert('🚀 handleEmailAuth called in production!');
+    alert('📧 Email: ' + email);
+    alert('🔒 Password length: ' + password.length);
     
     if (!email || !password) {
-      console.log('❌ Missing email or password');
+      alert('❌ Missing email or password');
       toast.error("Please fill in all fields");
       return;
     }
@@ -104,7 +104,7 @@ const Landing = () => {
         }
       } else {
         // Simple sign-in for both localhost and production
-        console.log('🔐 Starting sign-in process...');
+        alert('🔐 Starting sign-in process...');
         let data, error;
         
         // Add timeout for production to prevent hanging
@@ -113,7 +113,7 @@ const Landing = () => {
         });
         
         try {
-          console.log('📡 Calling Supabase signInWithPassword...');
+          alert('📡 Calling Supabase signInWithPassword...');
           const result = await Promise.race([
             supabase.auth.signInWithPassword({
               email,
@@ -122,18 +122,18 @@ const Landing = () => {
             signInTimeout
           ]);
           
-          console.log('📊 Supabase response:', result);
+          alert('📊 Supabase response: ' + JSON.stringify(result));
           data = result.data;
           error = result.error;
           
           if (error) {
-            console.error('❌ Supabase returned error:', error);
+            alert('❌ Supabase returned error: ' + JSON.stringify(error));
             throw error;
           }
           
-          console.log('✅ Sign-in successful!');
+          alert('✅ Sign-in successful!');
         } catch (supabaseError) {
-          console.error('❌ Supabase sign-in error:', supabaseError);
+          alert('❌ Supabase sign-in error: ' + JSON.stringify(supabaseError));
           if (supabaseError.message === 'Sign-in timeout') {
             throw new Error('Sign-in is taking too long. Please check your internet connection and try again.');
           }
@@ -147,15 +147,16 @@ const Landing = () => {
         }
         
         // Simple success and redirect
-        console.log('🎉 Showing success toast...');
+        alert('🎉 Showing success toast...');
         toast.success("Signed in successfully!");
         
         // Simple routing - just go to health assessment for now
         // This bypasses complex database queries that might be causing issues
-        console.log('🚀 Redirecting to health assessment...');
+        alert('🚀 Redirecting to health assessment...');
         navigate('/health-assessment', { replace: true });
       }
     } catch (error: any) {
+      alert("❌ AUTH ERROR: " + JSON.stringify(error));
       console.error("Auth error:", error);
       let errorMessage = error.message || `Failed to ${authMode === "signup" ? "sign up" : "sign in"}`;
       
@@ -337,10 +338,10 @@ const Landing = () => {
                   
                   <Button
                     onClick={() => {
-                      console.log('🖱️ Button clicked in production!');
-                      console.log('📧 Email:', email);
-                      console.log('🔒 Password:', password);
-                      console.log('⏳ Loading:', isLoading);
+                      alert('🖱️ Button clicked in production!');
+                      alert('📧 Email: ' + email);
+                      alert('🔒 Password: ' + password);
+                      alert('⏳ Loading: ' + isLoading);
                       handleEmailAuth();
                     }}
                     disabled={isLoading || !email || !password}
