@@ -154,7 +154,7 @@ const Dashboard: React.FC = () => {
         console.warn('⚠️ Dashboard loading timeout - forcing completion');
         setLoading(false);
         setIsInitializing(false);
-      }, 30000); // 30 seconds max
+      }, 10000); // 10 seconds max
       
       try {
         setIsInitializing(true);
@@ -229,6 +229,7 @@ const Dashboard: React.FC = () => {
 
         // Fetch health data, saved activities, and current plan name with individual error handling
         if (session.user.id) {
+          console.log('🔍 Starting health data fetch...');
           try {
             await fetchHealthData(session.user.id);
             console.log('✅ Health data loaded');
@@ -236,6 +237,7 @@ const Dashboard: React.FC = () => {
             console.error('❌ Health data fetch failed:', error);
           }
           
+          console.log('🔍 Starting activities fetch...');
           try {
             await fetchSavedActivities(session.user.id);
             console.log('✅ Activities loaded');
@@ -243,6 +245,7 @@ const Dashboard: React.FC = () => {
             console.error('❌ Activities fetch failed:', error);
           }
           
+          console.log('🔍 Starting plan name fetch...');
           try {
             await fetchCurrentPlanName(session.user.id);
             console.log('✅ Plan name loaded');
