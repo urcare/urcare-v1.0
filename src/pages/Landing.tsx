@@ -104,18 +104,75 @@ const Landing = () => {
         
         if (isProduction) {
           console.log('🌐 Using production sign-in flow');
-          const result = await productionSignIn(email, password);
           
-          if (result.success && result.user) {
-            toast.success("Signed in successfully!");
+          // Try simple sign-in first as fallback
+          try {
+            console.log('🔐 Attempting simple production sign-in...');
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
             
-            // Use the same routing logic as AuthCallback
-            const routingResult = await handleUserRouting(result.user);
-            if (routingResult.shouldRedirect) {
-              navigate(routingResult.redirectPath, { replace: true });
+            if (error) {
+              console.error("Production sign in error:", error);
+              throw error;
             }
-          } else {
-            throw new Error(result.error || 'Production sign-in failed');
+            
+            console.log('✅ Simple production sign-in successful:', data.user?.email);
+            
+            // Check if user needs email confirmation
+            if (data.user && !data.user.email_confirmed_at) {
+              toast.error("Please check your email and click the confirmation link before signing in");
+              return;
+            }
+            
+            // Wait for session
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Get session
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              console.log("✅ Production session verified:", session.user.email);
+              toast.success("Signed in successfully!");
+              
+              // Use the same routing logic as AuthCallback
+              const routingResult = await handleUserRouting(session.user);
+              if (routingResult.shouldRedirect) {
+                navigate(routingResult.redirectPath, { replace: true });
+              }
+            } else {
+              throw new Error("Session not found after sign-in");
+            }
+            
+          } catch (simpleError) {
+            console.error('❌ Simple production sign-in failed, trying enhanced flow:', simpleError);
+            
+            // Fallback to enhanced production sign-in
+            const productionTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Production sign-in timeout')), 20000);
+            });
+            
+            try {
+              const result = await Promise.race([
+                productionSignIn(email, password),
+                productionTimeout
+              ]);
+              
+              if (result.success && result.user) {
+                toast.success("Signed in successfully!");
+                
+                // Use the same routing logic as AuthCallback
+                const routingResult = await handleUserRouting(result.user);
+                if (routingResult.shouldRedirect) {
+                  navigate(routingResult.redirectPath, { replace: true });
+                }
+              } else {
+                throw new Error(result.error || 'Production sign-in failed');
+              }
+            } catch (timeoutError) {
+              console.error('❌ Production sign-in timeout or error:', timeoutError);
+              throw new Error('Sign-in is taking too long. Please try again.');
+            }
           }
         } else {
           // Use regular sign-in for localhost

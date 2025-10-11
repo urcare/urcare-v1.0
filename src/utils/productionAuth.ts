@@ -55,62 +55,78 @@ export const checkProductionAuth = async () => {
 };
 
 /**
- * Enhanced sign-in with production debugging
+ * Enhanced sign-in with production debugging and timeout
  */
 export const productionSignIn = async (email: string, password: string) => {
   try {
     console.log('🔐 Production sign-in attempt:', { email, environment: 'production' });
     
-    // Check production environment first
-    const envCheck = await checkProductionAuth();
-    if (!envCheck.supabaseConnected) {
-      throw new Error(`Supabase connection failed: ${envCheck.error}`);
-    }
-    
-    // Attempt sign-in
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    // Add timeout wrapper for the entire operation
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Sign-in timeout after 30 seconds')), 30000);
     });
     
-    if (error) {
-      console.error('❌ Production sign-in error:', error);
-      throw error;
-    }
-    
-    console.log('✅ Production sign-in successful:', data.user?.email);
-    
-    // Wait for session to be established
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Verify session with retry logic
-    let session = null;
-    let attempts = 0;
-    const maxAttempts = 5;
-    
-    while (attempts < maxAttempts && !session) {
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+    const signInPromise = async () => {
+      // Check production environment first
+      console.log('🔧 Checking production environment...');
+      const envCheck = await checkProductionAuth();
+      if (!envCheck.supabaseConnected) {
+        throw new Error(`Supabase connection failed: ${envCheck.error}`);
+      }
+      console.log('✅ Environment check passed');
       
-      if (sessionError) {
-        console.error(`Session error (attempt ${attempts + 1}):`, sessionError);
+      // Attempt sign-in
+      console.log('🔐 Attempting Supabase sign-in...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('❌ Production sign-in error:', error);
+        throw error;
       }
       
-      session = currentSession;
-      attempts++;
+      console.log('✅ Production sign-in successful:', data.user?.email);
       
-      if (!session && attempts < maxAttempts) {
-        console.log(`⏳ Waiting for session... (attempt ${attempts + 1}/${maxAttempts})`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for session to be established
+      console.log('⏳ Waiting for session establishment...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Verify session with retry logic
+      let session = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      console.log('🔍 Verifying session...');
+      while (attempts < maxAttempts && !session) {
+        console.log(`🔄 Session verification attempt ${attempts + 1}/${maxAttempts}`);
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error(`Session error (attempt ${attempts + 1}):`, sessionError);
+        }
+        
+        session = currentSession;
+        attempts++;
+        
+        if (!session && attempts < maxAttempts) {
+          console.log(`⏳ Waiting for session... (attempt ${attempts + 1}/${maxAttempts})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
-    }
+      
+      if (session?.user) {
+        console.log('✅ Production session verified:', session.user.email);
+        return { success: true, user: session.user, session };
+      } else {
+        console.error('❌ Production session verification failed');
+        return { success: false, error: 'Session verification failed' };
+      }
+    };
     
-    if (session?.user) {
-      console.log('✅ Production session verified:', session.user.email);
-      return { success: true, user: session.user, session };
-    } else {
-      console.error('❌ Production session verification failed');
-      return { success: false, error: 'Session verification failed' };
-    }
+    // Race between sign-in and timeout
+    return await Promise.race([signInPromise(), timeoutPromise]);
     
   } catch (error) {
     console.error('❌ Production sign-in failed:', error);
