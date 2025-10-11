@@ -87,11 +87,7 @@ const Paywall: React.FC = () => {
 
         {/* Offer Highlights - Scrollable */}
         <div className="mb-6">
-          <div className="max-h-96 overflow-y-auto space-y-4 scrollbar-hide relative smooth-scroll py-2">
-            {/* Gradient fade at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
-            {/* Gradient fade at top */}
-            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
+          <div className="max-h-96 overflow-y-auto space-y-4 scrollbar-hide relative smooth-scroll">
             {/* Reverse Lifestyle Disorders */}
             <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
               <div className="flex items-start gap-4">
