@@ -130,9 +130,14 @@ const Landing = () => {
         
         // Set the data for the rest of the flow
         data = mockData;
+        error = null;
         
         // Check if user needs email confirmation
+        alert('🔍 Checking email confirmation...');
+        alert('📧 User email confirmed: ' + (data.user?.email_confirmed_at ? 'Yes' : 'No'));
+        
         if (data.user && !data.user.email_confirmed_at) {
+          alert('❌ User needs email confirmation');
           toast.error("Please check your email and click the confirmation link before signing in");
           return;
         }
