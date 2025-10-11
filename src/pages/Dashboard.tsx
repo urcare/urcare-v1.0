@@ -43,7 +43,13 @@ const Dashboard: React.FC = () => {
     try {
       console.log('🔍 Fetching saved daily activities for user:', userId);
       
-      const result = await fetchDailyActivities(userId);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Activities fetch timeout')), 15000)
+      );
+      
+      const activitiesPromise = fetchDailyActivities(userId);
+      const result = await Promise.race([activitiesPromise, timeoutPromise]) as any;
       
       if (result.success && result.data) {
         console.log('✅ Saved activities loaded:', result.data.schedule?.length);
@@ -66,7 +72,12 @@ const Dashboard: React.FC = () => {
     try {
       console.log('🔍 Fetching current plan name for user:', userId);
       
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Plan name fetch timeout')), 10000)
+      );
+      
+      const planPromise = supabase
         .from('health_plans')
         .select('plan_name')
         .eq('user_id', userId)
@@ -74,6 +85,8 @@ const Dashboard: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+      
+      const { data, error } = await Promise.race([planPromise, timeoutPromise]) as any;
       
       if (error) {
         console.log('ℹ️ No plan found or error:', error.message);
@@ -86,7 +99,7 @@ const Dashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('❌ Error fetching current plan name:', error);
-      setCurrentPlanName('Generate Your Plan');
+      setCurrentPlanName('Generate Your Protocol');
     }
   }, []);
 
@@ -96,7 +109,13 @@ const Dashboard: React.FC = () => {
       setHealthLoading(true);
       console.log('🔍 Fetching health data for user:', userId);
       
-      const result = await getOrCalculateHealthAnalysis(userId);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Health data fetch timeout')), 20000)
+      );
+      
+      const healthPromise = getOrCalculateHealthAnalysis(userId);
+      const result = await Promise.race([healthPromise, timeoutPromise]) as any;
       
       if (result.success && result.data) {
         console.log('✅ Health data loaded:', result.data);
@@ -112,9 +131,13 @@ const Dashboard: React.FC = () => {
         }));
       } else {
         console.warn('⚠️ Failed to fetch health data:', result.error);
-        }
-      } catch (error) {
+        // Set fallback health score
+        setHealthScore(75);
+      }
+    } catch (error) {
       console.error('❌ Error fetching health data:', error);
+      // Set fallback health score on error
+      setHealthScore(75);
     } finally {
       setHealthLoading(false);
     }
@@ -126,8 +149,17 @@ const Dashboard: React.FC = () => {
       // Prevent multiple simultaneous initializations
       if (isInitializing) return;
       
+      // Set a maximum loading time to prevent infinite loading
+      const maxLoadingTime = setTimeout(() => {
+        console.warn('⚠️ Dashboard loading timeout - forcing completion');
+        setLoading(false);
+        setIsInitializing(false);
+      }, 30000); // 30 seconds max
+      
       try {
         setIsInitializing(true);
+        console.log('🔍 Starting dashboard initialization...');
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
@@ -137,61 +169,105 @@ const Dashboard: React.FC = () => {
         }
 
         setUser(session.user);
+        console.log('✅ User session loaded');
 
-        // Fetch user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        // Fetch user profile with timeout
+        try {
+          const profilePromise = supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          const profileTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          );
+          
+          const { data: profileData, error: profileError } = await Promise.race([
+            profilePromise,
+            profileTimeout
+          ]) as any;
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-      } else {
-          setProfile(profileData);
-        }
-
-        // Fetch onboarding profile data
-        const { data: onboardingData, error: onboardingError } = await supabase
-          .from('onboarding_profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (onboardingError) {
-          console.error("Error fetching onboarding profile:", onboardingError);
-        } else {
-          console.log("✅ Onboarding profile loaded:", onboardingData);
-          if (onboardingData) {
-            localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
+          if (profileError) {
+            console.error("Error fetching profile:", profileError);
+          } else {
+            setProfile(profileData);
+            console.log('✅ Profile loaded');
           }
+        } catch (error) {
+          console.error("Profile fetch error:", error);
         }
 
-          // Fetch health data, saved activities, and current plan name
-          if (session.user.id) {
+        // Fetch onboarding profile data with timeout
+        try {
+          const onboardingPromise = supabase
+            .from('onboarding_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          const onboardingTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Onboarding fetch timeout')), 10000)
+          );
+          
+          const { data: onboardingData, error: onboardingError } = await Promise.race([
+            onboardingPromise,
+            onboardingTimeout
+          ]) as any;
+
+          if (onboardingError) {
+            console.error("Error fetching onboarding profile:", onboardingError);
+          } else {
+            console.log("✅ Onboarding profile loaded:", onboardingData);
+            if (onboardingData) {
+              localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
+            }
+          }
+        } catch (error) {
+          console.error("Onboarding fetch error:", error);
+        }
+
+        // Fetch health data, saved activities, and current plan name with individual error handling
+        if (session.user.id) {
+          try {
             await fetchHealthData(session.user.id);
-            await fetchSavedActivities(session.user.id);
-            await fetchCurrentPlanName(session.user.id);
-            
-            // Debug: Check if activities were loaded
-            setTimeout(() => {
-              console.log('🔍 Final activities state check:', {
-                length: generatedActivities?.length,
-                activities: generatedActivities
-              });
-            }, 1000);
+            console.log('✅ Health data loaded');
+          } catch (error) {
+            console.error('❌ Health data fetch failed:', error);
           }
+          
+          try {
+            await fetchSavedActivities(session.user.id);
+            console.log('✅ Activities loaded');
+          } catch (error) {
+            console.error('❌ Activities fetch failed:', error);
+          }
+          
+          try {
+            await fetchCurrentPlanName(session.user.id);
+            console.log('✅ Plan name loaded');
+          } catch (error) {
+            console.error('❌ Plan name fetch failed:', error);
+          }
+        }
+        
+        console.log('✅ Dashboard initialization completed');
       } catch (error) {
         console.error("Auth check error:", error);
-        navigate("/", { replace: true });
-    } finally {
+        // Don't redirect on error, just show the dashboard with fallback data
+        // Set fallback values to ensure dashboard loads
+        setHealthScore(75);
+        setCurrentPlanName('Generate Your Protocol');
+        setGeneratedActivities([]);
+      } finally {
+        clearTimeout(maxLoadingTime);
         setLoading(false);
         setIsInitializing(false);
       }
     };
     
     checkAuth();
-  }, []); // Remove navigate from dependencies to prevent infinite loop
+  }, [fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]); // Include necessary dependencies
 
   const handleSignOut = async () => {
     try {
@@ -208,11 +284,30 @@ const Dashboard: React.FC = () => {
     
     try {
       setLoading(true);
+      console.log('🔄 Refreshing dashboard data...');
+      
       if (user?.id) {
-        await fetchHealthData(user.id);
-        await fetchSavedActivities(user.id);
-        await fetchCurrentPlanName(user.id);
+        // Refresh data with individual error handling
+        try {
+          await fetchHealthData(user.id);
+        } catch (error) {
+          console.error('❌ Health data refresh failed:', error);
+        }
+        
+        try {
+          await fetchSavedActivities(user.id);
+        } catch (error) {
+          console.error('❌ Activities refresh failed:', error);
+        }
+        
+        try {
+          await fetchCurrentPlanName(user.id);
+        } catch (error) {
+          console.error('❌ Plan name refresh failed:', error);
+        }
       }
+      
+      console.log('✅ Dashboard refresh completed');
     } catch (error) {
       console.error("Error refreshing data:", error);
     } finally {
