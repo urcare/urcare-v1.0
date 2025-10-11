@@ -93,95 +93,90 @@ const Paywall: React.FC = () => {
             {/* Gradient fade at top */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
             {/* Reverse Lifestyle Disorders */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <Heart className="w-8 h-8 text-rose-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Reverse Lifestyle Disorders
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Target root causes of diabetes, PCOS, hypertension, obesity,
-                  stress & more.
-                </p>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <Heart className="w-8 h-8 text-rose-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                    Reverse Lifestyle Disorders
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Target root causes of diabetes, PCOS, hypertension, obesity,
+                    stress & more.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* UrHealth Twin */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <Brain className="w-8 h-8 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  UrHealth Twin
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Adaptive, personalized protocols that evolve daily with you—no
-                  one-size-fits-all.
-                </p>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <Brain className="w-8 h-8 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                    UrHealth Twin
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Adaptive, personalized protocols that evolve daily with you—no
+                    one-size-fits-all.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Pre-Launch Access */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <div className="text-2xl">⚡</div>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Pre-Launch Access
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Only 1500 seats for founding members. Once filled, doors close.
-                </p>
-              </div>
-            </div>
-
-            {/* Blockchain-Secured Data */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <Lock className="w-8 h-8 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Blockchain-Secured Data
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Your health info stays private, always.
-                </p>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <div className="text-2xl">⚡</div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                    Pre-Launch Access
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Only 1500 seats for founding members. Once filled, doors close.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Continuous Major Upgrades */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-8 h-8 text-orange-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Continuous Major Upgrades
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Monthly additions of new therapies, self-assessments, and
-                  science-backed features.
-                </p>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-8 h-8 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                    Continuous Major Upgrades
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Monthly additions of new therapies, self-assessments, and
+                    science-backed features.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Transformation Story Contest */}
-            <div className="flex items-start gap-4 py-2">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <div className="text-2xl">🏆</div>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Share Your Best Transformation Story
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Win up to ₹1,00,000 every month by sharing your health transformation journey with us.
-                </p>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <div className="text-2xl">🏆</div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                    Share Your Best Transformation Story
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Win up to ₹1,00,000 every month by sharing your health transformation journey with us.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
