@@ -122,6 +122,10 @@ const Landing = () => {
             throw error;
           }
         } catch (supabaseError) {
+          console.error('Supabase sign-in error:', supabaseError);
+          if (supabaseError.message === 'Sign-in timeout') {
+            throw new Error('Sign-in is taking too long. Please check your internet connection and try again.');
+          }
           throw new Error(`Authentication failed: ${supabaseError.message}`);
         }
         
@@ -134,28 +138,10 @@ const Landing = () => {
         // Simple success and redirect
         toast.success("Signed in successfully!");
         
-        // Use the same routing logic as AuthCallback with timeout
-        const routingTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Routing timeout')), 5000);
-        });
-        
-        try {
-          const routingResult = await Promise.race([
-            handleUserRouting(data.user),
-            routingTimeout
-          ]);
-          
-          if (routingResult.shouldRedirect) {
-            navigate(routingResult.redirectPath, { replace: true });
-          } else {
-            // Fallback to health assessment if no routing result
-            navigate('/health-assessment', { replace: true });
-          }
-        } catch (routingError) {
-          console.error('Routing failed:', routingError);
-          // Fallback to health assessment page
-          navigate('/health-assessment', { replace: true });
-        }
+        // Simple routing - just go to health assessment for now
+        // This bypasses complex database queries that might be causing issues
+        console.log('Redirecting to health assessment...');
+        navigate('/health-assessment', { replace: true });
       }
     } catch (error: any) {
       console.error("Auth error:", error);
