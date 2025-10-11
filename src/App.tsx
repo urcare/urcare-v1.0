@@ -13,6 +13,7 @@ import AuthCallback from "./pages/AuthCallback";
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
 const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
+const Legal = React.lazy(() => import("./pages/Legal"));
 
 function App() {
   useSafariMobileFix();
@@ -36,6 +37,7 @@ function App() {
           <Route path="/health-assessment" element={<HealthAssessment />} />
           <Route path="/paywall" element={<Paywall />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/legal" element={<Legal />} />
           <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Fallback to landing */}
