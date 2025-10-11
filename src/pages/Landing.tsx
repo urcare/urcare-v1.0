@@ -109,11 +109,16 @@ const Landing = () => {
         console.log('🔧 Supabase URL:', config.supabase.url);
         console.log('🔑 Supabase Key:', config.supabase.anonKey ? 'Present' : 'Missing');
         
+        let data, error;
+        
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
+          const result = await supabase.auth.signInWithPassword({
             email,
             password,
           });
+          
+          data = result.data;
+          error = result.error;
           
           console.log('📊 Sign-in response:', { data, error });
           
