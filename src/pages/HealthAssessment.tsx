@@ -22,7 +22,7 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 // Removed authUtils import - no more routing checks
@@ -44,38 +44,72 @@ const HealthAssessment: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoRotating, setIsAutoRotating] = useState(false);
 
+  // Fetch user profile data from onboarding
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      // Import supabase client
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No user found');
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Fetch onboarding profile
+      const { data: profile, error } = await supabase
+        .from('onboarding_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Map onboarding data to health assessment format
+      const healthProfile = {
+        smoking: profile.smoking_status || 'Never',
+        drinking: profile.alcohol_consumption || 'Never',
+        sleepTime: profile.sleep_time || '22:00',
+        wakeUpTime: profile.wake_up_time || '07:00',
+        workoutType: profile.exercise_frequency || 'None',
+        workStart: profile.work_start_time || '09:00',
+        workEnd: profile.work_end_time || '17:00',
+        chronicConditions: profile.chronic_conditions || []
+      };
+
+      console.log('📊 User health profile:', healthProfile);
+      
+      const metrics = generateHealthMetrics(healthProfile);
+      setHealthMetrics(metrics);
+      setIsAnalyzing(false);
+      setAnalysisComplete(true);
+      
+      // Start auto-rotation after analysis
+      setTimeout(() => {
+        setIsAutoRotating(true);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setIsAnalyzing(false);
+    }
+  }, []);
+
   // Start analysis immediately
   useEffect(() => {
     if (!isAnalyzing && !analysisComplete) {
       setIsAnalyzing(true);
       
-      // Simulate analysis delay
-      setTimeout(() => {
-        // TODO: Replace with actual profile data from onboarding
-        // For now, using sample data to demonstrate dynamic analysis
-        const sampleProfile = {
-          smoking: 'Daily',
-          drinking: 'Regular',
-          sleepTime: '01:00',
-          wakeUpTime: '06:00',
-          workoutType: 'None',
-          workStart: '08:00',
-          workEnd: '20:00',
-          chronicConditions: ['Diabetes', 'Hypertension']
-        };
-        
-                        const metrics = generateHealthMetrics(sampleProfile);
-                        setHealthMetrics(metrics);
-                        setIsAnalyzing(false);
-                        setAnalysisComplete(true);
-                        
-                        // Start auto-rotation after analysis
-                        setTimeout(() => {
-                          setIsAutoRotating(true);
-                        }, 1000);
-                      }, 2000);
+      // Fetch actual user profile data
+      fetchUserProfile();
     }
-  }, [isAnalyzing, analysisComplete]);
+  }, [isAnalyzing, analysisComplete, fetchUserProfile]);
 
   // Auto-rotation effect
   useEffect(() => {
@@ -93,34 +127,83 @@ const HealthAssessment: React.FC = () => {
     const metrics: HealthMetric[] = [];
 
     // Analyze smoking status
-    if (profile?.smoking && profile.smoking !== 'Never' && profile.smoking !== 'Quit') {
-    metrics.push({
-        id: "smoking",
-        title: "Smoking",
-        value: profile.smoking,
-      status: "bad",
-      icon: AlertTriangle,
-      iconColor: "text-red-500",
-    });
+    if (profile?.smoking) {
+      if (profile.smoking === 'Never' || profile.smoking === 'Non-smoker') {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: "Non-smoker",
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else if (profile.smoking === 'Former' || profile.smoking === 'Quit') {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: "Former smoker",
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else {
+        metrics.push({
+          id: "smoking",
+          title: "Smoking",
+          value: profile.smoking,
+          status: "bad",
+          icon: AlertTriangle,
+          iconColor: "text-red-500",
+        });
+      }
     }
 
     // Analyze drinking status
-    if (profile?.drinking && profile.drinking !== 'Never' && profile.drinking !== 'Occasionally') {
-    metrics.push({
-        id: "drinking",
-      title: "Alcohol",
-        value: profile.drinking,
-      status: "bad",
-      icon: Coffee,
-      iconColor: "text-red-500",
-    });
+    if (profile?.drinking) {
+      if (profile.drinking === 'Never' || profile.drinking === 'Non-drinker') {
+        metrics.push({
+          id: "drinking",
+          title: "Alcohol",
+          value: "Non-drinker",
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else if (profile.drinking === 'Occasionally' || profile.drinking === 'Rarely') {
+        metrics.push({
+          id: "drinking",
+          title: "Alcohol",
+          value: profile.drinking,
+          status: "warning",
+          icon: AlertTriangle,
+          iconColor: "text-yellow-500",
+        });
+      } else {
+        metrics.push({
+          id: "drinking",
+          title: "Alcohol",
+          value: profile.drinking,
+          status: "bad",
+          icon: AlertTriangle,
+          iconColor: "text-red-500",
+        });
+      }
     }
 
     // Analyze sleep duration
     if (profile?.sleepTime && profile?.wakeUpTime) {
       const sleepDuration = calculateSleepDuration(profile.sleepTime, profile.wakeUpTime);
-      if (sleepDuration < 7) {
-    metrics.push({
+      if (sleepDuration >= 7 && sleepDuration <= 9) {
+        metrics.push({
+          id: "sleep",
+          title: "Sleep",
+          value: `${sleepDuration} hours`,
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else if (sleepDuration < 7) {
+        metrics.push({
           id: "sleep",
           title: "Sleep",
           value: `${sleepDuration} hours`,
@@ -128,26 +211,73 @@ const HealthAssessment: React.FC = () => {
           icon: Clock,
           iconColor: "text-red-500",
         });
+      } else {
+        metrics.push({
+          id: "sleep",
+          title: "Sleep",
+          value: `${sleepDuration} hours`,
+          status: "warning",
+          icon: Clock,
+          iconColor: "text-yellow-500",
+        });
       }
     }
 
     // Analyze exercise frequency
-    if (profile?.workoutType && (profile.workoutType === 'None' || profile.workoutType === 'Rarely')) {
-    metrics.push({
-        id: "exercise",
-        title: "Exercise",
-        value: profile.workoutType,
-        status: "bad",
-        icon: Activity,
-        iconColor: "text-red-500",
-      });
+    if (profile?.workoutType) {
+      if (profile.workoutType === 'Daily' || profile.workoutType === '5-6 times per week') {
+        metrics.push({
+          id: "exercise",
+          title: "Exercise",
+          value: profile.workoutType,
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else if (profile.workoutType === '3-4 times per week' || profile.workoutType === 'Moderate') {
+        metrics.push({
+          id: "exercise",
+          title: "Exercise",
+          value: profile.workoutType,
+          status: "warning",
+          icon: Activity,
+          iconColor: "text-yellow-500",
+        });
+      } else {
+        metrics.push({
+          id: "exercise",
+          title: "Exercise",
+          value: profile.workoutType,
+          status: "bad",
+          icon: Activity,
+          iconColor: "text-red-500",
+        });
+      }
     }
 
     // Analyze work stress (long hours)
     if (profile?.workStart && profile?.workEnd) {
       const workHours = calculateWorkHours(profile.workStart, profile.workEnd);
-      if (workHours > 10) {
-    metrics.push({
+      if (workHours <= 8) {
+        metrics.push({
+          id: "stress",
+          title: "Work Stress",
+          value: `${workHours}h workday`,
+          status: "good",
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+        });
+      } else if (workHours <= 10) {
+        metrics.push({
+          id: "stress",
+          title: "Work Stress",
+          value: `${workHours}h workday`,
+          status: "warning",
+          icon: AlertTriangle,
+          iconColor: "text-yellow-500",
+        });
+      } else {
+        metrics.push({
           id: "stress",
           title: "Work Stress",
           value: `${workHours}h workday`,
@@ -160,7 +290,7 @@ const HealthAssessment: React.FC = () => {
 
     // Analyze chronic conditions
     if (profile?.chronicConditions && profile.chronicConditions.length > 0) {
-    metrics.push({
+      metrics.push({
         id: "conditions",
         title: "Health Conditions",
         value: `${profile.chronicConditions.length} conditions`,
@@ -168,18 +298,15 @@ const HealthAssessment: React.FC = () => {
         icon: AlertTriangle,
         iconColor: "text-red-500",
       });
-    }
-
-    // If no issues found, show a general health concern
-    if (metrics.length === 0) {
-    metrics.push({
-        id: "general",
-        title: "Health Assessment",
-        value: "Needs attention",
-      status: "bad",
-        icon: AlertTriangle,
-      iconColor: "text-red-500",
-    });
+    } else {
+      metrics.push({
+        id: "conditions",
+        title: "Health Conditions",
+        value: "None reported",
+        status: "good",
+        icon: CheckCircle,
+        iconColor: "text-green-500",
+      });
     }
 
     return metrics;

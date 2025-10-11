@@ -25,6 +25,7 @@ const Dashboard: React.FC = () => {
   const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
   const [activitiesGenerating, setActivitiesGenerating] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [planSelectionLoading, setPlanSelectionLoading] = useState(false);
   const [currentPlanName, setCurrentPlanName] = useState<string>('Generate Your Protocol');
   const [isInitializing, setIsInitializing] = useState(false);
 
@@ -162,14 +163,22 @@ const Dashboard: React.FC = () => {
         
         console.log('🔍 Getting user session...');
         
-        // Add timeout to getSession to prevent hanging
-        const sessionTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
-        );
-        
-        const sessionPromise = supabase.auth.getSession();
-        const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
-        console.log('✅ User session loaded');
+        let session = null;
+        try {
+          // Add timeout to getSession to prevent hanging
+          const sessionTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+          );
+          
+          const sessionPromise = supabase.auth.getSession();
+          const { data: { session: sessionData } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
+          session = sessionData;
+          console.log('✅ User session loaded');
+        } catch (error) {
+          console.warn('⚠️ Session fetch failed, redirecting to landing page:', error.message);
+          navigate("/", { replace: true });
+          return;
+        }
         
         if (!session?.user) {
           console.log("No user detected - redirecting to landing page");
@@ -178,66 +187,69 @@ const Dashboard: React.FC = () => {
         }
 
         setUser(session.user);
-        console.log('✅ User session loaded');
 
-        // Fetch user profile with timeout
-        try {
-          const profilePromise = supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          const profileTimeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-          );
-          
-          const { data: profileData, error: profileError } = await Promise.race([
-            profilePromise,
-            profileTimeout
-          ]) as any;
+        // Fetch user profile with timeout (only if we have a user)
+        if (session?.user) {
+          try {
+            const profilePromise = supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            const profileTimeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+            );
+            
+            const { data: profileData, error: profileError } = await Promise.race([
+              profilePromise,
+              profileTimeout
+            ]) as any;
 
-          if (profileError) {
-            console.error("Error fetching profile:", profileError);
-          } else {
-            setProfile(profileData);
-            console.log('✅ Profile loaded');
+            if (profileError) {
+              console.error("Error fetching profile:", profileError);
+            } else {
+              setProfile(profileData);
+              console.log('✅ Profile loaded');
+            }
+          } catch (error) {
+            console.error("Profile fetch error:", error);
           }
-        } catch (error) {
-          console.error("Profile fetch error:", error);
         }
 
-        // Fetch onboarding profile data with timeout
-        try {
-          const onboardingPromise = supabase
-            .from('onboarding_profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          const onboardingTimeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Onboarding fetch timeout')), 10000)
-          );
-          
-          const { data: onboardingData, error: onboardingError } = await Promise.race([
-            onboardingPromise,
-            onboardingTimeout
-          ]) as any;
+        // Fetch onboarding profile data with timeout (only if we have a user)
+        if (session?.user) {
+          try {
+            const onboardingPromise = supabase
+              .from('onboarding_profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            const onboardingTimeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Onboarding fetch timeout')), 10000)
+            );
+            
+            const { data: onboardingData, error: onboardingError } = await Promise.race([
+              onboardingPromise,
+              onboardingTimeout
+            ]) as any;
 
-          if (onboardingError) {
-            console.error("Error fetching onboarding profile:", onboardingError);
-          } else {
-            console.log("✅ Onboarding profile loaded:", onboardingData);
-            if (onboardingData) {
-              localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
+            if (onboardingError) {
+              console.error("Error fetching onboarding profile:", onboardingError);
+            } else {
+              console.log("✅ Onboarding profile loaded:", onboardingData);
+              if (onboardingData) {
+                localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
+              }
             }
+          } catch (error) {
+            console.error("Onboarding fetch error:", error);
           }
-        } catch (error) {
-          console.error("Onboarding fetch error:", error);
         }
 
         // Fetch health data, saved activities, and current plan name with individual error handling
-        if (session.user.id) {
+        if (session?.user?.id) {
           console.log('🔍 Starting health data fetch...');
           try {
             await fetchHealthData(session.user.id);
@@ -327,6 +339,95 @@ const Dashboard: React.FC = () => {
     }
   }, [user?.id, isInitializing, loading, fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]);
 
+  // Update today's activities by copying yesterday's activities
+  const updateTodaysActivities = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      console.log('🔄 Updating today\'s activities from yesterday\'s data...');
+      
+      // Get yesterday's date
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayDate = yesterday.toISOString().split('T')[0];
+      
+      // Get today's date
+      const today = new Date().toISOString().split('T')[0];
+      
+      console.log('📅 Copying activities from', yesterdayDate, 'to', today);
+      
+      // Fetch yesterday's activities
+      const { data: yesterdayActivities, error: fetchError } = await supabase.rpc('get_user_daily_activities', {
+        p_user_id: user.id,
+        p_activity_date: yesterdayDate
+      });
+      
+      if (fetchError) {
+        console.error('❌ Error fetching yesterday\'s activities:', fetchError);
+        return;
+      }
+      
+      if (!yesterdayActivities || yesterdayActivities.length === 0) {
+        console.log('ℹ️ No activities found for yesterday');
+        return;
+      }
+      
+      console.log('📊 Found', yesterdayActivities.length, 'activities from yesterday');
+      
+      // Delete today's existing activities first
+      const { error: deleteError } = await supabase
+        .from('daily_activities')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('activity_date', today);
+      
+      if (deleteError) {
+        console.error('❌ Error deleting today\'s activities:', deleteError);
+        return;
+      }
+      
+      console.log('🗑️ Deleted existing activities for today');
+      
+      // Copy yesterday's activities with today's date
+      const activitiesToInsert = yesterdayActivities.map(activity => ({
+        user_id: activity.user_id,
+        plan_id: activity.plan_id,
+        activity_date: today,
+        activity_time: activity.activity_time,
+        activity: activity.activity,
+        duration: activity.duration,
+        category: activity.category,
+        food: activity.food,
+        exercise: activity.exercise,
+        instructions: activity.instructions,
+        health_tip: activity.health_tip,
+        is_completed: false, // Reset completion status
+        completed_at: null,
+        notes: null
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('daily_activities')
+        .insert(activitiesToInsert);
+      
+      if (insertError) {
+        console.error('❌ Error inserting today\'s activities:', insertError);
+        return;
+      }
+      
+      console.log('✅ Successfully updated today\'s activities');
+      
+      // Refresh the activities display
+      await fetchSavedActivities(user.id);
+      
+    } catch (error) {
+      console.error('❌ Error updating today\'s activities:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, fetchSavedActivities]);
+
   // Handle window focus to refresh data when user returns to tab
   useEffect(() => {
     const handleWindowFocus = () => {
@@ -346,13 +447,13 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      setActivitiesGenerating(true);
+      setPlanSelectionLoading(true);
       setSelectedPlan(plan);
       
       // Update current protocol name
       setCurrentPlanName(plan.name || 'Selected Protocol');
       
-      toast.loading("Generating your daily protocol...", { id: "plan-activities" });
+      toast.loading("Creating your personalized schedule using our algorithm...", { id: "plan-activities" });
       
       // Generate daily protocol for the selected plan
       const result = await generatePlanActivities({
@@ -362,7 +463,7 @@ const Dashboard: React.FC = () => {
       });
       
       if (result.success && result.data) {
-        toast.success("Daily protocol generated successfully!", { id: "plan-activities" });
+        toast.success("Your personalized schedule is ready!", { id: "plan-activities" });
         
         console.log("🎯 Generated activities:", result.data.schedule?.length);
         console.log("🎯 Activities data structure:", result.data);
@@ -385,7 +486,7 @@ const Dashboard: React.FC = () => {
       console.error("Error generating protocol:", error);
       toast.error("Failed to generate protocol. Please try again.", { id: "plan-activities" });
     } finally {
-      setActivitiesGenerating(false);
+      setPlanSelectionLoading(false);
     }
   };
 
@@ -587,7 +688,24 @@ const Dashboard: React.FC = () => {
 
           {/* Main Content */}
         <div className="max-w-md mx-auto px-4 sm:px-6 mt-2">
-            <div className="py-3 flex-1 shadow-lg rounded-3xl bg-white">
+            <div className="py-3 flex-1 shadow-lg rounded-3xl bg-white relative">
+              {/* Plan Selection Loading Overlay */}
+              {planSelectionLoading && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-3xl">
+                  <div className="text-center">
+                    <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6"></div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Creating Your Schedule</h3>
+                    <p className="text-gray-600 mb-4">Using our advanced algorithm to personalize your daily activities...</p>
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4">This may take 30-60 seconds</p>
+                  </div>
+                </div>
+              )}
+              
               <TodaySchedule 
                 profile={profile} 
                 generatedPlans={generatedPlans}

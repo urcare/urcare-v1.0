@@ -1,6 +1,109 @@
 // Health Score Calculation Service using Supabase Functions
 import { supabase } from '@/integrations/supabase/client';
 
+// Generate accurate analysis based on user's actual responses
+const generateAccurateAnalysis = (userProfile: any) => {
+  const negativeAnalysis = [];
+  const lifestyleRecommendations = [];
+  
+  // Check alcohol consumption
+  const alcoholConsumption = userProfile.alcohol_consumption?.toLowerCase() || '';
+  if (alcoholConsumption === 'non-drinker' || alcoholConsumption === 'never') {
+    // Positive for non-drinkers
+    lifestyleRecommendations.push("✅ Excellent choice to avoid alcohol - this supports liver health and overall wellness");
+  } else if (alcoholConsumption === 'occasionally' || alcoholConsumption === 'rarely') {
+    lifestyleRecommendations.push("💚 Moderate alcohol consumption is acceptable - continue to limit intake");
+  } else if (alcoholConsumption === 'daily' || alcoholConsumption === 'frequently') {
+    negativeAnalysis.push("🚨 High alcohol consumption detected - consider reducing intake for better health");
+    lifestyleRecommendations.push("💚 Consider reducing alcohol consumption to improve liver health and sleep quality");
+  }
+  
+  // Check smoking status
+  const smokingStatus = userProfile.smoking_status?.toLowerCase() || '';
+  if (smokingStatus === 'non-smoker' || smokingStatus === 'never') {
+    lifestyleRecommendations.push("✅ Great job staying smoke-free - this significantly benefits your lung and heart health");
+  } else if (smokingStatus === 'former' || smokingStatus === 'quit') {
+    lifestyleRecommendations.push("✅ Congratulations on quitting smoking - continue to maintain this healthy choice");
+  } else if (smokingStatus === 'current' || smokingStatus === 'smoker') {
+    negativeAnalysis.push("🚨 Smoking detected - this is a major health risk factor");
+    lifestyleRecommendations.push("💚 Consider smoking cessation programs and support groups for better health");
+  }
+  
+  // Check exercise frequency
+  const exerciseFrequency = userProfile.exercise_frequency?.toLowerCase() || '';
+  if (exerciseFrequency === 'daily' || exerciseFrequency === '5-6 times per week') {
+    lifestyleRecommendations.push("✅ Excellent exercise routine - regular physical activity is key to good health");
+  } else if (exerciseFrequency === '3-4 times per week' || exerciseFrequency === 'moderate') {
+    lifestyleRecommendations.push("💚 Good exercise frequency - consider adding more variety to your routine");
+  } else if (exerciseFrequency === 'rarely' || exerciseFrequency === 'never' || exerciseFrequency === '1-2 times per week') {
+    negativeAnalysis.push("🚨 Low exercise frequency detected - regular physical activity is essential");
+    lifestyleRecommendations.push("💚 Start with 30 minutes of daily walking and gradually increase activity");
+  }
+  
+  // Check diet quality
+  const dietType = userProfile.diet_type?.toLowerCase() || '';
+  if (dietType.includes('balanced') || dietType.includes('mediterranean')) {
+    lifestyleRecommendations.push("✅ Your diet choice supports excellent health outcomes");
+  } else if (dietType.includes('vegetarian') || dietType.includes('vegan')) {
+    lifestyleRecommendations.push("💚 Plant-based diet is healthy - ensure adequate protein and B12 intake");
+  } else if (dietType.includes('fast food') || dietType.includes('processed')) {
+    negativeAnalysis.push("🚨 Diet may include too many processed foods - focus on whole foods");
+    lifestyleRecommendations.push("💚 Transition to whole foods, fruits, vegetables, and lean proteins");
+  }
+  
+  // Check sleep quality
+  if (userProfile.sleep_time && userProfile.wake_up_time) {
+    const sleepTime = new Date(`2000-01-01 ${userProfile.sleep_time}`);
+    const wakeTime = new Date(`2000-01-02 ${userProfile.wake_up_time}`);
+    const sleepHours = (wakeTime.getTime() - sleepTime.getTime()) / (1000 * 60 * 60);
+    
+    if (sleepHours >= 7 && sleepHours <= 9) {
+      lifestyleRecommendations.push("✅ Your sleep schedule provides adequate rest for optimal health");
+    } else if (sleepHours < 7) {
+      negativeAnalysis.push("🚨 Insufficient sleep detected - aim for 7-9 hours nightly");
+      lifestyleRecommendations.push("💚 Establish a consistent bedtime routine for better sleep quality");
+    } else if (sleepHours > 9) {
+      lifestyleRecommendations.push("💚 Consider if excessive sleep indicates underlying health issues");
+    }
+  }
+  
+  // Check stress levels
+  const stressLevel = userProfile.stress_level?.toLowerCase() || '';
+  if (stressLevel === 'low' || stressLevel === 'minimal') {
+    lifestyleRecommendations.push("✅ Excellent stress management - low stress supports overall health");
+  } else if (stressLevel === 'moderate') {
+    lifestyleRecommendations.push("💚 Moderate stress levels - continue practicing stress management techniques");
+  } else if (stressLevel === 'high' || stressLevel === 'severe') {
+    negativeAnalysis.push("🚨 High stress levels detected - chronic stress impacts health");
+    lifestyleRecommendations.push("💚 Practice meditation, deep breathing, and consider professional stress management support");
+  }
+  
+  // Check chronic conditions
+  if (userProfile.chronic_conditions && Array.isArray(userProfile.chronic_conditions) && userProfile.chronic_conditions.length > 0) {
+    negativeAnalysis.push("🚨 Chronic conditions require careful management");
+    lifestyleRecommendations.push("💚 Work closely with healthcare providers to manage your conditions effectively");
+  } else {
+    lifestyleRecommendations.push("✅ No chronic conditions reported - maintain preventive health measures");
+  }
+  
+  // If no specific issues found, provide general positive feedback
+  if (negativeAnalysis.length === 0) {
+    negativeAnalysis.push("✅ Your health profile shows good lifestyle choices");
+    negativeAnalysis.push("✅ Continue maintaining your current healthy habits");
+  }
+  
+  // Add general recommendations if none specific
+  if (lifestyleRecommendations.length === 0) {
+    lifestyleRecommendations.push("💚 Maintain regular physical activity", "💚 Eat a variety of fruits and vegetables", "💚 Stay hydrated throughout the day");
+  }
+  
+  return {
+    greeting: `Hi ${userProfile?.full_name?.split(' ')[0] || 'there'}, based on your health profile analysis:`,
+    negativeAnalysis: negativeAnalysis.slice(0, 5), // Limit to 5 items
+    lifestyleRecommendations: lifestyleRecommendations.slice(0, 5) // Limit to 5 items
+  };
+};
+
 // Fallback health score calculation when API is not available
 const calculateFallbackHealthScore = (userProfile: any) => {
   let score = 50; // Base score
@@ -194,11 +297,7 @@ export const calculateHealthScore = async (request: HealthScoreRequest): Promise
       return {
         success: true,
         healthScore: fallbackScore.score,
-        displayAnalysis: {
-          greeting: `Hi ${request.userProfile?.full_name?.split(' ')[0] || 'there'}, based on your health profile analysis:`,
-          negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
-          lifestyleRecommendations: ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
-        },
+        displayAnalysis: generateAccurateAnalysis(request.userProfile),
         analysis: fallbackScore.analysis,
         recommendations: fallbackScore.recommendations
       };
