@@ -55,7 +55,12 @@ const Landing = () => {
 
   // Email authentication handlers
   const handleEmailAuth = async () => {
+    console.log('🚀 handleEmailAuth called!');
+    console.log('📧 Email:', email);
+    console.log('🔒 Password length:', password.length);
+    
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       toast.error("Please fill in all fields");
       return;
     }
@@ -336,8 +341,16 @@ const Landing = () => {
                   </div>
                   
                   <Button
-                    onClick={handleEmailAuth}
+                    onClick={() => {
+                      console.log('🖱️ Sign-in button clicked!');
+                      console.log('📧 Email value:', email);
+                      console.log('🔒 Password value:', password);
+                      console.log('⏳ Loading state:', isLoading);
+                      alert('Button clicked! Email: ' + email);
+                      handleEmailAuth();
+                    }}
                     disabled={isLoading || !email || !password}
+                    style={{ pointerEvents: 'auto' }}
                     className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
                   >
                     {isLoading ? (
