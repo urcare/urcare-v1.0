@@ -3,9 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // Determine redirect URL based on environment
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const redirectUrl = isLocalhost 
-  ? `${window.location.origin}/auth/callback`  // Use auth/callback for localhost
-  : config.supabase.redirectUrl;
+const redirectUrl = `${window.location.origin}/auth/callback`;
 
 // Debug logging
 console.log('🔧 Supabase redirect configuration:', {

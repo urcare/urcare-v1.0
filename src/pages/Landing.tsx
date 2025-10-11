@@ -10,6 +10,7 @@ import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { handleUserRouting } from "@/utils/authRouting";
+import { productionSignIn } from "@/utils/productionAuth";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -97,36 +98,77 @@ const Landing = () => {
           navigate("/welcome");
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        // Check if we're in production and use enhanced sign-in
+        const isProduction = window.location.hostname !== 'localhost' && 
+                            window.location.hostname !== '127.0.0.1';
         
-        if (error) {
-          throw error;
-        }
-        
-        // Check if user needs email confirmation
-        if (data.user && !data.user.email_confirmed_at) {
-          toast.error("Please check your email and click the confirmation link before signing in");
-          return;
-        }
-        
-        // Wait a moment for session to be established
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Verify session is active
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          toast.success("Signed in successfully!");
+        if (isProduction) {
+          console.log('🌐 Using production sign-in flow');
+          const result = await productionSignIn(email, password);
           
-          // Use the same routing logic as AuthCallback
-          const routingResult = await handleUserRouting(session.user);
-          if (routingResult.shouldRedirect) {
-            navigate(routingResult.redirectPath, { replace: true });
+          if (result.success && result.user) {
+            toast.success("Signed in successfully!");
+            
+            // Use the same routing logic as AuthCallback
+            const routingResult = await handleUserRouting(result.user);
+            if (routingResult.shouldRedirect) {
+              navigate(routingResult.redirectPath, { replace: true });
+            }
+          } else {
+            throw new Error(result.error || 'Production sign-in failed');
           }
         } else {
-          toast.error("Sign in failed. Please try again.");
+          // Use regular sign-in for localhost
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          if (error) {
+            console.error("Sign in error:", error);
+            throw error;
+          }
+          
+          // Check if user needs email confirmation
+          if (data.user && !data.user.email_confirmed_at) {
+            toast.error("Please check your email and click the confirmation link before signing in");
+            return;
+          }
+          
+          // Wait a moment for session to be established
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Verify session is active with retry logic
+          let session = null;
+          let attempts = 0;
+          const maxAttempts = 3;
+          
+          while (attempts < maxAttempts && !session) {
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) {
+              console.error("Session error:", sessionError);
+            }
+            session = currentSession;
+            attempts++;
+            
+            if (!session && attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+          
+          if (session?.user) {
+            console.log("✅ Session verified, user authenticated:", session.user.email);
+            toast.success("Signed in successfully!");
+            
+            // Use the same routing logic as AuthCallback
+            const routingResult = await handleUserRouting(session.user);
+            if (routingResult.shouldRedirect) {
+              navigate(routingResult.redirectPath, { replace: true });
+            }
+          } else {
+            console.error("❌ No session found after sign in");
+            toast.error("Sign in failed. Please try again.");
+          }
         }
       }
     } catch (error: any) {
@@ -144,6 +186,10 @@ const Landing = () => {
         errorMessage = "Please check your email and click the confirmation link before signing in";
       } else if (error.message?.includes("Too many requests")) {
         errorMessage = "Too many attempts. Please wait a moment and try again";
+      } else if (error.message?.includes("Network")) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message?.includes("fetch")) {
+        errorMessage = "Connection error. Please try again.";
       }
       
       toast.error(errorMessage);
