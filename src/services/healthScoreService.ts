@@ -240,7 +240,7 @@ export const checkHealthAnalysisExist = async (userId: string) => {
     console.log('🔍 Checking health analysis for user:', userId);
     
     const { data, error } = await supabase
-      .from('health_analysis')
+      .from('unified_health_analysis')
       .select('*')
       .eq('user_id', userId)
       .eq('is_latest', true)
@@ -297,7 +297,7 @@ export const fetchHealthAnalysis = async (userId: string) => {
     console.log('🔍 Fetching health analysis for user:', userId);
     
     const { data, error } = await supabase
-      .from('health_analysis')
+      .from('unified_health_analysis')
       .select('*')
       .eq('user_id', userId)
       .eq('is_latest', true)
@@ -374,7 +374,7 @@ export const saveHealthAnalysis = async (
     
     // First, mark all existing analyses as not latest
     const { error: updateError } = await supabase
-      .from('health_analysis')
+      .from('unified_health_analysis')
       .update({ is_latest: false })
       .eq('user_id', userId);
 
@@ -385,7 +385,7 @@ export const saveHealthAnalysis = async (
 
     // Insert new analysis with all required fields
     const { data, error } = await supabase
-      .from('health_analysis')
+      .from('unified_health_analysis')
       .insert({
         user_id: userId,
         health_score: healthScore,

@@ -344,7 +344,7 @@ class UnifiedHealthAnalysisService {
   async checkHealthAnalysisExist(userId: string) {
     try {
       const { data, error } = await supabase
-        .from('health_analysis')
+        .from('unified_health_analysis')
         .select('*')
         .eq('user_id', userId)
         .eq('is_latest', true)
@@ -377,7 +377,7 @@ class UnifiedHealthAnalysisService {
   async fetchHealthAnalysis(userId: string) {
     try {
       const { data, error } = await supabase
-        .from('health_analysis')
+        .from('unified_health_analysis')
         .select('*')
         .eq('user_id', userId)
         .eq('is_latest', true)
@@ -441,13 +441,13 @@ class UnifiedHealthAnalysisService {
     try {
       // First, mark all existing analyses as not latest
       await supabase
-        .from('health_analysis')
+        .from('unified_health_analysis')
         .update({ is_latest: false })
         .eq('user_id', userId);
 
       // Insert new analysis
       const { data, error } = await supabase
-        .from('health_analysis')
+        .from('unified_health_analysis')
         .insert({
           user_id: userId,
           health_score: healthScore,
