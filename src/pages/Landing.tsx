@@ -101,11 +101,19 @@ const Landing = () => {
         // Simple sign-in for both localhost and production
         let data, error;
         
+        // Add timeout for production to prevent hanging
+        const signInTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Sign-in timeout')), 15000);
+        });
+        
         try {
-          const result = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+          const result = await Promise.race([
+            supabase.auth.signInWithPassword({
+              email,
+              password,
+            }),
+            signInTimeout
+          ]);
           
           data = result.data;
           error = result.error;
@@ -128,7 +136,7 @@ const Landing = () => {
         
         // Use the same routing logic as AuthCallback with timeout
         const routingTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Routing timeout')), 10000);
+          setTimeout(() => reject(new Error('Routing timeout')), 5000);
         });
         
         try {
@@ -139,10 +147,14 @@ const Landing = () => {
           
           if (routingResult.shouldRedirect) {
             navigate(routingResult.redirectPath, { replace: true });
+          } else {
+            // Fallback to health assessment if no routing result
+            navigate('/health-assessment', { replace: true });
           }
         } catch (routingError) {
-          // Fallback to welcome page
-          navigate('/welcome', { replace: true });
+          console.error('Routing failed:', routingError);
+          // Fallback to health assessment page
+          navigate('/health-assessment', { replace: true });
         }
       }
     } catch (error: any) {

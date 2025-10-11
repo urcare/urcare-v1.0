@@ -52,28 +52,48 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
     }
 
     // User has completed onboarding - check subscription status
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('user_subscriptions')
-      .select('status')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single();
+    try {
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
 
-    if (subscriptionError || !subscriptionData) {
-      // No active subscription - redirect to health assessment
+      if (subscriptionError) {
+        console.error('Subscription query error:', subscriptionError);
+        // If database query fails, redirect to health assessment as fallback
+        return {
+          shouldRedirect: true,
+          redirectPath: '/health-assessment',
+          reason: 'Database query failed, redirecting to health assessment'
+        };
+      }
+
+      if (!subscriptionData) {
+        // No active subscription - redirect to health assessment
+        return {
+          shouldRedirect: true,
+          redirectPath: '/health-assessment',
+          reason: 'No active subscription found'
+        };
+      }
+
+      // User has active subscription - redirect to dashboard
+      return {
+        shouldRedirect: true,
+        redirectPath: '/dashboard',
+        reason: 'User has active subscription'
+      };
+    } catch (dbError) {
+      console.error('Database error during subscription check:', dbError);
+      // Fallback to health assessment if database is unreachable
       return {
         shouldRedirect: true,
         redirectPath: '/health-assessment',
-        reason: 'No active subscription found'
+        reason: 'Database unreachable, redirecting to health assessment'
       };
     }
-
-    // User has active subscription - redirect to dashboard
-    return {
-      shouldRedirect: true,
-      redirectPath: '/dashboard',
-      reason: 'User has active subscription'
-    };
 
   } catch (error) {
     console.error('Error checking user status:', error);
