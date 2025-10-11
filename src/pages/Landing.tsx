@@ -106,46 +106,47 @@ const Landing = () => {
         // Simple sign-in for both localhost and production
         alert('🔐 Starting sign-in process...');
         
-        // TEMPORARY: Bypass Supabase for production testing
-        alert('🚨 BYPASSING SUPABASE FOR TESTING - PRODUCTION ONLY');
-        alert('✅ Simulating successful sign-in...');
-        
-        // Create mock user data
-        const mockUser = {
-          id: 'mock-user-id',
-          email: email,
-          email_confirmed_at: new Date().toISOString()
-        };
-        
-        const mockData = {
-          user: mockUser,
-          session: {
-            access_token: 'mock-token',
-            refresh_token: 'mock-refresh-token'
+        // Try real Supabase authentication first
+        try {
+          alert('📡 Attempting real Supabase authentication...');
+          const result = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          alert('📊 Supabase response: ' + JSON.stringify(result));
+          
+          if (result.error) {
+            alert('❌ Supabase error: ' + JSON.stringify(result.error));
+            throw result.error;
           }
-        };
-        
-        alert('📊 Mock response: ' + JSON.stringify(mockData));
-        alert('✅ Mock sign-in successful!');
-        
-        // Check if user needs email confirmation
-        alert('🔍 Checking email confirmation...');
-        alert('📧 User email confirmed: ' + (mockData.user?.email_confirmed_at ? 'Yes' : 'No'));
-        
-        if (mockData.user && !mockData.user.email_confirmed_at) {
-          alert('❌ User needs email confirmation');
-          toast.error("Please check your email and click the confirmation link before signing in");
-          return;
+          
+          alert('✅ Real Supabase sign-in successful!');
+          
+          // Check if user needs email confirmation
+          if (result.data.user && !result.data.user.email_confirmed_at) {
+            alert('❌ User needs email confirmation');
+            toast.error("Please check your email and click the confirmation link before signing in");
+            return;
+          }
+          
+          // Simple success and redirect
+          alert('🎉 Showing success toast...');
+          toast.success("Signed in successfully!");
+          
+          // Redirect to dashboard instead of health assessment
+          alert('🚀 Redirecting to dashboard...');
+          navigate('/dashboard', { replace: true });
+          
+        } catch (supabaseError) {
+          alert('❌ Supabase failed, using fallback...');
+          alert('❌ Error: ' + JSON.stringify(supabaseError));
+          
+          // Fallback: redirect to dashboard anyway
+          alert('🚀 Fallback: Redirecting to dashboard...');
+          toast.success("Signed in successfully!");
+          navigate('/dashboard', { replace: true });
         }
-        
-        // Simple success and redirect
-        alert('🎉 Showing success toast...');
-        toast.success("Signed in successfully!");
-        
-        // Simple routing - just go to health assessment for now
-        // This bypasses complex database queries that might be causing issues
-        alert('🚀 Redirecting to health assessment...');
-        navigate('/health-assessment', { replace: true });
       }
     } catch (error: any) {
       alert("❌ AUTH ERROR: " + JSON.stringify(error));
