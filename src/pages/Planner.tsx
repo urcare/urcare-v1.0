@@ -27,7 +27,7 @@ import { toast } from "sonner";
 const Planner: React.FC = () => {
   const { user, profile } = useAuth();
   const [currentPlan, setCurrentPlan] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState<1 | 2>(1);
   const [dayProgress, setDayProgress] = useState<{

@@ -92,7 +92,7 @@ const MyAdmin: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);

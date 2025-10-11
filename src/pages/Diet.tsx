@@ -35,7 +35,7 @@ const Diet: React.FC = () => {
     null
   );
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMeal, setSelectedMeal] = useState<
     "breakfast" | "lunch" | "dinner" | "snack"

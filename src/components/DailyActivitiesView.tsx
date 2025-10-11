@@ -41,7 +41,7 @@ export const DailyActivitiesView: React.FC = () => {
   const { user } = useAuth();
   const [activities, setActivities] = useState<DailyActivity[]>([]);
   const [progress, setProgress] = useState<DailyProgress | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [completingActivity, setCompletingActivity] = useState<string | null>(null);
 
   // Load today's activities

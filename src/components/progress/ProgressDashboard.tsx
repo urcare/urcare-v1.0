@@ -57,7 +57,7 @@ export const ProgressDashboard: React.FC = () => {
   const [goalProgressData, setGoalProgressData] = useState<GoalProgressData[]>(
     []
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadProgressData();

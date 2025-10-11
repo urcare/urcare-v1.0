@@ -10,7 +10,7 @@ const Payment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "monthly"
   );

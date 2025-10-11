@@ -28,7 +28,7 @@ interface HealthMetrics {
 const OnboardingHealthAssessment: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetrics | null>(null);
 
   useEffect(() => {

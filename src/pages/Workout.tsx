@@ -75,7 +75,7 @@ const Workout: React.FC = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [currentSet, setCurrentSet] = useState(1);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all");
   const [showMuscleAnimation, setShowMuscleAnimation] = useState(false);
 
@@ -206,7 +206,10 @@ const Workout: React.FC = () => {
 
   const loadWorkoutPlans = async () => {
     try {
-      setLoading(true);
+      // Only show loading if we don't have plans yet
+      if (workoutPlans.length === 0) {
+        setLoading(true);
+      }
       // Simulate API call - in real app, this would fetch from backend
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setWorkoutPlans(samplePlans);

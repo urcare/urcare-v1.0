@@ -2,14 +2,17 @@ import React, { Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
 
-const Landing = React.lazy(() => import("./pages/Landing"));
-const Welcome = React.lazy(() => import("./pages/Welcome"));
-const Onboarding = React.lazy(() => import("./pages/Onboarding"));
+// Import commonly used pages directly to avoid loading screens
+import Landing from "./pages/Landing";
+import Welcome from "./pages/Welcome";
+import Onboarding from "./pages/Onboarding";
+import Dashboard from "./pages/Dashboard";
+import AuthCallback from "./pages/AuthCallback";
+
+// Keep less frequently used pages as lazy loaded
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
 const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 
 function App() {
   useSafariMobileFix();

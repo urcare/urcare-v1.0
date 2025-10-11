@@ -85,7 +85,7 @@ const WorkoutDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [workoutData, setWorkoutData] = useState<WorkoutDashboardData | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
