@@ -99,10 +99,15 @@ const Landing = () => {
       } else {
         // Simple sign-in for both localhost and production
         console.log('🔐 Attempting sign-in...');
+        console.log('🌐 Environment:', window.location.hostname);
+        console.log('🔧 Supabase URL:', config.supabase.url);
+        
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        
+        console.log('📊 Sign-in response:', { data, error });
         
         if (error) {
           console.error("Sign in error:", error);
@@ -113,17 +118,41 @@ const Landing = () => {
         
         // Check if user needs email confirmation
         if (data.user && !data.user.email_confirmed_at) {
+          console.log('⚠️ User needs email confirmation');
           toast.error("Please check your email and click the confirmation link before signing in");
           return;
         }
         
+        console.log('🔄 Starting routing logic...');
+        
         // Simple success and redirect
         toast.success("Signed in successfully!");
         
-        // Use the same routing logic as AuthCallback
-        const routingResult = await handleUserRouting(data.user);
-        if (routingResult.shouldRedirect) {
-          navigate(routingResult.redirectPath, { replace: true });
+        // Use the same routing logic as AuthCallback with timeout
+        console.log('🎯 Calling handleUserRouting...');
+        
+        const routingTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Routing timeout')), 10000);
+        });
+        
+        try {
+          const routingResult = await Promise.race([
+            handleUserRouting(data.user),
+            routingTimeout
+          ]);
+          
+          console.log('📍 Routing result:', routingResult);
+          
+          if (routingResult.shouldRedirect) {
+            console.log('🚀 Navigating to:', routingResult.redirectPath);
+            navigate(routingResult.redirectPath, { replace: true });
+          } else {
+            console.log('❌ No redirect path provided');
+          }
+        } catch (routingError) {
+          console.error('❌ Routing failed:', routingError);
+          // Fallback to welcome page
+          navigate('/welcome', { replace: true });
         }
       }
     } catch (error: any) {

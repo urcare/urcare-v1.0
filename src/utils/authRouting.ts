@@ -13,7 +13,10 @@ export interface RoutingResult {
  */
 export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
   try {
+    console.log('🔄 handleUserRouting started for user:', user.email);
+    
     // Create/update user profile in database
+    console.log('📝 Creating/updating user profile...');
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .upsert({
@@ -31,19 +34,25 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
       })
       .select();
 
+    console.log('📝 Profile operation result:', { profileData, profileError });
+
     if (profileError) {
       console.error('Profile creation error:', profileError);
     }
 
     // Check onboarding completion
+    console.log('🔍 Checking onboarding status...');
     const { data: onboardingData, error: onboardingError } = await supabase
       .from('onboarding_profiles')
       .select('onboarding_completed')
       .eq('user_id', user.id)
       .single();
 
+    console.log('🔍 Onboarding check result:', { onboardingData, onboardingError });
+
     if (onboardingError || !onboardingData?.onboarding_completed) {
       // User hasn't completed onboarding - redirect to welcome
+      console.log('📝 User needs onboarding, redirecting to welcome');
       return {
         shouldRedirect: true,
         redirectPath: '/welcome',
@@ -52,6 +61,7 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
     }
 
     // User has completed onboarding - check subscription status
+    console.log('💳 Checking subscription status...');
     const { data: subscriptionData, error: subscriptionError } = await supabase
       .from('user_subscriptions')
       .select('status')
@@ -59,8 +69,11 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
       .eq('status', 'active')
       .single();
 
+    console.log('💳 Subscription check result:', { subscriptionData, subscriptionError });
+
     if (subscriptionError || !subscriptionData) {
       // No active subscription - redirect to health assessment
+      console.log('💳 No active subscription, redirecting to health assessment');
       return {
         shouldRedirect: true,
         redirectPath: '/health-assessment',
@@ -69,6 +82,7 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
     }
 
     // User has active subscription - redirect to dashboard
+    console.log('✅ Active subscription found, redirecting to dashboard');
     return {
       shouldRedirect: true,
       redirectPath: '/dashboard',
