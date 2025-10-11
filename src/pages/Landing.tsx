@@ -56,7 +56,12 @@ const Landing = () => {
 
   // Email authentication handlers
   const handleEmailAuth = async () => {
+    console.log('🚀 handleEmailAuth called in production!');
+    console.log('📧 Email:', email);
+    console.log('🔒 Password length:', password.length);
+    
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       toast.error("Please fill in all fields");
       return;
     }
@@ -99,6 +104,7 @@ const Landing = () => {
         }
       } else {
         // Simple sign-in for both localhost and production
+        console.log('🔐 Starting sign-in process...');
         let data, error;
         
         // Add timeout for production to prevent hanging
@@ -107,6 +113,7 @@ const Landing = () => {
         });
         
         try {
+          console.log('📡 Calling Supabase signInWithPassword...');
           const result = await Promise.race([
             supabase.auth.signInWithPassword({
               email,
@@ -115,14 +122,18 @@ const Landing = () => {
             signInTimeout
           ]);
           
+          console.log('📊 Supabase response:', result);
           data = result.data;
           error = result.error;
           
           if (error) {
+            console.error('❌ Supabase returned error:', error);
             throw error;
           }
+          
+          console.log('✅ Sign-in successful!');
         } catch (supabaseError) {
-          console.error('Supabase sign-in error:', supabaseError);
+          console.error('❌ Supabase sign-in error:', supabaseError);
           if (supabaseError.message === 'Sign-in timeout') {
             throw new Error('Sign-in is taking too long. Please check your internet connection and try again.');
           }
@@ -136,11 +147,12 @@ const Landing = () => {
         }
         
         // Simple success and redirect
+        console.log('🎉 Showing success toast...');
         toast.success("Signed in successfully!");
         
         // Simple routing - just go to health assessment for now
         // This bypasses complex database queries that might be causing issues
-        console.log('Redirecting to health assessment...');
+        console.log('🚀 Redirecting to health assessment...');
         navigate('/health-assessment', { replace: true });
       }
     } catch (error: any) {
@@ -324,7 +336,13 @@ const Landing = () => {
                   </div>
                   
                   <Button
-                    onClick={handleEmailAuth}
+                    onClick={() => {
+                      console.log('🖱️ Button clicked in production!');
+                      console.log('📧 Email:', email);
+                      console.log('🔒 Password:', password);
+                      console.log('⏳ Loading:', isLoading);
+                      handleEmailAuth();
+                    }}
                     disabled={isLoading || !email || !password}
                     style={{ pointerEvents: 'auto' }}
                     className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
