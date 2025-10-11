@@ -230,7 +230,7 @@ const Legal: React.FC = () => {
             <h3>11. Contact Information</h3>
             <p>
               For questions about these terms, contact us at:{" "}
-              <a href="mailto:support@yourapp.com">support@yourapp.com</a>
+              <a href="mailto:urcarein@gmail.com">urcarein@gmail.com</a>
             </p>
           </div>
         </section>
@@ -346,7 +346,7 @@ const Legal: React.FC = () => {
             <h3>11. Contact Information</h3>
             <p>
               For refund requests and inquiries, contact us at:{" "}
-              <a href="mailto:refunds@yourapp.com">refunds@yourapp.com</a>
+              <a href="mailto:urcarein@gmail.com">urcarein@gmail.com</a>
             </p>
 
             <h3>Copyright and Ownership</h3>
