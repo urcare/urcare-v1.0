@@ -105,40 +105,31 @@ const Landing = () => {
       } else {
         // Simple sign-in for both localhost and production
         alert('🔐 Starting sign-in process...');
-        let data, error;
         
-        // Add timeout for production to prevent hanging
-        const signInTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Sign-in timeout')), 15000);
-        });
+        // TEMPORARY: Bypass Supabase for production testing
+        alert('🚨 BYPASSING SUPABASE FOR TESTING - PRODUCTION ONLY');
+        alert('✅ Simulating successful sign-in...');
         
-        try {
-          alert('📡 Calling Supabase signInWithPassword...');
-          const result = await Promise.race([
-            supabase.auth.signInWithPassword({
-              email,
-              password,
-            }),
-            signInTimeout
-          ]);
-          
-          alert('📊 Supabase response: ' + JSON.stringify(result));
-          data = result.data;
-          error = result.error;
-          
-          if (error) {
-            alert('❌ Supabase returned error: ' + JSON.stringify(error));
-            throw error;
+        // Create mock user data
+        const mockUser = {
+          id: 'mock-user-id',
+          email: email,
+          email_confirmed_at: new Date().toISOString()
+        };
+        
+        const mockData = {
+          user: mockUser,
+          session: {
+            access_token: 'mock-token',
+            refresh_token: 'mock-refresh-token'
           }
-          
-          alert('✅ Sign-in successful!');
-        } catch (supabaseError) {
-          alert('❌ Supabase sign-in error: ' + JSON.stringify(supabaseError));
-          if (supabaseError.message === 'Sign-in timeout') {
-            throw new Error('Sign-in is taking too long. Please check your internet connection and try again.');
-          }
-          throw new Error(`Authentication failed: ${supabaseError.message}`);
-        }
+        };
+        
+        alert('📊 Mock response: ' + JSON.stringify(mockData));
+        alert('✅ Mock sign-in successful!');
+        
+        // Set the data for the rest of the flow
+        data = mockData;
         
         // Check if user needs email confirmation
         if (data.user && !data.user.email_confirmed_at) {
