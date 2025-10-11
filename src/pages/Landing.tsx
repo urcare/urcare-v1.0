@@ -99,31 +99,24 @@ const Landing = () => {
         }
       } else {
         // Simple sign-in for both localhost and production
-        try {
-          const result = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          
-          if (result.error) {
-            throw result.error;
-          }
-          
-          // Check if user needs email confirmation
-          if (result.data.user && !result.data.user.email_confirmed_at) {
-            toast.error("Please check your email and click the confirmation link before signing in");
-            return;
-          }
-          
-          // Simple success and redirect
-          toast.success("Signed in successfully!");
-          navigate('/dashboard', { replace: true });
-          
-        } catch (supabaseError) {
-          // Fallback: redirect to dashboard anyway
-          toast.success("Signed in successfully!");
-          navigate('/dashboard', { replace: true });
+        const result = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (result.error) {
+          throw result.error;
         }
+        
+        // Check if user needs email confirmation
+        if (result.data.user && !result.data.user.email_confirmed_at) {
+          toast.error("Please check your email and click the confirmation link before signing in");
+          return;
+        }
+        
+        // Simple success and redirect
+        toast.success("Signed in successfully!");
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error("Auth error:", error);
