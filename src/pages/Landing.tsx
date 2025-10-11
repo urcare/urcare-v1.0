@@ -10,6 +10,7 @@ import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { handleUserRouting } from "@/utils/authRouting";
+import { config } from "@/config";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
