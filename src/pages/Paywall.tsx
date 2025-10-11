@@ -93,7 +93,7 @@ const Paywall: React.FC = () => {
             {/* Gradient fade at top */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
             {/* Reverse Lifestyle Disorders */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 py-2">
               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
                 <Heart className="w-8 h-8 text-rose-600" />
               </div>
@@ -101,7 +101,7 @@ const Paywall: React.FC = () => {
                 <h3 className="font-bold text-gray-900 text-lg mb-1">
                   Reverse Lifestyle Disorders
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-sm leading-relaxed">
                   Target root causes of diabetes, PCOS, hypertension, obesity,
                   stress & more.
                 </p>
@@ -109,7 +109,7 @@ const Paywall: React.FC = () => {
             </div>
 
             {/* UrHealth Twin */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 py-2">
               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
                 <Brain className="w-8 h-8 text-purple-600" />
               </div>
@@ -117,7 +117,7 @@ const Paywall: React.FC = () => {
                 <h3 className="font-bold text-gray-900 text-lg mb-1">
                   UrHealth Twin
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-sm leading-relaxed">
                   Adaptive, personalized protocols that evolve daily with you—no
                   one-size-fits-all.
                 </p>
