@@ -140,15 +140,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
+    let sessionRetrieved = false;
     
     // Get initial session with timeout and retry logic
     const getInitialSession = async () => {
       try {
         console.log('🔍 Getting initial session...');
         
-        // Add timeout to prevent hanging
+        // Add timeout to prevent hanging, but don't clear session if auth state change is working
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 8000)
+          setTimeout(() => reject(new Error('Session fetch timeout')), 10000)
         );
         
         const sessionPromise = supabase.auth.getSession();
@@ -156,13 +157,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
-          if (isMounted) {
+          if (isMounted && !sessionRetrieved) {
             setLoading(false);
           }
           return;
         }
         
         console.log('✅ Session retrieved:', session?.user?.email || 'No user');
+        sessionRetrieved = true;
         
         if (session?.user && isMounted) {
           setUser(session.user);
@@ -173,10 +175,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-        // Handle session errors and clear corrupted data
-        await handleSessionError(error);
+        // Only clear session if we haven't received auth state change
+        if (!sessionRetrieved) {
+          await handleSessionError(error);
+        }
       } finally {
-        if (isMounted) {
+        if (isMounted && !sessionRetrieved) {
           setLoading(false);
         }
       }
@@ -193,19 +197,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         try {
           if (session?.user) {
+            console.log('✅ User authenticated via auth state change');
             setUser(session.user);
             const profileData = await fetchProfile(session.user.id);
             if (isMounted) {
               setProfile(profileData);
             }
           } else {
+            console.log('❌ No user in auth state change');
             setUser(null);
             setProfile(null);
           }
         } catch (error) {
           console.error('Error handling auth state change:', error);
-          // Handle session errors
-          await handleSessionError(error);
+          // Only handle session errors if it's not a timeout from getSession
+          if (!error.message?.includes('Session fetch timeout')) {
+            await handleSessionError(error);
+          }
           // Clear state on error
           if (isMounted) {
             setUser(null);

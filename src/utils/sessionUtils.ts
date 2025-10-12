@@ -92,6 +92,13 @@ export const refreshSessionIfNeeded = async (): Promise<boolean> => {
 export const handleSessionError = async (error: any): Promise<void> => {
   console.error('Session error detected:', error);
   
+  // Don't clear session on timeout errors - these are usually network issues
+  if (error?.message?.includes('timeout') || 
+      error?.message?.includes('Session fetch timeout')) {
+    console.log('⏱️ Session timeout detected, not clearing session (likely network issue)');
+    return;
+  }
+  
   // If it's a token-related error, clear the session
   if (error?.message?.includes('token') || 
       error?.message?.includes('session') ||
