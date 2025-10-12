@@ -1,0 +1,168 @@
+[33m8c054ee[m Add health reports storage and upload functionality
+[1mdiff --git a/src/components/HealthReportUpload.tsx b/src/components/HealthReportUpload.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..7de00bd[m
+[1m--- /dev/null[m
+[1m+++ b/src/components/HealthReportUpload.tsx[m
+[36m@@ -0,0 +1,232 @@[m
+[32m+[m[32mimport React, { useState, useRef } from 'react';[m
+[32m+[m[32mimport { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';[m
+[32m+[m[32mimport { HealthReportService, HealthReport } from '@/services/healthReportService';[m
+[32m+[m
+[32m+[m[32minterface HealthReportUploadProps {[m
+[32m+[m[32m  userId: string;[m
+[32m+[m[32m  onUploadSuccess?: (report: HealthReport) => void;[m
+[32m+[m[32m  onUploadError?: (error: string) => void;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mconst HealthReportUpload: React.FC<HealthReportUploadProps> = ({[m
+[32m+[m[32m  userId,[m
+[32m+[m[32m  onUploadSuccess,[m
+[32m+[m[32m  onUploadError[m
+[32m+[m[32m}) => {[m
+[32m+[m[32m  const [isUploading, setIsUploading] = useState(false);[m
+[32m+[m[32m  const [uploadProgress, setUploadProgress] = useState(0);[m
+[32m+[m[32m  const [reportName, setReportName] = useState('');[m
+[32m+[m[32m  const [selectedFile, setSelectedFile] = useState<File | null>(null);[m
+[32m+[m[32m  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');[m
+[32m+[m[32m  const [errorMessage, setErrorMessage] = useState('');[m
+[32m+[m[32m  const fileInputRef = useRef<HTMLInputElement>(null);[m
+[32m+[m
+[32m+[m[32m  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {[m
+[32m+[m[32m    const file = event.target.files?.[0];[m
+[32m+[m[32m    if (file) {[m
+[32m+[m[32m      setSelectedFile(file);[m
+[32m+[m[32m      setUploadStatus('idle');[m
+[32m+[m[32m      setErrorMessage('');[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Auto-generate report name from filename if not provided[m
+[32m+[m[32m      if (!reportName) {[m
+[32m+[m[32m        const nameWithoutExt = file.name.split('.').slice(0, -1).join('.');[m
+[32m+[m[32m        setReportName(nameWithoutExt);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const handleUpload = async () => {[m
+[32m+[m[32m    if (!selectedFile || !reportName.trim()) {[m
+[32m+[m[32m      setErrorMessage('Please select a file and enter a report name');[m
+[32m+[m[32m      setUploadStatus('error');[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    setIsUploading(true);[m
+[32m+[m[32m    setUploadProgress(0);[m
+[32m+[m[32m    setUploadStatus('idle');[m
+[32m+[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      // Simulate upload progress[m
+[32m+[m[32m      const progressInterval = setInterval(() => {[m
+[32m+[m[32m        setUploadProgress(prev => {[m
+[32m+[m[32m          if (prev >= 90) {[m
+[32m+[m[32m            clearInterval(progressInterval);[m
+[32m+[m[32m            return 90;[m
+[32m+[m[32m          }[m
+[32m+[m[32m          return prev + 10;[m
+[32m+[m[32m        });[m
+[32m+[m[32m      }, 200);[m
+[32m+[m
+[32m+[m[32m      const result = await HealthReportService.uploadHealthReport([m
+[32m+[m[32m        selectedFile,[m
+[32m+[m[32m        reportName.trim(),[m
+[32m+[m[32m        userId[m
+[32m+[m[32m      );[m
+[32m+[m
+[32m+[m[32m      clearInterval(progressInterval);[m
+[32m+[m[32m      setUploadProgress(100);[m
+[32m+[m
+[32m+[m[32m      if (result.success) {[m
+[32m+[m[32m        setUploadStatus('success');[m
+[32m+[m[32m        setSelectedFile(null);[m
+[32m+[m[32m        setReportName('');[m
+[32m+[m[32m        if (fileInputRef.current) {[m
+[32m+[m[32m          fileInputRef.current.value = '';[m
+[32m+[m[32m        }[m
+[32m+[m[32m        onUploadSuccess?.(result as any);[m
+[32m+[m[32m      } else {[m
+[32m+[m[32m        setUploadStatus('error');[m
+[32m+[m[32m        setErrorMessage(result.error || 'Upload failed');[m
+[32m+[m[32m        onUploadError?.(result.error || 'Upload failed');[m
+[32m+[m[32m      }[m
+[32m+[m[32m    } catch (error: any) {[m
+[32m+[m[32m      setUploadStatus('error');[m
+[32m+[m[32m      setErrorMessage(error.message || 'Upload failed');[m
+[32m+[m[32m      onUploadError?.(error.message || 'Upload failed');[m
+[32m+[m[32m    } finally {[m
+[32m+[m[32m      setIsUploading(false);[m
+[32m+[m[32m      setTimeout(() => {[m
+[32m+[m[32m        setUploadStatus('idle');[m
+[32m+[m[32m        setUploadProgress(0);[m
+[32m+[m[32m      }, 3000);[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const handleRemoveFile = () => {[m
+[32m+[m[32m    setSelectedFile(null);[m
+[32m+[m[32m    setReportName('');[m
+[32m+[m[32m    if (fileInputRef.current) {[m
+[32m+[m[32m      fileInputRef.current.value = '';[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setUploadStatus('idle');[m
+[32m+[m[32m    setErrorMessage('');[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const formatFileSize = (bytes: number) => {[m
+[32m+[m[32m    if (bytes === 0) return '0 Bytes';[m
+[32m+[m[32m    const k = 1024;[m
+[32m+[m[32m    const sizes = ['Bytes', 'KB', 'MB', 'GB'];[m
+[32m+[m[32m    const i = Math.floor(Math.log(bytes) / Math.log(k));[m
+[32m+[m[32m    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="w-full max-w-md mx-auto">[m
+[32m+[m[32m      <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">[m
+[32m+[m[32m        {/* Upload Area */}[m
+[32m+[m[32m        <div className="space-y-4">[m
+[32m+[m[32m          <div className="flex flex-col items-center">[m
+[32m+[m[32m            <Upload className="w-12 h-12 text-gray-400 mb-4" />[m
+[32m+[m[32m            <h3 className="text-lg font-semibold text-gray-900 mb-2">[m
+[32m+[m[32m              Upload Health Report[m
+[32m+[m[32m            </h3>[m
+[32m+[m[32m            <p className="text-sm text-gray-600 mb-4">[m
+[32m+[m[32m              Upload your health reports (PDF, JPG, PNG, DOC)[m
+[32m+[m[32m            </p>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          {/* File Input */}[m
+[32m+[m[32m          <input[m
+[32m+[m[32m            ref={fileInputRef}[m
+[32m+[m[32m            type="file"[m
+[32m+[m[32m            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"[m
+[32m+[m[32m            onChange={handleFileSelect}[m
+[32m+[m[32m            className="hidden"[m
+[32m+[m[32m            disabled={isUploading}[m
+[32m+[m[32m          />[m
+[32m+[m
+[32m+[m[32m          {/* Report Name Input */}[m
+[32m+[m[32m          <div className="w-full">[m
+[32m+[m[32m            <label className="block text-sm font-medium text-gray-700 mb-2">[m
+[32m+[m[32m              Report Name[m
+[32m+[m[32m            </label>[m
+[32m+[m[32m            <input[m
+[32m+[m[32m              type="text"[m
+[32m+[m[32m              value={reportName}[m
+[32m+[m[32m              onChange={(e) => setReportName(e.target.value)}[m
+[32m+[m[32m              placeholder="Enter report name"[m
+[32m+[m[32m              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"[m
+[32m+[m[32m              disabled={isUploading}[m
+[32m+[m[32m            />[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          {/* Selected File Display */}[m
+[32m+[m[32m          {selectedFile && ([m
+[32m+[m[32m            <div className="bg-gray-50 rounded-lg p-4">[m
+[32m+[m[32m              <div className="flex items-center justify-between">[m
+[32m+[m[32m                <div className="flex items-center space-x-3">[m
+[32m+[m[32m                  <FileText className="w-8 h-8 text-blue-500" />[m
+[32m+[m[3
