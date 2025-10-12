@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { handleUserRouting } from "@/utils/authRouting";
 import { config } from "@/config";
+import { debugProductionAuth, testSupabaseConnection, logAuthFlow } from "@/utils/productionDebug";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -56,12 +57,10 @@ const Landing = () => {
 
   // Email authentication handlers
   const handleEmailAuth = async () => {
-    alert('🚀 handleEmailAuth called in production!');
-    alert('📧 Email: ' + email);
-    alert('🔒 Password length: ' + password.length);
+    // Debug production environment
+    debugProductionAuth();
     
     if (!email || !password) {
-      alert('❌ Missing email or password');
       toast.error("Please fill in all fields");
       return;
     }
@@ -80,6 +79,7 @@ const Landing = () => {
     }
 
     setIsLoading(true);
+    logAuthFlow('Starting authentication', { email, mode: authMode });
     try {
       if (authMode === "signup") {
         const { data, error } = await supabase.auth.signUp({
@@ -103,15 +103,27 @@ const Landing = () => {
           navigate("/welcome");
         }
       } else {
-        // Simple sign-in for both localhost and production
+        // Enhanced sign-in with production debugging
+        logAuthFlow('Attempting sign-in', { email });
+        
+        // Test Supabase connection first
+        const connectionTest = await testSupabaseConnection();
+        if (!connectionTest.success) {
+          toast.error(`Connection failed: ${connectionTest.error}`);
+          return;
+        }
+        
         const result = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (result.error) {
+          logAuthFlow('Sign-in error', result.error);
           throw result.error;
         }
+        
+        logAuthFlow('Sign-in successful', { user: result.data.user?.email });
         
         // Check if user needs email confirmation
         if (result.data.user && !result.data.user.email_confirmed_at) {
@@ -119,9 +131,40 @@ const Landing = () => {
           return;
         }
         
-        // Simple success and redirect
-        toast.success("Signed in successfully!");
-        navigate('/dashboard', { replace: true });
+        // Wait for session to be established
+        logAuthFlow('Waiting for session establishment');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Verify session before redirect with retry logic
+        let session = null;
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (attempts < maxAttempts && !session) {
+          logAuthFlow(`Session verification attempt ${attempts + 1}/${maxAttempts}`);
+          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            logAuthFlow(`Session error (attempt ${attempts + 1})`, sessionError);
+          }
+          
+          session = currentSession;
+          attempts++;
+          
+          if (!session && attempts < maxAttempts) {
+            logAuthFlow(`Waiting for session... (attempt ${attempts + 1}/${maxAttempts})`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+        
+        if (session?.user) {
+          logAuthFlow('Session verified, redirecting to dashboard');
+          toast.success("Signed in successfully!");
+          navigate('/dashboard', { replace: true });
+        } else {
+          logAuthFlow('No session found after sign-in');
+          toast.error("Sign-in completed but session not found. Please try again.");
+        }
       }
     } catch (error: any) {
       console.error("Auth error:", error);
@@ -304,15 +347,8 @@ const Landing = () => {
                   </div>
                   
                   <Button
-                    onClick={() => {
-                      alert('🖱️ Button clicked in production!');
-                      alert('📧 Email: ' + email);
-                      alert('🔒 Password: ' + password);
-                      alert('⏳ Loading: ' + isLoading);
-                      handleEmailAuth();
-                    }}
+                    onClick={handleEmailAuth}
                     disabled={isLoading || !email || !password}
-                    style={{ pointerEvents: 'auto' }}
                     className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
                   >
                     {isLoading ? (

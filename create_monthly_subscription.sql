@@ -1,4 +1,4 @@
--- Create monthly subscription for user afe6ac55-6619-4bf9-90b8-e4e1cfa6f54d
+-- Create monthly subscription for user 547f0f85-f3ce-48e2-8c11-157982298f54
 -- This SQL script will insert a monthly subscription record
 
 -- First, let's check what columns exist in subscription_plans table
@@ -59,7 +59,7 @@ INSERT INTO public.user_subscriptions (
 ) 
 SELECT 
     gen_random_uuid(), -- Generate a new UUID for subscription ID
-    'afe6ac55-6619-4bf9-90b8-e4e1cfa6f54d', -- User ID
+    '547f0f85-f3ce-48e2-8c11-157982298f54', -- User ID
     mp.id, -- Plan ID from the monthly plan
     'active', -- Status
     'monthly', -- Billing cycle
@@ -85,6 +85,6 @@ SELECT
     us.created_at
 FROM public.user_subscriptions us
 JOIN public.subscription_plans sp ON us.plan_id = sp.id
-WHERE us.user_id = 'afe6ac55-6619-4bf9-90b8-e4e1cfa6f54d'
+WHERE us.user_id = '547f0f85-f3ce-48e2-8c11-157982298f54'
 ORDER BY us.created_at DESC
 LIMIT 1;

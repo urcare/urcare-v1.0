@@ -14,6 +14,13 @@ export const config = {
     devRedirectUrl: 'http://localhost:8080/auth/callback',
     // Production domain for specific configurations
     productionUrl: 'https://urrcare.vercel.app',
+    // Enhanced auth configuration for production
+    authConfig: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    }
   },
 
   // OpenAI Configuration
