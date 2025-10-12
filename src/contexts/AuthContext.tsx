@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('🔍 Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -43,20 +44,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ Error fetching profile:', error);
         
         // If profile doesn't exist, try to create it
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, attempting to create one...');
+          console.log('📝 Profile not found, attempting to create one...');
           return await createProfile(userId);
         }
         
         return null;
       }
 
+      console.log('✅ Profile fetched successfully:', data);
       return data as UserProfile;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       return null;
     }
   };
@@ -64,41 +66,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Create profile if it doesn't exist
   const createProfile = async (userId: string) => {
     try {
+      console.log('🔍 Getting user data for profile creation...');
       // Get user data from auth.users
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError || !userData.user) {
-        console.error('Error getting user data:', userError);
+        console.error('❌ Error getting user data:', userError);
         return null;
       }
 
       const user = userData.user;
+      console.log('👤 User data for profile:', {
+        email: user.email,
+        full_name: user.user_metadata?.full_name,
+        avatar_url: user.user_metadata?.avatar_url
+      });
       
       // Create profile with user data
+      const profileData = {
+        id: userId,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        avatar_url: user.user_metadata?.avatar_url || '',
+        provider: user.app_metadata?.provider || 'email',
+        last_sign_in: new Date().toISOString(),
+        sign_in_count: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('📝 Creating profile with data:', profileData);
+      
       const { data, error } = await supabase
         .from('profiles')
-        .insert({
-          id: userId,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-          avatar_url: user.user_metadata?.avatar_url || '',
-          provider: user.app_metadata?.provider || 'email',
-          last_sign_in: new Date().toISOString(),
-          sign_in_count: 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(profileData)
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating profile:', error);
+        console.error('❌ Error creating profile:', error);
         return null;
       }
 
+      console.log('✅ Profile created successfully:', data);
       return data as UserProfile;
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('❌ Error creating profile:', error);
       return null;
     }
   };
@@ -164,6 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('✅ User authenticated via auth state change');
           setUser(session.user);
           const profileData = await fetchProfile(session.user.id);
+          console.log('👤 Profile data result:', profileData);
           setProfile(profileData);
         } else {
           console.log('❌ No user in auth state change');
