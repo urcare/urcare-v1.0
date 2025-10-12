@@ -2,14 +2,20 @@
 -- This script ensures proper authentication flow
 
 -- 1. Ensure profiles table has all required constraints and indexes
+-- Drop existing constraints first, then recreate them
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_pkey;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_email_key;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+
+-- Add constraints
 ALTER TABLE public.profiles 
-ADD CONSTRAINT IF NOT EXISTS profiles_pkey PRIMARY KEY (id);
+ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
 
 ALTER TABLE public.profiles 
-ADD CONSTRAINT IF NOT EXISTS profiles_email_key UNIQUE (email);
+ADD CONSTRAINT profiles_email_key UNIQUE (email);
 
 ALTER TABLE public.profiles 
-ADD CONSTRAINT IF NOT EXISTS profiles_id_fkey 
+ADD CONSTRAINT profiles_id_fkey 
 FOREIGN KEY (id) REFERENCES auth.users (id) ON DELETE CASCADE;
 
 -- 2. Enable RLS on profiles table
@@ -44,7 +50,7 @@ BEGIN
         COALESCE(NEW.email, ''),
         COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
         COALESCE(NEW.raw_user_meta_data->>'avatar_url', ''),
-        COALESCE(NEW.app_metadata->>'provider', 'email'),
+        'email', -- Default provider
         NOW(),
         1,
         NOW(),
@@ -107,7 +113,7 @@ CREATE TRIGGER on_auth_user_created
 CREATE TRIGGER on_auth_user_sign_in
     AFTER UPDATE ON auth.users
     FOR EACH ROW 
-    WHEN (OLD.last_sign_in IS DISTINCT FROM NEW.last_sign_in)
+    WHEN (OLD.last_sign_in_at IS DISTINCT FROM NEW.last_sign_in_at)
     EXECUTE FUNCTION public.handle_user_sign_in();
 
 CREATE TRIGGER on_auth_user_metadata_update
@@ -139,7 +145,7 @@ SELECT
     COALESCE(u.email, ''),
     COALESCE(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', ''),
     COALESCE(u.raw_user_meta_data->>'avatar_url', ''),
-    COALESCE(u.app_metadata->>'provider', 'email'),
+    'email', -- Default provider
     u.last_sign_in_at,
     1,
     u.created_at,

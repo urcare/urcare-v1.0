@@ -1,27 +1,45 @@
--- Fix 406 errors and authentication stuck issues
+-- Fix 406 errors and authentication stuck issues - SIMPLE VERSION
 -- This script ensures proper authentication flow
 
--- 1. Ensure profiles table has all required constraints and indexes
--- Drop existing constraints first, then recreate them
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_pkey;
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_email_key;
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+-- 1. Create profiles table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID NOT NULL,
+    email TEXT NOT NULL,
+    full_name TEXT NULL,
+    avatar_url TEXT NULL,
+    provider TEXT NULL,
+    last_sign_in TIMESTAMP WITH TIME ZONE NULL DEFAULT NOW(),
+    sign_in_count INTEGER NULL DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NOW()
+);
+
+-- 2. Add constraints (drop first if they exist)
+DO $$ 
+BEGIN
+    -- Drop constraints if they exist
+    IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'profiles_pkey' AND table_name = 'profiles') THEN
+        ALTER TABLE public.profiles DROP CONSTRAINT profiles_pkey;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'profiles_email_key' AND table_name = 'profiles') THEN
+        ALTER TABLE public.profiles DROP CONSTRAINT profiles_email_key;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'profiles_id_fkey' AND table_name = 'profiles') THEN
+        ALTER TABLE public.profiles DROP CONSTRAINT profiles_id_fkey;
+    END IF;
+END $$;
 
 -- Add constraints
-ALTER TABLE public.profiles 
-ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_email_key UNIQUE (email);
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users (id) ON DELETE CASCADE;
 
-ALTER TABLE public.profiles 
-ADD CONSTRAINT profiles_email_key UNIQUE (email);
-
-ALTER TABLE public.profiles 
-ADD CONSTRAINT profiles_id_fkey 
-FOREIGN KEY (id) REFERENCES auth.users (id) ON DELETE CASCADE;
-
--- 2. Enable RLS on profiles table
+-- 3. Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 3. Drop existing policies and recreate them
+-- 4. Drop existing policies
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
@@ -40,7 +58,7 @@ CREATE POLICY "Users can update their own profile" ON public.profiles
 CREATE POLICY "Users can delete their own profile" ON public.profiles
     FOR DELETE USING (auth.uid() = id);
 
--- 4. Create or replace the handle_new_user function
+-- 5. Create or replace functions
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -61,7 +79,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. Create or replace the handle_user_sign_in function
 CREATE OR REPLACE FUNCTION public.handle_user_sign_in()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -75,22 +92,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. Create or replace the handle_user_metadata_update function
-CREATE OR REPLACE FUNCTION public.handle_user_metadata_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE public.profiles 
-    SET 
-        full_name = COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', full_name),
-        avatar_url = COALESCE(NEW.raw_user_meta_data->>'avatar_url', avatar_url),
-        provider = COALESCE(NEW.app_metadata->>'provider', provider),
-        updated_at = NOW()
-    WHERE id = NEW.id;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 7. Create or replace the update_profiles_updated_at function
 CREATE OR REPLACE FUNCTION public.update_profiles_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -99,10 +100,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 8. Drop existing triggers and recreate them
+-- 6. Drop existing triggers
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP TRIGGER IF EXISTS on_auth_user_sign_in ON auth.users;
-DROP TRIGGER IF EXISTS on_auth_user_metadata_update ON auth.users;
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 
 -- Create triggers
@@ -116,29 +116,22 @@ CREATE TRIGGER on_auth_user_sign_in
     WHEN (OLD.last_sign_in_at IS DISTINCT FROM NEW.last_sign_in_at)
     EXECUTE FUNCTION public.handle_user_sign_in();
 
-CREATE TRIGGER on_auth_user_metadata_update
-    AFTER UPDATE ON auth.users
-    FOR EACH ROW 
-    WHEN (OLD.raw_user_meta_data IS DISTINCT FROM NEW.raw_user_meta_data OR OLD.app_metadata IS DISTINCT FROM NEW.app_metadata)
-    EXECUTE FUNCTION public.handle_user_metadata_update();
-
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON public.profiles
     FOR EACH ROW
     EXECUTE FUNCTION public.update_profiles_updated_at();
 
--- 9. Create indexes for better performance
+-- 7. Create indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 CREATE INDEX IF NOT EXISTS idx_profiles_provider ON public.profiles(provider);
 CREATE INDEX IF NOT EXISTS idx_profiles_last_sign_in ON public.profiles(last_sign_in);
-CREATE INDEX IF NOT EXISTS idx_profiles_created_at ON public.profiles(created_at);
 
--- 10. Grant necessary permissions
+-- 8. Grant permissions
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO anon, authenticated;
 GRANT ALL ON public.profiles TO service_role;
 
--- 11. Migrate existing users to profiles table if they don't have profiles
+-- 9. Migrate existing users
 INSERT INTO public.profiles (id, email, full_name, avatar_url, provider, last_sign_in, sign_in_count, created_at, updated_at)
 SELECT 
     u.id,
@@ -156,12 +149,12 @@ WHERE NOT EXISTS (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- 12. Fix any NULL email issues
+-- 10. Fix any NULL email issues
 UPDATE public.profiles 
 SET email = COALESCE(email, 'unknown@example.com')
 WHERE email IS NULL OR email = '';
 
--- 13. Ensure all profiles have proper defaults
+-- 11. Ensure all profiles have proper defaults
 UPDATE public.profiles 
 SET 
     provider = COALESCE(provider, 'email'),

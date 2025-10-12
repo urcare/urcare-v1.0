@@ -9,11 +9,11 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
 import { generateHealthPlans } from "@/services/healthPlanService";
 import { generatePlanActivities, fetchDailyActivities } from "@/services/planActivitiesService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const { user, profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [healthData, setHealthData] = useState<any>(null);
   const [healthScore, setHealthScore] = useState<number>(75);
@@ -144,12 +144,19 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
-  // Check authentication and load data
+  // Initialize dashboard data when user is available
   useEffect(() => {
-    const checkAuth = async () => {
-      // Prevent multiple simultaneous initializations
-      if (isInitializing) return;
+    const initializeDashboard = async () => {
+      // Wait for auth to finish loading
+      if (authLoading) return;
       
+      // If no user, redirect to landing
+      if (!user) {
+        console.log("No user detected - redirecting to landing page");
+        navigate("/", { replace: true });
+        return;
+      }
+
       // Set a maximum loading time to prevent infinite loading
       const maxLoadingTime = setTimeout(() => {
         console.warn('⚠️ Dashboard loading timeout - forcing completion');
@@ -160,125 +167,55 @@ const Dashboard: React.FC = () => {
       try {
         setIsInitializing(true);
         console.log('🔍 Starting dashboard initialization...');
-        
-        console.log('🔍 Getting user session...');
-        
-        let session = null;
+
+        // Fetch onboarding profile data
         try {
-          // Add timeout to getSession to prevent hanging
-          const sessionTimeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
-          );
-          
-          const sessionPromise = supabase.auth.getSession();
-          const { data: { session: sessionData } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
-          session = sessionData;
-          console.log('✅ User session loaded');
+          const { data: onboardingData, error: onboardingError } = await supabase
+            .from('onboarding_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (onboardingError) {
+            console.error("Error fetching onboarding profile:", onboardingError);
+          } else {
+            console.log("✅ Onboarding profile loaded:", onboardingData);
+            if (onboardingData) {
+              localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
+            }
+          }
         } catch (error) {
-          console.warn('⚠️ Session fetch failed, redirecting to landing page:', error.message);
-          navigate("/", { replace: true });
-          return;
-        }
-        
-        if (!session?.user) {
-          console.log("No user detected - redirecting to landing page");
-          navigate("/", { replace: true });
-          return;
-        }
-
-        setUser(session.user);
-
-        // Fetch user profile with timeout (only if we have a user)
-        if (session?.user) {
-          try {
-            const profilePromise = supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            const profileTimeout = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-            );
-            
-            const { data: profileData, error: profileError } = await Promise.race([
-              profilePromise,
-              profileTimeout
-            ]) as any;
-
-            if (profileError) {
-              console.error("Error fetching profile:", profileError);
-            } else {
-              setProfile(profileData);
-              console.log('✅ Profile loaded');
-            }
-          } catch (error) {
-            console.error("Profile fetch error:", error);
-          }
-        }
-
-        // Fetch onboarding profile data with timeout (only if we have a user)
-        if (session?.user) {
-          try {
-            const onboardingPromise = supabase
-              .from('onboarding_profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-            
-            const onboardingTimeout = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Onboarding fetch timeout')), 10000)
-            );
-            
-            const { data: onboardingData, error: onboardingError } = await Promise.race([
-              onboardingPromise,
-              onboardingTimeout
-            ]) as any;
-
-            if (onboardingError) {
-              console.error("Error fetching onboarding profile:", onboardingError);
-            } else {
-              console.log("✅ Onboarding profile loaded:", onboardingData);
-              if (onboardingData) {
-                localStorage.setItem('onboardingProfile', JSON.stringify(onboardingData));
-              }
-            }
-          } catch (error) {
-            console.error("Onboarding fetch error:", error);
-          }
+          console.error("Onboarding fetch error:", error);
         }
 
         // Fetch health data, saved activities, and current plan name with individual error handling
-        if (session?.user?.id) {
-          console.log('🔍 Starting health data fetch...');
-          try {
-            await fetchHealthData(session.user.id);
-            console.log('✅ Health data loaded');
-          } catch (error) {
-            console.error('❌ Health data fetch failed:', error);
-          }
-          
-          console.log('🔍 Starting activities fetch...');
-          try {
-            await fetchSavedActivities(session.user.id);
-            console.log('✅ Activities loaded');
-          } catch (error) {
-            console.error('❌ Activities fetch failed:', error);
-          }
-          
-          console.log('🔍 Starting plan name fetch...');
-          try {
-            await fetchCurrentPlanName(session.user.id);
-            console.log('✅ Plan name loaded');
-          } catch (error) {
-            console.error('❌ Plan name fetch failed:', error);
-          }
+        console.log('🔍 Starting health data fetch...');
+        try {
+          await fetchHealthData(user.id);
+          console.log('✅ Health data loaded');
+        } catch (error) {
+          console.error('❌ Health data fetch failed:', error);
+        }
+        
+        console.log('🔍 Starting activities fetch...');
+        try {
+          await fetchSavedActivities(user.id);
+          console.log('✅ Activities loaded');
+        } catch (error) {
+          console.error('❌ Activities fetch failed:', error);
+        }
+        
+        console.log('🔍 Starting plan name fetch...');
+        try {
+          await fetchCurrentPlanName(user.id);
+          console.log('✅ Plan name loaded');
+        } catch (error) {
+          console.error('❌ Plan name fetch failed:', error);
         }
         
         console.log('✅ Dashboard initialization completed');
       } catch (error) {
-        console.error("Auth check error:", error);
-        // Don't redirect on error, just show the dashboard with fallback data
+        console.error("Dashboard initialization error:", error);
         // Set fallback values to ensure dashboard loads
         setHealthScore(75);
         setCurrentPlanName('Generate Your Protocol');
@@ -290,8 +227,8 @@ const Dashboard: React.FC = () => {
       }
     };
     
-    checkAuth();
-  }, [fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]); // Include necessary dependencies
+    initializeDashboard();
+  }, [user, authLoading, fetchHealthData, fetchSavedActivities, fetchCurrentPlanName, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -542,12 +479,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while auth is loading or dashboard is initializing
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">
+            {authLoading ? 'Authenticating...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );
