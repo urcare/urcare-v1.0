@@ -200,19 +200,19 @@ const Paywall: React.FC = () => {
               </h3>
               <div className="flex items-center justify-center gap-2 mb-1">
                 <p className="text-gray-900 text-base font-bold">
-                  {formatCurrency(priceAnnual)}
+                  {formatINR(priceAnnualINR)}
                 </p>
               </div>
               <div className="flex items-center justify-center gap-1 mb-1">
                 <span className="text-gray-400 text-xs line-through">
-                  {formatCurrency(originalAnnual)}
+                  {formatINR(priceAnnualINR * 2.5)}
                 </span>
                 <span className="bg-orange-100 text-orange-600 text-xs px-1 py-0.5 rounded font-medium">
-                  Save {formatCurrency(originalAnnual - priceAnnual)}
+                  Save {formatINR(priceAnnualINR * 1.5)}
                 </span>
               </div>
               <p className="text-gray-500 text-xs mb-1">
-                Only {formatCurrency(priceAnnual / 12)}/month
+                Only {formatINR(Math.round(priceAnnualINR / 12))}/month
               </p>
               <p className="text-red-600 text-xs font-medium mb-2">
                 Only 300 spots left
@@ -251,15 +251,15 @@ const Paywall: React.FC = () => {
               </h3>
               <div className="flex items-center justify-center gap-2 mb-1">
                 <p className="text-gray-900 text-base font-bold">
-                  {formatCurrency(priceMonthly)}
+                  {formatINR(priceMonthlyINR)}
                 </p>
               </div>
               <div className="flex items-center justify-center gap-1 mb-1">
                 <span className="text-gray-400 text-xs line-through">
-                  {formatCurrency(originalMonthly)}
+                  {formatINR(priceMonthlyINR * 2)}
                 </span>
                 <span className="bg-orange-100 text-orange-600 text-xs px-1 py-0.5 rounded font-medium">
-                  Save {formatCurrency(originalMonthly - priceMonthly)}
+                  Save {formatINR(priceMonthlyINR)}
                 </span>
               </div>
               <p className="text-gray-500 text-xs mb-1">per month</p>
