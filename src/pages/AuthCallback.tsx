@@ -7,8 +7,13 @@ const AuthCallback = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    console.log('🔄 AuthCallback - Auth state:', { user: !!user, loading, userEmail: user?.email });
+    
     // If auth is still loading, wait
-    if (loading) return;
+    if (loading) {
+      console.log('⏳ Auth still loading, waiting...');
+      return;
+    }
 
     // If user is authenticated, redirect to dashboard
     if (user) {
@@ -21,6 +26,16 @@ const AuthCallback = () => {
     console.log('❌ No user found, redirecting to landing');
     navigate('/', { replace: true });
   }, [user, loading, navigate]);
+
+  // Add a timeout fallback in case something goes wrong
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log('⚠️ AuthCallback timeout - forcing redirect to dashboard');
+      navigate('/dashboard', { replace: true });
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
