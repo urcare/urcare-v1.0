@@ -7,37 +7,32 @@ const AuthCallback = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    console.log('🔄 AuthCallback - Auth state:', { user: !!user, loading, userEmail: user?.email });
-    
-    // If user is authenticated, redirect immediately (don't wait for loading)
+    // If user is authenticated, go to dashboard
     if (user) {
-      console.log('✅ User authenticated, redirecting to dashboard');
+      console.log('User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
       return;
     }
 
     // If auth is still loading, wait
     if (loading) {
-      console.log('⏳ Auth still loading, waiting...');
       return;
     }
 
-    // If no user after loading is complete, redirect to landing
-    console.log('❌ No user found, redirecting to landing');
+    // If no user after loading, go to landing
+    console.log('No user found, redirecting to landing');
     navigate('/', { replace: true });
   }, [user, loading, navigate]);
 
-  // Add a timeout fallback in case something goes wrong
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.log('⚠️ AuthCallback timeout - forcing redirect to dashboard');
-      navigate('/dashboard', { replace: true });
-    }, 5000); // 5 second timeout
-
-    return () => clearTimeout(timeout);
-  }, [navigate]);
-
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Completing Sign In</h2>
+        <p className="text-gray-600">Please wait...</p>
+      </div>
+    </div>
+  );
 };
 
 export default AuthCallback;

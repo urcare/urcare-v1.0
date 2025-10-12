@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
-import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { handleUserRouting } from "@/utils/authRouting";
-import { config } from "@/config";
-import { debugProductionAuth, testSupabaseConnection, logAuthFlow } from "@/utils/productionDebug";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
@@ -44,13 +41,11 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Redirect already authenticated users with simple logic
+  // Redirect already authenticated users
   useEffect(() => {
     if (!loading && user) {
-      console.log('🔐 User already authenticated, redirecting to health assessment');
-      // For now, redirect to health assessment to avoid hanging
-      // This ensures users go through the proper flow
-      navigate('/health-assessment', { replace: true });
+      console.log('User already authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -86,7 +81,6 @@ const Landing = () => {
     }
 
     setIsLoading(true);
-    logAuthFlow('Starting authentication', { email, mode: authMode });
     try {
       if (authMode === "signup") {
         const { data, error } = await supabase.auth.signUp({
@@ -107,40 +101,30 @@ const Landing = () => {
           setShowEmailForm(false);
         } else {
           toast.success("Account created successfully!");
-          navigate("/welcome");
+          navigate("/dashboard");
         }
       } else {
-        // Simplified sign-in without connection test
-        logAuthFlow('Attempting sign-in', { email });
-        
         const result = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (result.error) {
-          logAuthFlow('Sign-in error', result.error);
           throw result.error;
         }
         
-        logAuthFlow('Sign-in successful', { user: result.data.user?.email });
-        
-        // Check if user needs email confirmation
         if (result.data.user && !result.data.user.email_confirmed_at) {
           toast.error("Please check your email and click the confirmation link before signing in");
           return;
         }
         
-        // Simple redirect to health assessment to avoid hanging
-        logAuthFlow('Redirecting to health assessment');
         toast.success("Signed in successfully!");
-        navigate('/health-assessment', { replace: true });
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error("Auth error:", error);
       let errorMessage = error.message || `Failed to ${authMode === "signup" ? "sign up" : "sign in"}`;
       
-      // Handle specific error cases
       if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please check your credentials and try again.";
       } else if (error.message?.includes("User already registered")) {
@@ -151,10 +135,6 @@ const Landing = () => {
         errorMessage = "Please check your email and click the confirmation link before signing in";
       } else if (error.message?.includes("Too many requests")) {
         errorMessage = "Too many attempts. Please wait a moment and try again";
-      } else if (error.message?.includes("Network")) {
-        errorMessage = "Network error. Please check your connection and try again.";
-      } else if (error.message?.includes("fetch")) {
-        errorMessage = "Connection error. Please try again.";
       }
       
       toast.error(errorMessage);
@@ -175,38 +155,20 @@ const Landing = () => {
 
   const handleAuthOptionClick = async (provider: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`; // Use auth/callback for localhost
-      console.log('🔗 Current origin:', window.location.origin); // Debug log
-      console.log('🔗 Redirect URL:', redirectUrl); // Debug log
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       if (provider === "Google") {
-        const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: redirectUrl, // Explicitly set localhost redirect
+            redirectTo: redirectUrl,
           },
         });
         if (error) throw error;
         if (data?.url) {
-          console.log('🔗 OAuth URL:', data.url); // Debug log
-          window.location.replace(data.url);
-        }
-      } else if (provider === "Apple") {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: redirectUrl, // Explicitly set localhost redirect
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          console.log('🔗 OAuth URL:', data.url); // Debug log
           window.location.replace(data.url);
         }
       } else if (provider === "Email") {
-        // Show email form
         handleEmailOptionClick();
       }
     } catch (error) {
@@ -271,14 +233,6 @@ const Landing = () => {
                 >
                   <User className="w-5 h-5" />
                   <span>Continue with Google</span>
-                </Button>
-                <Button
-                  onClick={() => handleAuthOptionClick("Apple")}
-                  variant="outline"
-                  className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
-                >
-                  <Smartphone className="w-5 h-5" />
-                  <span>Continue with Apple</span>
                 </Button>
                 <Button
                   onClick={() => handleAuthOptionClick("Email")}
