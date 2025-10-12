@@ -351,8 +351,43 @@ const HealthAssessment: React.FC = () => {
   };
 
   const handleGetSolution = async () => {
-    // Navigate to paywall - no more auth checks
-    navigate("/paywall");
+    try {
+      // Import supabase client
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No user found');
+        navigate("/paywall");
+        return;
+      }
+
+      console.log('🔄 Updating health_assessment_completed to true for user:', user.id);
+
+      // Update health_assessment_completed to true
+      const { error } = await supabase
+        .from('onboarding_profiles')
+        .update({ 
+          health_assessment_completed: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('❌ Error updating health_assessment_completed:', error);
+        // Continue to paywall even if update fails
+      } else {
+        console.log('✅ Successfully updated health_assessment_completed to true');
+      }
+
+      // Navigate to paywall
+      navigate("/paywall");
+    } catch (error) {
+      console.error('❌ Error in handleGetSolution:', error);
+      // Navigate to paywall even if there's an error
+      navigate("/paywall");
+    }
   };
 
   // Show analysis in progress
