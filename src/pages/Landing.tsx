@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
-import { User, Mail, Smartphone, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -163,19 +163,6 @@ const Landing = () => {
           console.log('🔗 OAuth URL:', data.url); // Debug log
           window.location.replace(data.url);
         }
-      } else if (provider === "Apple") {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: redirectUrl, // Explicitly set localhost redirect
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          console.log('🔗 OAuth URL:', data.url); // Debug log
-          window.location.replace(data.url);
-        }
       } else if (provider === "Email") {
         // Show email form
         handleEmailOptionClick();
@@ -230,14 +217,6 @@ const Landing = () => {
                 >
                   <User className="w-5 h-5" />
                   <span>Continue with Google</span>
-                </Button>
-                <Button
-                  onClick={() => handleAuthOptionClick("Apple")}
-                  variant="outline"
-                  className="w-full h-12 flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
-                >
-                  <Smartphone className="w-5 h-5" />
-                  <span>Continue with Apple</span>
                 </Button>
                 <Button
                   onClick={() => handleAuthOptionClick("Email")}

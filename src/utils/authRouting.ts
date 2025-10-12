@@ -141,11 +141,11 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
 
     console.log('✅ Health assessment completed');
 
-    // 4. Check user_subscription table for active subscription
-    console.log('🔍 Step 4: Checking user_subscription table for user:', user.id);
+    // 4. Check user_subscriptions table for active subscription
+    console.log('🔍 Step 4: Checking user_subscriptions table for user:', user.id);
     
     const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('user_subscription')
+      .from('user_subscriptions')
       .select('status')
       .eq('user_id', user.id)
       .eq('status', 'active')
