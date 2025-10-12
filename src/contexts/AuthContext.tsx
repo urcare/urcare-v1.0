@@ -140,31 +140,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
-    let sessionRetrieved = false;
+    let authStateReceived = false;
     
-    // Get initial session with timeout and retry logic
+    // Try to get initial session with a shorter timeout, but don't block on it
     const getInitialSession = async () => {
       try {
         console.log('🔍 Getting initial session...');
         
-        // Add timeout to prevent hanging, but don't clear session if auth state change is working
+        // Shorter timeout to avoid blocking
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Session fetch timeout')), 3000)
         );
         
         const sessionPromise = supabase.auth.getSession();
         const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
         
         if (error) {
-          console.error('Error getting session:', error);
-          if (isMounted && !sessionRetrieved) {
-            setLoading(false);
-          }
+          console.warn('Session fetch failed, relying on auth state change:', error.message);
           return;
         }
         
         console.log('✅ Session retrieved:', session?.user?.email || 'No user');
-        sessionRetrieved = true;
         
         if (session?.user && isMounted) {
           setUser(session.user);
@@ -174,26 +170,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
-        // Only clear session if we haven't received auth state change
-        if (!sessionRetrieved) {
-          await handleSessionError(error);
-        }
-      } finally {
-        if (isMounted && !sessionRetrieved) {
-          setLoading(false);
-        }
+        console.warn('Session fetch timeout, relying on auth state change:', error.message);
+        // Don't handle session errors here - let auth state change handle it
       }
     };
 
+    // Try to get session but don't block on it
     getInitialSession();
 
-    // Listen for auth changes with better error handling
+    // Listen for auth changes - this is the primary authentication method
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         
         if (!isMounted) return;
+        
+        authStateReceived = true;
         
         try {
           if (session?.user) {
@@ -210,10 +202,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } catch (error) {
           console.error('Error handling auth state change:', error);
-          // Only handle session errors if it's not a timeout from getSession
-          if (!error.message?.includes('Session fetch timeout')) {
-            await handleSessionError(error);
-          }
+          // Handle session errors
+          await handleSessionError(error);
           // Clear state on error
           if (isMounted) {
             setUser(null);
@@ -227,8 +217,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // Set a fallback timeout to ensure loading state is cleared
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && !authStateReceived) {
+        console.warn('⚠️ Auth state change timeout - clearing loading state');
+        setLoading(false);
+      }
+    }, 5000);
+
     return () => {
       isMounted = false;
+      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
     };
   }, []);

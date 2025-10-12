@@ -99,6 +99,14 @@ export const handleSessionError = async (error: any): Promise<void> => {
     return;
   }
   
+  // Don't clear session on network errors
+  if (error?.message?.includes('network') || 
+      error?.message?.includes('fetch') ||
+      error?.message?.includes('connection')) {
+    console.log('🌐 Network error detected, not clearing session');
+    return;
+  }
+  
   // If it's a token-related error, clear the session
   if (error?.message?.includes('token') || 
       error?.message?.includes('session') ||
