@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
         .eq('status', 'selected')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       const { data, error } = await Promise.race([planPromise, timeoutPromise]) as any;
       

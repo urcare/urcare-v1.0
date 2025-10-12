@@ -562,7 +562,7 @@ class UnifiedHealthAnalysisService {
           is_latest: true
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
