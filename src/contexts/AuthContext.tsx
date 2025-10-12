@@ -49,7 +49,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // If profile doesn't exist, try to create it
         if (error.code === 'PGRST116') {
           console.log('📝 Profile not found, attempting to create one...');
-          return await createProfile(userId);
+          const newProfile = await createProfile(userId);
+          if (newProfile) {
+            return newProfile;
+          }
+          // If creation fails, return a basic profile
+          return {
+            id: userId,
+            email: '',
+            full_name: 'User',
+            avatar_url: '',
+            provider: 'email',
+            last_sign_in: new Date().toISOString(),
+            sign_in_count: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
         }
         
         return null;
@@ -138,35 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        console.log('🔍 Getting initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('📊 Initial session result:', session?.user?.email || 'No user');
-        
-        if (mounted) {
-          if (session?.user) {
-            console.log('✅ User found in initial session');
-            setUser(session.user);
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          }
-          console.log('🔄 Setting loading to false from initial session');
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error);
-        if (mounted) {
-          console.log('🔄 Setting loading to false after error');
-          setLoading(false);
-        }
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
+    // Listen for auth changes - this is the primary method
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state change:', event, session?.user?.email);
@@ -176,25 +163,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log('✅ User authenticated via auth state change');
           setUser(session.user);
-          const profileData = await fetchProfile(session.user.id);
-          console.log('👤 Profile data result:', profileData);
-          setProfile(profileData);
+          
+          // Fetch profile data
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            console.log('👤 Profile data result:', profileData);
+            setProfile(profileData);
+          } catch (error) {
+            console.error('❌ Error fetching profile:', error);
+            setProfile(null);
+          }
         } else {
           console.log('❌ No user in auth state change');
           setUser(null);
           setProfile(null);
         }
         
-        console.log('🔄 Setting loading to false');
         setLoading(false);
-        
-        // Force a re-render to ensure state updates
-        setTimeout(() => {
-          if (mounted) {
-            console.log('🔄 Force setting loading to false');
-            setLoading(false);
-          }
-        }, 100);
       }
     );
 
