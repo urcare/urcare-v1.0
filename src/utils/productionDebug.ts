@@ -25,22 +25,27 @@ export const debugProductionAuth = () => {
 
 export const testSupabaseConnection = async () => {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
-    
     console.log('🔍 Testing Supabase connection...');
     
-    // Test basic connection
-    const { data, error } = await supabase.auth.getSession();
+    // Simple timeout to avoid hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Connection test timeout')), 5000);
+    });
     
-    if (error) {
-      console.error('❌ Supabase connection failed:', error);
-      return { success: false, error: error.message };
-    }
+    const testPromise = async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ Supabase connection failed:', error);
+        return { success: false, error: error.message };
+      }
+      
+      console.log('✅ Supabase connection successful');
+      return { success: true, session: data.session };
+    };
     
-    console.log('✅ Supabase connection successful');
-    console.log('📊 Current session:', data.session ? 'Active' : 'None');
-    
-    return { success: true, session: data.session };
+    return await Promise.race([testPromise(), timeoutPromise]);
   } catch (error) {
     console.error('❌ Supabase connection test failed:', error);
     return { 

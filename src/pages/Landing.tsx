@@ -57,9 +57,6 @@ const Landing = () => {
 
   // Email authentication handlers
   const handleEmailAuth = async () => {
-    // Debug production environment
-    debugProductionAuth();
-    
     if (!email || !password) {
       toast.error("Please fill in all fields");
       return;
@@ -103,15 +100,8 @@ const Landing = () => {
           navigate("/welcome");
         }
       } else {
-        // Enhanced sign-in with production debugging
+        // Simplified sign-in without connection test
         logAuthFlow('Attempting sign-in', { email });
-        
-        // Test Supabase connection first
-        const connectionTest = await testSupabaseConnection();
-        if (!connectionTest.success) {
-          toast.error(`Connection failed: ${connectionTest.error}`);
-          return;
-        }
         
         const result = await supabase.auth.signInWithPassword({
           email,
@@ -131,40 +121,10 @@ const Landing = () => {
           return;
         }
         
-        // Wait for session to be established
-        logAuthFlow('Waiting for session establishment');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Verify session before redirect with retry logic
-        let session = null;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts && !session) {
-          logAuthFlow(`Session verification attempt ${attempts + 1}/${maxAttempts}`);
-          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            logAuthFlow(`Session error (attempt ${attempts + 1})`, sessionError);
-          }
-          
-          session = currentSession;
-          attempts++;
-          
-          if (!session && attempts < maxAttempts) {
-            logAuthFlow(`Waiting for session... (attempt ${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        if (session?.user) {
-          logAuthFlow('Session verified, redirecting to dashboard');
-          toast.success("Signed in successfully!");
-          navigate('/dashboard', { replace: true });
-        } else {
-          logAuthFlow('No session found after sign-in');
-          toast.error("Sign-in completed but session not found. Please try again.");
-        }
+        // Simple success and redirect
+        logAuthFlow('Redirecting to dashboard');
+        toast.success("Signed in successfully!");
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error("Auth error:", error);
