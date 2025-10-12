@@ -423,9 +423,16 @@ class UnifiedHealthAnalysisService {
         .from('onboarding_profiles')
         .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle to handle no data gracefully
 
       if (error) throw error;
+
+      if (!profile) {
+        return {
+          success: false,
+          error: 'No onboarding profile found for user'
+        };
+      }
 
       return {
         success: true,
@@ -449,9 +456,9 @@ class UnifiedHealthAnalysisService {
         .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
         .eq('user_id', userId)
         .eq('is_latest', true)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle no data gracefully
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      if (error) {
         throw error;
       }
 
@@ -482,15 +489,9 @@ class UnifiedHealthAnalysisService {
         .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
         .eq('user_id', userId)
         .eq('is_latest', true)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle no data gracefully
 
       if (error) {
-        if (error.code === 'PGRST116') { // No rows returned
-          return {
-            success: true,
-            data: null
-          };
-        }
         throw error;
       }
 
