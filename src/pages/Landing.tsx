@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { handleUserRouting } from "@/utils/authRouting";
 import { config } from "@/config";
 import { debugProductionAuth, testSupabaseConnection, logAuthFlow } from "@/utils/productionDebug";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -24,6 +25,7 @@ const Landing = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   // Handle splash screen completion
   const handleSplashComplete = () => {
@@ -42,7 +44,13 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Removed authentication check - no more auto-redirect
+  // Redirect already authenticated users
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('🔐 User already authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   // Auth handlers (now with real authentication)
   const handleGetStarted = () => {
@@ -203,6 +211,18 @@ const Landing = () => {
       toast.error(`Failed to ${authMode === "signup" ? "sign up" : "sign in"} with ${provider}`);
     }
   };
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
