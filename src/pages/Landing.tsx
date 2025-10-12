@@ -44,11 +44,20 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Redirect already authenticated users
+  // Redirect already authenticated users with proper routing logic
   useEffect(() => {
     if (!loading && user) {
-      console.log('🔐 User already authenticated, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      console.log('🔐 User already authenticated, checking user status...');
+      handleUserRouting(user).then((routingResult) => {
+        if (routingResult.shouldRedirect) {
+          console.log('🔐 Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
+          navigate(routingResult.redirectPath, { replace: true });
+        }
+      }).catch((error) => {
+        console.error('🔐 Error in user routing:', error);
+        // Fallback to welcome page
+        navigate('/welcome', { replace: true });
+      });
     }
   }, [user, loading, navigate]);
 
@@ -129,10 +138,19 @@ const Landing = () => {
           return;
         }
         
-        // Simple success and redirect
-        logAuthFlow('Redirecting to dashboard');
-        toast.success("Signed in successfully!");
-        navigate('/dashboard', { replace: true });
+        // Use proper routing logic for new sign-ins
+        logAuthFlow('Checking user status for routing');
+        const routingResult = await handleUserRouting(result.data.user);
+        if (routingResult.shouldRedirect) {
+          logAuthFlow('Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
+          toast.success("Signed in successfully!");
+          navigate(routingResult.redirectPath, { replace: true });
+        } else {
+          // Fallback to dashboard if no routing result
+          logAuthFlow('No routing result, redirecting to dashboard');
+          toast.success("Signed in successfully!");
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (error: any) {
       console.error("Auth error:", error);
