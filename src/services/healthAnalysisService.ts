@@ -421,7 +421,7 @@ class UnifiedHealthAnalysisService {
     try {
       const { data: profile, error } = await supabase
         .from('onboarding_profiles')
-        .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
+        .select('id, user_id, full_name, age, birth_month, birth_day, birth_year, gender, height_feet, height_inches, height_cm, weight_kg, country, state, district, wake_up_time, sleep_time, work_start, work_end, blood_group, critical_conditions, diet_type, breakfast_time, lunch_time, dinner_time, workout_time, routine_flexibility, workout_type, smoking, drinking, track_family, referral_code, medications, chronic_conditions, surgery_details, health_goals, onboarding_completed, health_assessment_completed, completion_percentage, created_at, updated_at')
         .eq('user_id', userId)
         .maybeSingle(); // Use maybeSingle to handle no data gracefully
 
