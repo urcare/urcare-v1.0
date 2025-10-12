@@ -44,12 +44,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching profile:', error);
+        
+        // If profile doesn't exist, try to create it
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, attempting to create one...');
+          return await createProfile(userId);
+        }
+        
         return null;
       }
 
       return data as UserProfile;
     } catch (error) {
       console.error('Error fetching profile:', error);
+      return null;
+    }
+  };
+
+  // Create profile if it doesn't exist
+  const createProfile = async (userId: string) => {
+    try {
+      // Get user data from auth.users
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        console.error('Error getting user data:', userError);
+        return null;
+      }
+
+      const user = userData.user;
+      
+      // Create profile with user data
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          provider: user.app_metadata?.provider || 'email',
+          last_sign_in: new Date().toISOString(),
+          sign_in_count: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        return null;
+      }
+
+      return data as UserProfile;
+    } catch (error) {
+      console.error('Error creating profile:', error);
       return null;
     }
   };

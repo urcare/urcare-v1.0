@@ -13,26 +13,49 @@ export interface RoutingResult {
  */
 export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
   try {
-    // Create/update user profile in database
-    const { data: profileData, error: profileError } = await supabase
+    // First, check if profile exists
+    const { data: existingProfile, error: profileCheckError } = await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || '',
-        avatar_url: user.user_metadata?.avatar_url || '',
-        provider: user.app_metadata?.provider || 'email',
-        last_sign_in: new Date().toISOString(),
-        sign_in_count: 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'id'
-      })
-      .select();
+      .select('id')
+      .eq('id', user.id)
+      .single();
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
+    // If profile doesn't exist, create it
+    if (profileCheckError && profileCheckError.code === 'PGRST116') {
+      console.log('Profile not found, creating new profile...');
+      
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          provider: user.app_metadata?.provider || 'email',
+          last_sign_in: new Date().toISOString(),
+          sign_in_count: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Continue with routing even if profile creation fails
+      }
+    } else if (existingProfile) {
+      // Profile exists, update last_sign_in
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          last_sign_in: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+      }
     }
 
     // Check onboarding completion

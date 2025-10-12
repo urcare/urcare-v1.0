@@ -12,6 +12,9 @@ const AuthCallback = () => {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
         
+        // Wait a bit for the session to be properly established
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Get the session from the URL hash/fragment
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -29,14 +32,28 @@ const AuthCallback = () => {
 
         if (session?.user) {
           setStatus('success');
-          setMessage('Authentication successful! Profile saved. Checking user status...');
+          setMessage('Authentication successful! Setting up your profile...');
           
-          // Use the centralized routing logic
-          const routingResult = await handleUserRouting(session.user);
-          if (routingResult.shouldRedirect) {
+          try {
+            // Use the centralized routing logic
+            const routingResult = await handleUserRouting(session.user);
+            if (routingResult.shouldRedirect) {
+              setMessage(`Redirecting to ${routingResult.redirectPath}...`);
+              setTimeout(() => {
+                navigate(routingResult.redirectPath, { replace: true });
+              }, 1500);
+            } else {
+              // Fallback redirect
+              setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+              }, 1500);
+            }
+          } catch (routingError) {
+            console.error('Routing error:', routingError);
+            setMessage('Profile setup complete. Redirecting to dashboard...');
             setTimeout(() => {
-              navigate(routingResult.redirectPath, { replace: true });
-            }, 2000);
+              navigate('/dashboard', { replace: true });
+            }, 1500);
           }
         } else {
           setStatus('error');
