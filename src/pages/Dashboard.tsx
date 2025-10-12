@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import TodaySchedule from "@/components/TodaySchedule";
 import FloatingChat from "@/components/FloatingChat";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
+import { getOrCalculateHealthAnalysis } from "@/services/healthAnalysisService";
 import { generateHealthPlans } from "@/services/healthPlanService";
 import { generatePlanActivities, fetchDailyActivities } from "@/services/planActivitiesService";
 

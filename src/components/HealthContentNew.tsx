@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStickyBottomScroll } from "@/hooks/useStickyBottomScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { EnhancedPlanNamingService } from "@/services/enhancedPlanNamingService";
-import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
+import { getOrCalculateHealthAnalysis } from "@/services/healthAnalysisService";
 import {
   Brain,
   CheckCircle2,

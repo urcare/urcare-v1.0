@@ -14,7 +14,7 @@ import {
   Shield,
   Star
 } from 'lucide-react';
-import { calculateHealthScore, getUserProfileForHealthScore } from '@/services/healthScoreService';
+import { calculateHealthScore, getUserProfileForHealthScore } from '@/services/healthAnalysisService';
 import { toast } from 'sonner';
 
 interface HealthMetrics {
