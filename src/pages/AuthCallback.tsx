@@ -9,16 +9,16 @@ const AuthCallback = () => {
   useEffect(() => {
     console.log('🔄 AuthCallback - Auth state:', { user: !!user, loading, userEmail: user?.email });
     
-    // If auth is still loading, wait
-    if (loading) {
-      console.log('⏳ Auth still loading, waiting...');
-      return;
-    }
-
-    // If user is authenticated, redirect to dashboard
+    // If user is authenticated, redirect immediately (don't wait for loading)
     if (user) {
       console.log('✅ User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    // If auth is still loading, wait
+    if (loading) {
+      console.log('⏳ Auth still loading, waiting...');
       return;
     }
 

@@ -173,6 +173,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         console.log('🔄 Setting loading to false');
         setLoading(false);
+        
+        // Force a re-render to ensure state updates
+        setTimeout(() => {
+          if (mounted) {
+            console.log('🔄 Force setting loading to false');
+            setLoading(false);
+          }
+        }, 100);
       }
     );
 
