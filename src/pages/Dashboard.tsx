@@ -10,7 +10,6 @@ import { getOrCalculateHealthAnalysis } from "@/services/healthScoreService";
 import { generateHealthPlans } from "@/services/healthPlanService";
 import { generatePlanActivities, fetchDailyActivities } from "@/services/planActivitiesService";
 import { useAuth } from "@/contexts/AuthContext";
-import { checkSessionValidity, clearCorruptedSession } from "@/utils/sessionUtils";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -158,14 +157,6 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      // Validate session before proceeding
-      const isSessionValid = await checkSessionValidity();
-      if (!isSessionValid) {
-        console.log("Invalid session detected - clearing and redirecting");
-        await clearCorruptedSession();
-        navigate("/", { replace: true });
-        return;
-      }
 
       // Set a maximum loading time to prevent infinite loading
       const maxLoadingTime = setTimeout(() => {
