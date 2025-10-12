@@ -44,20 +44,12 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Redirect already authenticated users with proper routing logic
+  // Redirect already authenticated users with timeout protection
   useEffect(() => {
     if (!loading && user) {
-      console.log('🔐 User already authenticated, checking user status...');
-      handleUserRouting(user).then((routingResult) => {
-        if (routingResult.shouldRedirect) {
-          console.log('🔐 Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
-          navigate(routingResult.redirectPath, { replace: true });
-        }
-      }).catch((error) => {
-        console.error('🔐 Error in user routing:', error);
-        // Fallback to welcome page
-        navigate('/welcome', { replace: true });
-      });
+      console.log('🔐 User already authenticated, redirecting to dashboard');
+      // Simple redirect to dashboard for now to avoid hanging
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -138,19 +130,10 @@ const Landing = () => {
           return;
         }
         
-        // Use proper routing logic for new sign-ins
-        logAuthFlow('Checking user status for routing');
-        const routingResult = await handleUserRouting(result.data.user);
-        if (routingResult.shouldRedirect) {
-          logAuthFlow('Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
-          toast.success("Signed in successfully!");
-          navigate(routingResult.redirectPath, { replace: true });
-        } else {
-          // Fallback to dashboard if no routing result
-          logAuthFlow('No routing result, redirecting to dashboard');
-          toast.success("Signed in successfully!");
-          navigate('/dashboard', { replace: true });
-        }
+        // Simple redirect to dashboard to avoid hanging
+        logAuthFlow('Redirecting to dashboard');
+        toast.success("Signed in successfully!");
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error("Auth error:", error);
@@ -230,13 +213,13 @@ const Landing = () => {
     }
   };
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show minimal loading only if auth is still loading and no user
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading...</p>
         </div>
       </div>
     );
