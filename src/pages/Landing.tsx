@@ -44,32 +44,13 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, [splashDone]);
 
-  // Redirect already authenticated users with proper routing logic
+  // Redirect already authenticated users with simple logic
   useEffect(() => {
     if (!loading && user) {
-      console.log('🔐 User already authenticated, checking user status...');
-      
-      // Add timeout to prevent hanging
-      const timeoutId = setTimeout(() => {
-        console.log('🔐 Routing timeout, redirecting to dashboard as fallback');
-        navigate('/dashboard', { replace: true });
-      }, 5000); // 5 second timeout
-      
-      handleUserRouting(user).then((routingResult) => {
-        clearTimeout(timeoutId);
-        if (routingResult.shouldRedirect) {
-          console.log('🔐 Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
-          navigate(routingResult.redirectPath, { replace: true });
-        } else {
-          console.log('🔐 No routing result, redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
-        }
-      }).catch((error) => {
-        clearTimeout(timeoutId);
-        console.error('🔐 Error in user routing:', error);
-        // Fallback to dashboard
-        navigate('/dashboard', { replace: true });
-      });
+      console.log('🔐 User already authenticated, redirecting to health assessment');
+      // For now, redirect to health assessment to avoid hanging
+      // This ensures users go through the proper flow
+      navigate('/health-assessment', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -150,30 +131,10 @@ const Landing = () => {
           return;
         }
         
-        // Use proper routing logic for new sign-ins with timeout
-        logAuthFlow('Checking user status for routing');
-        
-        const routingPromise = handleUserRouting(result.data.user);
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Routing timeout')), 5000);
-        });
-        
-        try {
-          const routingResult = await Promise.race([routingPromise, timeoutPromise]);
-          if (routingResult.shouldRedirect) {
-            logAuthFlow('Redirecting to:', routingResult.redirectPath, 'Reason:', routingResult.reason);
-            toast.success("Signed in successfully!");
-            navigate(routingResult.redirectPath, { replace: true });
-          } else {
-            logAuthFlow('No routing result, redirecting to dashboard');
-            toast.success("Signed in successfully!");
-            navigate('/dashboard', { replace: true });
-          }
-        } catch (error) {
-          logAuthFlow('Routing error or timeout, redirecting to dashboard');
-          toast.success("Signed in successfully!");
-          navigate('/dashboard', { replace: true });
-        }
+        // Simple redirect to health assessment to avoid hanging
+        logAuthFlow('Redirecting to health assessment');
+        toast.success("Signed in successfully!");
+        navigate('/health-assessment', { replace: true });
       }
     } catch (error: any) {
       console.error("Auth error:", error);
