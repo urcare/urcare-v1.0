@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { clearCorruptedSession, checkSessionValidity, handleSessionError } from '@/utils/sessionUtils';
 
 // User profile interface
 export interface UserProfile {
@@ -111,24 +112,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sign out function
+  // Sign out function with cleanup
   const signOut = async () => {
     try {
+      console.log('🔍 Signing out user...');
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
+      
+      // Clear any stored auth data
+      try {
+        localStorage.removeItem('sb-lvnkpserdydhnqbigfbz-auth-token');
+        localStorage.removeItem('supabase.auth.token');
+        sessionStorage.clear();
+      } catch (storageError) {
+        console.warn('Error clearing storage:', storageError);
+      }
+      
+      console.log('✅ User signed out successfully');
     } catch (error) {
       console.error('Error signing out:', error);
+      // Force clear state even if signOut fails
+      setUser(null);
+      setProfile(null);
     }
   };
 
   useEffect(() => {
-    // Get initial session with timeout
+    let isMounted = true;
+    
+    // Get initial session with timeout and retry logic
     const getInitialSession = async () => {
       try {
+        console.log('🔍 Getting initial session...');
+        
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+          setTimeout(() => reject(new Error('Session fetch timeout')), 8000)
         );
         
         const sessionPromise = supabase.auth.getSession();
@@ -136,42 +156,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+          }
           return;
         }
         
-        if (session?.user) {
+        console.log('✅ Session retrieved:', session?.user?.email || 'No user');
+        
+        if (session?.user && isMounted) {
           setUser(session.user);
           const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
+          if (isMounted) {
+            setProfile(profileData);
+          }
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
+        // Handle session errors and clear corrupted data
+        await handleSessionError(error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         
-        if (session?.user) {
-          setUser(session.user);
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-        } else {
-          setUser(null);
-          setProfile(null);
+        if (!isMounted) return;
+        
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            const profileData = await fetchProfile(session.user.id);
+            if (isMounted) {
+              setProfile(profileData);
+            }
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error('Error handling auth state change:', error);
+          // Handle session errors
+          await handleSessionError(error);
+          // Clear state on error
+          if (isMounted) {
+            setUser(null);
+            setProfile(null);
+          }
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
         }
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
