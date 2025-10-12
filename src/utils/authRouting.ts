@@ -58,26 +58,26 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
       }
     }
 
-    // Check onboarding completion
-    const { data: onboardingData, error: onboardingError } = await supabase
-      .from('onboarding_profiles')
-      .select('onboarding_completed')
+    // Check onboarding completion - check if user has completed health assessment
+    const { data: healthAnalysis, error: healthError } = await supabase
+      .from('health_analysis')
+      .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (onboardingError || !onboardingData?.onboarding_completed) {
-      // User hasn't completed onboarding - redirect to welcome
+    if (healthError || !healthAnalysis) {
+      // User hasn't completed health assessment - redirect to health assessment
       return {
         shouldRedirect: true,
-        redirectPath: '/welcome',
-        reason: 'User needs to complete onboarding'
+        redirectPath: '/health-assessment',
+        reason: 'User needs to complete health assessment'
       };
     }
 
-    // User has completed onboarding - check subscription status
+    // User has completed health assessment - check subscription status
     try {
       const { data: subscriptionData, error: subscriptionError } = await supabase
-        .from('user_subscriptions')
+        .from('subscriptions_unified')
         .select('status')
         .eq('user_id', user.id)
         .eq('status', 'active')
@@ -85,19 +85,19 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
 
       if (subscriptionError) {
         console.error('Subscription query error:', subscriptionError);
-        // If database query fails, redirect to health assessment as fallback
+        // If database query fails, redirect to paywall as fallback
         return {
           shouldRedirect: true,
-          redirectPath: '/health-assessment',
-          reason: 'Database query failed, redirecting to health assessment'
+          redirectPath: '/paywall',
+          reason: 'Database query failed, redirecting to paywall'
         };
       }
 
       if (!subscriptionData) {
-        // No active subscription - redirect to health assessment
+        // No active subscription - redirect to paywall
         return {
           shouldRedirect: true,
-          redirectPath: '/health-assessment',
+          redirectPath: '/paywall',
           reason: 'No active subscription found'
         };
       }
@@ -110,11 +110,11 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
       };
     } catch (dbError) {
       console.error('Database error during subscription check:', dbError);
-      // Fallback to health assessment if database is unreachable
+      // Fallback to paywall if database is unreachable
       return {
         shouldRedirect: true,
-        redirectPath: '/health-assessment',
-        reason: 'Database unreachable, redirecting to health assessment'
+        redirectPath: '/paywall',
+        reason: 'Database unreachable, redirecting to paywall'
       };
     }
 
