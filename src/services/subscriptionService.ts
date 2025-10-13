@@ -37,12 +37,8 @@ export interface PaymentTransaction {
 
 class SubscriptionService {
   // =====================================================
-  // Razorpay Payment Links
+  // Razorpay Payment Links (Removed - using manual UPI flow)
   // =====================================================
-  private readonly RAZORPAY_LINKS = {
-    monthly: "https://razorpay.me/@urcare?amount=vy%2F7jJNxh9pvHsb2%2Bqs52w%3D%3D",
-    annual: "https://razorpay.me/@urcare?amount=6zcPuaHTrIB8Jllw5habFw%3D%3D"
-  };
 
   private readonly PLAN_PRICES = {
     monthly: 9.57,
@@ -174,17 +170,11 @@ class SubscriptionService {
   }
 
   // =====================================================
-  // Get Payment Link for Billing Cycle
+  // Get Payment Link for Billing Cycle (Removed - using manual UPI flow)
   // =====================================================
   getPaymentLink(billingCycle: 'monthly' | 'annual', successUrl?: string): string {
-    const baseLink = this.RAZORPAY_LINKS[billingCycle];
-    
-    if (successUrl) {
-      const encodedUrl = encodeURIComponent(successUrl);
-      return `${baseLink}&redirect_url=${encodedUrl}`;
-    }
-    
-    return baseLink;
+    // Redirect to manual UPI payment pages
+    return billingCycle === 'monthly' ? '/payment/monthly' : '/payment/annual';
   }
 
   // =====================================================

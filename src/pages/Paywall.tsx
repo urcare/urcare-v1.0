@@ -32,17 +32,12 @@ const Paywall: React.FC = () => {
     console.log("Billing cycle:", billingCycle);
     
     try {
-      // Get payment link from subscription service
-      const successUrl = `${window.location.origin}/payment-success?plan=${billingCycle === 'annual' ? 'yearly' : 'monthly'}&cycle=${billingCycle}`;
-      const paymentLink = subscriptionService.getPaymentLink(billingCycle, successUrl);
-      
-      console.log("🚀 Redirecting to Razorpay:", paymentLink);
-      
-      // Open Razorpay link in the same tab
-      window.location.href = paymentLink;
+      // Redirect to manual UPI payment pages
+      const paymentPage = billingCycle === 'monthly' ? '/payment/monthly' : '/payment/annual';
+      navigate(paymentPage);
       
     } catch (error) {
-      console.error("❌ Razorpay redirect failed:", error);
+      console.error("❌ Payment redirect failed:", error);
       toast.error("Payment redirect failed. Please try again.");
     }
   };

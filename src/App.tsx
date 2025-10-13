@@ -15,6 +15,9 @@ import AuthCallback from "./pages/AuthCallback";
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
 const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
+const PaymentMonthly = React.lazy(() => import("./pages/PaymentMonthly"));
+const PaymentAnnual = React.lazy(() => import("./pages/PaymentAnnual"));
+const AdminPayments = React.lazy(() => import("./pages/AdminPayments"));
 const Legal = React.lazy(() => import("./pages/Legal"));
 
 function App() {
@@ -57,6 +60,21 @@ function App() {
             <Route path="/payment-success" element={
               <RouteGuard>
                 <PaymentSuccess />
+              </RouteGuard>
+            } />
+            <Route path="/payment/monthly" element={
+              <RouteGuard>
+                <PaymentMonthly />
+              </RouteGuard>
+            } />
+            <Route path="/payment/annual" element={
+              <RouteGuard>
+                <PaymentAnnual />
+              </RouteGuard>
+            } />
+            <Route path="/admin/payments" element={
+              <RouteGuard>
+                <AdminPayments />
               </RouteGuard>
             } />
             <Route path="/dashboard" element={
