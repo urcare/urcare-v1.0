@@ -51,7 +51,7 @@ class OnboardingService {
         dataKeys: Object.keys(data)
       });
       
-      // Direct database update - insert or update onboarding profile
+      // Direct database update - insert or update onboarding profile (legacy table)
       const { data: result, error } = await supabase
         .from('onboarding_profiles')
         .upsert({
@@ -90,7 +90,9 @@ class OnboardingService {
           chronic_conditions: data.chronicConditions || [],
           surgery_details: data.surgeryDetails || [],
           health_goals: data.healthGoals || [],
-          onboarding_completed: true, // Set to true when saving
+          onboarding_completed: true,
+          health_assessment_completed: false,
+          completion_percentage: 100,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
