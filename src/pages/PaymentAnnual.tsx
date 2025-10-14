@@ -94,7 +94,7 @@ export default function PaymentAnnual() {
           amount: amount,
           currency: 'INR',
           billing_cycle: billingCycle,
-          status: 'submitted',
+          status: 'processing',
           utr: utrClean,
           screenshot_url: screenshotUrl,
           transaction_ref: `${user.id}-${Date.now()}`

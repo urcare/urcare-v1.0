@@ -1,28 +1,35 @@
--- Create new table for manual UPI payments
+-- Idempotent helpers for existing deployments
 
-create table if not exists public.manual_upi_payments (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  plan_id uuid not null references public.subscription_plans(id) on delete cascade,
-  amount numeric(10,2) not null,
-  currency text not null default 'INR',
-  billing_cycle text not null check (billing_cycle in ('monthly','annual')),
-  utr text not null,
-  screenshot_url text,
-  transaction_ref text not null,
-  status text not null default 'submitted' check (status in ('submitted','verified','rejected')),
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
+do $$
+begin
+  -- Ensure RLS is enabled
+  perform 1 from pg_tables where schemaname = 'public' and tablename = 'manual_upi_payments';
+  if found then
+    execute 'alter table public.manual_upi_payments enable row level security';
+  end if;
+end $$;
 
-alter table public.manual_upi_payments enable row level security;
+-- Create policies only if missing
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies 
+    where schemaname = 'public' and tablename = 'manual_upi_payments' and policyname = 'Users can view their own manual UPI payments'
+  ) then
+    execute $$create policy "Users can view their own manual UPI payments" on public.manual_upi_payments
+      for select using (auth.uid() = user_id)$$;
+  end if;
 
-create policy "Users can view their own manual UPI payments" on public.manual_upi_payments
-  for select using (auth.uid() = user_id);
+  if not exists (
+    select 1 from pg_policies 
+    where schemaname = 'public' and tablename = 'manual_upi_payments' and policyname = 'Users can insert their own manual UPI payments'
+  ) then
+    execute $$create policy "Users can insert their own manual UPI payments" on public.manual_upi_payments
+      for insert with check (auth.uid() = user_id)$$;
+  end if;
+end $$;
 
-create policy "Users can insert their own manual UPI payments" on public.manual_upi_payments
-  for insert with check (auth.uid() = user_id);
-
+-- Maintain updated_at trigger idempotently
 create or replace function public.update_manual_upi_payments_updated_at()
 returns trigger as $$
 begin
