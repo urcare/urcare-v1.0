@@ -135,7 +135,8 @@ export default function PaymentAnnual() {
             name: 'Basic Plan',
             slug: 'basic',
             description: 'Basic subscription plan',
-            price: billingCycle === 'monthly' ? 849 : 4999,
+            price_monthly: 849,
+            price_annual: 4999,
             billing_cycle: billingCycle,
             is_active: true
           })
