@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Storage Upload - Simple</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Simple Storage Test</h1>
+    
+    <div class="test-section info">
+        <h3>Quick Test</h3>
+        <p>This will test if your storage bucket is working with a simple text file upload.</p>
+        <button onclick="testSimpleUpload()">Test Simple Upload</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // You need to replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co'; // Replace with your URL
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHloaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ0NzQ4NzEsImV4cCI6MjA1MDA1MDg3MX0.8c054eefc1d70ad78f73cb8a85f0d0a152bab25c'; // Replace with your key
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function logResult(message, isError = false) {
+            const container = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.innerHTML = `<pre>${message}</pre>`;
+            container.appendChild(div);
+        }
+
+        async function testSimpleUpload() {
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                logResult('🚀 Starting simple storage test...');
+                
+                // Create a simple text file
+                const testContent = 'This is a test file for storage upload';
+                const testFile = new Blob([testContent], { type: 'text/plain' });
+                
+                // Generate a test filename
+                const testUserId = 'test-user-123';
+                const fileName = `${testUserId}/test-${Date.now()}.txt`;
+                
+                logResult(`📝 Test filename: ${fileName}`);
+                logResult(`📁 File size: ${testFile.size} bytes`);
+                
+                // Try to upload
+                logResult('📤 Attempting upload...');
+                const { data, error } = await supabase.storage
+                    .from('payment-screenshots')
+                    .upload(fileName, testFile);
+
+                if (error) {
+                    logResult(`❌ Upload failed: ${error.message}`, true);
+                    logResult(`Error details: ${JSON.stringify(error, null, 2)}`, true);
+                    return;
+                }
+                
+                logResult('✅ Upload successful!');
+                logResult(`File path: ${data.path}`);
+                
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('payment-screenshots')
+                    .getPublicUrl(fileName);
+                
+                logResult(`🔗 Public URL: ${publicUrl}`);
+                
+                // Test if we can list files
+                logResult('📋 Testing file listing...');
+                const { data: files, error: listError } = await supabase.storage
+                    .from('payment-screenshots')
+                    .list(testUserId, { limit: 5 });
+                
+                if (listError) {
+                    logResult(`❌ List failed: ${listError.message}`, true);
+                } else {
+                    logResult(`✅ Found ${files?.length || 0} files in user folder`);
+                    logResult(`Files: ${JSON.stringify(files, null, 2)}`);
+                }
+                
+            } catch (err) {
+                logResult(`💥 Exception: ${err.message}`, true);
+                logResult(`Stack: ${err.stack}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

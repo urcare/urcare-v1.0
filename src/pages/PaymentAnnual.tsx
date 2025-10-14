@@ -25,31 +25,61 @@ export default function PaymentAnnual() {
 
 
   const handleScreenshotUpload = async (file: File) => {
-    if (!user) return;
+    console.log('📸 Screenshot upload started (Annual)');
+    if (!user) {
+      console.log('❌ No user found for upload');
+      return;
+    }
+    
+    console.log('👤 User ID:', user.id);
+    console.log('📁 File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
     
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`;
       
+      console.log('📝 Generated filename:', fileName);
+      console.log('🪣 Uploading to bucket: payment-screenshots');
+      
       const { data, error } = await supabase.storage
         .from('payment-screenshots')
         .upload(fileName, file);
 
-      if (error) throw error;
+      console.log('📤 Upload response:', { data, error });
+
+      if (error) {
+        console.log('❌ Upload error details:', error);
+        throw error;
+      }
       
+      console.log('✅ Upload successful, getting public URL...');
       const { data: { publicUrl } } = supabase.storage
         .from('payment-screenshots')
         .getPublicUrl(fileName);
       
+      console.log('🔗 Public URL:', publicUrl);
+      
       setScreenshot(file);
       setScreenshotUrl(publicUrl);
       toast.success('Screenshot uploaded successfully');
+      console.log('✅ Upload process completed successfully');
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload screenshot');
+      console.error('💥 Upload error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        details: error
+      });
+      toast.error(`Failed to upload screenshot: ${error.message}`);
     } finally {
       setUploading(false);
+      console.log('🏁 Upload process finished');
     }
   };
 
