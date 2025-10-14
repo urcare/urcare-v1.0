@@ -114,7 +114,7 @@ export default function PaymentMonthly() {
       console.log('📋 All plans error:', allPlansError);
       
       // Try to find a plan - let's be more flexible
-      const { data: plan, error: planError } = await supabase
+      let { data: plan, error: planError } = await supabase
         .from('subscription_plans')
         .select('id, name, slug, is_active')
         .eq('is_active', true)
