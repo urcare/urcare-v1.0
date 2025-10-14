@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Functions Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Supabase Functions Test Suite</h1>
+    
+    <div class="test-section info">
+        <h3>Configuration</h3>
+        <label>Supabase URL: <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" style="width: 300px;"></label><br>
+        <label>Supabase Key: <input type="text" id="supabaseKey" placeholder="your-anon-key" style="width: 300px;"></label><br>
+        <label>Test User ID: <input type="text" id="testUserId" placeholder="user-uuid" style="width: 300px;"></label><br>
+        <button onclick="initializeSupabase()">Initialize Supabase</button>
+    </div>
+
+    <div class="test-section">
+        <h3>RPC Functions Test</h3>
+        <button onclick="testRPCFunctions()">Test RPC Functions</button>
+        <div id="rpcResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Edge Functions Test</h3>
+        <button onclick="testEdgeFunctions()">Test Edge Functions</button>
+        <div id="edgeResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Database Tables Test</h3>
+        <button onclick="testDatabaseTables()">Test Database Tables</button>
+        <div id="dbResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Storage Buckets Test</h3>
+        <button onclick="testStorageBuckets()">Test Storage Buckets</button>
+        <div id="storageResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>All Tests</h3>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="allResults"></div>
+    </div>
+
+    <script>
+        let supabase = null;
+
+        function initializeSupabase() {
+            const url = document.getElementById('supabaseUrl').value;
+            const key = document.getElementById('supabaseKey').value;
+            
+            if (!url || !key) {
+                alert('Please enter Supabase URL and Key');
+                return;
+            }
+            
+            supabase = window.supabase.createClient(url, key);
+            console.log('✅ Supabase initialized');
+            document.getElementById('allResults').innerHTML = '<div class="success">✅ Supabase initialized successfully</div>';
+        }
+
+        function logResult(containerId, message, isError = false) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.innerHTML = `<pre>${message}</pre>`;
+            container.appendChild(div);
+        }
+
+        async function testRPCFunctions() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            const testUserId = document.getElementById('testUserId').value;
+            if (!testUserId) {
+                alert('Please enter Test User ID');
+                return;
+            }
+
+            const rpcFunctions = [
+                {
+                    name: 'get_user_subscription',
+                    params: { p_user_id: testUserId },
+                    description: 'Get user subscription details'
+                },
+                {
+                    name: 'get_user_daily_activities',
+                    params: { p_user_id: testUserId, p_date: new Date().toISOString().split('T')[0] },
+                    description: 'Get user daily activities'
+                },
+                {
+                    name: 'get_onboarding_data',
+                    params: { p_user_id: testUserId },
+                    description: 'Get onboarding data'
+                },
+                {
+                    name: 'can_access_feature',
+                    params: { p_user_id: testUserId, p_feature: 'premium' },
+                    description: 'Check feature access'
+                }
+            ];
+
+            document.getElementById('rpcResults').innerHTML = '';
+            
+            for (const func of rpcFunctions) {
+                try {
+                    logResult('rpcResults', `Testing: ${func.name}\nDescription: ${func.description}\nParameters: ${JSON.stringify(func.params, null, 2)}`);
+                    
+                    const { data, error } = await supabase.rpc(func.name, func.params);
+                    
+                    if (error) {
+                        logResult('rpcResults', `❌ Error in ${func.name}: ${error.message}\nDetails: ${JSON.stringify(error, null, 2)}`, true);
+                    } else {
+                        logResult('rpcResults', `✅ Success in ${func.name}:\n${JSON.stringify(data, null, 2)}`);
+                    }
+                } catch (err) {
+                    logResult('rpcResults', `💥 Exception in ${func.name}: ${err.message}`, true);
+                }
+            }
+        }
+
+        async function testEdgeFunctions() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            const testUserId = document.getElementById('testUserId').value;
+            if (!testUserId) {
+                alert('Please enter Test User ID');
+                return;
+            }
+
+            const edgeFunctions = [
+                {
+                    name: 'health-score',
+                    params: { user_id: testUserId, health_data: { test: 'data' } },
+                    description: 'Calculate health score'
+                },
+                {
+                    name: 'health-plans',
+                    params: { user_id: testUserId, health_data: { test: 'data' } },
+                    description: 'Generate health plans'
+                },
+                {
+                    name: 'plan-activities',
+                    params: { user_id: testUserId, plan_data: { test: 'data' } },
+                    description: 'Generate plan activities'
+                }
+            ];
+
+            document.getElementById('edgeResults').innerHTML = '';
+            
+            for (const func of edgeFunctions) {
+                try {
+                    logResult('edgeResults', `Testing: ${func.name}\nDescription: ${func.description}\nParameters: ${JSON.stringify(func.params, null, 2)}`);
+                    
+                    const { data, error } = await supabase.functions.invoke(func.name, {
+                        body: func.params
+                    });
+                    
+                    if (error) {
+                        logResult('edgeResults', `❌ Error in ${func.name}: ${error.message}\nDetails: ${JSON.stringify(error, null, 2)}`, true);
+                    } else {
+                        logResult('edgeResults', `✅ Success in ${func.name}:\n${JSON.stringify(data, null, 2)}`);
+                    }
+                } catch (err) {
+                    logResult('edgeResults', `💥 Exception in ${func.name}: ${err.message}`, true);
+                }
+            }
+        }
+
+        async function testDatabaseTables() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            const tables = [
+                'user_subscriptions',
+                'manual_upi_payments',
+                'subscription_plans',
+                'daily_activities',
+                'health_analysis',
+                'health_plans'
+            ];
+
+            document.getElementById('dbResults').innerHTML = '';
+            
+            for (const table of tables) {
+                try {
+                    logResult('dbResults', `Testing table: ${table}`);
+                    
+                    const { data, error, count } = await supabase
+                        .from(table)
+                        .select('*', { count: 'exact' })
+                        .limit(5);
+                    
+                    if (error) {
+                        logResult('dbResults', `❌ Error in table ${table}: ${error.message}`, true);
+                    } else {
+                        logResult('dbResults', `✅ Success in table ${table}: Found ${count} records\nSample data: ${JSON.stringify(data?.slice(0, 2), null, 2)}`);
+                    }
+                } catch (err) {
+                    logResult('dbResults', `💥 Exception in table ${table}: ${err.message}`, true);
+                }
+            }
+        }
+
+        async function testStorageBuckets() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            const buckets = [
+                'payment-screenshots',
+                'health-reports'
+            ];
+
+            document.getElementById('storageResults').innerHTML = '';
+            
+            for (const bucket of buckets) {
+                try {
+                    logResult('storageResults', `Testing bucket: ${bucket}`);
+                    
+                    const { data, error } = await supabase.storage
+                        .from(bucket)
+                        .list('', { limit: 5 });
+                    
+                    if (error) {
+                        logResult('storageResults', `❌ Error in bucket ${bucket}: ${error.message}`, true);
+                    } else {
+                        logResult('storageResults', `✅ Success in bucket ${bucket}: Found ${data?.length || 0} files\nSample files: ${JSON.stringify(data?.slice(0, 2), null, 2)}`);
+                    }
+                } catch (err) {
+                    logResult('storageResults', `💥 Exception in bucket ${bucket}: ${err.message}`, true);
+                }
+            }
+        }
+
+        async function runAllTests() {
+            document.getElementById('allResults').innerHTML = '<div class="info">🔄 Running all tests...</div>';
+            
+            await testRPCFunctions();
+            await testEdgeFunctions();
+            await testDatabaseTables();
+            await testStorageBuckets();
+            
+            document.getElementById('allResults').innerHTML = '<div class="success">✅ All tests completed!</div>';
+        }
+    </script>
+</body>
+</html>

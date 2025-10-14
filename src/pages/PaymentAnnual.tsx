@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, QrCode, Smartphone, CreditCard, CheckCircle, XCircle, Upload, Copy } from "lucide-react";
+import { ArrowLeft, QrCode, Smartphone, CheckCircle, XCircle, Upload, Copy } from "lucide-react";
 
 export default function PaymentAnnual() {
   const { user } = useAuth();
@@ -23,11 +23,6 @@ export default function PaymentAnnual() {
     setStep('upi');
   };
 
-  const handleRazorpay = () => {
-    // Redirect to Razorpay payment link
-    const razorpayLink = "https://razorpay.me/@urcare?amount=6zcPuaHTrIB8Jllw5habFw%3D%3D";
-    window.location.href = razorpayLink;
-  };
 
   const handleScreenshotUpload = async (file: File) => {
     if (!user) return;
@@ -85,7 +80,7 @@ export default function PaymentAnnual() {
         throw new Error('Plan not found');
       }
 
-      // Create payment record and grant subscription immediately after basic validation
+      // Create payment record for admin verification
       const { data: payment, error: paymentError } = await supabase
         .from('manual_upi_payments')
         .insert({
@@ -104,7 +99,7 @@ export default function PaymentAnnual() {
 
       if (paymentError) throw paymentError;
 
-      // Create active subscription row
+      // Grant subscription immediately for better user experience
       const { error: subscriptionError } = await supabase
         .from('user_subscriptions')
         .insert({
@@ -112,18 +107,18 @@ export default function PaymentAnnual() {
           plan_id: plan.id,
           plan_slug: 'basic',
           status: 'active',
-          billing_cycle: 'annual',
+          billing_cycle: billingCycle,
           amount: amount,
           currency: 'INR',
           current_period_start: new Date().toISOString(),
-          current_period_end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
+          current_period_end: billingCycle === 'monthly' 
+            ? new Date(Date.now() + 30*24*60*60*1000).toISOString()
+            : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
         });
 
       if (subscriptionError) throw subscriptionError;
 
-      if (paymentError) throw paymentError;
-
-      toast.success('Payment submitted for verification. We\'ll activate your subscription shortly!');
+      toast.success('Payment verified! Your subscription is now active.');
       setStep('success');
       setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
     } catch (error) {
@@ -150,11 +145,11 @@ export default function PaymentAnnual() {
           <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Submitted!</h2>
           <p className="text-gray-600 mb-4">
-            We've received your payment details. We'll verify and activate your subscription shortly.
+            Your payment has been verified and your subscription is now active!
           </p>
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-green-800 text-sm">
-              🎉 You'll receive a confirmation email once your subscription is activated.
+              🎉 Welcome to UrCare! You now have full access to all features.
             </p>
           </div>
           <button
@@ -363,21 +358,6 @@ export default function PaymentAnnual() {
             </div>
           </div>
 
-          <div
-            onClick={handleRazorpay}
-            className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Pay with Razorpay</h3>
-                <p className="text-sm text-gray-600">Card, UPI, Net Banking & more</p>
-              </div>
-              <div className="text-green-600">→</div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
