@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Storage Upload</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Storage Upload</h1>
+    
+    <div class="test-section info">
+        <h3>Configuration</h3>
+        <label>Supabase URL: <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" style="width: 300px;"></label><br>
+        <label>Supabase Key: <input type="text" id="supabaseKey" placeholder="your-anon-key" style="width: 300px;"></label><br>
+        <label>Test User ID: <input type="text" id="testUserId" placeholder="user-uuid" style="width: 300px;"></label><br>
+        <button onclick="initializeSupabase()">Initialize Supabase</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test File Upload</h3>
+        <input type="file" id="fileInput" accept="image/*">
+        <button onclick="testUpload()">Test Upload</button>
+        <div id="uploadResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Bucket Access</h3>
+        <button onclick="testBucketAccess()">Test Bucket Access</button>
+        <div id="bucketResults"></div>
+    </div>
+
+    <script>
+        let supabase = null;
+
+        function initializeSupabase() {
+            const url = document.getElementById('supabaseUrl').value;
+            const key = document.getElementById('supabaseKey').value;
+            
+            if (!url || !key) {
+                alert('Please enter Supabase URL and Key');
+                return;
+            }
+            
+            supabase = window.supabase.createClient(url, key);
+            console.log('✅ Supabase initialized');
+            document.getElementById('uploadResults').innerHTML = '<div class="success">✅ Supabase initialized successfully</div>';
+        }
+
+        function logResult(containerId, message, isError = false) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.innerHTML = `<pre>${message}</pre>`;
+            container.appendChild(div);
+        }
+
+        async function testUpload() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            const testUserId = document.getElementById('testUserId').value;
+            if (!testUserId) {
+                alert('Please enter Test User ID');
+                return;
+            }
+
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            document.getElementById('uploadResults').innerHTML = '';
+            
+            try {
+                logResult('uploadResults', `Testing file upload: ${file.name} (${file.size} bytes)`);
+                
+                // Create filename with user folder structure
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${testUserId}/${testUserId}-${Date.now()}.${fileExt}`;
+                
+                logResult('uploadResults', `Uploading to: payment-screenshots/${fileName}`);
+                
+                const { data, error } = await supabase.storage
+                    .from('payment-screenshots')
+                    .upload(fileName, file);
+
+                if (error) {
+                    logResult('uploadResults', `❌ Upload Error: ${error.message}\nDetails: ${JSON.stringify(error, null, 2)}`, true);
+                } else {
+                    logResult('uploadResults', `✅ Upload Success!\nFile path: ${data.path}\nFull path: ${data.fullPath}`);
+                    
+                    // Get public URL
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('payment-screenshots')
+                        .getPublicUrl(fileName);
+                    
+                    logResult('uploadResults', `Public URL: ${publicUrl}`);
+                }
+            } catch (err) {
+                logResult('uploadResults', `💥 Exception: ${err.message}`, true);
+            }
+        }
+
+        async function testBucketAccess() {
+            if (!supabase) {
+                alert('Please initialize Supabase first');
+                return;
+            }
+
+            document.getElementById('bucketResults').innerHTML = '';
+            
+            try {
+                logResult('bucketResults', 'Testing bucket access...');
+                
+                // List files in bucket
+                const { data, error } = await supabase.storage
+                    .from('payment-screenshots')
+                    .list('', { limit: 10 });
+                
+                if (error) {
+                    logResult('bucketResults', `❌ Bucket Access Error: ${error.message}\nDetails: ${JSON.stringify(error, null, 2)}`, true);
+                } else {
+                    logResult('bucketResults', `✅ Bucket Access Success!\nFound ${data?.length || 0} files\nFiles: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                logResult('bucketResults', `💥 Exception: ${err.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
