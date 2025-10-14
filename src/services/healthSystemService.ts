@@ -303,6 +303,56 @@ export const markActivityCompleted = async (
     await updateDailyProgress(userId, new Date().toISOString().split('T')[0]);
 
     console.log('✅ Activity marked as completed');
+
+    // Auto-trigger next day's generation if we just completed yesterday's or day-before's final activity
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const dayBefore = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      // Get the activity we marked to identify its date
+      const { data: updatedActivity } = await supabase
+        .from('daily_health_activities')
+        .select('activity_date, activity_type')
+        .eq('id', activityId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const activityDate = updatedActivity?.activity_date as string | undefined;
+
+      if (activityDate === yesterday || activityDate === dayBefore) {
+        // If this was a sleep activity or the last pending activity, generate for the next day
+        const nextDate = new Date(new Date(activityDate).getTime() + 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0];
+
+        // Check if next day already exists
+        const { data: nextDayExisting } = await supabase
+          .from('daily_health_activities')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('activity_date', nextDate)
+          .limit(1);
+
+        if (!nextDayExisting || nextDayExisting.length === 0) {
+          // Fetch previous day activities for variation
+          const { data: prevDayActivities } = await supabase
+            .from('daily_health_activities')
+            .select('activity_type, activity_title, activity_data')
+            .eq('user_id', userId)
+            .eq('activity_date', activityDate)
+            .order('scheduled_time');
+
+          // Generate next day's activities with context
+          await generateDailyActivities(userId, nextDate, {
+            date: activityDate,
+            activities: prevDayActivities || []
+          });
+        }
+      }
+    } catch (autoGenError) {
+      console.warn('⚠️ Auto-generation for next day failed:', autoGenError);
+    }
     return {
       success: true
     };

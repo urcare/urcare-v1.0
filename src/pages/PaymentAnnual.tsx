@@ -139,7 +139,7 @@ export default function PaymentAnnual() {
   };
 
   const copyUPIId = () => {
-    navigator.clipboard.writeText('urcare@icici'); // Replace with your actual UPI ID
+    navigator.clipboard.writeText('archamasaini123@okicici'); // Replace with your actual UPI ID
     toast.success('UPI ID copied to clipboard');
   };
 
@@ -234,7 +234,7 @@ export default function PaymentAnnual() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">UPI ID</p>
-                  <p className="font-mono text-lg">urcare@icici</p>
+                  <p className="font-mono text-lg">archamasaini123@okicici</p>
                 </div>
                 <button
                   onClick={copyUPIId}
@@ -248,7 +248,7 @@ export default function PaymentAnnual() {
 
             <div className="text-center">
               <button
-                onClick={() => window.open('upi://pay?pa=urcare@icici&pn=UrCare&am=4999&tn=UrCare%20Annual%20Subscription&cu=INR', '_blank')}
+                onClick={() => window.open('upi://pay?pa=archamasaini123@okicici&pn=UrCare&am=4999&tn=UrCare%20Annual%20Subscription&cu=INR', '_blank')}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Open in UPI App

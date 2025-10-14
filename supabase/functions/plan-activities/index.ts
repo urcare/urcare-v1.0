@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// Declare Deno for type checking in non-Deno environments
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const Deno: any;
+// @ts-ignore - Deno URL import resolved at runtime in Supabase Edge Functions
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -7,17 +12,40 @@ const corsHeaders = {
 };
 
 // Detailed prompt for comprehensive timetable generation
-function createDetailedPrompt(userProfile: any, selectedPlan: any, primaryGoal: string): string {
-  const wakeTime = userProfile.wake_up_time || '07:00';
-  const workStart = userProfile.work_start || '09:00';
-  const workEnd = userProfile.work_end || '17:00';
-  const sleepTime = userProfile.sleep_time || '23:00';
-  const dietType = userProfile.diet_type || 'Balanced';
-  const chronicConditions = userProfile.chronic_conditions?.join(', ') || 'None';
+function createDetailedPrompt(
+  userProfile: Record<string, unknown>,
+  selectedPlan: Record<string, unknown>,
+  primaryGoal: string,
+  previousActivities?: unknown[],
+  previousProgress?: Record<string, unknown>,
+  targetDate?: string
+): string {
+  const wakeTime = (userProfile['wake_up_time'] as string) || '07:00';
+  const workStart = (userProfile['work_start'] as string) || '09:00';
+  const workEnd = (userProfile['work_end'] as string) || '17:00';
+  const sleepTime = (userProfile['sleep_time'] as string) || '23:00';
+  const dietType = (userProfile['diet_type'] as string) || 'Balanced';
+  const cc = userProfile['chronic_conditions'];
+  const chronicConditions = Array.isArray(cc)
+    ? (cc as string[]).join(', ')
+    : ((typeof cc === 'string' && cc) || 'None');
+  const dateLine = targetDate ? ("Target date: " + targetDate + "\n") : '';
+  const previousJson = previousActivities && previousActivities.length > 0
+    ? JSON.stringify(previousActivities.slice(0, 12))
+    : '[]';
+  const progressSummary = previousProgress ? JSON.stringify({
+    completion_percentage: previousProgress['completion_percentage'],
+    completed_activities: previousProgress['completed_activities'],
+    total_activities: previousProgress['total_activities']
+  }) : '{}';
   
   return "Create detailed daily timetable for: " + userProfile.full_name + ", Age: " + userProfile.age + ", Goal: " + primaryGoal + "\n" +
+dateLine +
 "Schedule: Wake " + wakeTime + ", Work " + workStart + "-" + workEnd + ", Sleep " + sleepTime + "\n" +
 "Diet: " + dietType + ", Conditions: " + chronicConditions + "\n\n" +
+"IMPORTANT CONTEXT TO AVOID REPETITION:\n" +
+"- Yesterday's activities JSON (use to ensure meal and activity variety, do not repeat same foods back-to-back days):\n" + previousJson + "\n" +
+"- Yesterday's progress summary (adapt intensity/complexity accordingly):\n" + progressSummary + "\n\n" +
 "Return ONLY valid JSON in this exact format:\n" +
 "{\n" +
 "  \"schedule\": [\n" +
@@ -39,7 +67,10 @@ function createDetailedPrompt(userProfile: any, selectedPlan: any, primaryGoal: 
 "- Step-by-step instructions for each activity\n" +
 "- Exercise details with reps/sets\n" +
 "- Meal prep instructions with specific vegetables\n" +
-"- Health tips for each activity\n\n" +
+"- Health tips for each activity\n" +
+"- Ensure variation from previous day's foods (rotate proteins, grains, vegetables)\n" +
+"- If previousProgress.completion_percentage < 50, reduce intensity/duration by ~20%\n" +
+"- Respect user's diet_type and chronic_conditions when suggesting meals\n\n" +
 "IMPORTANT: For vegetarian meals, specify exact vegetables like \"Palak 50g + Aloo 30g + Gobi 40g + Carrot 30g\" instead of just \"Sabzi\"";
 }
 
@@ -49,7 +80,7 @@ serve(async (req) => {
   }
 
   try {
-    const { selectedPlan, userProfile, primaryGoal } = await req.json();
+    const { selectedPlan, userProfile, primaryGoal, previousActivities, previousProgress, targetDate, requirements } = await req.json();
 
     if (!userProfile) {
       return new Response(JSON.stringify({
@@ -63,21 +94,28 @@ serve(async (req) => {
     console.log("📅 Generating detailed timetable for user:", userProfile?.id);
 
     const goal = primaryGoal || 'General wellness';
-    const detailedPrompt = createDetailedPrompt(userProfile, selectedPlan, goal);
+    const detailedPrompt = createDetailedPrompt(
+      userProfile,
+      selectedPlan,
+      goal,
+      Array.isArray(previousActivities) ? previousActivities : [],
+      previousProgress || undefined,
+      targetDate || undefined
+    );
 
     // Get Claude API keys
     const claudeKeys = [
       Deno.env.get("claude_api_key"),
       Deno.env.get("claude_api_key_2"),
       Deno.env.get("claude_api_key_3")
-    ].filter(Boolean);
+    ].filter((k: unknown): k is string => typeof k === 'string' && k.length > 0);
 
     if (claudeKeys.length === 0) {
       throw new Error("No Claude API keys available");
     }
 
     let response;
-    let lastError = null;
+    let lastError: string | null = null;
 
     // Try Claude API keys
     for (let i = 0; i < claudeKeys.length; i++) {
