@@ -63,12 +63,12 @@ function App() {
               </RouteGuard>
             } />
             <Route path="/payment/monthly" element={
-              <RouteGuard>
+              <RouteGuard requireAuth={false}>
                 <PaymentMonthly />
               </RouteGuard>
             } />
             <Route path="/payment/annual" element={
-              <RouteGuard>
+              <RouteGuard requireAuth={false}>
                 <PaymentAnnual />
               </RouteGuard>
             } />

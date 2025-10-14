@@ -82,7 +82,7 @@ const AuthCallback = () => {
                 .select('status')
                 .eq('user_id', session.user.id)
                 .eq('status', 'active')
-                .single();
+                .maybeSingle();
 
               if (subscriptionError || !subscriptionData) {
                 // No active subscription - redirect to health assessment

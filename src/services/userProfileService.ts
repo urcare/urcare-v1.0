@@ -164,15 +164,14 @@ export class UserProfileService {
         onboarding_completed: true,
       };
 
-      // Save to unified_user_profiles table
+      // Save to profiles table
       const { error: profileError } = await supabase
-        .from("unified_user_profiles")
+        .from("profiles")
         .upsert(
           {
             id: userId,
+            email: '',
             ...profileData,
-            status: "active",
-            created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
           {
@@ -205,7 +204,7 @@ export class UserProfileService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       const { data, error } = await supabase
-        .from("unified_user_profiles")
+        .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
@@ -234,7 +233,7 @@ export class UserProfileService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("unified_user_profiles")
+        .from("profiles")
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
@@ -288,9 +287,9 @@ export class UserProfileService {
   async hasCompletedOnboarding(userId: string): Promise<boolean> {
     try {
       const { data, error } = await supabase
-        .from("user_profiles")
+        .from("onboarding_profiles")
         .select("onboarding_completed")
-        .eq("id", userId)
+        .eq("user_id", userId)
         .single();
 
       if (error) {
@@ -315,12 +314,12 @@ export class UserProfileService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("user_profiles")
+        .from("onboarding_profiles")
         .update({
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", userId);
+        .eq("user_id", userId);
 
       if (error) {
         console.error("Error completing onboarding:", error);
@@ -346,7 +345,7 @@ export class UserProfileService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("user_profiles")
+        .from("profiles")
         .delete()
         .eq("id", userId);
 
@@ -419,7 +418,7 @@ export class UserProfileService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("user_profiles")
+        .from("profiles")
         .update({
           preferences,
           updated_at: new Date().toISOString(),

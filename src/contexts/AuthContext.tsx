@@ -36,42 +36,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchProfile = async (userId: string) => {
     try {
-      // Try unified_user_profiles first (newest table)
-      let { data, error } = await supabase
-        .from('unified_user_profiles')
+      // Query the public.profiles table directly
+      const { data, error } = await supabase
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
       if (error) {
-        console.log('unified_user_profiles not found, trying user_profiles...');
-        // Fallback to user_profiles
-        const result = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-        
-        data = result.data;
-        error = result.error;
-      }
-
-      if (error) {
-        console.log('user_profiles not found, trying profiles...');
-        // Fallback to profiles
-        const result = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-        
-        data = result.data;
-        error = result.error;
-      }
-
-      if (error) {
-        console.log('No profile found in any table, creating basic profile...');
-        // Create a basic profile if none exists
+        console.log('profiles not found, returning basic profile...');
         return {
           id: userId,
           email: '',

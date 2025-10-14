@@ -149,16 +149,12 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
       .select('status')
       .eq('user_id', user.id)
       .eq('status', 'active')
-      .single();
+      .maybeSingle();
     
     console.log('📊 Subscription query result:', { subscriptionData, subscriptionError });
     
     if (subscriptionError) {
       console.error('❌ Subscription table error:', subscriptionError);
-    }
-
-    if (subscriptionError) {
-      console.error('❌ Subscription query error:', subscriptionError);
       console.log('🔄 Redirecting to paywall due to subscription error');
       return {
         shouldRedirect: true,
@@ -169,7 +165,6 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
 
     if (!subscriptionData) {
       console.log('💳 No active subscription found, redirecting to paywall');
-      console.log('🔄 User has no subscription, must go to paywall');
       return {
         shouldRedirect: true,
         redirectPath: '/paywall',

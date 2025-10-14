@@ -11,6 +11,7 @@ export default function PaymentMonthly() {
   const [step, setStep] = useState<'select' | 'upi' | 'success' | 'cancelled'>('select');
   const [utr, setUtr] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [screenshotUrl, setScreenshotUrl] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,6 +48,7 @@ export default function PaymentMonthly() {
         .getPublicUrl(fileName);
       
       setScreenshot(file);
+      setScreenshotUrl(publicUrl);
       toast.success('Screenshot uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
@@ -58,8 +60,14 @@ export default function PaymentMonthly() {
 
   const handlePaymentSubmit = async () => {
     if (!user) return;
-    if (!utr.trim()) {
-      toast.error('Please enter the UTR/Reference ID');
+    const utrClean = utr.trim();
+    const utrValid = /^[A-Za-z0-9]{10,25}$/.test(utrClean);
+    if (!utrValid) {
+      toast.error('Enter a valid UTR (10-25 letters/numbers)');
+      return;
+    }
+    if (!screenshotUrl) {
+      toast.error('Please upload a payment screenshot');
       return;
     }
 
@@ -77,8 +85,8 @@ export default function PaymentMonthly() {
         throw new Error('Plan not found');
       }
 
-      // Create payment record
-      const { error: paymentError } = await supabase
+      // Create payment record and grant subscription immediately after basic validation
+      const { data: payment, error: paymentError } = await supabase
         .from('manual_upi_payments')
         .insert({
           user_id: user.id,
@@ -86,15 +94,38 @@ export default function PaymentMonthly() {
           amount: amount,
           currency: 'INR',
           billing_cycle: billingCycle,
-          status: 'processing',
-          utr: utr.trim(),
+          status: 'submitted',
+          utr: utrClean,
+          screenshot_url: screenshotUrl,
           transaction_ref: `${user.id}-${Date.now()}`
+        })
+        .select()
+        .single();
+
+      if (paymentError) throw paymentError;
+
+      // Create active subscription row
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: user.id,
+          plan_id: plan.id,
+          plan_slug: 'basic',
+          status: 'active',
+          billing_cycle: 'monthly',
+          amount: amount,
+          currency: 'INR',
+          current_period_start: new Date().toISOString(),
+          current_period_end: new Date(Date.now() + 30*24*60*60*1000).toISOString()
         });
+
+      if (subscriptionError) throw subscriptionError;
 
       if (paymentError) throw paymentError;
 
       toast.success('Payment submitted for verification. We\'ll activate your subscription shortly!');
       setStep('success');
+      setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
     } catch (error) {
       console.error('Payment submission error:', error);
       toast.error('Failed to submit payment. Please try again.');

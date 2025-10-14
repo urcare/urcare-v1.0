@@ -1,4 +1,40 @@
 -- Create new table for manual UPI payments
+
+create table if not exists public.manual_upi_payments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  plan_id uuid not null references public.subscription_plans(id) on delete cascade,
+  amount numeric(10,2) not null,
+  currency text not null default 'INR',
+  billing_cycle text not null check (billing_cycle in ('monthly','annual')),
+  utr text not null,
+  screenshot_url text,
+  transaction_ref text not null,
+  status text not null default 'submitted' check (status in ('submitted','verified','rejected')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.manual_upi_payments enable row level security;
+
+create policy "Users can view their own manual UPI payments" on public.manual_upi_payments
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own manual UPI payments" on public.manual_upi_payments
+  for insert with check (auth.uid() = user_id);
+
+create or replace function public.update_manual_upi_payments_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_update_manual_upi_payments_updated_at on public.manual_upi_payments;
+create trigger trg_update_manual_upi_payments_updated_at
+  before update on public.manual_upi_payments
+  for each row execute function public.update_manual_upi_payments_updated_at();
 -- This is a simple, clean approach that doesn't affect existing tables
 
 CREATE TABLE IF NOT EXISTS manual_upi_payments (
