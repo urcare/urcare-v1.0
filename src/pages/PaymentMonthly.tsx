@@ -54,21 +54,30 @@ export default function PaymentMonthly() {
   };
 
   const handlePaymentSubmit = async () => {
-    if (!user) return;
+    console.log('🚀 Payment submit clicked');
+    if (!user) {
+      console.log('❌ No user found');
+      return;
+    }
+    
     const utrClean = utr.trim();
     const utrValid = /^[A-Za-z0-9]{10,25}$/.test(utrClean);
     if (!utrValid) {
+      console.log('❌ Invalid UTR:', utrClean);
       toast.error('Enter a valid UTR (10-25 letters/numbers)');
       return;
     }
     if (!screenshotUrl) {
+      console.log('❌ No screenshot URL');
       toast.error('Please upload a payment screenshot');
       return;
     }
 
+    console.log('✅ Validation passed, starting submission...');
     setSubmitting(true);
     try {
       // Get plan details
+      console.log('🔍 Fetching plan details...');
       const { data: plan, error: planError } = await supabase
         .from('subscription_plans')
         .select('id')
@@ -77,10 +86,13 @@ export default function PaymentMonthly() {
         .single();
 
       if (planError || !plan) {
+        console.log('❌ Plan error:', planError);
         throw new Error('Plan not found');
       }
+      console.log('✅ Plan found:', plan);
 
       // Create payment record for admin verification
+      console.log('💳 Creating payment record...');
       const { data: payment, error: paymentError } = await supabase
         .from('manual_upi_payments')
         .insert({
@@ -97,26 +109,35 @@ export default function PaymentMonthly() {
         .select()
         .single();
 
-      if (paymentError) throw paymentError;
+      if (paymentError) {
+        console.log('❌ Payment error:', paymentError);
+        throw paymentError;
+      }
+      console.log('✅ Payment record created:', payment);
 
       // Grant subscription immediately for better user experience
-      const { error: subscriptionError } = await supabase
+      console.log('🎯 Creating subscription...');
+      const { data: subscription, error: subscriptionError } = await supabase
         .from('user_subscriptions')
         .insert({
           user_id: user.id,
           plan_id: plan.id,
-          plan_slug: 'basic',
           status: 'active',
           billing_cycle: billingCycle,
-          amount: amount,
-          currency: 'INR',
+          razorpay_payment_id: utrClean, // Use UTR as payment ID
           current_period_start: new Date().toISOString(),
           current_period_end: billingCycle === 'monthly' 
             ? new Date(Date.now() + 30*24*60*60*1000).toISOString()
             : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
-        });
+        })
+        .select()
+        .single();
 
-      if (subscriptionError) throw subscriptionError;
+      if (subscriptionError) {
+        console.log('❌ Subscription error:', subscriptionError);
+        throw subscriptionError;
+      }
+      console.log('✅ Subscription created:', subscription);
 
       toast.success('Payment verified! Your subscription is now active.');
       setStep('success');
