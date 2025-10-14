@@ -116,7 +116,7 @@ export default function PaymentMonthly() {
           // Try to find the existing "basic" plan
           let { data: plan, error: planError } = await supabase
             .from('subscription_plans')
-            .select('id, name, slug, is_active')
+            .select('id, name, slug, is_active, price_monthly, price_annual')
             .eq('slug', 'basic')
             .eq('is_active', true)
             .single();
@@ -131,23 +131,26 @@ export default function PaymentMonthly() {
       
       console.log('✅ Plan found/created:', plan);
 
-      // Create payment record for admin verification
-      console.log('💳 Creating payment record...');
-      const { data: payment, error: paymentError } = await supabase
-        .from('manual_upi_payments')
-        .insert({
-          user_id: user.id,
-          plan_id: plan.id,
-          amount: amount,
-          currency: 'INR',
-          billing_cycle: billingCycle,
-          status: 'processing',
-          utr: utrClean,
-          screenshot_url: screenshotUrl || null, // Optional screenshot
-          transaction_ref: `${user.id}-${Date.now()}`
-        })
-        .select()
-        .single();
+          // Create payment record for admin verification
+          console.log('💳 Creating payment record...');
+          const planAmount = billingCycle === 'monthly' ? parseFloat(plan.price_monthly) : parseFloat(plan.price_annual);
+          console.log('💰 Plan amount:', planAmount, 'for billing cycle:', billingCycle);
+          
+          const { data: payment, error: paymentError } = await supabase
+            .from('manual_upi_payments')
+            .insert({
+              user_id: user.id,
+              plan_id: plan.id,
+              amount: planAmount,
+              currency: 'INR',
+              billing_cycle: billingCycle,
+              status: 'processing',
+              utr: utrClean,
+              screenshot_url: screenshotUrl || null, // Optional screenshot
+              transaction_ref: `${user.id}-${Date.now()}`
+            })
+            .select()
+            .single();
 
       if (paymentError) {
         console.log('❌ Payment error:', paymentError);
