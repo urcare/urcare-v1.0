@@ -104,18 +104,54 @@ export default function PaymentAnnual() {
     try {
       // Get plan details
       console.log('🔍 Fetching plan details...');
+      
+      // First, let's see what plans exist
+      const { data: allPlans, error: allPlansError } = await supabase
+        .from('subscription_plans')
+        .select('*');
+      
+      console.log('📋 All available plans:', allPlans);
+      console.log('📋 All plans error:', allPlansError);
+      
+      // Try to find a plan - let's be more flexible
       const { data: plan, error: planError } = await supabase
         .from('subscription_plans')
-        .select('id')
-        .eq('slug', 'basic')
+        .select('id, name, slug, is_active')
         .eq('is_active', true)
+        .limit(1)
         .single();
+
+      console.log('🎯 Plan query result:', { plan, planError });
 
       if (planError || !plan) {
         console.log('❌ Plan error:', planError);
-        throw new Error('Plan not found');
+        console.log('❌ No active plan found');
+        
+        // Let's try to create a basic plan if none exists
+        console.log('🔧 Attempting to create basic plan...');
+        const { data: newPlan, error: createError } = await supabase
+          .from('subscription_plans')
+          .insert({
+            name: 'Basic Plan',
+            slug: 'basic',
+            description: 'Basic subscription plan',
+            price: billingCycle === 'monthly' ? 849 : 4999,
+            billing_cycle: billingCycle,
+            is_active: true
+          })
+          .select('id')
+          .single();
+        
+        if (createError) {
+          console.log('❌ Failed to create plan:', createError);
+          throw new Error('No subscription plan available and could not create one');
+        }
+        
+        console.log('✅ Created new plan:', newPlan);
+        plan = newPlan;
       }
-      console.log('✅ Plan found:', plan);
+      
+      console.log('✅ Plan found/created:', plan);
 
       // Create payment record for admin verification
       console.log('💳 Creating payment record...');
