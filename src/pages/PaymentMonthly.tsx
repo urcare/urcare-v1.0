@@ -113,44 +113,21 @@ export default function PaymentMonthly() {
       console.log('📋 All available plans:', allPlans);
       console.log('📋 All plans error:', allPlansError);
       
-      // Try to find a plan - let's be more flexible
-      let { data: plan, error: planError } = await supabase
-        .from('subscription_plans')
-        .select('id, name, slug, is_active')
-        .eq('is_active', true)
-        .limit(1)
-        .single();
+          // Try to find the existing "basic" plan
+          let { data: plan, error: planError } = await supabase
+            .from('subscription_plans')
+            .select('id, name, slug, is_active')
+            .eq('slug', 'basic')
+            .eq('is_active', true)
+            .single();
 
-      console.log('🎯 Plan query result:', { plan, planError });
+          console.log('🎯 Plan query result:', { plan, planError });
 
-      if (planError || !plan) {
-        console.log('❌ Plan error:', planError);
-        console.log('❌ No active plan found');
-        
-        // Let's try to create a basic plan if none exists
-        console.log('🔧 Attempting to create basic plan...');
-        const { data: newPlan, error: createError } = await supabase
-          .from('subscription_plans')
-          .insert({
-            name: 'Basic Plan',
-            slug: 'basic',
-            description: 'Basic subscription plan',
-            price_monthly: 849,
-            price_annual: 4999,
-            billing_cycle: billingCycle,
-            is_active: true
-          })
-          .select('id')
-          .single();
-        
-        if (createError) {
-          console.log('❌ Failed to create plan:', createError);
-          throw new Error('No subscription plan available and could not create one');
-        }
-        
-        console.log('✅ Created new plan:', newPlan);
-        plan = newPlan;
-      }
+          if (planError || !plan) {
+            console.log('❌ Plan error:', planError);
+            console.log('❌ No active "basic" plan found');
+            throw new Error('No subscription plan available');
+          }
       
       console.log('✅ Plan found/created:', plan);
 
