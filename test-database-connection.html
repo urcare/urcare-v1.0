@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Database Connection Test</h1>
+    
+    <div class="test-section info">
+        <h3>Quick Database Test</h3>
+        <p>This will test if your database tables exist and are accessible.</p>
+        <button onclick="testDatabaseConnection()">Test Database Connection</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Replace with your actual Supabase credentials
+        const SUPABASE_URL = 'https://lvnkpserdydhnqbigfbz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bmtwc2VyZHloaG5xYmlnZmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ0NzQ4NzEsImV4cCI6MjA1MDA1MDg3MX0.8c054eefc1d70ad78f73cb8a85f0d0a152bab25c';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function logResult(message, isError = false) {
+            const container = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.innerHTML = `<pre>${message}</pre>`;
+            container.appendChild(div);
+        }
+
+        async function testDatabaseConnection() {
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                logResult('🚀 Starting database connection test...');
+                
+                // Test 1: Check if subscription_plans table exists
+                logResult('📋 Testing subscription_plans table...');
+                const { data: plans, error: plansError } = await supabase
+                    .from('subscription_plans')
+                    .select('*');
+                
+                if (plansError) {
+                    logResult(`❌ subscription_plans table error: ${plansError.message}`, true);
+                    logResult(`Error details: ${JSON.stringify(plansError, null, 2)}`, true);
+                } else {
+                    logResult(`✅ subscription_plans table accessible`);
+                    logResult(`Found ${plans?.length || 0} plans: ${JSON.stringify(plans, null, 2)}`);
+                }
+                
+                // Test 2: Check if manual_upi_payments table exists
+                logResult('💳 Testing manual_upi_payments table...');
+                const { data: payments, error: paymentsError } = await supabase
+                    .from('manual_upi_payments')
+                    .select('*')
+                    .limit(5);
+                
+                if (paymentsError) {
+                    logResult(`❌ manual_upi_payments table error: ${paymentsError.message}`, true);
+                    logResult(`Error details: ${JSON.stringify(paymentsError, null, 2)}`, true);
+                } else {
+                    logResult(`✅ manual_upi_payments table accessible`);
+                    logResult(`Found ${payments?.length || 0} payments: ${JSON.stringify(payments, null, 2)}`);
+                }
+                
+                // Test 3: Check if user_subscriptions table exists
+                logResult('👤 Testing user_subscriptions table...');
+                const { data: subscriptions, error: subscriptionsError } = await supabase
+                    .from('user_subscriptions')
+                    .select('*')
+                    .limit(5);
+                
+                if (subscriptionsError) {
+                    logResult(`❌ user_subscriptions table error: ${subscriptionsError.message}`, true);
+                    logResult(`Error details: ${JSON.stringify(subscriptionsError, null, 2)}`, true);
+                } else {
+                    logResult(`✅ user_subscriptions table accessible`);
+                    logResult(`Found ${subscriptions?.length || 0} subscriptions: ${JSON.stringify(subscriptions, null, 2)}`);
+                }
+                
+                // Test 4: Try to create a test plan
+                logResult('🔧 Testing plan creation...');
+                const { data: testPlan, error: createError } = await supabase
+                    .from('subscription_plans')
+                    .insert({
+                        name: 'Test Plan',
+                        slug: 'test-plan-' + Date.now(),
+                        description: 'Test plan for database verification',
+                        price: 100.00,
+                        billing_cycle: 'monthly',
+                        is_active: true
+                    })
+                    .select('*')
+                    .single();
+                
+                if (createError) {
+                    logResult(`❌ Plan creation failed: ${createError.message}`, true);
+                    logResult(`Error details: ${JSON.stringify(createError, null, 2)}`, true);
+                } else {
+                    logResult(`✅ Plan creation successful: ${JSON.stringify(testPlan, null, 2)}`);
+                    
+                    // Clean up test plan
+                    const { error: deleteError } = await supabase
+                        .from('subscription_plans')
+                        .delete()
+                        .eq('id', testPlan.id);
+                    
+                    if (deleteError) {
+                        logResult(`⚠️ Could not delete test plan: ${deleteError.message}`);
+                    } else {
+                        logResult(`🧹 Test plan cleaned up`);
+                    }
+                }
+                
+            } catch (err) {
+                logResult(`💥 Exception: ${err.message}`, true);
+                logResult(`Stack: ${err.stack}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
