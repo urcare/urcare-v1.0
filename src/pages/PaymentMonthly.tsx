@@ -97,11 +97,7 @@ export default function PaymentMonthly() {
       toast.error('Enter a valid UTR (10-25 letters/numbers)');
       return;
     }
-    if (!screenshotUrl) {
-      console.log('❌ No screenshot URL');
-      toast.error('Please upload a payment screenshot');
-      return;
-    }
+    // Screenshot is optional, so we don't check for it
 
     console.log('✅ Validation passed, starting submission...');
     setSubmitting(true);
@@ -133,7 +129,7 @@ export default function PaymentMonthly() {
           billing_cycle: billingCycle,
           status: 'processing',
           utr: utrClean,
-          screenshot_url: screenshotUrl,
+          screenshot_url: screenshotUrl || null, // Optional screenshot
           transaction_ref: `${user.id}-${Date.now()}`
         })
         .select()
@@ -324,6 +320,9 @@ export default function PaymentMonthly() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Screenshot (Optional)
                 </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Upload a screenshot of your payment confirmation (optional)
+                </p>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   {screenshot ? (
                     <div className="text-green-600">
@@ -365,7 +364,7 @@ export default function PaymentMonthly() {
                 disabled={!utr.trim() || submitting}
                 className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
-                {submitting ? 'Submitting...' : 'I Paid, Verify'}
+                {submitting ? 'Submitting...' : 'I Paid, Verify (UTR Required)'}
               </button>
             </div>
           </div>
