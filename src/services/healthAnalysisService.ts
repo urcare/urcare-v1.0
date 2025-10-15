@@ -657,11 +657,18 @@ class UnifiedHealthAnalysisService {
         
         console.log('💾 Saving health analysis to database...');
         // Save the new analysis to database
+        // Ensure we have recommendations from displayAnalysis if not from healthScoreResult
+        const recommendations = healthScoreResult.recommendations || 
+                               healthScoreResult.displayAnalysis?.lifestyleRecommendations || 
+                               ['Maintain regular physical activity', 'Eat a variety of fruits and vegetables', 'Stay hydrated throughout the day'];
+        
+        console.log('📋 Recommendations being saved:', recommendations);
+
         const saveResult = await this.saveHealthAnalysis(
           userId,
           healthScoreResult.healthScore!,
           healthScoreResult.analysis || `Health score: ${healthScoreResult.healthScore}/100`,
-          healthScoreResult.recommendations || [],
+          recommendations,
           healthScoreResult.displayAnalysis,
           detailedAnalysis,
           detailedAnalysis // Using detailedAnalysis as profileAnalysis for now
@@ -674,8 +681,8 @@ class UnifiedHealthAnalysisService {
             success: true,
             data: {
               healthScore: healthScoreResult.healthScore,
-              analysis: healthScoreResult.analysis,
-              recommendations: healthScoreResult.recommendations,
+              analysis: healthScoreResult.analysis || `Health score: ${healthScoreResult.healthScore}/100`,
+              recommendations: recommendations,
               displayAnalysis: healthScoreResult.displayAnalysis,
               detailedAnalysis: detailedAnalysis,
               profileAnalysis: detailedAnalysis,
