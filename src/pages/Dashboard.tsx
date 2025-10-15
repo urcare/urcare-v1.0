@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Bell, Mic, Paperclip, Activity } from "lucide-react";
+import { LogOut, Bell, Mic, MicOff, Paperclip, Activity } from "lucide-react";
 import { toast } from "sonner";
 import TodaySchedule from "@/components/TodaySchedule";
 import FloatingChat from "@/components/FloatingChat";
@@ -28,6 +28,9 @@ const Dashboard: React.FC = () => {
   const [planSelectionLoading, setPlanSelectionLoading] = useState(false);
   const [currentPlanName, setCurrentPlanName] = useState<string>('Generate Your Protocol');
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Debug activities state changes
   useEffect(() => {
@@ -339,6 +342,67 @@ const Dashboard: React.FC = () => {
     }
   }, [user?.id, isInitializing, loading, fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]);
 
+  // Initialize speech recognition
+  const initializeSpeechRecognition = useCallback(() => {
+    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = "en-US";
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setIsRecording(true);
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setUserInput(transcript);
+        setIsListening(false);
+        setIsRecording(false);
+        toast.success("Voice input captured!");
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+        setIsRecording(false);
+        toast.error("Voice recognition failed. Please try again.");
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        setIsRecording(false);
+      };
+    } else {
+      toast.error("Voice recognition is not supported in this browser");
+    }
+  }, []);
+
+  // Handle microphone click
+  const handleMicClick = useCallback(() => {
+    if (!isRecording) {
+      initializeSpeechRecognition();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          toast.info("Listening... Speak now");
+        } catch (error) {
+          console.error("Error starting speech recognition:", error);
+          toast.error("Failed to start voice recognition");
+        }
+      }
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      setIsListening(false);
+    }
+  }, [isRecording, initializeSpeechRecognition]);
+
   // Update today's activities by copying yesterday's activities
   const updateTodaysActivities = useCallback(async () => {
     if (!user?.id) return;
@@ -439,6 +503,15 @@ const Dashboard: React.FC = () => {
     window.addEventListener('focus', handleWindowFocus);
     return () => window.removeEventListener('focus', handleWindowFocus);
   }, [user?.id, isInitializing, handleRefresh]);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   const handleSelectPlan = async (plan: any) => {
     if (!user?.id) {
@@ -664,9 +737,26 @@ const Dashboard: React.FC = () => {
               </button>
                   
               <div className="flex items-center gap-2">
-                    <button className="w-8 h-8 rounded-full flex items-center justify-center border-2 bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200">
-                  <Mic className="w-4 h-4" />
-                </button>
+                    <button 
+                      onClick={handleMicClick}
+                      disabled={healthLoading || planGenerating}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
+                        isRecording || isListening
+                          ? "bg-red-500/80 border-red-500/80 text-white animate-pulse"
+                          : "bg-gray-100/80 border-gray-300/60 text-gray-700 hover:bg-gray-200"
+                      } ${
+                        healthLoading || planGenerating
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
+                      title={isRecording ? "Stop recording" : "Start voice input"}
+                    >
+                      {isListening ? (
+                        <MicOff className="w-4 h-4" />
+                      ) : (
+                        <Mic className="w-4 h-4" />
+                      )}
+                    </button>
                 <button 
                         onClick={handleGenerateHealthPlan}
                         disabled={healthLoading || planGenerating}
@@ -683,6 +773,14 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          {/* Voice Recognition Status */}
+          {isListening && (
+            <div className="mt-2 flex items-center justify-center gap-2 text-sm text-red-600 bg-red-50/80 px-3 py-2 rounded-lg">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Listening... Speak now</span>
+            </div>
+          )}
           </div>
         )}
 
