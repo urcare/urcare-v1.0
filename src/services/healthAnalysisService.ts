@@ -659,8 +659,8 @@ class UnifiedHealthAnalysisService {
         const saveResult = await this.saveHealthAnalysis(
           userId,
           healthScoreResult.healthScore!,
-          healthScoreResult.analysis!,
-          healthScoreResult.recommendations!,
+          healthScoreResult.analysis || `Health score: ${healthScoreResult.healthScore}/100`,
+          healthScoreResult.recommendations || [],
           healthScoreResult.displayAnalysis,
           detailedAnalysis,
           detailedAnalysis // Using detailedAnalysis as profileAnalysis for now
