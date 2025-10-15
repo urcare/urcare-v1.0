@@ -547,27 +547,41 @@ class UnifiedHealthAnalysisService {
         .update({ is_latest: false })
         .eq('user_id', userId);
 
+      // Prepare insert data
+      const insertData = {
+        user_id: userId,
+        health_score: healthScore,
+        analysis_text: analysis,
+        recommendations: Array.isArray(recommendations) ? recommendations : [],
+        display_analysis: displayAnalysis || {},
+        detailed_analysis: detailedAnalysis || {},
+        profile_analysis: profileAnalysis || {},
+        ai_provider: 'groq',
+        ai_model: 'llama-3.3-70b-versatile',
+        calculation_method: 'groq_ai_analysis',
+        factors_considered: Array.isArray(profileAnalysis) ? profileAnalysis : [],
+        is_latest: true
+      };
+
+      console.log('🔍 Inserting health analysis data:', insertData);
+
       // Insert new analysis
       const { data, error } = await supabase
         .from('health_analysis')
-        .insert({
-          user_id: userId,
-          health_score: healthScore,
-          analysis_text: analysis,
-          recommendations: recommendations,
-          display_analysis: displayAnalysis || {},
-          detailed_analysis: detailedAnalysis || {},
-          profile_analysis: profileAnalysis || {},
-          ai_provider: 'groq',
-          ai_model: 'llama-3.3-70b-versatile',
-          calculation_method: 'groq_ai_analysis',
-          factors_considered: profileAnalysis || [],
-          is_latest: true
-        })
+        .insert(insertData)
         .select()
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Health analysis insert error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
 
       return {
         success: true,
