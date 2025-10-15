@@ -453,7 +453,7 @@ class UnifiedHealthAnalysisService {
     try {
       const { data, error } = await supabase
         .from('health_analysis')
-        .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
+        .select('id, user_id, health_score, analysis_text, recommendations, display_analysis, detailed_analysis, profile_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, is_latest, created_at, updated_at')
         .eq('user_id', userId)
         .eq('is_latest', true)
         .maybeSingle(); // Use maybeSingle instead of single to handle no data gracefully
@@ -486,7 +486,7 @@ class UnifiedHealthAnalysisService {
     try {
       const { data, error } = await supabase
         .from('health_analysis')
-        .select('id, user_id, health_score, display_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, generation_parameters, analysis_date, is_latest, created_at, updated_at')
+        .select('id, user_id, health_score, analysis_text, recommendations, display_analysis, detailed_analysis, profile_analysis, ai_provider, ai_model, calculation_method, user_input, uploaded_files, voice_transcript, factors_considered, is_latest, created_at, updated_at')
         .eq('user_id', userId)
         .eq('is_latest', true)
         .maybeSingle(); // Use maybeSingle instead of single to handle no data gracefully
@@ -506,15 +506,15 @@ class UnifiedHealthAnalysisService {
         success: true,
         data: {
           healthScore: data.health_score || 75,
-          analysis: `Health score: ${data.health_score}/100`,
-          recommendations: data.display_analysis?.lifestyleRecommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
+          analysis: data.analysis_text || `Health score: ${data.health_score}/100`,
+          recommendations: data.recommendations || data.display_analysis?.lifestyleRecommendations || ['Maintain current routine', 'Stay hydrated', 'Get adequate sleep'],
           displayAnalysis: data.display_analysis || {
             greeting: `Hi there, based on your health profile analysis:`,
             negativeAnalysis: ["🚨 Your current lifestyle may be impacting your health", "🚨 There are signs of potential health risks", "🚨 Your stress levels appear elevated", "🚨 Sleep patterns need improvement", "🚨 Dietary habits could be optimized"],
             lifestyleRecommendations: ["💚 Increase daily water intake to 8 glasses", "💚 Establish a consistent sleep schedule", "💚 Incorporate 30 minutes of daily exercise", "💚 Practice stress management techniques", "💚 Focus on whole foods and balanced nutrition"]
           },
-          detailedAnalysis: data.generation_parameters || {},
-          profileAnalysis: data.factors_considered || [],
+          detailedAnalysis: data.detailed_analysis || {},
+          profileAnalysis: data.profile_analysis || data.factors_considered || [],
           createdAt: data.created_at,
           aiProvider: data.ai_provider,
           aiModel: data.ai_model
@@ -553,12 +553,15 @@ class UnifiedHealthAnalysisService {
         .insert({
           user_id: userId,
           health_score: healthScore,
+          analysis_text: analysis,
+          recommendations: recommendations,
           display_analysis: displayAnalysis || {},
+          detailed_analysis: detailedAnalysis || {},
+          profile_analysis: profileAnalysis || {},
           ai_provider: 'groq',
           ai_model: 'llama-3.3-70b-versatile',
           calculation_method: 'groq_ai_analysis',
           factors_considered: profileAnalysis || [],
-          generation_parameters: detailedAnalysis || {},
           is_latest: true
         })
         .select()
