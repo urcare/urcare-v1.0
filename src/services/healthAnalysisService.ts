@@ -324,7 +324,7 @@ class UnifiedHealthAnalysisService {
     }
     
     return {
-      greeting: `Hi ${userProfile?.full_name?.split(' ')[0] || 'there'}, based on your health profile analysis:`,
+      greeting: `Hi ${userProfile?.full_name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'there'}, based on your health profile analysis:`,
       negativeAnalysis: negativeAnalysis.slice(0, 5), // Limit to 5 items
       lifestyleRecommendations: lifestyleRecommendations.slice(0, 5) // Limit to 5 items
     };
@@ -604,6 +604,7 @@ class UnifiedHealthAnalysisService {
       
       // First, check if health analysis exists in database
       const analysisCheck = await this.checkHealthAnalysisExist(userId);
+      console.log('🔍 Analysis check result:', analysisCheck);
       
       if (analysisCheck.success && analysisCheck.exists && analysisCheck.isComplete) {
         console.log('✅ Complete health analysis already exists in database, fetching...');
@@ -668,6 +669,7 @@ class UnifiedHealthAnalysisService {
 
         if (saveResult.success) {
           console.log('✅ Health analysis successfully saved to database');
+          console.log('📊 Saved analysis data:', saveResult.data);
           return {
             success: true,
             data: {
