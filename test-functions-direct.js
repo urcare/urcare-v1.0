@@ -124,3 +124,4 @@ console.log('- testEdgeFunction(supabase, functionName, params, description)');
 console.log('- testDatabaseTable(supabase, tableName)');
 console.log('- testStorageBucket(supabase, bucketName)');
 console.log('\n💡 Usage: Copy this script and run in browser console with your Supabase client');
+

@@ -210,7 +210,7 @@ const Paywall: React.FC = () => {
                 Only {formatCurrency(priceAnnual / 12)}/month
               </p>
               <p className="text-red-600 text-xs font-medium mb-2">
-                Only 300 spots left
+                Only 10 slots left
               </p>
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto ${
@@ -259,7 +259,7 @@ const Paywall: React.FC = () => {
               </div>
               <p className="text-gray-500 text-xs mb-1">per month</p>
               <p className="text-red-600 text-xs font-medium mb-2">
-                Only 1200 spots left
+                Only 10 slots left
               </p>
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto ${

@@ -161,3 +161,4 @@ testEdgeFunction(supabase, 'health-score',
 3. **Fix any permission issues** with RLS policies
 4. **Update function signatures** if there are mismatches
 5. **Test Edge functions** with proper environment setup
+

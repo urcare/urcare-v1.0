@@ -47,3 +47,6 @@ SELECT
     is_active
 FROM public.subscription_plans
 ORDER BY billing_cycle, price;
+
+
+
