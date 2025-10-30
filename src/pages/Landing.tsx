@@ -10,6 +10,7 @@ import { User, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -147,22 +148,25 @@ const Landing = () => {
 
   const handleAuthOptionClick = async (provider: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`; // Use auth/callback for localhost
-      console.log('🔗 Current origin:', window.location.origin); // Debug log
-      console.log('🔗 Redirect URL:', redirectUrl); // Debug log
-      
+      // Use app link for Android (universal link). Fallback to origin for web.
+      const isNative = Capacitor.getPlatform() !== 'web';
+      const redirectUrl = isNative
+        ? 'https://urrcare.vercel.app/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      console.log('🔗 Current environment:', Capacitor.getPlatform());
+      console.log('🔗 Redirect URL:', redirectUrl);
+
       if (provider === "Google") {
         const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: redirectUrl, // Explicitly set localhost redirect
+            redirectTo: redirectUrl,
           },
         });
         if (error) throw error;
         if (data?.url) {
           console.log('🔗 OAuth URL:', data.url); // Debug log
-          // ==== CHANGED, USE CAPACITOR BROWSER ====
           await Browser.open({ url: data.url });
         }
       } else if (provider === "Email") {

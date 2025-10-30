@@ -1,8 +1,10 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useSafariMobileFix } from "./hooks/useSafariMobileFix";
 import { AuthProvider } from "./contexts/AuthContext";
 import RouteGuard from "./components/RouteGuard";
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 // Import commonly used pages directly to avoid loading screens
 import Landing from "./pages/Landing";
@@ -22,6 +24,19 @@ const Legal = React.lazy(() => import("./pages/Legal"));
 
 function App() {
   useSafariMobileFix();
+
+  useEffect(() => {
+    // Auto-close in-app browser and route to /auth/callback
+    CapApp.addListener('appUrlOpen', async ({ url }) => {
+      if (url && url.startsWith('https://urrcare.vercel.app/auth/callback')) {
+        await Browser.close();
+        window.location.href = '/auth/callback' + (url.split('auth/callback')[1] || '');
+      }
+    });
+    return () => {
+      CapApp.removeAllListeners();
+    };
+  }, []);
 
   return (
     <AuthProvider>
