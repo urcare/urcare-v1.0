@@ -9,6 +9,7 @@ import { OnDemandLandingPage } from "@/components/landing/OnDemandLandingPage";
 import { User, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Browser } from '@capacitor/browser';
 
 const Landing = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -161,7 +162,8 @@ const Landing = () => {
         if (error) throw error;
         if (data?.url) {
           console.log('🔗 OAuth URL:', data.url); // Debug log
-          window.location.replace(data.url);
+          // ==== CHANGED, USE CAPACITOR BROWSER ====
+          await Browser.open({ url: data.url });
         }
       } else if (provider === "Email") {
         // Show email form
