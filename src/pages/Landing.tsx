@@ -148,25 +148,57 @@ const Landing = () => {
 
   const handleAuthOptionClick = async (provider: string) => {
     try {
-      // Use app link for Android (universal link). Fallback to origin for web.
+      // Use HTTPS URL for Supabase OAuth (Supabase requires valid web URL)
+      // AndroidManifest intent filters will catch https://urrcare.vercel.app/auth/callback
+      // Custom scheme urcare://auth/callback is also registered as fallback
       const isNative = Capacitor.getPlatform() !== 'web';
       const redirectUrl = isNative
-        ? 'https://urrcare.vercel.app/auth/callback'
+        ? 'https://urrcare.vercel.app/auth/callback'  // HTTPS required for Supabase, Android will intercept
         : `${window.location.origin}/auth/callback`;
       console.log('🔗 Current environment:', Capacitor.getPlatform());
       console.log('🔗 Redirect URL:', redirectUrl);
 
       if (provider === "Google") {
         const { supabase } = await import("@/integrations/supabase/client");
+        
+        // Set up browser listener before opening browser
+        if (isNative) {
+          // Remove any existing listeners first
+          Browser.removeAllListeners();
+          
+          // Listen for when browser finishes (user closes or completes auth)
+          Browser.addListener('browserFinished', async () => {
+            console.log('🌐 Browser finished, checking authentication status...');
+            // Small delay to allow redirect to complete
+            setTimeout(async () => {
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                  console.log('✅ User authenticated, session found:', session.user.email);
+                  // Navigate to callback page which will handle routing
+                  window.location.href = '/auth/callback';
+                } else {
+                  console.log('⚠️ No session found after browser close');
+                }
+              } catch (err) {
+                console.error('Error checking session after browser close:', err);
+              }
+            }, 1000);
+          });
+        }
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: redirectUrl,
+            skipBrowserRedirect: false,
           },
         });
         if (error) throw error;
         if (data?.url) {
-          console.log('🔗 OAuth URL:', data.url); // Debug log
+          console.log('🔗 Opening OAuth URL in browser:', data.url);
+          
+          // Open browser - Android will intercept the redirect URL and open app
           await Browser.open({ url: data.url });
         }
       } else if (provider === "Email") {

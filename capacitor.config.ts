@@ -9,8 +9,11 @@ const config: CapacitorConfig = {
     allowNavigation: [
       "urcarebyarsh.vercel.app",
       "urcare.vercel.app", // Keep old domain for compatibility
+      "urrcare.vercel.app",
       "accounts.google.com",
       "oauth.googleusercontent.com",
+      "*.google.com",
+      "*.googleapis.com",
     ],
   },
   plugins: {

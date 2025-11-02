@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, QrCode, Smartphone, CheckCircle, XCircle, Upload, Copy } from "lucide-react";
+import { ArrowLeft, QrCode, Smartphone, CheckCircle, XCircle, Upload, Copy, CreditCard } from "lucide-react";
 
 export default function PaymentAnnual() {
   const { user } = useAuth();
@@ -422,6 +422,29 @@ export default function PaymentAnnual() {
                 <p className="text-sm text-gray-600">Scan QR code or use UPI ID</p>
               </div>
               <div className="text-blue-600">→</div>
+            </div>
+          </div>
+
+          {/* PayPal Option */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">Pay with PayPal</h3>
+                <p className="text-sm text-gray-600">Send payment to: sarthaks264@gmail.com</p>
+                <div className="mt-2">
+                  <button
+                    onClick={() => {
+                      window.open('mailto:sarthaks264@gmail.com?subject=UrCare Annual Subscription Payment&body=Please send payment of ₹4999 for UrCare Annual Subscription. Include your UTR/Reference ID in the email.', '_blank');
+                    }}
+                    className="text-blue-600 text-sm hover:text-blue-800 underline"
+                  >
+                    Open Email
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
