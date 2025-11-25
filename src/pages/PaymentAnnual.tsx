@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, QrCode, Smartphone, CheckCircle, XCircle, Upload, Copy, CreditCard } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Upload } from "lucide-react";
 
 export default function PaymentAnnual() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState<'select' | 'upi' | 'success' | 'cancelled'>('select');
+  const [step, setStep] = useState<'confirm' | 'success' | 'cancelled'>('confirm');
   const [utr, setUtr] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
@@ -18,11 +18,6 @@ export default function PaymentAnnual() {
   const amount = 4999;
   const planName = "UrCare Annual";
   const billingCycle = "annual";
-
-  const handleUPI = () => {
-    setStep('upi');
-  };
-
 
   const handleScreenshotUpload = async (file: File) => {
     console.log('📸 Screenshot upload started (Annual)');
@@ -197,11 +192,6 @@ export default function PaymentAnnual() {
     setStep('cancelled');
   };
 
-  const copyUPIId = () => {
-    navigator.clipboard.writeText('archamasaini123@okicici'); // Replace with your actual UPI ID
-    toast.success('UPI ID copied to clipboard');
-  };
-
   if (step === 'success') {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -255,14 +245,14 @@ export default function PaymentAnnual() {
     );
   }
 
-  if (step === 'upi') {
+  if (step === 'confirm') {
     return (
       <div className="min-h-screen bg-white p-4">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <button
-              onClick={() => setStep('select')}
+              onClick={() => navigate('/paywall')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -273,51 +263,12 @@ export default function PaymentAnnual() {
             </div>
           </div>
 
-          {/* QR Code Section */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Scan QR Code to Pay</h3>
-              <p className="text-sm text-gray-600">Use any UPI app to scan and pay</p>
-            </div>
-            
-            <div className="flex justify-center mb-4">
-              <img 
-                src="/images/payment.jpg" 
-                alt="UPI QR Code" 
-                className="w-64 h-64 border border-gray-200 rounded-lg object-contain bg-white shadow-sm"
-                style={{ maxWidth: '100%', height: 'auto' }}
-              />
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">UPI ID</p>
-                  <p className="font-mono text-lg">archamasaini123@okicici</p>
-                </div>
-                <button
-                  onClick={copyUPIId}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <button
-                onClick={() => window.open('upi://pay?pa=archamasaini123@okicici&pn=UrCare&am=4999&tn=UrCare%20Annual%20Subscription&cu=INR', '_blank')}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Open in UPI App
-              </button>
-            </div>
-          </div>
-
           {/* Payment Confirmation Form */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Payment</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Transfer the subscription amount using your preferred banking method, then share the UTR/Reference ID below for verification.
+            </p>
             
             <div className="space-y-4">
               <div>
@@ -328,7 +279,7 @@ export default function PaymentAnnual() {
                   type="text"
                   value={utr}
                   onChange={(e) => setUtr(e.target.value)}
-                  placeholder="Enter UTR from your UPI app"
+                  placeholder="Enter UTR/Reference ID"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -390,71 +341,5 @@ export default function PaymentAnnual() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate('/paywall')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">₹{amount}</div>
-            <div className="text-sm text-gray-500">{planName}</div>
-          </div>
-        </div>
-
-        {/* Payment Methods */}
-        <div className="space-y-4">
-          <div
-            onClick={handleUPI}
-            className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <QrCode className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Pay with UPI</h3>
-                <p className="text-sm text-gray-600">Scan QR code or use UPI ID</p>
-              </div>
-              <div className="text-blue-600">→</div>
-            </div>
-          </div>
-
-          {/* PayPal Option */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Pay with PayPal</h3>
-                <p className="text-sm text-gray-600">Send payment to: sarthaks264@gmail.com</p>
-                <div className="mt-2">
-                  <button
-                    onClick={() => {
-                      window.open('mailto:sarthaks264@gmail.com?subject=UrCare Annual Subscription Payment&body=Please send payment of ₹4999 for UrCare Annual Subscription. Include your UTR/Reference ID in the email.', '_blank');
-                    }}
-                    className="text-blue-600 text-sm hover:text-blue-800 underline"
-                  >
-                    Open Email
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <p>Secure payment processing</p>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
