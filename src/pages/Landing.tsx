@@ -161,14 +161,15 @@ const Landing = () => {
       if (provider === "Google") {
         const { supabase } = await import("@/integrations/supabase/client");
         
-        // Set up browser listener before opening browser
+        // For native platforms, the App.tsx listener will handle the deep link
+        // We just need to ensure browser closes properly
+        // The main handler is in App.tsx, but we set up a fallback here
         if (isNative) {
-          // Remove any existing listeners first
+          // Listen for browser finished as fallback (if user manually closes browser)
           Browser.removeAllListeners();
           
-          // Listen for when browser finishes (user closes or completes auth)
           Browser.addListener('browserFinished', async () => {
-            console.log('🌐 Browser finished, checking authentication status...');
+            console.log('🌐 Browser finished (manual close), checking authentication status...');
             // Small delay to allow redirect to complete
             setTimeout(async () => {
               try {

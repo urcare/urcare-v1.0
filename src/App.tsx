@@ -32,12 +32,17 @@ function App() {
       console.log('🔗 App URL opened:', url);
       
       try {
-        // Close browser if still open
+        // Close browser if still open - this is critical for OAuth flow
         try {
           await Browser.close();
+          console.log('✅ Browser closed successfully');
         } catch (e) {
           // Browser might already be closed, ignore error
+          console.log('⚠️ Browser close attempt (might already be closed):', e);
         }
+
+        // Small delay to ensure browser is fully closed
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // Handle custom scheme: urcare://auth/callback?...
         if (url.includes('urcare://auth/callback') || url.includes('urcare://auth/callback?')) {
@@ -61,7 +66,7 @@ function App() {
           if (hash) callbackUrl += hash;
           if (search && !hash) callbackUrl += search;
           
-          console.log('🔗 Navigating to callback:', callbackUrl);
+          console.log('🔗 Navigating to callback (custom scheme):', callbackUrl);
           window.location.href = callbackUrl;
           return;
         }
@@ -69,20 +74,37 @@ function App() {
         // Handle HTTPS scheme: https://urrcare.vercel.app/auth/callback?...
         if (url.includes('https://urrcare.vercel.app/auth/callback') || 
             url.includes('urrcare.vercel.app/auth/callback')) {
-          const urlObj = new URL(url);
-          const hash = urlObj.hash;
-          const search = urlObj.search;
+          let hash = '';
+          let search = '';
+          
+          try {
+            const urlObj = new URL(url);
+            hash = urlObj.hash;
+            search = urlObj.search;
+          } catch (e) {
+            // If URL parsing fails, try manual extraction
+            const hashMatch = url.match(/#[^?]*/);
+            const queryMatch = url.match(/\?[^#]*/);
+            if (hashMatch) hash = hashMatch[0];
+            if (queryMatch) search = queryMatch[0];
+          }
           
           let callbackUrl = '/auth/callback';
           if (hash) callbackUrl += hash;
           if (search) callbackUrl += search;
           
-          console.log('🔗 Navigating to callback:', callbackUrl);
+          console.log('🔗 Navigating to callback (HTTPS scheme):', callbackUrl);
           window.location.href = callbackUrl;
           return;
         }
       } catch (error) {
         console.error('Error handling app URL open:', error);
+        // Fallback: try to navigate to callback anyway
+        try {
+          window.location.href = '/auth/callback';
+        } catch (e) {
+          console.error('Failed to navigate to callback:', e);
+        }
       }
     };
 
