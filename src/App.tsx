@@ -15,7 +15,6 @@ import AuthCallback from "./pages/AuthCallback";
 
 // Keep less frequently used pages as lazy loaded
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
-const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const PaymentMonthly = React.lazy(() => import("./pages/PaymentMonthly"));
 const PaymentAnnual = React.lazy(() => import("./pages/PaymentAnnual"));
@@ -153,11 +152,6 @@ function App() {
             <Route path="/health-assessment" element={
               <RouteGuard>
                 <HealthAssessment />
-              </RouteGuard>
-            } />
-            <Route path="/paywall" element={
-              <RouteGuard>
-                <Paywall />
               </RouteGuard>
             } />
             <Route path="/payment-success" element={

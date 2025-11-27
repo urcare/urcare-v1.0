@@ -112,7 +112,7 @@ export default function RazorpayGateway({ amount, userId, planSlug, billingCycle
   };
 
   const handleGoBack = () => {
-    navigate("/paywall");
+    navigate("/");
   };
 
   const handlePayByQR = () => {

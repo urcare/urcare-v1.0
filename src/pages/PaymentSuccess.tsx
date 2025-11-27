@@ -64,7 +64,7 @@ const PaymentSuccess: React.FC = () => {
   }, [searchParams, navigate]);
 
   const handleRetry = () => {
-    navigate('/paywall');
+    navigate('/');
   };
 
   const handleDashboard = () => {

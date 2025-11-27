@@ -141,45 +141,12 @@ export const handleUserRouting = async (user: User): Promise<RoutingResult> => {
 
     console.log('✅ Health assessment completed');
 
-    // 4. Check user_subscriptions table for active subscription
-    console.log('🔍 Step 4: Checking user_subscriptions table for user:', user.id);
-    
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('user_subscriptions')
-      .select('status')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
-    
-    console.log('📊 Subscription query result:', { subscriptionData, subscriptionError });
-    
-    if (subscriptionError) {
-      console.error('❌ Subscription table error:', subscriptionError);
-      console.log('🔄 Redirecting to paywall due to subscription error');
-      return {
-        shouldRedirect: true,
-        redirectPath: '/paywall',
-        reason: 'Database query failed, redirecting to paywall'
-      };
-    }
-
-    if (!subscriptionData) {
-      console.log('💳 No active subscription found, redirecting to paywall');
-      return {
-        shouldRedirect: true,
-        redirectPath: '/paywall',
-        reason: 'No active subscription found'
-      };
-    }
-
-    console.log('✅ Active subscription found');
-
-    // 5. All checks passed - redirect to dashboard
-    console.log('🎯 All checks passed, redirecting to dashboard');
+    // 4. All checks passed - redirect to dashboard
+    console.log('🎯 All onboarding checks passed, redirecting to dashboard');
     return {
       shouldRedirect: true,
       redirectPath: '/dashboard',
-      reason: 'User has completed all requirements'
+      reason: 'User has completed onboarding and assessment'
     };
 
   } catch (error) {

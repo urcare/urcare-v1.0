@@ -72,7 +72,7 @@ export default function PhonePeGateway({ amount, userId, planSlug, billingCycle 
   };
 
   const handleGoBack = () => {
-    navigate("/paywall");
+    navigate("/");
   };
 
   return (

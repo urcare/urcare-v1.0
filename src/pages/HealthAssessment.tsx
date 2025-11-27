@@ -359,7 +359,7 @@ const HealthAssessment: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('No user found');
-        navigate("/paywall");
+        navigate("/");
         return;
       }
 
@@ -381,12 +381,12 @@ const HealthAssessment: React.FC = () => {
         console.log('✅ Successfully updated health_assessment_completed to true');
       }
 
-      // Navigate to paywall
-      navigate("/paywall");
+      // Navigate directly to dashboard
+      navigate("/dashboard");
     } catch (error) {
       console.error('❌ Error in handleGetSolution:', error);
-      // Navigate to paywall even if there's an error
-      navigate("/paywall");
+      // Navigate to dashboard even if there's an error
+      navigate("/dashboard");
     }
   };
 

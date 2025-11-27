@@ -77,7 +77,7 @@ export default function PaymentPage() {
   // Initialize payment
   useEffect(() => {
     if (!user || !planSlug || !billingCycle || !amount) {
-      navigate("/paywall");
+      navigate("/");
       return;
     }
 
@@ -207,7 +207,7 @@ export default function PaymentPage() {
   };
 
   const handleGoBack = () => {
-    navigate("/paywall");
+    navigate("/");
   };
 
   if (status === "loading") {

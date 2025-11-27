@@ -243,7 +243,7 @@ const OnboardingHealthAssessment: React.FC = () => {
           <CardContent className="pt-6">
             <div className="text-center">
               <Button
-                onClick={() => navigate('/paywall')}
+                onClick={() => navigate('/dashboard')}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 text-lg font-medium"
               >
                 Get Your Personalized Plan

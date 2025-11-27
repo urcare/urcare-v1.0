@@ -30,7 +30,7 @@ export default function PhonePeCheckout() {
 
   useEffect(() => {
     if (!user) {
-      navigate("/paywall");
+      navigate("/");
       return;
     }
   }, [user, navigate]);

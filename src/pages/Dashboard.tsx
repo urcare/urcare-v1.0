@@ -71,6 +71,77 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
+  const ensureFreshDailyActivities = useCallback(
+    async (
+      userId: string,
+      profileOverride?: any,
+      healthScoreOverride?: number
+    ) => {
+      const today = new Date().toISOString().split('T')[0];
+      const profileSnapshot = profileOverride || profile;
+      if (!profileSnapshot?.id) {
+        console.warn('⚠️ Cannot ensure activities without profile data');
+        await fetchSavedActivities(userId);
+        return;
+      }
+
+      try {
+        const { data: latestActivity, error: latestActivityError } = await supabase
+          .from('daily_activities')
+          .select('activity_date')
+          .eq('user_id', userId)
+          .order('activity_date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const hasTodayActivities =
+          !latestActivityError &&
+          latestActivity?.activity_date === today;
+
+        if (hasTodayActivities) {
+          console.log('✅ Found today\'s activities, loading cache');
+          await fetchSavedActivities(userId);
+          return;
+        }
+
+        console.log('ℹ️ No activities for today, regenerating daily plan');
+        const { data: latestPlan, error: latestPlanError } = await supabase
+          .from('health_plans')
+          .select('plan_data, primary_goal, plan_name')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestPlanError && latestPlanError.code !== 'PGRST116') {
+          throw latestPlanError;
+        }
+
+        if (latestPlan?.plan_data?.selected_plan) {
+          const planGoal = latestPlan.primary_goal || latestPlan.plan_name || 'Daily Protocol';
+          await generatePlanActivities({
+            selectedPlan: latestPlan.plan_data.selected_plan,
+            userProfile: profileSnapshot,
+            primaryGoal: planGoal,
+            healthScore: healthScoreOverride ?? healthScore,
+            activityDate: today
+          });
+
+          setSelectedPlan(latestPlan.plan_data.selected_plan);
+          setCurrentPlanName(planGoal);
+          await fetchSavedActivities(userId);
+        } else {
+          console.warn('⚠️ No existing plan found to regenerate activities');
+          setGeneratedActivities([]);
+        }
+      } catch (error) {
+        console.error('❌ Failed to ensure fresh activities:', error);
+        await fetchSavedActivities(userId);
+      }
+    },
+    [fetchSavedActivities, profile, healthScore]
+  );
+
   // Fetch current plan name from database
   const fetchCurrentPlanName = useCallback(async (userId: string) => {
     try {
@@ -190,6 +261,7 @@ const Dashboard: React.FC = () => {
         }
 
         setUser(session.user);
+        let fetchedProfile: any = null;
 
         // Fetch user profile with timeout (only if we have a user)
         if (session?.user) {
@@ -213,6 +285,7 @@ const Dashboard: React.FC = () => {
               console.error("Error fetching profile:", profileError);
             } else {
               setProfile(profileData);
+              fetchedProfile = profileData;
               console.log('✅ Profile loaded');
             }
           } catch (error) {
@@ -261,12 +334,12 @@ const Dashboard: React.FC = () => {
             console.error('❌ Health data fetch failed:', error);
           }
           
-          console.log('🔍 Starting activities fetch...');
+          console.log('🔍 Ensuring today\'s activities...');
           try {
-            await fetchSavedActivities(session.user.id);
-            console.log('✅ Activities loaded');
+            await ensureFreshDailyActivities(session.user.id, fetchedProfile);
+            console.log('✅ Activities up to date');
           } catch (error) {
-            console.error('❌ Activities fetch failed:', error);
+            console.error('❌ Activities refresh failed:', error);
           }
           
           console.log('🔍 Starting plan name fetch...');
@@ -294,7 +367,7 @@ const Dashboard: React.FC = () => {
     };
     
     checkAuth();
-  }, [fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]); // Include necessary dependencies
+  }, [fetchHealthData, fetchCurrentPlanName, ensureFreshDailyActivities]);
 
   const handleSignOut = async () => {
     try {
@@ -322,7 +395,7 @@ const Dashboard: React.FC = () => {
         }
         
         try {
-          await fetchSavedActivities(user.id);
+          await ensureFreshDailyActivities(user.id);
         } catch (error) {
           console.error('❌ Activities refresh failed:', error);
         }
@@ -340,7 +413,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, isInitializing, loading, fetchHealthData, fetchSavedActivities, fetchCurrentPlanName]);
+  }, [user?.id, isInitializing, loading, fetchHealthData, ensureFreshDailyActivities, fetchCurrentPlanName]);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
@@ -518,6 +591,10 @@ const Dashboard: React.FC = () => {
       toast.error("Please log in to select a protocol");
       return;
     }
+    if (!profile?.id) {
+      toast.error("Profile not loaded yet. Please wait a moment.");
+      return;
+    }
 
     try {
       setPlanSelectionLoading(true);
@@ -530,22 +607,22 @@ const Dashboard: React.FC = () => {
       
       // Generate daily protocol for the selected plan
       const result = await generatePlanActivities({
-          selectedPlan: plan,
+        selectedPlan: plan,
         userProfile: profile,
-        primaryGoal: userInput.trim() || plan.name
+        primaryGoal: userInput.trim() || plan.name,
+        healthScore,
+        activityDate: new Date().toISOString().split('T')[0]
       });
       
-      if (result.success && result.data) {
+      if (result.success) {
         toast.success("Your personalized schedule is ready!", { id: "plan-activities" });
         
-        console.log("🎯 Generated activities:", result.data.schedule?.length);
-        console.log("🎯 Activities data structure:", result.data);
+        console.log("🎯 Generated activities:", result.activities?.length);
+        console.log("🎯 Activities data structure:", result.activities);
         
-        // Store the generated protocol
-        const activities = result.data.schedule || [];
-        setGeneratedActivities(activities);
-        console.log("🎯 Protocol stored in state:", activities.length);
-        console.log("🎯 Protocol data:", activities);
+        // Refresh from database to ensure IDs/is_completed flags
+        await fetchSavedActivities(user.id);
+        await fetchCurrentPlanName(user.id);
         setShowPlans(false); // Hide plans view, show protocol
         
         // Clear the input

@@ -149,10 +149,25 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
     });
   };
 
+  // Sync completed state from server data
+  useEffect(() => {
+    const completedFromServer = new Set<string>();
+    generatedActivities?.forEach((activity, index) => {
+      if (activity?.is_completed) {
+        completedFromServer.add(activity.id || `activity-${index}`);
+      }
+    });
+    setCompletedActivities(completedFromServer);
+  }, [generatedActivities]);
+
   // Mark activity as completed
   const handleMarkCompleted = async (activityId: string, userId: string) => {
     if (!userId) {
       toast.error('User not authenticated');
+      return;
+    }
+    if (!activityId) {
+      toast.error('Missing activity reference');
       return;
     }
 
@@ -774,6 +789,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
             {generatedActivities.map((activity, index) => {
               const activityId = activity.id || `activity-${index}`;
               const isExpanded = expandedDailyActivities.has(activityId);
+              const isAlreadyCompleted = completedActivities.has(activityId) || activity.is_completed;
               
               return (
                 <Card key={index} className="border border-gray-200 hover:border-gray-300 transition-colors">
@@ -846,9 +862,9 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                         <div className="pt-3 border-t border-gray-100">
                           <Button
                             onClick={() => handleMarkCompleted(activityId, user?.id)}
-                            disabled={markingCompleted.has(activityId) || completedActivities.has(activityId)}
+                              disabled={markingCompleted.has(activityId) || isAlreadyCompleted}
                             className={`w-full ${
-                              completedActivities.has(activityId)
+                              isAlreadyCompleted
                                 ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
                             }`}
@@ -858,7 +874,7 @@ const TodaySchedule: React.FC<TodayScheduleProps> = ({
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                 Marking...
                               </>
-                            ) : completedActivities.has(activityId) ? (
+                            ) : isAlreadyCompleted ? (
                               <>
                                 <Check className="w-4 h-4 mr-2" />
                                 Completed ✓

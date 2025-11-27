@@ -4,6 +4,8 @@ interface PlanActivitiesRequest {
   selectedPlan: any;
   userProfile: any;
   primaryGoal: string;
+  healthScore?: number;
+  activityDate?: string;
 }
 
 interface PlanActivitiesResponse {
@@ -11,12 +13,19 @@ interface PlanActivitiesResponse {
   data?: any;
   meta?: any;
   error?: string;
+  activities?: any[];
 }
 
 // Generate daily activities for selected plan
 export const generatePlanActivities = async (request: PlanActivitiesRequest): Promise<PlanActivitiesResponse> => {
   try {
     console.log('🔍 Generating daily activities for selected plan...');
+    const userId = request.userProfile?.id;
+    if (!userId) {
+      throw new Error('User profile missing id');
+    }
+
+    const activityDate = request.activityDate || new Date().toISOString().split('T')[0];
     
     // Add timeout to prevent hanging
     const timeoutPromise = new Promise((_, reject) => 
@@ -53,12 +62,23 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
     // Save activities to database
     if (data.data && data.data.schedule) {
       try {
+        // Archive any previously selected plans so the new one becomes active
+        const { error: archiveError } = await supabase
+          .from('health_plans')
+          .update({ status: 'archived' })
+          .eq('user_id', userId)
+          .eq('status', 'selected');
+
+        if (archiveError) {
+          console.warn('⚠️ Failed to archive previous plans:', archiveError);
+        }
+
         // First, save the selected plan with complete JSON data
         console.log('💾 Saving selected plan to health_plans table:', request.selectedPlan.name);
         const { data: planData, error: planError } = await supabase
           .from('health_plans')
           .insert({
-            user_id: request.userProfile.id,
+            user_id: userId,
             plan_name: `${request.selectedPlan.name} Plan`,
             plan_type: 'health_transformation',
             primary_goal: request.primaryGoal,
@@ -90,7 +110,7 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
           .select('id')
           .single();
 
-        let planId = null;
+        let planId: string | null = null;
         if (planError) {
           console.error('❌ Error saving plan to database:', planError);
         } else {
@@ -101,9 +121,9 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
         // Then save the daily activities
         console.log('💾 Saving daily activities to daily_activities table:', data.data.schedule.length, 'activities');
         const { error: saveError } = await supabase.rpc('save_daily_activities', {
-          p_user_id: request.userProfile.id,
-          p_plan_id: null, // No specific plan ID for now
-          p_activity_date: new Date().toISOString().split('T')[0],
+          p_user_id: userId,
+          p_plan_id: planId,
+          p_activity_date: activityDate,
           p_activities: data.data.schedule
         });
         
@@ -117,10 +137,20 @@ export const generatePlanActivities = async (request: PlanActivitiesRequest): Pr
       }
     }
     
+    // Load persisted activities so the UI gets IDs/is_completed flags
+    const persistedActivities = await fetchDailyActivities(userId, activityDate);
+    if (!persistedActivities.success) {
+      console.warn('⚠️ Activities saved but could not be reloaded:', persistedActivities.error);
+    }
+    
     return {
       success: true,
-      data: data.data,
-      meta: data.meta
+      data: persistedActivities.data || data.data,
+      meta: {
+        ...(data.meta || {}),
+        activityDate
+      },
+      activities: persistedActivities.data?.schedule || data.data?.schedule
     };
     
   } catch (error) {
@@ -174,7 +204,8 @@ export const fetchDailyActivities = async (userId: string, activityDate?: string
       meta: {
         source: 'database',
         timestamp: new Date().toISOString()
-      }
+      },
+      activities: data || []
     };
     
   } catch (error) {

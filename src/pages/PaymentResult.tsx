@@ -166,7 +166,7 @@ export default function PaymentResult() {
   };
 
   const handleRetry = () => {
-    navigate("/paywall");
+    navigate("/");
   };
 
   if (status === "loading") {

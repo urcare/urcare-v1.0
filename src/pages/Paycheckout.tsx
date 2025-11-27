@@ -119,7 +119,7 @@ const Paycheckout: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/paywall');
+    navigate('/');
   };
 
   const formatCurrency = (amount: number) => {
