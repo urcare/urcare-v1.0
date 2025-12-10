@@ -27,6 +27,10 @@ import {
 import { toast } from "sonner";
 
 const LandingDiabetes = () => {
+  useEffect(() => {
+    console.log('LandingDiabetes component loaded');
+  }, []);
+  
   const navigate = useNavigate();
   const [showMedicalForm, setShowMedicalForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
