@@ -12,9 +12,11 @@ import Welcome from "./pages/Welcome";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import AuthCallback from "./pages/AuthCallback";
+import LandingDiabetes from "./pages/LandingDiabetes";
 
 // Keep less frequently used pages as lazy loaded
 const HealthAssessment = React.lazy(() => import("./pages/HealthAssessment"));
+const Paywall = React.lazy(() => import("./pages/Paywall"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const PaymentMonthly = React.lazy(() => import("./pages/PaymentMonthly"));
 const PaymentAnnual = React.lazy(() => import("./pages/PaymentAnnual"));
@@ -77,7 +79,7 @@ function App() {
           let search = '';
           
           try {
-            const urlObj = new URL(url);
+          const urlObj = new URL(url);
             hash = urlObj.hash;
             search = urlObj.search;
           } catch (e) {
@@ -139,6 +141,7 @@ function App() {
           <Routes>
             {/* Public routes - no auth required */}
             <Route path="/" element={<Landing />} />
+            <Route path="/landing-diabetes" element={<LandingDiabetes />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/legal" element={<Legal />} />
@@ -152,6 +155,11 @@ function App() {
             <Route path="/health-assessment" element={
               <RouteGuard>
                 <HealthAssessment />
+              </RouteGuard>
+            } />
+            <Route path="/paywall" element={
+              <RouteGuard>
+                <Paywall />
               </RouteGuard>
             } />
             <Route path="/payment-success" element={
