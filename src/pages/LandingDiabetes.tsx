@@ -5,17 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Star, 
-  CheckCircle2, 
-  ArrowRight, 
   Phone, 
   MessageCircle,
   Calendar,
-  TrendingUp,
   Heart,
-  Shield,
   Users,
   Gift,
-  Play,
   Menu,
   X,
   Instagram,
