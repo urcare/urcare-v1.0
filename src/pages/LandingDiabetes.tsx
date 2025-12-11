@@ -266,7 +266,7 @@ const LandingDiabetes = () => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <span className="text-lg md:text-xl font-bold text-gray-900">UrCare</span>
+                <span className="text-lg md:text-xl font-bold text-gray-900">UrCare ~ True Healthcare</span>
               </div>
 
               {/* Desktop Navigation */}
@@ -1372,7 +1372,7 @@ const LandingDiabetes = () => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <span className="text-xl md:text-2xl font-bold text-gray-900">UrCare</span>
+                <span className="text-xl md:text-2xl font-bold text-gray-900">UrCare ~ True Healthcare</span>
               </div>
               <div className="space-y-2">
                 <Input
