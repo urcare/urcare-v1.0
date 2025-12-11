@@ -245,11 +245,11 @@ const LandingDiabetes = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
               <img 
                 src="/brand.png" 
                 alt="UrCare Logo" 
-                className="h-10 md:h-12 w-auto"
+                className="h-14 md:h-16 w-auto"
                 onError={(e) => {
                   const parent = e.currentTarget.parentElement;
                   if (parent && !parent.querySelector('.logo-fallback')) {
@@ -261,6 +261,7 @@ const LandingDiabetes = () => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
+              <span className="text-xl md:text-2xl font-bold text-gray-900">UrCare</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -969,15 +970,16 @@ const LandingDiabetes = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Logo and Newsletter */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <img 
                   src="/brand.png" 
                   alt="UrCare Logo" 
-                  className="h-10 w-auto"
+                  className="h-14 md:h-16 w-auto"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
+                <span className="text-xl md:text-2xl font-bold text-gray-900">UrCare</span>
               </div>
               <div className="space-y-2">
                 <Input
