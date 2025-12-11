@@ -331,7 +331,7 @@ const LandingDiabetes = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Start living freely in 90 days
+                  Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
                 </motion.p>
                 <motion.div
                   className="flex flex-col sm:flex-row items-center md:items-start gap-4"
