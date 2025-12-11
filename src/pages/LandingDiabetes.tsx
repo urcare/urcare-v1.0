@@ -617,6 +617,25 @@ const LandingDiabetes = () => {
             />
           </motion.div>
           
+          {/* Third Image - Below Second Image */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
+          >
+            <img 
+              src="/IMG_9404.JPG" 
+              alt="Diabetes Treatment" 
+              className="w-full h-auto object-contain"
+              loading="lazy"
+              onError={(e) => {
+                console.error('Image failed to load:', e.currentTarget.src);
+              }}
+            />
+          </motion.div>
+          
           {/* Type 1 Success Stories Slider */}
           <div className="relative max-w-4xl mx-auto">
             {/* Slider Container */}
