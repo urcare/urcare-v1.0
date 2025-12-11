@@ -371,35 +371,18 @@ const LandingDiabetes = () => {
             </motion.div>
           </div>
           
-          {/* Second and Third Images - Below Hero Section */}
-          <div className="grid md:grid-cols-2 gap-6 mt-12">
+          {/* Second Image - Below Hero Section */}
+          <div className="mt-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative rounded-2xl overflow-hidden shadow-xl"
+              className="relative rounded-2xl overflow-hidden shadow-xl max-w-2xl mx-auto"
             >
               <img 
                 src="/IMG_9696.JPG" 
                 alt="Diabetes Treatment" 
-                className="w-full h-auto object-contain"
-                loading="lazy"
-                onError={(e) => {
-                  console.error('Image failed to load:', e.currentTarget.src);
-                }}
-              />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative rounded-2xl overflow-hidden shadow-xl"
-            >
-              <img 
-                src="/IMG_9439.JPG" 
-                alt="Health Transformation" 
                 className="w-full h-auto object-contain"
                 loading="lazy"
                 onError={(e) => {
@@ -452,6 +435,25 @@ const LandingDiabetes = () => {
       {/* Plans Section - Redesigned */}
       <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-5xl mx-auto">
+          {/* Third Image - Above Pricing Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative rounded-2xl overflow-hidden shadow-xl mb-12"
+          >
+            <img 
+              src="/IMG_9439.JPG" 
+              alt="Health Transformation" 
+              className="w-full h-auto object-contain"
+              loading="lazy"
+              onError={(e) => {
+                console.error('Image failed to load:', e.currentTarget.src);
+              }}
+            />
+          </motion.div>
+          
           {/* Section Header - Matching Image Design */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
