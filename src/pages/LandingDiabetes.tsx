@@ -323,7 +323,7 @@ const LandingDiabetes = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  Reverse Your Diabetes From the Root Cause
+                  Reverse Your Diabetes With any other Conditions
                 </motion.h1>
                 <motion.p 
                   className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"
@@ -331,7 +331,7 @@ const LandingDiabetes = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
+                  Start living freely in 90 days
                 </motion.p>
                 <motion.div
                   className="flex flex-col sm:flex-row items-center md:items-start gap-4"
