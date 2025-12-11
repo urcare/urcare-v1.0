@@ -40,6 +40,7 @@ const LandingDiabetes = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
+  const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -230,6 +231,13 @@ const LandingDiabetes = () => {
     setExpandedFAQ(expandedFAQ === index ? null : index);
   };
 
+  const togglePlan = (planIndex: number) => {
+    setExpandedPlans(prev => ({
+      ...prev,
+      [planIndex]: !prev[planIndex]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -264,13 +272,13 @@ const LandingDiabetes = () => {
             </nav>
 
             {/* Mobile Menu Button */}
-            <button
+          <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden text-gray-700"
-            >
+          >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+          </button>
+        </div>
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
@@ -287,7 +295,7 @@ const LandingDiabetes = () => {
               </nav>
             </motion.div>
           )}
-        </div>
+      </div>
       </header>
 
       {/* Hero Section */}
@@ -295,7 +303,7 @@ const LandingDiabetes = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Left Content Area */}
-            <motion.div
+        <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -304,7 +312,7 @@ const LandingDiabetes = () => {
               <p className="text-[#228b22] text-sm md:text-base font-medium mb-4">Root Cause Treatment</p>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Reverse Your Diabetes From the Root Cause
-              </h1>
+          </h1>
               <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
                 Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
               </p>
@@ -315,7 +323,7 @@ const LandingDiabetes = () => {
               >
                 Get Started
               </Button>
-            </motion.div>
+        </motion.div>
 
             {/* Right Image Area with Overlay */}
             <motion.div
@@ -345,9 +353,9 @@ const LandingDiabetes = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6">
             {phases.map((phase, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -360,10 +368,10 @@ const LandingDiabetes = () => {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{phase.name}</h3>
                   <p className="text-[#228b22] font-semibold mb-4">{phase.days}</p>
                   <p className="text-gray-600 leading-relaxed">{phase.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
         </div>
       </section>
 
@@ -384,17 +392,41 @@ const LandingDiabetes = () => {
                 >
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                      <h3 className="text-2xl md:text-3xl font-bold">Easy Reversal Activation Plan</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <div>
+                          <h3 className="text-2xl md:text-3xl font-bold">Easy Reversal Activation Plan</h3>
+                          <p className="text-lg md:text-xl text-white/90 mt-2">
+                            For Type 2 diabetes under 5 years (easy/moderate cases)
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => togglePlan(1)}
+                        className="ml-4 p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+                        aria-label="Toggle plan details"
+                      >
+                        {expandedPlans[1] ? (
+                          <ChevronUp className="w-6 h-6 text-white" />
+                        ) : (
+                          <ChevronDown className="w-6 h-6 text-white" />
+                        )}
+                      </button>
                     </div>
-                    <p className="text-lg md:text-xl text-white/90">
-                      For Type 2 diabetes under 5 years (easy/moderate cases)
-                    </p>
                   </div>
 
-                  {/* Features Section */}
-                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                  {/* Features Section - Collapsible */}
+                  <AnimatePresence>
+                    {expandedPlans[1] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
                     <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                       <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
                       What's Included
@@ -435,14 +467,17 @@ const LandingDiabetes = () => {
                         Patience 2-4 weeks minimum for visible results
                       </p>
                     </div>
-                  </div>
+                        </div>
 
-                  {/* Enrollment Notice */}
-                  <div className="bg-[#228b22] text-white p-4 md:p-6 text-center">
-                    <p className="text-base md:text-lg font-semibold">
-                      Only 14 enrolments maximum accepted per week to maintain medical quality
-                    </p>
-                  </div>
+                        {/* Enrollment Notice */}
+                        <div className="bg-[#228b22] text-white p-4 md:p-6 text-center">
+                          <p className="text-base md:text-lg font-semibold">
+                            Only 14 enrolments maximum accepted per week to maintain medical quality
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Payment Button */}
                   <div className="p-6 md:p-8 bg-white">
@@ -484,17 +519,41 @@ const LandingDiabetes = () => {
                 >
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                      <h3 className="text-2xl md:text-3xl font-bold">Advanced Diabetes Reversal Plan</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <div>
+                          <h3 className="text-2xl md:text-3xl font-bold">Advanced Diabetes Reversal Plan</h3>
+                          <p className="text-lg md:text-xl text-white/90 mt-2">
+                            For diabetes under 10 years
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => togglePlan(2)}
+                        className="ml-4 p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+                        aria-label="Toggle plan details"
+                      >
+                        {expandedPlans[2] ? (
+                          <ChevronUp className="w-6 h-6 text-white" />
+                        ) : (
+                          <ChevronDown className="w-6 h-6 text-white" />
+                        )}
+                      </button>
                     </div>
-                    <p className="text-lg md:text-xl text-white/90">
-                      For diabetes under 10 years
-                    </p>
                   </div>
 
-                  {/* Features Section */}
-                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                  {/* Features Section - Collapsible */}
+                  <AnimatePresence>
+                    {expandedPlans[2] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
                     <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                       <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
                       Comprehensive Treatment
@@ -529,7 +588,10 @@ const LandingDiabetes = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Payment Button */}
                   <div className="p-6 md:p-8 bg-white">
@@ -562,8 +624,8 @@ const LandingDiabetes = () => {
                 </motion.div>
 
                 {/* Plan 3 - Severe Diabetes Reversal Plan */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2 }}
@@ -577,17 +639,41 @@ const LandingDiabetes = () => {
 
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                      <h3 className="text-2xl md:text-3xl font-bold">Severe Diabetes Reversal Plan</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <div>
+                          <h3 className="text-2xl md:text-3xl font-bold">Severe Diabetes Reversal Plan</h3>
+                          <p className="text-lg md:text-xl text-white/90 mt-2">
+                            For diabetics above 10+ years
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => togglePlan(3)}
+                        className="ml-4 p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+                        aria-label="Toggle plan details"
+                      >
+                        {expandedPlans[3] ? (
+                          <ChevronUp className="w-6 h-6 text-white" />
+                        ) : (
+                          <ChevronDown className="w-6 h-6 text-white" />
+                        )}
+                      </button>
                     </div>
-                    <p className="text-lg md:text-xl text-white/90">
-                      For diabetics above 10+ years
-                    </p>
                   </div>
 
-                  {/* Features Section */}
-                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                  {/* Features Section - Collapsible */}
+                  <AnimatePresence>
+                    {expandedPlans[3] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
                     <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
                       We Specialize In Customized Treatment For:
@@ -621,7 +707,10 @@ const LandingDiabetes = () => {
                         Hyper-personalized protocols for complex cases
                       </p>
                     </div>
-                  </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Payment Button */}
                   <div className="p-6 md:p-8 bg-white">
@@ -639,7 +728,7 @@ const LandingDiabetes = () => {
                     <div className="flex items-center justify-center gap-2 mb-4">
                       <Activity className="w-6 h-6 text-[#228b22]" />
                       <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
-                    </div>
+            </div>
                     <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
                       Complete your medical form to receive personalized treatment plan
                     </p>
@@ -651,11 +740,11 @@ const LandingDiabetes = () => {
                       <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                </motion.div>
+          </motion.div>
 
                 {/* Important Note */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
@@ -789,7 +878,7 @@ const LandingDiabetes = () => {
               </section>
             </div>
           </div>
-        </div>
+            </div>
       </section>
 
       {/* Testimonials Section with Orange Curve */}
@@ -811,10 +900,10 @@ const LandingDiabetes = () => {
           {/* Testimonial Card */}
           <div className="relative max-w-2xl mx-auto mb-12">
             <AnimatePresence mode="wait">
-              <motion.div
+          <motion.div
                 key={currentTestimonial}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
                 className="bg-white rounded-2xl shadow-xl overflow-hidden"
@@ -857,7 +946,7 @@ const LandingDiabetes = () => {
                     >
                       <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                     </svg>
-                  </div>
+            </div>
                   
                   {/* Testimonial Quote - More visible text */}
                   <div className="pl-12 md:pl-16 pr-4">
@@ -866,7 +955,7 @@ const LandingDiabetes = () => {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+          </motion.div>
             </AnimatePresence>
 
             {/* Navigation Dots */}
@@ -884,7 +973,7 @@ const LandingDiabetes = () => {
                 />
               ))}
             </div>
-          </div>
+        </div>
 
           {/* Green Curved Graphic */}
           <div className="relative mt-16">
@@ -901,15 +990,15 @@ const LandingDiabetes = () => {
       {/* Call to Action Section with Purple Ribbon */}
       <section className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
               Improve Your Health, Reverse Diabetes, Find Peace
-            </h2>
+          </h2>
             <Button
               onClick={handleStartNow}
               className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-12 py-6 rounded-xl font-bold mb-8"
@@ -1129,20 +1218,20 @@ const LandingDiabetes = () => {
                   size="lg"
                 >
                   Submit Form
-                </Button>
-                <Button
+            </Button>
+            <Button
                   type="button"
-                  variant="outline"
+              variant="outline"
                   onClick={() => setShowMedicalForm(false)}
                   className="flex-1"
                   size="lg"
-                >
+            >
                   Cancel
-                </Button>
-              </div>
+            </Button>
+          </div>
             </form>
-          </motion.div>
-        </div>
+        </motion.div>
+      </div>
       )}
     </div>
   );
