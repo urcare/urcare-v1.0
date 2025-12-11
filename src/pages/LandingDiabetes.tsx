@@ -240,64 +240,68 @@ const LandingDiabetes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <img 
-                src="/brand.png" 
-                alt="UrCare Logo" 
-                className="h-14 md:h-16 w-auto"
-                onError={(e) => {
-                  const parent = e.currentTarget.parentElement;
-                  if (parent && !parent.querySelector('.logo-fallback')) {
-                    const fallback = document.createElement('span');
-                    fallback.className = "logo-fallback text-xl md:text-2xl font-bold text-gray-900";
-                    fallback.textContent = "URCARE";
-                    parent.appendChild(fallback);
-                  }
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <span className="text-xl md:text-2xl font-bold text-gray-900">UrCare</span>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+      {/* Header - Modern Translucent Design */}
+      <header className="sticky top-0 z-40 pt-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Translucent Rounded Header Bar */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-full border border-white/20 shadow-lg px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Logo and Company Name */}
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/brand.png" 
+                  alt="UrCare Logo" 
+                  className="h-10 md:h-12 w-auto"
+                  onError={(e) => {
+                    const parent = e.currentTarget.parentElement;
+                    if (parent && !parent.querySelector('.logo-fallback')) {
+                      const fallback = document.createElement('span');
+                      fallback.className = "logo-fallback text-xl md:text-2xl font-bold text-gray-900";
+                      fallback.textContent = "URCARE";
+                      parent.appendChild(fallback);
+                    }
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <span className="text-lg md:text-xl font-bold text-gray-900">UrCare</span>
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center gap-6">
+                <a href="#about" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">About Us</a>
+                <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Reviews</a>
+                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Program</a>
+                <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Pricing</a>
+              </nav>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden text-gray-700 hover:text-[#228b22] transition-colors"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
             </div>
+          </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#about" className="text-gray-700 hover:text-[#228b22] transition-colors">About Us</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] transition-colors">Reviews</a>
-              <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors">Program</a>
-              <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors">Pricing</a>
-            </nav>
-
-            {/* Mobile Menu Button */}
-          <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-gray-700"
-          >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-          {/* Mobile Menu */}
+          {/* Mobile Menu - Translucent Design */}
           {mobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:hidden py-4 border-t border-gray-200"
+              exit={{ opacity: 0, y: -10 }}
+              className="md:hidden mt-4 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/20 shadow-lg p-6"
             >
               <nav className="flex flex-col gap-4">
-                <a href="#about" className="text-gray-700 hover:text-[#228b22]" onClick={() => setMobileMenuOpen(false)}>About Us</a>
-                <a href="#testimonials" className="text-gray-700 hover:text-[#228b22]" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
-                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22]" onClick={() => setMobileMenuOpen(false)}>Program</a>
-                <a href="#pricing" className="text-gray-700 hover:text-[#228b22]" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+                <a href="#about" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>About Us</a>
+                <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
+                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Program</a>
+                <a href="#pricing" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               </nav>
             </motion.div>
           )}
-      </div>
+        </div>
       </header>
 
       {/* Hero Section */}
