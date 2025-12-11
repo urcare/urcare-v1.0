@@ -408,7 +408,6 @@ const LandingDiabetes = () => {
               />
             </motion.div>
           </div>
-          </div>
         </div>
       </section>
 
