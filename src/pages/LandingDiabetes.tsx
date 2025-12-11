@@ -5,12 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Star, 
+  CheckCircle2, 
+  ArrowRight, 
   Phone, 
   MessageCircle,
   Calendar,
+  TrendingUp,
   Heart,
+  Shield,
   Users,
   Gift,
+  Play,
   Menu,
   X,
   Instagram,
@@ -22,10 +27,6 @@ import {
 import { toast } from "sonner";
 
 const LandingDiabetes = () => {
-  useEffect(() => {
-    console.log('LandingDiabetes component loaded');
-  }, []);
-  
   const navigate = useNavigate();
   const [showMedicalForm, setShowMedicalForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -189,13 +190,18 @@ const LandingDiabetes = () => {
     window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
   };
 
-  const handlePaymentClick = () => {
-    navigate("/payment/monthly");
+  const handlePaymentClick = (paymentLink: string) => {
+    window.open(paymentLink, "_blank");
+  };
+
+  const handleAssessmentClick = () => {
+    window.open("https://docs.google.com/forms/d/e/1FAIpQLSduyQ2J7cZnH1jsZcfxYovDvUoobILZZkv8sd3-AgmZ_DrCHw/viewform", "_blank");
   };
 
   const handleMedicalFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Medical form submitted! Our team will contact you soon.");
+    // Redirect to Google Form
+    window.open("https://docs.google.com/forms/d/e/1FAIpQLSduyQ2J7cZnH1jsZcfxYovDvUoobILZZkv8sd3-AgmZ_DrCHw/viewform", "_blank");
     setShowMedicalForm(false);
   };
 
@@ -359,27 +365,203 @@ const LandingDiabetes = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content - Left 2/3 */}
             <div className="lg:col-span-2 space-y-12">
-              {/* Pricing Section */}
-              <section id="pricing" className="bg-white rounded-3xl p-8 shadow-lg">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Start Your Journey Today</h2>
-                <div className="mb-8">
-                  <p className="text-gray-600 line-through text-xl mb-2">Competitors Price: ₹75,000 ❌</p>
-                  <p className="text-gray-600 line-through text-lg mb-4">Lowest : ₹15,000 ❌</p>
-                </div>
-                <div className="mb-8">
-                  <p className="text-5xl md:text-6xl font-bold text-[#228b22] mb-2">
-                    START NOW 👉🏻₹1250
-                  </p>
-                  <p className="text-2xl md:text-3xl font-semibold text-gray-700">(99.90% OFF)</p>
-                  <p className="text-gray-600 mt-2">( for full 3+3 months + All Bonus )</p>
-                </div>
-                <Button
-                  onClick={handleStartNow}
-                  className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-8 py-6 rounded-xl font-bold"
-                  size="lg"
+              {/* Plan 1 - Easy Reversal Activation Plan */}
+              <section id="pricing" className="space-y-6">
+                {/* Plan 1 Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
                 >
-                  START NOW 👉🏻₹1250
-                </Button>
+                  {/* Dark Blue Top Section */}
+                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
+                    <h3 className="text-2xl md:text-3xl font-bold mb-6">START MY PERSONAL PLAN 👆</h3>
+                    <div className="space-y-4 text-base md:text-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🔬</span>
+                        <span>Root Cause Diagnosis</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">✉️</span>
+                        <span>Hyper~Personalised Protocol</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🍀</span>
+                        <span>+Custom Traditional medication</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🦉</span>
+                        <span>Doctors Supervision</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🌱🌳</span>
+                        <span>Patience 2-4 weeks minimum</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Orange Middle Section */}
+                  <div className="bg-[#ff6b35] text-white p-4 md:p-6 text-center">
+                    <p className="text-base md:text-lg font-semibold">
+                      Only 14 enrolments Maximum accepted per Week to maintain Medical quality.
+                    </p>
+                  </div>
+
+                  {/* Dark Blue Bottom Section */}
+                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-4 h-4 bg-[#228b22] rounded"></div>
+                      <p className="text-lg md:text-xl">
+                        Easy Reversal Activation Plan For Type 2 diabetes under 5 years (easy/moderate cases) 👇
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Green Button Section */}
+                  <div className="bg-white p-6 md:p-8 text-center relative">
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                    >
+                      Start Now
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
+                  </div>
+                </motion.div>
+
+                {/* Plan 2 - Advanced Diabetes Reversal Plan */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                >
+                  {/* Dark Blue Top Section */}
+                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-4 h-4 bg-blue-400 rounded"></div>
+                      <h3 className="text-2xl md:text-3xl font-bold">
+                        Advanced Diabetes Reversal Plan For diabetes Under 10 years
+                      </h3>
+                    </div>
+                    <span className="text-2xl">👇</span>
+                  </div>
+
+                  {/* Green Button Section */}
+                  <div className="bg-gray-100 p-6 md:p-8 text-center relative">
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                    >
+                      START
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
+                  </div>
+
+                  {/* Assessment Section */}
+                  <div className="bg-[#e8f5e9] p-6 md:p-8 text-center relative border-t-2 border-dashed border-[#228b22]/30">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <span className="text-2xl">🔍</span>
+                      <span className="text-2xl">💉</span>
+                      <span className="text-2xl">🍽️</span>
+                      <span className="text-2xl">💰</span>
+                      <span className="text-2xl">🦶</span>
+                      <span className="text-2xl">📋</span>
+                      <span className="text-2xl">📊</span>
+                      <span className="text-2xl">👁️</span>
+                      <span className="text-2xl">⚙️</span>
+                      <span className="text-2xl">🪙</span>
+                    </div>
+                    <h4 className="text-3xl md:text-4xl font-bold text-[#228b22] mb-4">ASSESSMENT</h4>
+                    <button
+                      onClick={handleAssessmentClick}
+                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-105 relative"
+                    >
+                      Step 2 - Submit the Medical Form
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* Plan 3 - Severe Diabetes Reversal Plan */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                >
+                  {/* "For severe Cases Only" Banner */}
+                  <div className="bg-[#1e3a5f] text-white p-4 md:p-6 flex items-center gap-3">
+                    <span className="text-2xl">📋</span>
+                    <p className="text-lg md:text-xl font-semibold">For severe Cases Only</p>
+                  </div>
+
+                  {/* Dark Blue Main Section */}
+                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-4 h-4 bg-red-500 rounded"></div>
+                      <h3 className="text-2xl md:text-3xl font-bold">Severe Diabetes Reversal Plan</h3>
+                    </div>
+                    <p className="text-lg md:text-xl mb-6">
+                      For diabetics Above 10+ years 👇
+                    </p>
+                    <p className="text-base md:text-lg mb-4">We specialise in customised treatment for Diabetes:</p>
+                    <ul className="space-y-2 text-base md:text-lg list-disc list-inside ml-4">
+                      <li>Type 1 (SIDD, MOD, MARD)</li>
+                      <li>Type 1.5 (LADA)</li>
+                      <li>Long-Term Type 2 (Above 10 years)</li>
+                    </ul>
+                  </div>
+
+                  {/* Green Button Section */}
+                  <div className="bg-white p-6 md:p-8 text-center relative">
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                    >
+                      START NOW
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
+                  </div>
+                </motion.div>
+
+                {/* Important Note */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
+                >
+                  <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-2">
+                    📝 Note: Share Fee Screenshot & Gmail used in form with us 💚
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={handleWhatsAppClick}
+                      className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      WhatsApp: +91 8218741693
+                    </button>
+                  </div>
+                  <p className="text-center text-gray-600 text-sm md:text-base mt-4">
+                    More details are in Below ⬇️
+                  </p>
+                </motion.div>
               </section>
 
               {/* Bonuses Section */}
@@ -590,52 +772,48 @@ const LandingDiabetes = () => {
             </div>
           </div>
 
+          {/* Green Curved Graphic */}
+          <div className="relative mt-16">
+            <div className="absolute inset-0 bg-[#228b22] rounded-t-full h-32 md:h-40 transform -translate-y-1/2"></div>
+            <div className="relative pt-16 md:pt-20 text-center">
+              <p className="text-white font-semibold text-lg md:text-xl px-4">
+                See how our patients have transformed their lives through our program. Read their stories.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Call to Action Section */}
-      <section className="relative py-0 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
-        {/* Large Green Semi-Circular Graphic at Top */}
-        <div className="relative w-full -mt-8 md:-mt-12">
-          <div className="bg-[#228b22] h-24 md:h-32 rounded-t-full"></div>
-        </div>
-
-        <div className="max-w-4xl mx-auto pb-16 md:pb-24">
-          {/* Introductory Text */}
+      {/* Call to Action Section with Purple Ribbon */}
+      <section className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-8 md:mb-12"
           >
-            <p className="text-base md:text-lg text-gray-600 leading-relaxed text-left md:text-center">
-              See how our patients have transformed their lives through our program. Read their stories.
-            </p>
-          </motion.div>
-
-          {/* Main Heading and CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-center"
-          >
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 md:mb-12 leading-tight">
-              Improve Your<br />
-              Health, Reverse<br />
-              Diabetes, Find<br />
-              Peace
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+              Improve Your Health, Reverse Diabetes, Find Peace
             </h2>
             <Button
               onClick={handleStartNow}
-              className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-12 py-6 rounded-xl font-bold"
+              className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-12 py-6 rounded-xl font-bold mb-8"
               size="lg"
             >
               Get Started
             </Button>
           </motion.div>
+
+          {/* Green Ribbon Overlay */}
+          <div className="relative mt-12">
+            <div className="absolute inset-0 bg-[#228b22]/90 rounded-3xl transform rotate-1"></div>
+            <div className="relative bg-[#228b22] rounded-3xl p-8 md:p-12 text-white">
+              <p className="text-lg md:text-xl leading-relaxed">
+                Our program is designed for individuals of all experience levels. We enhance your health, reverse diabetes, and promote deep healing, all with a focus on root cause treatment and personalized care.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
