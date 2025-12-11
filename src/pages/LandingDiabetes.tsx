@@ -299,90 +299,84 @@ const LandingDiabetes = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-12 md:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* Left Content Area */}
-        <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="bg-[#228b22]/10 rounded-3xl p-8 md:p-12"
-            >
-              <p className="text-[#228b22] text-sm md:text-base font-medium mb-4">Root Cause Treatment</p>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Reverse Your Diabetes From the Root Cause
-          </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-                Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
-              </p>
+      <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Reverse Your Diabetes From the Root Cause
+            </h1>
+            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+              Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
-                onClick={handleStartNow}
+                onClick={() => {
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-8 py-6 rounded-xl font-semibold"
                 size="lg"
               >
-                Get Started
+                View Treatment Plans
               </Button>
-        </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-            {/* Right Image Area with Overlay */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative"
-            >
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                <div className="aspect-[4/3] bg-[#228b22]/10 flex items-center justify-center">
-                  <Heart className="w-32 h-32 text-[#228b22] opacity-50" />
-                </div>
-                {/* Green Ribbon Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-[#228b22]/90 backdrop-blur-sm p-6">
-                  <p className="text-white text-sm md:text-base leading-relaxed">
-                    Real People. Real Reversals. Real Health🍀 Your Future Health Depends on the Decision You Make Right Now.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+      {/* 90-Day Roadmap Section */}
+      <section id="roadmap" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Your 90-Day Reversal Roadmap</h2>
+            <p className="text-lg text-gray-600">Three phases to complete diabetes reversal</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {phases.map((phase, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{phase.name}</h3>
+                <p className="text-[#228b22] font-semibold mb-4">{phase.days}</p>
+                <p className="text-gray-600 leading-relaxed">{phase.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Feature Cards Section */}
-      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
-            {phases.map((phase, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden"
-              >
-                <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full ${
-                  index === 0 ? 'bg-blue-100' : index === 1 ? 'bg-gray-100' : 'bg-green-100'
-                }`} />
-                <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{phase.name}</h3>
-                  <p className="text-[#228b22] font-semibold mb-4">{phase.days}</p>
-                  <p className="text-gray-600 leading-relaxed">{phase.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        </div>
-      </section>
+      {/* Plans Section - Clear Header */}
+      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Choose Your Treatment Plan
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-6">
+              Click on any plan below to view details and proceed with payment
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <ChevronDown className="w-5 h-5 animate-bounce" />
+              <span>Click to expand plan details</span>
+            </div>
+          </motion.div>
 
-      {/* Main Content Area with Sidebar */}
-      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content - Left 2/3 */}
-            <div className="lg:col-span-2 space-y-12">
-              {/* Plans Section */}
-              <section id="pricing" className="space-y-8">
+          {/* Plans List */}
+          <div className="space-y-6">
                 {/* Plan 1 - Easy Reversal Activation Plan */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -811,143 +805,28 @@ const LandingDiabetes = () => {
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Important Note */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
+            {/* Important Note */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mt-8"
+            >
+              <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
+                📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
+              </p>
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={handleWhatsAppClick}
+                  className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
                 >
-                  <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-2">
-                    📝 Note: Share Fee Screenshot & Gmail used in form with us 💚
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={handleWhatsAppClick}
-                      className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      WhatsApp: +91 8218741693
-                    </button>
-                  </div>
-                  <p className="text-center text-gray-600 text-sm md:text-base mt-4">
-                    More details are in Below ⬇️
-                  </p>
-                </motion.div>
-              </section>
-
-              {/* Bonuses Section */}
-              <section className="bg-white rounded-3xl p-8 shadow-lg">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">🎁BONUS TODAY ONLY</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {bonuses.map((bonus, index) => (
-                    <div
-                      key={index}
-                      className="bg-[#228b22]/10 rounded-xl p-6 border-2 border-[#228b22]/20"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="bg-[#228b22] rounded-full p-3 flex-shrink-0">
-                          <bonus.icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 mb-2">{bonus.title}</p>
-                          <p className="text-[#228b22] font-bold text-lg">💰 Value: {bonus.value}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="text-center bg-[#228b22]/10 rounded-xl p-6">
-                  <p className="text-2xl font-bold text-gray-800 mb-2">🧮TOTAL REAL VALUE:</p>
-                  <p className="text-3xl font-bold text-[#228b22]">Priceless💚🫂</p>
-                </div>
-              </section>
-            </div>
-
-            {/* Sidebar - Right 1/3 */}
-            <div className="space-y-8">
-              {/* Meet Our Experts */}
-              <section className="bg-white rounded-3xl p-6 shadow-lg">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Meet Our Expert Doctors</h3>
-                <div className="space-y-4">
-                  {["Dr. Priya Sharma", "Dr. Arjun Patel", "Dr. Meera Singh"].map((name, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-[#228b22] flex items-center justify-center text-white font-bold">
-                        {name.split(' ')[1][0]}
-                      </div>
-                      <p className="font-semibold text-gray-900">{name}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Workshops & Events */}
-              <section className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-lg text-white">
-                <h3 className="text-xl font-bold mb-4">Programs & Events</h3>
-                <div className="space-y-4">
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="aspect-video bg-[#228b22] rounded-lg mb-3 flex items-center justify-center">
-                      <Calendar className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="font-semibold mb-2">90-Day Reversal Program</h4>
-                    <Button
-                      onClick={handleStartNow}
-                      className="w-full bg-white text-gray-900 hover:bg-gray-100"
-                      size="sm"
-                    >
-                      Register here
-                    </Button>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="aspect-video bg-[#228b22] rounded-lg mb-3 flex items-center justify-center">
-                      <Heart className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Advanced Diabetes Care</h4>
-                    <Button
-                      onClick={handleStartNow}
-                      className="w-full bg-white text-gray-900 hover:bg-gray-100"
-                      size="sm"
-                    >
-                      Register here
-                    </Button>
-                  </div>
-                </div>
-              </section>
-
-              {/* FAQ Section */}
-              <section className="bg-white rounded-3xl p-6 shadow-lg">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Frequently Asked Questions (FAQ)</h3>
-                <div className="space-y-2">
-                  {faqs.map((faq, index) => (
-                    <div key={index} className="border-b border-gray-200 last:border-0">
-                      <button
-                        onClick={() => toggleFAQ(index)}
-                        className="w-full flex items-center justify-between py-4 text-left"
-                      >
-                        <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
-                        {expandedFAQ === index ? (
-                          <ChevronUp className="w-5 h-5 text-[#228b22] flex-shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        )}
-                      </button>
-                      {expandedFAQ === index && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="pb-4 text-gray-600 leading-relaxed"
-                        >
-                          {faq.answer}
-                        </motion.div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+                  <MessageCircle className="w-5 h-5" />
+                  WhatsApp: +91 8218741693
+                </button>
+              </div>
+            </motion.div>
           </div>
-            </div>
+        </div>
       </section>
 
       {/* Testimonials Section with Orange Curve */}
@@ -1056,36 +935,31 @@ const LandingDiabetes = () => {
         </div>
       </section>
 
-      {/* Call to Action Section with Purple Ribbon */}
-      <section className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+      {/* Final CTA Section */}
+      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-[#228b22]">
         <div className="max-w-4xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
-              Improve Your Health, Reverse Diabetes, Find Peace
-          </h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready to Start Your Journey?
+            </h2>
+            <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
+              Choose a treatment plan above and begin your path to diabetes reversal today
+            </p>
             <Button
-              onClick={handleStartNow}
-              className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-12 py-6 rounded-xl font-bold mb-8"
+              onClick={() => {
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-white text-[#228b22] hover:bg-gray-100 text-lg px-8 py-6 rounded-xl font-bold"
               size="lg"
             >
-              Get Started
+              View Plans
             </Button>
           </motion.div>
-
-          {/* Green Ribbon Overlay */}
-          <div className="relative mt-12">
-            <div className="absolute inset-0 bg-[#228b22]/90 rounded-3xl transform rotate-1"></div>
-            <div className="relative bg-[#228b22] rounded-3xl p-8 md:p-12 text-white">
-              <p className="text-lg md:text-xl leading-relaxed">
-                Our program is designed for individuals of all experience levels. We enhance your health, reverse diabetes, and promote deep healing, all with a focus on root cause treatment and personalized care.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
