@@ -447,7 +447,7 @@ const LandingDiabetes = () => {
                       id: 1,
                       title: "Easy Reversal Activation Plan",
                       description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                      price: "₹15,999",
+                      price: "₹1,250",
                       features: [
                         "Root Cause Diagnosis",
                         "Hyper-Personalised Protocol",
@@ -463,8 +463,7 @@ const LandingDiabetes = () => {
                       id: 2,
                       title: "Advanced Diabetes Reversal Plan",
                       description: "For diabetes under 10 years",
-                      price: "Let's Talk",
-                      priceSubtext: "Contact us for details",
+                      price: "₹5,000",
                       features: [
                         "Advanced Diagnosis",
                         "Custom Protocol",
@@ -478,8 +477,7 @@ const LandingDiabetes = () => {
                       id: 3,
                       title: "Severe Diabetes Reversal Plan",
                       description: "For diabetics above 10+ years",
-                      price: "Let's Talk",
-                      priceSubtext: "Contact us for details",
+                      price: "₹10,000",
                       features: [
                         "Type 1 Diabetes (SIDD, MOD, MARD)",
                         "Type 1.5 Diabetes (LADA)",
@@ -529,15 +527,9 @@ const LandingDiabetes = () => {
                           <div className="text-5xl md:text-6xl font-bold text-white mb-2">
                             {plan.price}
                           </div>
-                          {plan.priceSubtext ? (
-                            <p className="text-white/70 text-base">
-                              {plan.priceSubtext}
-                            </p>
-                          ) : (
-                            <p className="text-white/70 text-base">
-                              Per user / billed yearly
-                            </p>
-                          )}
+                          <p className="text-white/70 text-base">
+                            Per user / billed yearly
+                          </p>
                         </div>
                         
                         {/* Features List */}
@@ -570,7 +562,7 @@ const LandingDiabetes = () => {
                           onClick={() => handlePaymentClick(plan.paymentLink)}
                           className="w-full bg-white/10 border-2 border-[#228b22] text-white hover:bg-white/20 font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-wide"
                         >
-                          {plan.price === "Let's Talk" ? "Talk to an Expert" : "Get Started"}
+                          Get Started
                         </button>
                       </div>
                       
