@@ -44,6 +44,7 @@ const LandingDiabetes = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -312,15 +313,15 @@ const LandingDiabetes = () => {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Left Side - Content */}
             <div className="text-center md:text-left">
-              <motion.div
+        <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               >
                 <motion.h1 
                   className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
                   Reverse Your Diabetes With any other Conditions, and Start living freely in 90 days
@@ -336,44 +337,251 @@ const LandingDiabetes = () => {
                   <p className="mb-2">Everything is done FOR the patient.</p>
                   <p>You don't think ~ You just follow.</p>
                 </motion.div>
-                <motion.div
-                  className="flex flex-col sm:flex-row items-center md:items-start gap-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                >
-                  <Button
-                    onClick={() => {
-                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-8 py-6 rounded-xl font-semibold transition-all transform hover:scale-105"
-                    size="lg"
+              </motion.div>
+          </div>
+            
+            {/* Right Side - Plan Cards Above Image */}
+            <div className="space-y-6">
+              {/* Plans Slider - Dark Card Style */}
+              <div className="relative">
+                {/* Slider Container */}
+                <div className="relative overflow-hidden rounded-3xl">
+                  <AnimatePresence mode="wait">
+                    {[0, 1, 2].map((planIndex) => {
+                      if (planIndex !== currentPlanIndex) return null;
+                      
+                      const plans = [
+                        {
+                          id: 1,
+                          title: "Easy Reversal Activation Plan",
+                          description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
+                          price: "₹1,250",
+                          features: [
+                            "Root Cause Diagnosis",
+                            "Hyper-Personalised Protocol",
+                            "Custom Traditional Medication",
+                            "Doctor's Supervision",
+                            "Unlimited revision & request",
+                            "Pause & Cancel anytime"
+                          ],
+                          paymentLink: "https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D",
+                          badge: "30% off"
+                        },
+                        {
+                          id: 2,
+                          title: "Advanced Diabetes Reversal Plan",
+                          description: "For diabetes under 10 years",
+                          price: "₹5,000",
+                          features: [
+                            "Advanced Diagnosis",
+                            "Custom Protocol",
+                            "Expert Supervision",
+                            "Progress Tracking",
+                            "Unlimited revision & request"
+                          ],
+                          paymentLink: "https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D"
+                        },
+                        {
+                          id: 3,
+                          title: "Severe Diabetes Reversal Plan",
+                          description: "For diabetics above 10+ years",
+                          price: "₹10,000",
+                          features: [
+                            "Type 1 Diabetes (SIDD, MOD, MARD)",
+                            "Type 1.5 Diabetes (LADA)",
+                            "Long-Term Type 2",
+                            "Hyper-personalized protocols",
+                            "Unlimited revision & request"
+                          ],
+                          paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
+                          warning: "For Severe Cases Only"
+                        }
+                      ];
+                      
+                      const plan = plans[planIndex];
+                      
+                      return (
+                        <motion.div
+                          key={planIndex}
+                          initial={{ opacity: 0, x: 100 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -100 }}
+                          transition={{ duration: 0.5 }}
+                          className="bg-gradient-to-br from-[#1a5a1a] via-[#228b22] to-[#1a3d1a] rounded-3xl shadow-2xl overflow-hidden"
+                        >
+                          {/* Warning Banner for Plan 3 */}
+                          {plan.warning && (
+                            <div className="bg-red-600 text-white p-3 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <AlertCircle className="w-4 h-4" />
+                                <p className="font-bold text-sm">{plan.warning}</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="p-6 md:p-8">
+                            {/* Title */}
+                            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                              {plan.title}
+                            </h3>
+                            
+                            {/* Description */}
+                            <p className="text-white/80 mb-6 text-base">
+                              {plan.description}
+                            </p>
+                            
+                            {/* Price */}
+                            <div className="mb-6">
+                              <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+                                {plan.price}
+                              </div>
+                              <p className="text-white/70 text-sm">
+                                Per user / billed yearly
+                              </p>
+                            </div>
+                            
+                            {/* Features List */}
+                            <div className="space-y-3 mb-6">
+                              {plan.features.map((feature, idx) => (
+                                <div key={idx} className="flex items-center gap-3">
+                                  <div className="w-5 h-5 rounded-full bg-[#228b22] border-2 border-white/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 className="w-3 h-3 text-white" />
+                                  </div>
+                                  <span className="text-white text-base">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* CTA Button */}
+                            <button
+                              onClick={() => {
+                                togglePlan(plan.id);
+                              }}
+                              className="w-full bg-white/10 border-2 border-[#228b22] text-white hover:bg-white/20 font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wide text-sm"
+                            >
+                              Get Started
+                            </button>
+                          </div>
+                          
+                          {/* Collapsible Details */}
+                          <AnimatePresence>
+                            {expandedPlans[plan.id] && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="overflow-hidden bg-black/20"
+                              >
+                                <div className="p-6 space-y-4">
+                                  {/* Additional Details for Plan 1 */}
+                                  {plan.id === 1 && (
+                                    <>
+                                      <div className="bg-white/10 rounded-xl p-3 text-center">
+                                        <p className="text-xs md:text-sm font-semibold text-white">
+                                          <Clock className="w-3 h-3 inline mr-2" />
+                                          Patience 2-4 weeks minimum for visible results
+                                        </p>
+                                      </div>
+                                      <div className="bg-white/10 rounded-xl p-3 text-center">
+                                        <p className="text-xs md:text-sm font-semibold text-white">
+                                          Only 14 enrolments maximum accepted per week to maintain medical quality
+                                        </p>
+                                      </div>
+                                    </>
+                                  )}
+                                  
+                                  {/* Payment Section */}
+                                  <div>
+                                    <button
+                                      onClick={() => handlePaymentClick(plan.paymentLink)}
+                                      className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                    >
+                                      Step 1 - Pay the Treatment Fee
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Assessment Section */}
+                                  <div className="bg-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-center gap-2 mb-3">
+                                      <Activity className="w-5 h-5 text-white" />
+                                      <h4 className="text-lg md:text-xl font-bold text-white">Medical Assessment</h4>
+                                    </div>
+                                    <p className="text-center text-white/90 mb-3 text-xs md:text-sm">
+                                      Complete your medical form to receive personalized treatment plan
+                                    </p>
+                                    <button
+                                      onClick={handleAssessmentClick}
+                                      className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-2 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                    >
+                                      Step 2 - Submit the Medical Form
+                                    </button>
+                                  </div>
+                                </div>
+        </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+                
+                {/* Slider Navigation */}
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <button
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                    className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                    aria-label="Previous plan"
                   >
-                    View Treatment Plans
-                  </Button>
-                </motion.div>
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Slider Dots */}
+                  <div className="flex items-center gap-2">
+                    {[0, 1, 2].map((index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentPlanIndex(index)}
+                        className={`transition-all rounded-full ${
+                          currentPlanIndex === index
+                            ? "w-3 h-3 bg-[#228b22]"
+                            : "w-2 h-2 bg-gray-300 hover:bg-[#228b22]/50"
+                        }`}
+                        aria-label={`Go to plan ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                    className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                    aria-label="Next plan"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Image Below Plan Cards */}
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="relative rounded-2xl overflow-hidden shadow-xl"
+              >
+                <img 
+                  src="/IMG_8141.JPG" 
+                  alt="UrCare Diabetes Treatment" 
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Image failed to load:', e.currentTarget.src);
+                  }}
+                />
               </motion.div>
             </div>
-            
-            {/* Right Side - IMG_8141 */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative rounded-2xl overflow-hidden shadow-xl"
-            >
-              <img 
-                src="/IMG_8141.JPG" 
-                alt="UrCare Diabetes Treatment" 
-                className="w-full h-auto object-contain"
-                loading="lazy"
-                onError={(e) => {
-                  console.error('Image failed to load:', e.currentTarget.src);
-                }}
-              />
-            </motion.div>
           </div>
-          
         </div>
       </section>
 
@@ -387,8 +595,7 @@ const LandingDiabetes = () => {
             viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Your 90-Day Reversal Roadmap</h2>
-            <p className="text-lg text-gray-600">Three phases to complete diabetes reversal</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The Result You Can Expect</h2>
           </motion.div>
           
           {/* Second Image - Below 90-Day Reversal Text */}
@@ -410,41 +617,165 @@ const LandingDiabetes = () => {
             />
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {phases.map((phase, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ 
-                  duration: 0.6, 
-                  delay: index * 0.15,
-                  type: "spring",
-                  stiffness: 100
-                }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+          {/* Type 1 Success Stories Slider */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Slider Container */}
+            <div className="relative overflow-hidden rounded-3xl">
+              <AnimatePresence mode="wait">
+                {[0, 1, 2].map((storyIndex) => {
+                  if (storyIndex !== currentStoryIndex) return null;
+                  
+                  const stories = [
+                    {
+                      title: "Type 1",
+                      items: [
+                        {
+                          storyTitle: "6-Year Full Remission Story",
+                          description: "A 33-year-old man lived completely insulin-free for six straight years."
+                        },
+                        {
+                          storyTitle: "5+ Year Freedom Story",
+                          description: "A 24-year-old stayed in full remission for more than five years with stable sugars."
+                        },
+                        {
+                          storyTitle: "Years of Stability Story",
+                          description: "A 68-year-old woman maintained long-term remission for several steady years."
+                        },
+                        {
+                          storyTitle: "950-Day Childhood Remission Story",
+                          description: "A child stayed off insulin for 950 days with smooth, stable readings."
+                        }
+                      ]
+                    },
+                    {
+                      title: "Type 1.5",
+                      items: [
+                        {
+                          storyTitle: "3-Year LADA Remission Story",
+                          description: "A patient with LADA enjoyed three full years of stable remission."
+                        },
+                        {
+                          storyTitle: "Up to 13-Year LADA Story",
+                          description: "Cases show honeymoon phases lasting from one month up to thirteen years."
+                        }
+                      ]
+                    },
+                    {
+                      title: "Type 2",
+                      items: [
+                        {
+                          storyTitle: "7-Day Reversal:",
+                          description: "PMC3593165 (Counterpoint Study, N=11 participants, peer-reviewed)"
+                        },
+                        {
+                          storyTitle: "8-Week Beta-Cell Restoration:",
+                          description: "PMC3593165 (Same study, gold-standard testing)"
+                        },
+                        {
+                          storyTitle: "3-Month Complete Remission:",
+                          description: "PMC9480679 (Individual case, HbA1c 14.9%→5.1%)"
+                        },
+                        {
+                          storyTitle: "Large Trial Validation:",
+                          description: "DiRECT Study (N=306, 46% remission at 1 year)"
+                        },
+                        {
+                          storyTitle: "Long-Term Proof:",
+                          description: "5-year DiRECT follow-up published 2024"
+                        }
+                      ]
+                    }
+                  ];
+                  
+                  const storyCard = stories[storyIndex];
+                  
+                  return (
+                    <motion.div
+                      key={storyIndex}
+                      initial={{ opacity: 0, x: 100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+                    >
+                      <div className="p-8 md:p-10">
+                        {/* Title */}
+                        <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
+                          {storyCard.title}
+                        </h3>
+                        
+                        {/* Stories List */}
+                        <div className="space-y-6">
+                          {storyCard.items.map((item, idx) => (
+                            <div key={idx} className="flex items-start gap-4">
+                              <div className="w-6 h-6 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-1">
+                                <CheckCircle2 className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+                                  {item.storyTitle}
+                                </h4>
+                                <p className="text-gray-600 text-base md:text-lg leading-relaxed">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+            
+            {/* Slider Navigation */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                onClick={() => setCurrentStoryIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                aria-label="Previous story"
               >
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{phase.name}</h3>
-                <p className="text-[#228b22] font-semibold mb-4">{phase.days}</p>
-                <p className="text-gray-600 leading-relaxed">{phase.description}</p>
-              </motion.div>
-            ))}
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              {/* Slider Dots */}
+              <div className="flex items-center gap-2">
+                {[0, 1, 2].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentStoryIndex(index)}
+                    className={`transition-all rounded-full ${
+                      currentStoryIndex === index
+                        ? "w-3 h-3 bg-[#228b22]"
+                        : "w-2 h-2 bg-gray-300 hover:bg-[#228b22]/50"
+                    }`}
+                    aria-label={`Go to story ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setCurrentStoryIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                aria-label="Next story"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Plans Section - Redesigned */}
-      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
+      {/* Third Image Section */}
+      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-5xl mx-auto">
-          {/* Third Image - Above Pricing Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative rounded-2xl overflow-hidden shadow-xl mb-12"
+            className="relative rounded-2xl overflow-hidden shadow-xl"
           >
             <img 
               src="/IMG_9439.JPG" 
@@ -456,52 +787,14 @@ const LandingDiabetes = () => {
               }}
             />
           </motion.div>
-          
-          {/* Section Header - Matching Image Design */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-            {/* Pricing Plan Label */}
-            <motion.div 
-              className="inline-flex items-center gap-2 bg-[#228b22]/10 px-4 py-2 rounded-full mb-6"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <Star className="w-4 h-4 text-[#228b22] fill-[#228b22]" />
-              <span className="text-sm font-semibold text-[#228b22]">Pricing Plan</span>
-            </motion.div>
-            
-            {/* Main Title */}
-            <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              Simple, Flexible Pricing
-            </motion.h2>
-            
-            {/* Description */}
-            <motion.p 
-              className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              See our pricing data and select your best service from our side. We always appreciate your subscription and we are dedicated to give our best efforts.
-            </motion.p>
-            
-        </motion.div>
+        </div>
+      </section>
 
-          {/* Plans Slider - Dark Card Style */}
-          <div className="relative">
+      {/* Important Note Section */}
+      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
+        <div className="max-w-5xl mx-auto">
+          {/* Plans Slider - Moved to Hero Section */}
+          <div className="relative hidden">
             {/* Slider Container */}
             <div className="relative overflow-hidden rounded-3xl">
               <AnimatePresence mode="wait">
@@ -573,7 +866,7 @@ const LandingDiabetes = () => {
                           <div className="flex items-center justify-center gap-2">
                             <AlertCircle className="w-4 h-4" />
                             <p className="font-bold text-sm">{plan.warning}</p>
-                          </div>
+                </div>
                         </div>
                       )}
                       
@@ -723,7 +1016,7 @@ const LandingDiabetes = () => {
           
           {/* Old Plans List - Removed, using slider above */}
           <div className="hidden">
-                <motion.div
+          <motion.div
                   initial={{ opacity: 0, y: 40, scale: 0.95 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-50px" }}
@@ -742,7 +1035,7 @@ const LandingDiabetes = () => {
                       <div className="flex items-center gap-1 bg-yellow-400 px-3 py-1 rounded-full">
                         <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
                         <span className="text-xs font-bold text-yellow-900">30% off</span>
-                      </div>
+            </div>
                     </div>
                     
                     {/* Description */}
@@ -798,7 +1091,7 @@ const LandingDiabetes = () => {
                           <span className="text-white">{feature}</span>
                         </motion.div>
                       ))}
-        </motion.div>
+          </motion.div>
 
                     {/* Expand Button */}
                     <button
@@ -825,7 +1118,7 @@ const LandingDiabetes = () => {
                   {/* Collapsible Details */}
                   <AnimatePresence>
                     {expandedPlans[1] && (
-            <motion.div
+          <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -839,7 +1132,7 @@ const LandingDiabetes = () => {
                               <Clock className="w-4 h-4 inline mr-2" />
                               Patience 2-4 weeks minimum for visible results
                             </p>
-                          </div>
+            </div>
                           
                           {/* Enrollment Notice */}
                           <div className="bg-white/20 rounded-xl p-4 text-center">
@@ -868,10 +1161,10 @@ const LandingDiabetes = () => {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+          </motion.div>
 
                 {/* Plan 2 - Advanced Diabetes Reversal Plan (White Background) */}
-                <motion.div
+          <motion.div
                   initial={{ opacity: 0, y: 40, scale: 0.95 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-50px" }}
@@ -899,7 +1192,7 @@ const LandingDiabetes = () => {
                     <div className="mb-6">
                       <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                         Let's Talk
-                      </div>
+            </div>
                       <p className="text-gray-500 text-sm md:text-base">
                         Contact us for details
                       </p>
@@ -940,7 +1233,7 @@ const LandingDiabetes = () => {
                         >
                           <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
                           <span className="text-gray-700">{feature}</span>
-            </motion.div>
+          </motion.div>
           ))}
                     </motion.div>
                     
@@ -964,7 +1257,7 @@ const LandingDiabetes = () => {
                     >
                       Contact Sales
                     </button>
-                  </div>
+        </div>
 
                   {/* Collapsible Details */}
                   <AnimatePresence>
@@ -1163,28 +1456,28 @@ const LandingDiabetes = () => {
                     )}
                   </AnimatePresence>
           </motion.div>
+          </div>
 
-            {/* Important Note */}
+          {/* Important Note */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mt-8"
-            >
-              <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
-                📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
-              </p>
-              <div className="flex items-center justify-center">
-                <button
-                  onClick={handleWhatsAppClick}
-                  className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  WhatsApp: +91 8218741693
-                </button>
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mt-8"
+          >
+            <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
+              📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
+            </p>
+            <div className="flex items-center justify-center">
+              <button
+                onClick={handleWhatsAppClick}
+                className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
+              >
+                <MessageCircle className="w-5 h-5" />
+                WhatsApp: +91 8218741693
+              </button>
             </div>
           </motion.div>
-        </div>
         </div>
       </section>
 
@@ -1346,7 +1639,7 @@ const LandingDiabetes = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               whileHover={{ scale: 1.05 }}
             >
-              <Button
+            <Button
                 onClick={() => {
                   document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -1354,7 +1647,7 @@ const LandingDiabetes = () => {
                 size="lg"
               >
                 View Plans
-              </Button>
+            </Button>
             </motion.div>
           </motion.div>
         </div>
