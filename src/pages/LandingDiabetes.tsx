@@ -544,22 +544,11 @@ const LandingDiabetes = () => {
                           ))}
                         </div>
                         
-                        {/* Expand Button */}
-                        <button
-                          onClick={() => togglePlan(plan.id)}
-                          className="w-full mb-6 flex items-center justify-center gap-2 text-white/80 hover:text-white transition-colors"
-                        >
-                          <span className="text-base font-medium">View Details</span>
-                          {expandedPlans[plan.id] ? (
-                            <ChevronUp className="w-5 h-5" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5" />
-                          )}
-                        </button>
-                        
                         {/* CTA Button */}
                         <button
-                          onClick={() => handlePaymentClick(plan.paymentLink)}
+                          onClick={() => {
+                            togglePlan(plan.id);
+                          }}
                           className="w-full bg-white/10 border-2 border-[#228b22] text-white hover:bg-white/20 font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-wide"
                         >
                           Get Started
