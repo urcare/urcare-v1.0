@@ -325,14 +325,17 @@ const LandingDiabetes = () => {
                 >
                   Reverse Your Diabetes With any other Conditions, and Start living freely in 90 days
                 </motion.h1>
-                <motion.p 
-                  className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"
+                <motion.div 
+                  className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed text-left"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
-                </motion.p>
+                  <p className="mb-2">If you follow the Treatment plan and</p>
+                  <p className="mb-2">don't improve → you get 200% back.</p>
+                  <p className="mb-2">Everything is done FOR the patient.</p>
+                  <p>You don't think ~ You just follow.</p>
+                </motion.div>
                 <motion.div
                   className="flex flex-col sm:flex-row items-center md:items-start gap-4"
                   initial={{ opacity: 0, y: 20 }}
