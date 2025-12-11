@@ -240,12 +240,12 @@ const LandingDiabetes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-[#228b22]/20">
       {/* Header - Modern Translucent Design */}
-      <header className="sticky top-0 z-40 pt-4 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 pt-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Translucent Rounded Header Bar */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-full border border-white/20 shadow-lg px-6 py-4">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-full border border-white/30 shadow-xl px-6 py-4">
             <div className="flex items-center justify-between">
               {/* Logo and Company Name */}
               <div className="flex items-center gap-3">
@@ -305,7 +305,7 @@ const LandingDiabetes = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -334,7 +334,7 @@ const LandingDiabetes = () => {
       </section>
 
       {/* 90-Day Roadmap Section */}
-      <section id="roadmap" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="roadmap" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Your 90-Day Reversal Roadmap</h2>
@@ -360,7 +360,7 @@ const LandingDiabetes = () => {
       </section>
 
       {/* Plans Section - Redesigned */}
-      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-5xl mx-auto">
           {/* Section Header - Matching Image Design */}
           <motion.div
@@ -824,7 +824,7 @@ const LandingDiabetes = () => {
       </section>
 
       {/* Testimonials Section with Orange Curve */}
-      <section id="testimonials" className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+      <section id="testimonials" className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-transparent overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
