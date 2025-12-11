@@ -306,6 +306,26 @@ const LandingDiabetes = () => {
         </div>
       </header>
 
+      {/* Top Banner Image */}
+      <section className="relative w-full overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="w-full"
+        >
+          <img 
+            src="/IMG_8141.JPG" 
+            alt="UrCare Diabetes Treatment" 
+            className="w-full h-auto object-cover"
+            loading="eager"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </motion.div>
+      </section>
+
       {/* Hero Section */}
       <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-7xl mx-auto">
