@@ -306,29 +306,28 @@ const LandingDiabetes = () => {
         </div>
       </header>
 
-      {/* Top Banner Image */}
-      <section className="relative w-full overflow-hidden -mt-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="w-full"
-        >
-          <img 
-            src="/IMG_8141.JPG" 
-            alt="UrCare Diabetes Treatment" 
-            className="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover"
-            loading="eager"
-            onError={(e) => {
-              console.error('Image failed to load:', e.currentTarget.src);
-            }}
-          />
-        </motion.div>
-      </section>
-
       {/* Hero Section */}
-      <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
+      <section className="relative py-12 md:py-20 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-7xl mx-auto">
+          {/* Main Hero Image */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mb-12 rounded-3xl overflow-hidden shadow-2xl"
+          >
+            <img 
+              src="/IMG_8141.JPG" 
+              alt="UrCare Diabetes Treatment" 
+              className="w-full h-[250px] md:h-[400px] lg:h-[500px] object-cover"
+              loading="eager"
+              onError={(e) => {
+                console.error('Image failed to load:', e.currentTarget.src);
+              }}
+            />
+          </motion.div>
+
+          {/* Content and Side Images */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Left Side - Content */}
             <div className="text-center md:text-left">
@@ -372,18 +371,18 @@ const LandingDiabetes = () => {
               </motion.div>
             </div>
             
-            {/* Right Side - Images */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Right Side - Images Grid */}
+            <div className="space-y-4">
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="relative rounded-2xl overflow-hidden shadow-xl h-[200px] md:h-[300px]"
+                className="relative rounded-2xl overflow-hidden shadow-xl"
               >
                 <img 
                   src="/IMG_9696.JPG" 
                   alt="Diabetes Treatment" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-[250px] md:h-[300px] object-cover"
                   loading="lazy"
                   onError={(e) => {
                     console.error('Image failed to load:', e.currentTarget.src);
@@ -394,12 +393,12 @@ const LandingDiabetes = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
-                className="relative rounded-2xl overflow-hidden shadow-xl mt-8 h-[200px] md:h-[300px]"
+                className="relative rounded-2xl overflow-hidden shadow-xl"
               >
                 <img 
                   src="/IMG_9439.JPG" 
                   alt="Health Transformation" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-[250px] md:h-[300px] object-cover"
                   loading="lazy"
                   onError={(e) => {
                     console.error('Image failed to load:', e.currentTarget.src);
