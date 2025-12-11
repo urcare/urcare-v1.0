@@ -41,6 +41,7 @@ const LandingDiabetes = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
+  const [isYearly, setIsYearly] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -354,77 +355,147 @@ const LandingDiabetes = () => {
         </div>
       </section>
 
-      {/* Plans Section - Clear Header */}
-      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          {/* Section Header */}
+      {/* Plans Section - Redesigned */}
+      <section id="pricing" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-5xl mx-auto">
+          {/* Section Header - Matching Image Design */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Treatment Plan
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-6">
-              Click on any plan below to view details and proceed with payment
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <ChevronDown className="w-5 h-5 animate-bounce" />
-              <span>Click to expand plan details</span>
+            {/* Pricing Plan Label */}
+            <div className="inline-flex items-center gap-2 bg-[#228b22]/10 px-4 py-2 rounded-full mb-6">
+              <Star className="w-4 h-4 text-[#228b22] fill-[#228b22]" />
+              <span className="text-sm font-semibold text-[#228b22]">Pricing Plan</span>
             </div>
+            
+            {/* Main Title */}
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Simple, Flexible Pricing
+            </h2>
+            
+            {/* Description */}
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              See our pricing data and select your best service from our side. We always appreciate your subscription and we are dedicated to give our best efforts.
+            </p>
+            
+            {/* Monthly/Yearly Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <span className={`text-base font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setIsYearly(!isYearly)}
+                className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${
+                  isYearly ? 'bg-[#228b22]' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-300 ${
+                    isYearly ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+              <span className={`text-base font-medium ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
+                Yearly
+              </span>
+            </div>
+            
+            {/* Discount Text */}
+            {isYearly && (
+              <p className="text-[#228b22] font-semibold text-base mb-8">
+                Save 30% OFF
+              </p>
+            )}
           </motion.div>
 
-          {/* Plans List */}
+          {/* Plans List - Redesigned */}
           <div className="space-y-6">
-                {/* Plan 1 - Easy Reversal Activation Plan */}
+                {/* Plan 1 - Easy Reversal Activation Plan (Featured with Green Background) */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-300 group"
+                  className="bg-[#228b22] rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300"
                 >
-                  {/* Header Section */}
-                  <div className="relative bg-gradient-to-br from-[#228b22] via-[#1e7a1e] to-[#1a6b1a] text-white p-6 md:p-8 overflow-hidden">
-                    {/* Decorative Background Elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
-                    
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          {/* Icon Badge */}
-                          <div className="flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-                            <CheckCircle2 className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                              <span className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wider">Plan 1</span>
-                            </div>
-                            <h3 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">Easy Reversal Activation Plan</h3>
-                            <p className="text-base md:text-lg text-white/90 leading-relaxed">
-                              For Type 2 diabetes under 5 years (easy/moderate cases)
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => togglePlan(1)}
-                          className="flex-shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 transition-all duration-200 hover:scale-110 shadow-lg"
-                          aria-label="Toggle plan details"
-                        >
-                          {expandedPlans[1] ? (
-                            <ChevronUp className="w-5 h-5 text-white" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-white" />
-                          )}
-                        </button>
+                  <div className="p-6 md:p-8">
+                    {/* Title with Badge */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-2xl md:text-3xl font-bold text-white">Easy Reversal Activation Plan</h3>
+                      <div className="flex items-center gap-1 bg-yellow-400 px-3 py-1 rounded-full">
+                        <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
+                        <span className="text-xs font-bold text-yellow-900">30% off</span>
                       </div>
                     </div>
+                    
+                    {/* Description */}
+                    <p className="text-white/90 mb-6 text-base md:text-lg">
+                      For Type 2 diabetes under 5 years (easy/moderate cases)
+                    </p>
+                    
+                    {/* Price */}
+                    <div className="mb-6">
+                      <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+                        ₹15,999
+                      </div>
+                      <p className="text-white/80 text-sm md:text-base">
+                        Per user / billed yearly
+                      </p>
+                    </div>
+                    
+                    {/* Features List */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Root Cause Diagnosis</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Hyper-Personalised Protocol</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Custom Traditional Medication</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Doctor's Supervision</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Unlimited revision & request</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                        <span className="text-white">Pause & Cancel anytime</span>
+                      </div>
+                    </div>
+                    
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => togglePlan(1)}
+                      className="w-full mb-4 flex items-center justify-center gap-2 text-white/90 hover:text-white transition-colors"
+                    >
+                      <span className="text-sm font-medium">View Details</span>
+                      {expandedPlans[1] ? (
+                        <ChevronUp className="w-5 h-5" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </button>
+                    
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
+                      className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    >
+                      Get Started
+                    </button>
                   </div>
 
-                  {/* Features Section - Collapsible */}
+                  {/* Collapsible Details */}
                   <AnimatePresence>
                     {expandedPlans[1] && (
                       <motion.div
@@ -432,224 +503,38 @@ const LandingDiabetes = () => {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
+                        className="overflow-hidden bg-white/10"
                       >
-                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
-                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
-                      What's Included
-                    </h4>
-                    <div className="grid md:grid-cols-2 gap-4 mb-6">
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Microscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Root Cause Diagnosis</p>
-                          <p className="text-sm text-gray-600">Comprehensive analysis</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <FileText className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Hyper-Personalised Protocol</p>
-                          <p className="text-sm text-gray-600">Tailored to your needs</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Leaf className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Custom Traditional Medication</p>
-                          <p className="text-sm text-gray-600">Natural healing approach</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Stethoscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Doctor's Supervision</p>
-                          <p className="text-sm text-gray-600">Expert guidance</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-[#228b22]/20 rounded-xl p-4 text-center">
-                      <p className="text-sm md:text-base font-semibold text-gray-800">
-                        <Clock className="w-4 h-4 inline mr-2 text-[#228b22]" />
-                        Patience 2-4 weeks minimum for visible results
-                      </p>
-                    </div>
-                        </div>
-
-                        {/* Enrollment Notice */}
-                        <div className="bg-[#228b22] text-white p-4 md:p-6 text-center">
-                          <p className="text-base md:text-lg font-semibold">
-                            Only 14 enrolments maximum accepted per week to maintain medical quality
-                          </p>
-                        </div>
-
-                        {/* Payment Button */}
-                        <div className="p-6 md:p-8 bg-gradient-to-b from-white to-gray-50/50">
-                          <button
-                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
-                            className="w-full bg-gradient-to-r from-[#228b22] via-[#1e7a1e] to-[#228b22] hover:from-[#1e7a1e] hover:via-[#1a6b1a] hover:to-[#1e7a1e] text-white text-lg md:text-xl font-bold py-4 md:py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] relative group overflow-hidden"
-                          >
-                            <span className="relative z-10 flex items-center justify-center gap-2">
-                              Step 1 - Pay the Treatment Fee
-                              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                          </button>
-                        </div>
-
-                        {/* Assessment Section */}
-                        <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
-                          <div className="flex items-center justify-center gap-2 mb-4">
-                            <Activity className="w-6 h-6 text-[#228b22]" />
-                            <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
-                          </div>
-                          <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
-                            Complete your medical form to receive personalized treatment plan
-                          </p>
-                          <button
-                            onClick={handleAssessmentClick}
-                            className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
-                          >
-                            Step 2 - Submit the Medical Form
-                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Plan 2 - Advanced Diabetes Reversal Plan */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-300 group"
-                >
-                  {/* Header Section */}
-                  <div className="relative bg-gradient-to-br from-[#228b22] via-[#1e7a1e] to-[#1a6b1a] text-white p-6 md:p-8 overflow-hidden">
-                    {/* Decorative Background Elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
-                    
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          {/* Icon Badge */}
-                          <div className="flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-                            <Activity className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                              <span className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wider">Plan 2</span>
-                            </div>
-                            <h3 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">Advanced Diabetes Reversal Plan</h3>
-                            <p className="text-base md:text-lg text-white/90 leading-relaxed">
-                              For diabetes under 10 years
+                        <div className="p-6 md:p-8 space-y-6">
+                          {/* Additional Details */}
+                          <div className="bg-white/20 rounded-xl p-4 text-center">
+                            <p className="text-sm md:text-base font-semibold text-white">
+                              <Clock className="w-4 h-4 inline mr-2" />
+                              Patience 2-4 weeks minimum for visible results
                             </p>
                           </div>
-                        </div>
-                        <button
-                          onClick={() => togglePlan(2)}
-                          className="flex-shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 transition-all duration-200 hover:scale-110 shadow-lg"
-                          aria-label="Toggle plan details"
-                        >
-                          {expandedPlans[2] ? (
-                            <ChevronUp className="w-5 h-5 text-white" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-white" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Features Section - Collapsible */}
-                  <AnimatePresence>
-                    {expandedPlans[2] && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
-                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
-                      Comprehensive Treatment
-                    </h4>
-                    <div className="grid md:grid-cols-2 gap-4 mb-6">
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Microscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Advanced Diagnosis</p>
-                          <p className="text-sm text-gray-600">Deep root cause analysis</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <FileText className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Custom Protocol</p>
-                          <p className="text-sm text-gray-600">Personalized treatment plan</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Stethoscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Expert Supervision</p>
-                          <p className="text-sm text-gray-600">Regular doctor consultations</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <Activity className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">Progress Tracking</p>
-                          <p className="text-sm text-gray-600">Monitor improvements</p>
-                        </div>
-                      </div>
-                    </div>
-                        </div>
-
-                        {/* Payment Button */}
-                        <div className="p-6 md:p-8 bg-gradient-to-b from-white to-gray-50/50">
-                          <button
-                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
-                            className="w-full bg-gradient-to-r from-[#228b22] via-[#1e7a1e] to-[#228b22] hover:from-[#1e7a1e] hover:via-[#1a6b1a] hover:to-[#1e7a1e] text-white text-lg md:text-xl font-bold py-4 md:py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] relative group overflow-hidden"
-                          >
-                            <span className="relative z-10 flex items-center justify-center gap-2">
-                              Step 1 - Pay the Treatment Fee
-                              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                          </button>
-                        </div>
-
-                        {/* Assessment Section */}
-                        <div className="bg-gradient-to-br from-[#e8f5e9] via-[#c8e6c9] to-[#a5d6a7] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/20 relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-[#228b22]/5 rounded-full -mr-16 -mt-16"></div>
-                          <div className="relative z-10">
-                            <div className="flex items-center justify-center gap-3 mb-4">
-                              <div className="w-10 h-10 bg-[#228b22]/10 rounded-xl flex items-center justify-center border border-[#228b22]/20">
-                                <Activity className="w-6 h-6 text-[#228b22]" />
-                              </div>
-                              <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                          
+                          {/* Enrollment Notice */}
+                          <div className="bg-white/20 rounded-xl p-4 text-center">
+                            <p className="text-sm md:text-base font-semibold text-white">
+                              Only 14 enrolments maximum accepted per week to maintain medical quality
+                            </p>
+                          </div>
+                          
+                          {/* Assessment Section */}
+                          <div className="bg-white/20 rounded-xl p-6">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                              <Activity className="w-6 h-6 text-white" />
+                              <h4 className="text-xl md:text-2xl font-bold text-white">Medical Assessment</h4>
                             </div>
-                            <p className="text-center text-gray-700 mb-6 text-sm md:text-base leading-relaxed">
+                            <p className="text-center text-white/90 mb-4 text-sm md:text-base">
                               Complete your medical form to receive personalized treatment plan
                             </p>
                             <button
                               onClick={handleAssessmentClick}
-                              className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-base md:text-lg font-semibold py-3 md:py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] relative group overflow-hidden"
+                              className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                             >
-                              <span className="relative z-10 flex items-center justify-center gap-2">
-                                Step 2 - Submit the Medical Form
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                              </span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                              Step 2 - Submit the Medical Form
                             </button>
                           </div>
                         </div>
@@ -658,65 +543,208 @@ const LandingDiabetes = () => {
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Plan 3 - Severe Diabetes Reversal Plan */}
+                {/* Plan 2 - Advanced Diabetes Reversal Plan (White Background) */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="p-6 md:p-8">
+                    {/* Title */}
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                      Advanced Diabetes Reversal Plan
+                    </h3>
+                    
+                    {/* Description */}
+                    <p className="text-gray-600 mb-6 text-base md:text-lg">
+                      For diabetes under 10 years
+                    </p>
+                    
+                    {/* Let's Talk Section */}
+                    <div className="mb-6">
+                      <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                        Let's Talk
+                      </div>
+                      <p className="text-gray-500 text-sm md:text-base">
+                        Contact us for details
+                      </p>
+                    </div>
+                    
+                    {/* Features List */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Advanced Diagnosis</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Custom Protocol</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Expert Supervision</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Progress Tracking</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Unlimited revision & request</span>
+                      </div>
+                    </div>
+                    
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => togglePlan(2)}
+                      className="w-full mb-4 flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <span className="text-sm font-medium">View Details</span>
+                      {expandedPlans[2] ? (
+                        <ChevronUp className="w-5 h-5" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </button>
+                    
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
+                      className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    >
+                      Contact Sales
+                    </button>
+                  </div>
+
+                  {/* Collapsible Details */}
+                  <AnimatePresence>
+                    {expandedPlans[2] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden bg-gray-50"
+                      >
+                        <div className="p-6 md:p-8 space-y-6">
+                          {/* Payment Section */}
+                          <div>
+                            <button
+                              onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
+                              className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02]"
+                            >
+                              Step 1 - Pay the Treatment Fee
+                            </button>
+                          </div>
+                          
+                          {/* Assessment Section */}
+                          <div className="bg-[#e8f5e9] rounded-xl p-6">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                              <Activity className="w-6 h-6 text-[#228b22]" />
+                              <h4 className="text-xl md:text-2xl font-bold text-[#228b22]">Medical Assessment</h4>
+                            </div>
+                            <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                              Complete your medical form to receive personalized treatment plan
+                            </p>
+                            <button
+                              onClick={handleAssessmentClick}
+                              className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
+                            >
+                              Step 2 - Submit the Medical Form
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Plan 3 - Severe Diabetes Reversal Plan (White Background) */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-300 group"
+                  className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300"
                 >
                   {/* Warning Banner */}
-                  <div className="relative bg-gradient-to-r from-[#dc2626] via-[#c5221f] to-[#b91c1c] text-white p-4 md:p-6 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-                    <div className="relative z-10 flex items-center gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
-                        <AlertCircle className="w-5 h-5 text-white" />
-                      </div>
-                      <p className="text-base md:text-lg font-bold tracking-wide">For Severe Cases Only</p>
+                  <div className="bg-red-600 text-white p-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      <p className="font-bold text-sm md:text-base">For Severe Cases Only</p>
                     </div>
                   </div>
-
-                  {/* Header Section */}
-                  <div className="relative bg-gradient-to-br from-[#228b22] via-[#1e7a1e] to-[#1a6b1a] text-white p-6 md:p-8 overflow-hidden">
-                    {/* Decorative Background Elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+                  
+                  <div className="p-6 md:p-8">
+                    {/* Title */}
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                      Severe Diabetes Reversal Plan
+                    </h3>
                     
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          {/* Icon Badge */}
-                          <div className="flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-                            <Shield className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                              <span className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wider">Plan 3</span>
-                            </div>
-                            <h3 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">Severe Diabetes Reversal Plan</h3>
-                            <p className="text-base md:text-lg text-white/90 leading-relaxed">
-                              For diabetics above 10+ years
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => togglePlan(3)}
-                          className="flex-shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 transition-all duration-200 hover:scale-110 shadow-lg"
-                          aria-label="Toggle plan details"
-                        >
-                          {expandedPlans[3] ? (
-                            <ChevronUp className="w-5 h-5 text-white" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-white" />
-                          )}
-                        </button>
+                    {/* Description */}
+                    <p className="text-gray-600 mb-6 text-base md:text-lg">
+                      For diabetics above 10+ years
+                    </p>
+                    
+                    {/* Let's Talk Section */}
+                    <div className="mb-6">
+                      <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                        Let's Talk
+                      </div>
+                      <p className="text-gray-500 text-sm md:text-base">
+                        Contact us for details
+                      </p>
+                    </div>
+                    
+                    {/* Features List */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Type 1 Diabetes (SIDD, MOD, MARD)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Type 1.5 Diabetes (LADA)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Long-Term Type 2</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Hyper-personalized protocols</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
+                        <span className="text-gray-700">Unlimited revision & request</span>
                       </div>
                     </div>
+                    
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => togglePlan(3)}
+                      className="w-full mb-4 flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <span className="text-sm font-medium">View Details</span>
+                      {expandedPlans[3] ? (
+                        <ChevronUp className="w-5 h-5" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </button>
+                    
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
+                      className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    >
+                      Contact Sales
+                    </button>
                   </div>
 
-                  {/* Features Section - Collapsible */}
+                  {/* Collapsible Details */}
                   <AnimatePresence>
                     {expandedPlans[3] && (
                       <motion.div
@@ -724,80 +752,41 @@ const LandingDiabetes = () => {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
+                        className="overflow-hidden bg-gray-50"
                       >
-                        <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
-                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
-                      We Specialize In Customized Treatment For:
-                    </h4>
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <p className="font-semibold text-gray-900">Type 1 Diabetes</p>
-                          <p className="text-sm text-gray-600">SIDD, MOD, MARD variants</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <p className="font-semibold text-gray-900">Type 1.5 Diabetes (LADA)</p>
-                          <p className="text-sm text-gray-600">Latent Autoimmune Diabetes</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
-                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <p className="font-semibold text-gray-900">Long-Term Type 2</p>
-                          <p className="text-sm text-gray-600">Above 10 years duration</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-[#228b22]/20 rounded-xl p-4">
-                      <p className="text-sm md:text-base font-semibold text-gray-800 text-center">
-                        <Shield className="w-4 h-4 inline mr-2 text-[#228b22]" />
-                        Hyper-personalized protocols for complex cases
-                      </p>
-                    </div>
-                        </div>
-
-                        {/* Payment Button */}
-                        <div className="p-6 md:p-8 bg-gradient-to-b from-white to-gray-50/50">
-                          <button
-                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
-                            className="w-full bg-gradient-to-r from-[#228b22] via-[#1e7a1e] to-[#228b22] hover:from-[#1e7a1e] hover:via-[#1a6b1a] hover:to-[#1e7a1e] text-white text-lg md:text-xl font-bold py-4 md:py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] relative group overflow-hidden"
-                          >
-                            <span className="relative z-10 flex items-center justify-center gap-2">
+                        <div className="p-6 md:p-8 space-y-6">
+                          {/* Additional Info */}
+                          <div className="bg-[#228b22]/10 rounded-xl p-4 text-center">
+                            <p className="text-sm md:text-base font-semibold text-gray-800">
+                              <Shield className="w-4 h-4 inline mr-2 text-[#228b22]" />
+                              Hyper-personalized protocols for complex cases
+                            </p>
+                          </div>
+                          
+                          {/* Payment Section */}
+                          <div>
+                            <button
+                              onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
+                              className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02]"
+                            >
                               Step 1 - Pay the Treatment Fee
-                              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                          </button>
-                        </div>
-
-                        {/* Assessment Section */}
-                        <div className="bg-gradient-to-br from-[#e8f5e9] via-[#c8e6c9] to-[#a5d6a7] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/20 relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-[#228b22]/5 rounded-full -mr-16 -mt-16"></div>
-                          <div className="relative z-10">
-                            <div className="flex items-center justify-center gap-3 mb-4">
-                              <div className="w-10 h-10 bg-[#228b22]/10 rounded-xl flex items-center justify-center border border-[#228b22]/20">
-                                <Activity className="w-6 h-6 text-[#228b22]" />
-                              </div>
-                              <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                            </button>
+                          </div>
+                          
+                          {/* Assessment Section */}
+                          <div className="bg-[#e8f5e9] rounded-xl p-6">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                              <Activity className="w-6 h-6 text-[#228b22]" />
+                              <h4 className="text-xl md:text-2xl font-bold text-[#228b22]">Medical Assessment</h4>
                             </div>
-                            <p className="text-center text-gray-700 mb-6 text-sm md:text-base leading-relaxed">
+                            <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
                               Complete your medical form to receive personalized treatment plan
                             </p>
                             <button
                               onClick={handleAssessmentClick}
-                              className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-base md:text-lg font-semibold py-3 md:py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] relative group overflow-hidden"
+                              className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                             >
-                              <span className="relative z-10 flex items-center justify-center gap-2">
-                                Step 2 - Submit the Medical Form
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                              </span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                              Step 2 - Submit the Medical Form
                             </button>
                           </div>
                         </div>
