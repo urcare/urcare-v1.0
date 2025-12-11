@@ -307,7 +307,7 @@ const LandingDiabetes = () => {
       </header>
 
       {/* Top Banner Image */}
-      <section className="relative w-full overflow-hidden">
+      <section className="relative w-full overflow-hidden -mt-4">
         <motion.div
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -317,10 +317,10 @@ const LandingDiabetes = () => {
           <img 
             src="/IMG_8141.JPG" 
             alt="UrCare Diabetes Treatment" 
-            className="w-full h-auto object-cover"
+            className="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover"
             loading="eager"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
+              console.error('Image failed to load:', e.currentTarget.src);
             }}
           />
         </motion.div>
@@ -378,7 +378,7 @@ const LandingDiabetes = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="relative rounded-2xl overflow-hidden shadow-xl"
+                className="relative rounded-2xl overflow-hidden shadow-xl h-[200px] md:h-[300px]"
               >
                 <img 
                   src="/IMG_9696.JPG" 
@@ -386,7 +386,7 @@ const LandingDiabetes = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    console.error('Image failed to load:', e.currentTarget.src);
                   }}
                 />
               </motion.div>
@@ -394,7 +394,7 @@ const LandingDiabetes = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
-                className="relative rounded-2xl overflow-hidden shadow-xl mt-8"
+                className="relative rounded-2xl overflow-hidden shadow-xl mt-8 h-[200px] md:h-[300px]"
               >
                 <img 
                   src="/IMG_9439.JPG" 
@@ -402,7 +402,7 @@ const LandingDiabetes = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    console.error('Image failed to load:', e.currentTarget.src);
                   }}
                 />
               </motion.div>
