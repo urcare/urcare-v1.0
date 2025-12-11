@@ -22,7 +22,15 @@ import {
   Facebook,
   Twitter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Microscope,
+  FileText,
+  Leaf,
+  Stethoscope,
+  Clock,
+  AlertCircle,
+  ClipboardCheck,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -365,71 +373,104 @@ const LandingDiabetes = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content - Left 2/3 */}
             <div className="lg:col-span-2 space-y-12">
-              {/* Plan 1 - Easy Reversal Activation Plan */}
-              <section id="pricing" className="space-y-6">
-                {/* Plan 1 Card */}
+              {/* Plans Section */}
+              <section id="pricing" className="space-y-8">
+                {/* Plan 1 - Easy Reversal Activation Plan */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                  className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-[#228b22]/10"
                 >
-                  {/* Dark Blue Top Section */}
-                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
-                    <h3 className="text-2xl md:text-3xl font-bold mb-6">START MY PERSONAL PLAN 👆</h3>
-                    <div className="space-y-4 text-base md:text-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">🔬</span>
-                        <span>Root Cause Diagnosis</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">✉️</span>
-                        <span>Hyper~Personalised Protocol</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">🍀</span>
-                        <span>+Custom Traditional medication</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">🦉</span>
-                        <span>Doctors Supervision</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">🌱🌳</span>
-                        <span>Patience 2-4 weeks minimum</span>
-                      </div>
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                      <h3 className="text-2xl md:text-3xl font-bold">Easy Reversal Activation Plan</h3>
                     </div>
-                  </div>
-
-                  {/* Orange Middle Section */}
-                  <div className="bg-[#ff6b35] text-white p-4 md:p-6 text-center">
-                    <p className="text-base md:text-lg font-semibold">
-                      Only 14 enrolments Maximum accepted per Week to maintain Medical quality.
+                    <p className="text-lg md:text-xl text-white/90">
+                      For Type 2 diabetes under 5 years (easy/moderate cases)
                     </p>
                   </div>
 
-                  {/* Dark Blue Bottom Section */}
-                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-4 h-4 bg-[#228b22] rounded"></div>
-                      <p className="text-lg md:text-xl">
-                        Easy Reversal Activation Plan For Type 2 diabetes under 5 years (easy/moderate cases) 👇
+                  {/* Features Section */}
+                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
+                      What's Included
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-4 mb-6">
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Microscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Root Cause Diagnosis</p>
+                          <p className="text-sm text-gray-600">Comprehensive analysis</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <FileText className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Hyper-Personalised Protocol</p>
+                          <p className="text-sm text-gray-600">Tailored to your needs</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Leaf className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Custom Traditional Medication</p>
+                          <p className="text-sm text-gray-600">Natural healing approach</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Stethoscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Doctor's Supervision</p>
+                          <p className="text-sm text-gray-600">Expert guidance</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-[#228b22]/20 rounded-xl p-4 text-center">
+                      <p className="text-sm md:text-base font-semibold text-gray-800">
+                        <Clock className="w-4 h-4 inline mr-2 text-[#228b22]" />
+                        Patience 2-4 weeks minimum for visible results
                       </p>
                     </div>
                   </div>
 
-                  {/* Green Button Section */}
-                  <div className="bg-white p-6 md:p-8 text-center relative">
+                  {/* Enrollment Notice */}
+                  <div className="bg-[#228b22] text-white p-4 md:p-6 text-center">
+                    <p className="text-base md:text-lg font-semibold">
+                      Only 14 enrolments maximum accepted per week to maintain medical quality
+                    </p>
+                  </div>
+
+                  {/* Payment Button */}
+                  <div className="p-6 md:p-8 bg-white">
                     <button
                       onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
                     >
-                      Start Now
-                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </div>
+                      Step 1 - Pay the Treatment Fee
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
+                  </div>
+
+                  {/* Assessment Section */}
+                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <Activity className="w-6 h-6 text-[#228b22]" />
+                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                    </div>
+                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                      Complete your medical form to receive personalized treatment plan
+                    </p>
+                    <button
+                      onClick={handleAssessmentClick}
+                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
+                    >
+                      Step 2 - Submit the Medical Form
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 </motion.div>
 
@@ -439,56 +480,83 @@ const LandingDiabetes = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                  className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-[#228b22]/10"
                 >
-                  {/* Dark Blue Top Section */}
-                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-4 h-4 bg-blue-400 rounded"></div>
-                      <h3 className="text-2xl md:text-3xl font-bold">
-                        Advanced Diabetes Reversal Plan For diabetes Under 10 years
-                      </h3>
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                      <h3 className="text-2xl md:text-3xl font-bold">Advanced Diabetes Reversal Plan</h3>
                     </div>
-                    <span className="text-2xl">👇</span>
+                    <p className="text-lg md:text-xl text-white/90">
+                      For diabetes under 10 years
+                    </p>
                   </div>
 
-                  {/* Green Button Section */}
-                  <div className="bg-gray-100 p-6 md:p-8 text-center relative">
+                  {/* Features Section */}
+                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
+                      Comprehensive Treatment
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-4 mb-6">
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Microscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Advanced Diagnosis</p>
+                          <p className="text-sm text-gray-600">Deep root cause analysis</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <FileText className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Custom Protocol</p>
+                          <p className="text-sm text-gray-600">Personalized treatment plan</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Stethoscope className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Expert Supervision</p>
+                          <p className="text-sm text-gray-600">Regular doctor consultations</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <Activity className="w-5 h-5 text-[#228b22] mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-gray-900">Progress Tracking</p>
+                          <p className="text-sm text-gray-600">Monitor improvements</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Button */}
+                  <div className="p-6 md:p-8 bg-white">
                     <button
                       onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
                     >
-                      START
-                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </div>
+                      Step 1 - Pay the Treatment Fee
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
                   </div>
 
                   {/* Assessment Section */}
-                  <div className="bg-[#e8f5e9] p-6 md:p-8 text-center relative border-t-2 border-dashed border-[#228b22]/30">
+                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
                     <div className="flex items-center justify-center gap-2 mb-4">
-                      <span className="text-2xl">🔍</span>
-                      <span className="text-2xl">💉</span>
-                      <span className="text-2xl">🍽️</span>
-                      <span className="text-2xl">💰</span>
-                      <span className="text-2xl">🦶</span>
-                      <span className="text-2xl">📋</span>
-                      <span className="text-2xl">📊</span>
-                      <span className="text-2xl">👁️</span>
-                      <span className="text-2xl">⚙️</span>
-                      <span className="text-2xl">🪙</span>
+                      <Activity className="w-6 h-6 text-[#228b22]" />
+                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
                     </div>
-                    <h4 className="text-3xl md:text-4xl font-bold text-[#228b22] mb-4">ASSESSMENT</h4>
+                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                      Complete your medical form to receive personalized treatment plan
+                    </p>
                     <button
                       onClick={handleAssessmentClick}
-                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-105 relative"
+                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
                     >
                       Step 2 - Submit the Medical Form
-                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </div>
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </motion.div>
@@ -499,43 +567,89 @@ const LandingDiabetes = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                  className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-[#228b22]/10"
                 >
-                  {/* "For severe Cases Only" Banner */}
-                  <div className="bg-[#1e3a5f] text-white p-4 md:p-6 flex items-center gap-3">
-                    <span className="text-2xl">📋</span>
-                    <p className="text-lg md:text-xl font-semibold">For severe Cases Only</p>
+                  {/* Warning Banner */}
+                  <div className="bg-gradient-to-r from-[#dc2626] to-[#b91c1c] text-white p-4 md:p-6 flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6" />
+                    <p className="text-lg md:text-xl font-semibold">For Severe Cases Only</p>
                   </div>
 
-                  {/* Dark Blue Main Section */}
-                  <div className="bg-[#1e3a5f] text-white p-6 md:p-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
                       <h3 className="text-2xl md:text-3xl font-bold">Severe Diabetes Reversal Plan</h3>
                     </div>
-                    <p className="text-lg md:text-xl mb-6">
-                      For diabetics Above 10+ years 👇
+                    <p className="text-lg md:text-xl text-white/90">
+                      For diabetics above 10+ years
                     </p>
-                    <p className="text-base md:text-lg mb-4">We specialise in customised treatment for Diabetes:</p>
-                    <ul className="space-y-2 text-base md:text-lg list-disc list-inside ml-4">
-                      <li>Type 1 (SIDD, MOD, MARD)</li>
-                      <li>Type 1.5 (LADA)</li>
-                      <li>Long-Term Type 2 (Above 10 years)</li>
-                    </ul>
                   </div>
 
-                  {/* Green Button Section */}
-                  <div className="bg-white p-6 md:p-8 text-center relative">
+                  {/* Features Section */}
+                  <div className="p-6 md:p-8 bg-gradient-to-br from-[#228b22]/5 to-[#228b22]/10">
+                    <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <CheckCircle2 className="w-6 h-6 text-[#228b22]" />
+                      We Specialize In Customized Treatment For:
+                    </h4>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Type 1 Diabetes</p>
+                          <p className="text-sm text-gray-600">SIDD, MOD, MARD variants</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Type 1.5 Diabetes (LADA)</p>
+                          <p className="text-sm text-gray-600">Latent Autoimmune Diabetes</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-white/60 rounded-xl p-4">
+                        <div className="w-2 h-2 bg-[#228b22] rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Long-Term Type 2</p>
+                          <p className="text-sm text-gray-600">Above 10 years duration</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-[#228b22]/20 rounded-xl p-4">
+                      <p className="text-sm md:text-base font-semibold text-gray-800 text-center">
+                        <Shield className="w-4 h-4 inline mr-2 text-[#228b22]" />
+                        Hyper-personalized protocols for complex cases
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Payment Button */}
+                  <div className="p-6 md:p-8 bg-white">
                     <button
                       onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-2xl md:text-3xl font-bold py-4 md:py-6 rounded-xl shadow-lg transition-all transform hover:scale-105 relative"
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
                     >
-                      START NOW
-                      <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </div>
+                      Step 1 - Pay the Treatment Fee
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-gray-600 mt-4 text-sm md:text-base">Step 1 - Pay the Treatment Fee</p>
+                  </div>
+
+                  {/* Assessment Section */}
+                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <Activity className="w-6 h-6 text-[#228b22]" />
+                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                    </div>
+                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                      Complete your medical form to receive personalized treatment plan
+                    </p>
+                    <button
+                      onClick={handleAssessmentClick}
+                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
+                    >
+                      Step 2 - Submit the Medical Form
+                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 </motion.div>
 
