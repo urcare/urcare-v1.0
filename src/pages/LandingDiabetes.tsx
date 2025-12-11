@@ -323,7 +323,7 @@ const LandingDiabetes = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  Reverse Your Diabetes With any other Conditions
+                  Reverse Your Diabetes With any other Conditions, and Start living freely in 90 days
                 </motion.h1>
                 <motion.p 
                   className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"
