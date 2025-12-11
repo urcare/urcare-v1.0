@@ -371,26 +371,6 @@ const LandingDiabetes = () => {
             </motion.div>
           </div>
           
-          {/* Second Image - Below Hero Section */}
-          <div className="mt-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative rounded-2xl overflow-hidden shadow-xl max-w-2xl mx-auto"
-            >
-              <img 
-                src="/IMG_9696.JPG" 
-                alt="Diabetes Treatment" 
-                className="w-full h-auto object-contain"
-                loading="lazy"
-                onError={(e) => {
-                  console.error('Image failed to load:', e.currentTarget.src);
-                }}
-              />
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -407,6 +387,26 @@ const LandingDiabetes = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Your 90-Day Reversal Roadmap</h2>
             <p className="text-lg text-gray-600">Three phases to complete diabetes reversal</p>
           </motion.div>
+          
+          {/* Second Image - Below 90-Day Reversal Text */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
+          >
+            <img 
+              src="/IMG_9696.JPG" 
+              alt="Diabetes Treatment" 
+              className="w-full h-auto object-contain"
+              loading="lazy"
+              onError={(e) => {
+                console.error('Image failed to load:', e.currentTarget.src);
+              }}
+            />
+          </motion.div>
+          
           <div className="grid md:grid-cols-3 gap-6">
             {phases.map((phase, index) => (
               <motion.div
