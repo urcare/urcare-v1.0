@@ -308,45 +308,86 @@ const LandingDiabetes = () => {
 
       {/* Hero Section */}
       <section className="relative py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Reverse Your Diabetes From the Root Cause
-            </motion.h1>
-            <motion.p 
-              className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
-            </motion.p>
-        <motion.div
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <Button
-                onClick={() => {
-                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-8 py-6 rounded-xl font-semibold transition-all transform hover:scale-105"
-                size="lg"
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Left Side - Content */}
+            <div className="text-center md:text-left">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
               >
-                View Treatment Plans
-              </Button>
-            </motion.div>
-          </motion.div>
+                <motion.h1 
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  Reverse Your Diabetes From the Root Cause
+                </motion.h1>
+                <motion.p 
+                  className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                >
+                  Start living freely again in 90 days. If you follow the treatment plan and don't improve, you get 200% back. Everything is done FOR the patient. You don't think ~ You just follow.
+                </motion.p>
+                <motion.div
+                  className="flex flex-col sm:flex-row items-center md:items-start gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                  <Button
+                    onClick={() => {
+                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg px-8 py-6 rounded-xl font-semibold transition-all transform hover:scale-105"
+                    size="lg"
+                  >
+                    View Treatment Plans
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </div>
+            
+            {/* Right Side - Images */}
+            <div className="grid grid-cols-2 gap-4">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="relative rounded-2xl overflow-hidden shadow-xl"
+              >
+                <img 
+                  src="/IMG_9696.JPG" 
+                  alt="Diabetes Treatment" 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="relative rounded-2xl overflow-hidden shadow-xl mt-8"
+              >
+                <img 
+                  src="/IMG_9439.JPG" 
+                  alt="Health Transformation" 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </motion.div>
+            </div>
+          </div>
         </div>
       </section>
 
