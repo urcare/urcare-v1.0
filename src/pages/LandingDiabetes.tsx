@@ -475,38 +475,38 @@ const LandingDiabetes = () => {
                             Only 14 enrolments maximum accepted per week to maintain medical quality
                           </p>
                         </div>
+
+                        {/* Payment Button */}
+                        <div className="p-6 md:p-8 bg-white">
+                          <button
+                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
+                            className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 1 - Pay the Treatment Fee
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+
+                        {/* Assessment Section */}
+                        <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
+                          <div className="flex items-center justify-center gap-2 mb-4">
+                            <Activity className="w-6 h-6 text-[#228b22]" />
+                            <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                          </div>
+                          <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                            Complete your medical form to receive personalized treatment plan
+                          </p>
+                          <button
+                            onClick={handleAssessmentClick}
+                            className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 2 - Submit the Medical Form
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Payment Button */}
-                  <div className="p-6 md:p-8 bg-white">
-                    <button
-                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 1 - Pay the Treatment Fee
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-
-                  {/* Assessment Section */}
-                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Activity className="w-6 h-6 text-[#228b22]" />
-                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
-                    </div>
-                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
-                      Complete your medical form to receive personalized treatment plan
-                    </p>
-                    <button
-                      onClick={handleAssessmentClick}
-                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 2 - Submit the Medical Form
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
                 </motion.div>
 
                 {/* Plan 2 - Advanced Diabetes Reversal Plan */}
@@ -589,38 +589,38 @@ const LandingDiabetes = () => {
                       </div>
                     </div>
                         </div>
+
+                        {/* Payment Button */}
+                        <div className="p-6 md:p-8 bg-white">
+                          <button
+                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
+                            className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 1 - Pay the Treatment Fee
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+
+                        {/* Assessment Section */}
+                        <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
+                          <div className="flex items-center justify-center gap-2 mb-4">
+                            <Activity className="w-6 h-6 text-[#228b22]" />
+                            <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                          </div>
+                          <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                            Complete your medical form to receive personalized treatment plan
+                          </p>
+                          <button
+                            onClick={handleAssessmentClick}
+                            className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 2 - Submit the Medical Form
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Payment Button */}
-                  <div className="p-6 md:p-8 bg-white">
-                    <button
-                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 1 - Pay the Treatment Fee
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-
-                  {/* Assessment Section */}
-                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Activity className="w-6 h-6 text-[#228b22]" />
-                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
-                    </div>
-                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
-                      Complete your medical form to receive personalized treatment plan
-                    </p>
-                    <button
-                      onClick={handleAssessmentClick}
-                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 2 - Submit the Medical Form
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
                 </motion.div>
 
                 {/* Plan 3 - Severe Diabetes Reversal Plan */}
@@ -708,39 +708,39 @@ const LandingDiabetes = () => {
                       </p>
                     </div>
                         </div>
+
+                        {/* Payment Button */}
+                        <div className="p-6 md:p-8 bg-white">
+                          <button
+                            onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
+                            className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 1 - Pay the Treatment Fee
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+
+                        {/* Assessment Section */}
+                        <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
+                          <div className="flex items-center justify-center gap-2 mb-4">
+                            <Activity className="w-6 h-6 text-[#228b22]" />
+                            <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
+                          </div>
+                          <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
+                            Complete your medical form to receive personalized treatment plan
+                          </p>
+                          <button
+                            onClick={handleAssessmentClick}
+                            className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
+                          >
+                            Step 2 - Submit the Medical Form
+                            <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Payment Button */}
-                  <div className="p-6 md:p-8 bg-white">
-                    <button
-                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] hover:from-[#1e7a1e] hover:to-[#1a6b1a] text-white text-xl md:text-2xl font-bold py-4 md:py-5 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 1 - Pay the Treatment Fee
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-
-                  {/* Assessment Section */}
-                  <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] p-6 md:p-8 border-t-2 border-dashed border-[#228b22]/30">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Activity className="w-6 h-6 text-[#228b22]" />
-                      <h4 className="text-2xl md:text-3xl font-bold text-[#228b22]">Medical Assessment</h4>
-            </div>
-                    <p className="text-center text-gray-700 mb-4 text-sm md:text-base">
-                      Complete your medical form to receive personalized treatment plan
-                    </p>
-                    <button
-                      onClick={handleAssessmentClick}
-                      className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white text-lg md:text-xl font-semibold py-3 md:py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] relative group"
-                    >
-                      Step 2 - Submit the Medical Form
-                      <ArrowRight className="w-5 h-5 inline ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-          </motion.div>
+                </motion.div>
 
                 {/* Important Note */}
           <motion.div
