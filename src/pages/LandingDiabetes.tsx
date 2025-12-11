@@ -43,7 +43,6 @@ const LandingDiabetes = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
-  const [isYearly, setIsYearly] = useState(true);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -433,35 +432,7 @@ const LandingDiabetes = () => {
               See our pricing data and select your best service from our side. We always appreciate your subscription and we are dedicated to give our best efforts.
             </motion.p>
             
-            {/* Monthly/Yearly Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <span className={`text-base font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
-                Monthly
-              </span>
-              <button
-                onClick={() => setIsYearly(!isYearly)}
-                className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${
-                  isYearly ? 'bg-[#228b22]' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-300 ${
-                    isYearly ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-              <span className={`text-base font-medium ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
-                Yearly
-              </span>
-            </div>
-            
-            {/* Discount Text */}
-            {isYearly && (
-              <p className="text-[#228b22] font-semibold text-base mb-8">
-                Save 30% OFF
-              </p>
-            )}
-          </motion.div>
+        </motion.div>
 
           {/* Plans Slider - Dark Card Style */}
           <div className="relative">
@@ -606,7 +577,7 @@ const LandingDiabetes = () => {
                       {/* Collapsible Details */}
                       <AnimatePresence>
                         {expandedPlans[plan.id] && (
-                          <motion.div
+            <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
@@ -627,12 +598,12 @@ const LandingDiabetes = () => {
                                     <p className="text-sm md:text-base font-semibold text-white">
                                       Only 14 enrolments maximum accepted per week to maintain medical quality
                                     </p>
-                                  </div>
+                </div>
                                 </>
                               )}
                               
                               {/* Payment Section */}
-                              <div>
+                <div>
                                 <button
                                   onClick={() => handlePaymentClick(plan.paymentLink)}
                                   className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02]"
@@ -656,9 +627,9 @@ const LandingDiabetes = () => {
                                 >
                                   Step 2 - Submit the Medical Form
                                 </button>
-                              </div>
-                            </div>
-                          </motion.div>
+                </div>
+              </div>
+            </motion.div>
                         )}
                       </AnimatePresence>
                     </motion.div>
@@ -690,9 +661,9 @@ const LandingDiabetes = () => {
                     }`}
                     aria-label={`Go to plan ${index + 1}`}
                   />
-                ))}
-              </div>
-              
+          ))}
+        </div>
+
               <button
                 onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
                 className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
@@ -1147,8 +1118,8 @@ const LandingDiabetes = () => {
           </motion.div>
 
             {/* Important Note */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mt-8"
