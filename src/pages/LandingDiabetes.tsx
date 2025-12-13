@@ -355,7 +355,7 @@ const LandingDiabetes = () => {
                           id: 1,
                           title: "Easy Reversal Activation Plan",
                           description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                          price: "₹1,250",
+                          price: "₹1,500",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
@@ -373,11 +373,16 @@ const LandingDiabetes = () => {
                           description: "For diabetes under 10 years",
                           price: "₹5,000",
                           features: [
+                            "Root Cause Diagnosis",
+                            "Hyper-Personalised Protocol",
+                            "Custom Traditional Medication",
+                            "Doctor's Supervision",
                             "Advanced Diagnosis",
                             "Custom Protocol",
                             "Expert Supervision",
                             "Progress Tracking",
-                            "Unlimited revision & request"
+                            "Unlimited revision & request",
+                            "Pause & Cancel anytime"
                           ],
                           paymentLink: "https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D"
                         },
@@ -387,11 +392,16 @@ const LandingDiabetes = () => {
                           description: "For diabetics above 10+ years",
                           price: "₹10,000",
                           features: [
+                            "Root Cause Diagnosis",
+                            "Hyper-Personalised Protocol",
+                            "Custom Traditional Medication",
+                            "Doctor's Supervision",
                             "Type 1 Diabetes (SIDD, MOD, MARD)",
                             "Type 1.5 Diabetes (LADA)",
                             "Long-Term Type 2",
                             "Hyper-personalized protocols",
-                            "Unlimited revision & request"
+                            "Unlimited revision & request",
+                            "Pause & Cancel anytime"
                           ],
                           paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
                           warning: "For Severe Cases Only"
@@ -808,7 +818,7 @@ const LandingDiabetes = () => {
                       id: 1,
                       title: "Easy Reversal Activation Plan",
                       description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                      price: "₹1,250",
+                      price: "₹1,500",
                       features: [
                         "Root Cause Diagnosis",
                         "Hyper-Personalised Protocol",
