@@ -88,7 +88,7 @@ const LandingDiabetes = () => {
     {
       name: "Jamie",
       location: "Canada 🇨🇦",
-      text: "From PCOS to Peace 🌸 - Jamie's success story",
+      text: "Jamie reversed diabetes and found peace 🌸",
       rating: 5,
       image: "/landing/Jamie.JPG",
     },
@@ -364,7 +364,7 @@ const LandingDiabetes = () => {
                             "Unlimited revision & request",
                             "Pause & Cancel anytime"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D",
+                          paymentLink: "https://razorpay.me/@urcare?amount=%2Bof50LC3jfrWvfxkua9IsQ%3D%3D",
                           badge: "30% off"
                         },
                         {
@@ -377,7 +377,6 @@ const LandingDiabetes = () => {
                             "Hyper-Personalised Protocol",
                             "Custom Traditional Medication",
                             "Doctor's Supervision",
-                            "Advanced Diagnosis",
                             "Custom Protocol",
                             "Expert Supervision",
                             "Progress Tracking",
@@ -827,7 +826,7 @@ const LandingDiabetes = () => {
                         "Unlimited revision & request",
                         "Pause & Cancel anytime"
                       ],
-                      paymentLink: "https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D",
+                      paymentLink: "https://razorpay.me/@urcare?amount=%2Bof50LC3jfrWvfxkua9IsQ%3D%3D",
                       badge: "30% off"
                     },
                     {
@@ -1120,7 +1119,7 @@ const LandingDiabetes = () => {
                     
                     {/* CTA Button */}
                     <button
-                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=mF6YxeuZFIeNUC0BnVKU%2FQ%3D%3D")}
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=%2Bof50LC3jfrWvfxkua9IsQ%3D%3D")}
                       className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
                     >
                       Get Started
