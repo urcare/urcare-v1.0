@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { GRID_IMAGES, COMMON_STYLES } from './constants';
@@ -14,6 +15,14 @@ export const OnDemandLandingPage = ({
   onGetStarted, 
   onAlreadyMember 
 }: OnDemandLandingPageProps) => {
+  const navigate = useNavigate();
+
+  const handleImageClick = (image: typeof GRID_IMAGES[0]) => {
+    if (image.link) {
+      navigate(image.link);
+    }
+  };
+
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
       {/* Main Content */}
@@ -31,7 +40,8 @@ export const OnDemandLandingPage = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`${image.className} rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-200 relative group cursor-pointer`}
+              className={`${image.className} rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-200 relative group ${image.link ? 'cursor-pointer' : ''}`}
+              onClick={() => image.link && handleImageClick(image)}
             >
               <div 
                 className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"

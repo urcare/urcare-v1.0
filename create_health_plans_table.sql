@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.health_plans (
     user_input TEXT,
     plan_data JSONB NOT NULL,
     status VARCHAR(50) DEFAULT 'draft',
-    generation_model VARCHAR(100),
+    generation_model VARCHAR(100), 
     generation_parameters JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

@@ -327,7 +327,7 @@ const LandingDiabetes = () => {
                   Reverse Your Diabetes With any other Conditions, and Start living freely in 90 days
                 </motion.h1>
                 <motion.div 
-                  className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed text-left"
+                  className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed text-center"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
@@ -474,23 +474,6 @@ const LandingDiabetes = () => {
                                 className="overflow-hidden bg-black/20"
                               >
                                 <div className="p-6 space-y-4">
-                                  {/* Additional Details for Plan 1 */}
-                                  {plan.id === 1 && (
-                                    <>
-                                      <div className="bg-white/10 rounded-xl p-3 text-center">
-                                        <p className="text-xs md:text-sm font-semibold text-white">
-                                          <Clock className="w-3 h-3 inline mr-2" />
-                                          Patience 2-4 weeks minimum for visible results
-                                        </p>
-                                      </div>
-                                      <div className="bg-white/10 rounded-xl p-3 text-center">
-                                        <p className="text-xs md:text-sm font-semibold text-white">
-                                          Only 14 enrolments maximum accepted per week to maintain medical quality
-                                        </p>
-                                      </div>
-                                    </>
-                                  )}
-                                  
                                   {/* Payment Section */}
                                   <div>
                                     <button
@@ -588,16 +571,6 @@ const LandingDiabetes = () => {
       {/* 90-Day Roadmap Section */}
       <section id="roadmap" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-6xl mx-auto">
-          <motion.div 
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The Result You Can Expect</h2>
-          </motion.div>
-          
           {/* Second Image - Below 90-Day Reversal Text */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -607,7 +580,7 @@ const LandingDiabetes = () => {
             className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
           >
             <img 
-              src="/IMG_9696.JPG" 
+              src="/IMG_9404.JPG" 
               alt="Diabetes Treatment" 
               className="w-full h-auto object-contain"
               loading="lazy"
@@ -626,7 +599,7 @@ const LandingDiabetes = () => {
             className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
           >
             <img 
-              src="/IMG_9404.JPG" 
+              src="/IMG_9696.JPG" 
               alt="Diabetes Treatment" 
               className="w-full h-auto object-contain"
               loading="lazy"
@@ -634,6 +607,16 @@ const LandingDiabetes = () => {
                 console.error('Image failed to load:', e.currentTarget.src);
               }}
             />
+          </motion.div>
+          
+          <motion.div 
+          className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The Result You Can Expect</h2>
           </motion.div>
           
           {/* Type 1 Success Stories Slider */}
@@ -729,7 +712,7 @@ const LandingDiabetes = () => {
                             <div key={idx} className="flex items-start gap-4">
                               <div className="w-6 h-6 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-1">
                                 <CheckCircle2 className="w-4 h-4 text-white" />
-                              </div>
+          </div>
                               <div className="flex-1">
                                 <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
                                   {item.storyTitle}
@@ -742,7 +725,7 @@ const LandingDiabetes = () => {
                           ))}
                         </div>
                       </div>
-                    </motion.div>
+        </motion.div>
                   );
                 })}
               </AnimatePresence>
@@ -789,7 +772,7 @@ const LandingDiabetes = () => {
       {/* Third Image Section */}
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-5xl mx-auto">
-          <motion.div
+            <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -1011,7 +994,7 @@ const LandingDiabetes = () => {
               <div className="flex items-center gap-2">
                 {[0, 1, 2].map((index) => (
                   <button
-                    key={index}
+              key={index}
                     onClick={() => setCurrentPlanIndex(index)}
                     className={`transition-all rounded-full ${
                       currentPlanIndex === index
@@ -1030,7 +1013,7 @@ const LandingDiabetes = () => {
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
-            </div>
+                </div>
           </div>
           
           {/* Old Plans List - Removed, using slider above */}
@@ -1290,7 +1273,7 @@ const LandingDiabetes = () => {
                       >
                         <div className="p-6 md:p-8 space-y-6">
                           {/* Payment Section */}
-                          <div>
+                <div>
                             <button
                               onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D")}
                               className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02]"
@@ -1314,8 +1297,8 @@ const LandingDiabetes = () => {
                             >
                               Step 2 - Submit the Medical Form
                             </button>
-                          </div>
-                        </div>
+                </div>
+              </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1399,8 +1382,8 @@ const LandingDiabetes = () => {
                         >
                           <CheckCircle2 className="w-5 h-5 text-[#228b22] flex-shrink-0" />
                           <span className="text-gray-700">{feature}</span>
-                        </motion.div>
-                      ))}
+            </motion.div>
+          ))}
           </motion.div>
 
                     {/* Expand Button */}
@@ -1423,7 +1406,7 @@ const LandingDiabetes = () => {
                     >
                       Contact Sales
                     </button>
-                  </div>
+        </div>
 
                   {/* Collapsible Details */}
                   <AnimatePresence>
@@ -1434,7 +1417,7 @@ const LandingDiabetes = () => {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden bg-gray-50"
-                      >
+          >
                         <div className="p-6 md:p-8 space-y-6">
                           {/* Additional Info */}
                           <div className="bg-[#228b22]/10 rounded-xl p-4 text-center">
@@ -1442,7 +1425,7 @@ const LandingDiabetes = () => {
                               <Shield className="w-4 h-4 inline mr-2 text-[#228b22]" />
                               Hyper-personalized protocols for complex cases
                             </p>
-                          </div>
+            </div>
                           
                           {/* Payment Section */}
                           <div>
@@ -1471,7 +1454,7 @@ const LandingDiabetes = () => {
                             </button>
                           </div>
                         </div>
-                      </motion.div>
+          </motion.div>
                     )}
                   </AnimatePresence>
           </motion.div>
@@ -1503,7 +1486,7 @@ const LandingDiabetes = () => {
       {/* Testimonials Section with Orange Curve */}
       <section id="testimonials" className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-transparent overflow-hidden">
         <div className="max-w-7xl mx-auto">
-        <motion.div
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -1512,7 +1495,7 @@ const LandingDiabetes = () => {
           >
             <motion.h2 
               className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -1569,7 +1552,7 @@ const LandingDiabetes = () => {
                     <p className="text-sm md:text-base text-white drop-shadow-md font-medium">
                       {testimonials[currentTestimonial].location || "UrCare Patient"}
                     </p>
-                  </div>
+            </div>
                 </div>
 
                 {/* Bottom Section - Quote (1/3 of card) */}
@@ -1610,16 +1593,6 @@ const LandingDiabetes = () => {
                 />
               ))}
             </div>
-        </div>
-
-          {/* Green Curved Graphic */}
-          <div className="relative mt-16">
-            <div className="absolute inset-0 bg-[#228b22] rounded-t-full h-32 md:h-40 transform -translate-y-1/2"></div>
-            <div className="relative pt-16 md:pt-20 text-center">
-              <p className="text-white font-semibold text-lg md:text-xl px-4">
-                See how our patients have transformed their lives through our program. Read their stories.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -1627,7 +1600,7 @@ const LandingDiabetes = () => {
       {/* Final CTA Section */}
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-[#228b22]">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
+        <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -1635,7 +1608,7 @@ const LandingDiabetes = () => {
           >
             <motion.h2 
               className="text-3xl md:text-4xl font-bold text-white mb-6"
-              initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -1664,7 +1637,7 @@ const LandingDiabetes = () => {
                 }}
                 className="bg-white text-[#228b22] hover:bg-gray-100 text-lg px-8 py-6 rounded-xl font-bold transition-all"
                 size="lg"
-              >
+            >
                 View Plans
             </Button>
             </motion.div>

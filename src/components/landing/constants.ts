@@ -5,54 +5,63 @@ export const GRID_IMAGES = [
     url: "/landing/health-app-desktop-1.jpg",
     alt: "Health app desktop 1",
     className: "col-span-1 row-span-2",
+    link: null,
   },
   {
     id: 2,
     url: "/landing/health-app-desktop-2.jpg",
     alt: "Health app desktop 2",
     className: "col-span-1 row-span-1",
+    link: null,
   },
   {
     id: 3,
     url: "/landing/health-app-desktop-3.jpg",
     alt: "Health app desktop 3",
     className: "col-span-1 row-span-1",
+    link: null,
   },
   {
     id: 4,
     url: "/landing/health-app-desktop-4.jpg",
     alt: "Health app desktop 4",
     className: "col-span-1 row-span-2",
+    link: "/landing-diabetes", // Diabetes-related image
   },
   {
     id: 5,
     url: "/landing/health-app-desktop-5.jpg",
     alt: "Health app desktop 5",
     className: "col-span-1 row-span-2",
+    link: null,
   },
   {
     id: 6,
     url: "/landing/health-app-desktop-6.jpg",
     alt: "Health app desktop 6",
     className: "col-span-1 row-span-1",
+    link: null,
   },
   {
     id: 7,
     url: "/landing/health-app-mobile-1.jpg",
     alt: "Health app mobile 1",
     className: "col-span-1 row-span-1",
+    link: null,
   },
   {
     id: 8,
     url: "/landing/health-app-mobile-2.jpg",
     alt: "Health app mobile 2",
     className: "col-span-1 row-span-1",
+    link: null,
   },
   {
     id: 9,
     url: "/landing/health-app-mobile-3.jpg",
     alt: "Health app mobile 3",
     className: "col-span-1 row-span-1",
+    link: null,
   },
 ];
 
