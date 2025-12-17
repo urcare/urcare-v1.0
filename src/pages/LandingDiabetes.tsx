@@ -45,6 +45,17 @@ const LandingDiabetes = () => {
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressFormData, setAddressFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -240,6 +251,29 @@ const LandingDiabetes = () => {
       ...prev,
       [planIndex]: !prev[planIndex]
     }));
+  };
+
+  const handleBuyNow = () => {
+    setShowAddressForm(true);
+  };
+
+  const handleAddressFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Store address data (you might want to send this to your backend)
+    console.log("Address data:", addressFormData);
+    // Redirect to payment link
+    window.open("https://razorpay.me/@urcare?amount=beO3wAvj51SVNWf3KhDSQw%3D%3D", "_blank");
+    setShowAddressForm(false);
+    // Reset form
+    setAddressFormData({
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      pincode: "",
+    });
   };
 
   return (
@@ -616,6 +650,171 @@ const LandingDiabetes = () => {
                 console.error('Image failed to load:', e.currentTarget.src);
               }}
             />
+          </motion.div>
+          
+          {/* Products Section */}
+          <motion.div 
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Products</h2>
+          </motion.div>
+
+          {/* Products Slider */}
+          <div className="relative max-w-4xl mx-auto mb-8">
+            {/* Slider Container */}
+            <div className="relative overflow-hidden rounded-3xl">
+              <AnimatePresence mode="wait">
+                {[0, 1].map((productIndex) => {
+                  if (productIndex !== currentProductIndex) return null;
+                  
+                  const products = [
+                    {
+                      id: 1,
+                      name: "PancreReViv",
+                      tagline: "The Beta-Cell Builder",
+                      image: "/Pancrereviv.JPG",
+                      price: "₹3,000",
+                      features: [
+                        'The "Sugar Destroyer" Molecule (Gymnemic Acids)',
+                        "Beta-Cell Regeneration (Islet Repair)",
+                        "Silent Inflammation Shield"
+                      ]
+                    },
+                    {
+                      id: 2,
+                      name: "GlucoLow",
+                      tagline: "Nature's Metformin",
+                      image: "/Glucolow.JPG",
+                      price: "₹3,000",
+                      features: [
+                        "AMPK Activation (Metabolism Switch)",
+                        "2x Insulin Sensitivity",
+                        'The "Carb-Blocker" Effect'
+                      ]
+                    }
+                  ];
+                  
+                  const product = products[productIndex];
+                  
+                  return (
+                    <motion.div
+                      key={productIndex}
+                      initial={{ opacity: 0, x: 100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-[#228b22]"
+                    >
+                      <div className="p-6 md:p-8">
+                        {/* Product Image */}
+                        <div className="relative rounded-2xl overflow-hidden mb-6">
+                          <img 
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-64 md:h-80 object-contain bg-gray-50"
+                            loading="lazy"
+                            onError={(e) => {
+                              console.error('Product image failed to load:', e.currentTarget.src);
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Product Name */}
+                        <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 text-center">
+                          {product.name}
+                        </h3>
+                        
+                        {/* Tagline */}
+                        <p className="text-lg md:text-xl text-[#228b22] font-semibold mb-6 text-center">
+                          {product.tagline}
+                        </p>
+                        
+                        {/* Price */}
+                        <div className="mb-6 text-center">
+                          <div className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+                            {product.price}
+                          </div>
+                          <p className="text-gray-600 text-sm">
+                            Per bottle
+                          </p>
+                        </div>
+                        
+                        {/* Features List */}
+                        <div className="space-y-4 mb-6">
+                          {product.features.map((feature, idx) => (
+                            <div key={idx} className="flex items-start gap-3">
+                              <div className="w-6 h-6 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-1">
+                                <CheckCircle2 className="w-4 h-4 text-white" />
+                              </div>
+                              <span className="text-gray-700 text-base md:text-lg">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Buy Now Button */}
+                        <button
+                          onClick={handleBuyNow}
+                          className="w-full bg-[#228b22] text-white hover:bg-[#1e7a1e] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] text-lg"
+                        >
+                          Buy Now
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+            
+            {/* Slider Navigation */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                onClick={() => setCurrentProductIndex((prev) => (prev === 0 ? 1 : 0))}
+                className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                aria-label="Previous product"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              {/* Slider Dots */}
+              <div className="flex items-center gap-2">
+                {[0, 1].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentProductIndex(index)}
+                    className={`transition-all rounded-full ${
+                      currentProductIndex === index
+                        ? "w-3 h-3 bg-[#228b22]"
+                        : "w-2 h-2 bg-gray-300 hover:bg-[#228b22]/50"
+                    }`}
+                    aria-label={`Go to product ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setCurrentProductIndex((prev) => (prev === 1 ? 0 : 1))}
+                className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                aria-label="Next product"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Important Note about Products */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-[#228b22]/10 to-[#1e7a1e]/10 border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mb-12 max-w-4xl mx-auto"
+          >
+            <p className="text-center text-gray-800 text-base md:text-lg leading-relaxed">
+              <strong>**Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
+            </p>
           </motion.div>
           
           <motion.div 
@@ -1867,6 +2066,134 @@ const LandingDiabetes = () => {
             </form>
         </motion.div>
       </div>
+      )}
+
+      {/* Address Form Modal */}
+      {showAddressForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Shipping Address</h2>
+              <button
+                onClick={() => setShowAddressForm(false)}
+                className="text-2xl font-light text-gray-500 hover:text-gray-700"
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleAddressFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <Input
+                  type="text"
+                  required
+                  value={addressFormData.name}
+                  onChange={(e) => setAddressFormData({ ...addressFormData, name: e.target.value })}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email *
+                </label>
+                <Input
+                  type="email"
+                  required
+                  value={addressFormData.email}
+                  onChange={(e) => setAddressFormData({ ...addressFormData, email: e.target.value })}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number *
+                </label>
+                <Input
+                  type="tel"
+                  required
+                  value={addressFormData.phone}
+                  onChange={(e) => setAddressFormData({ ...addressFormData, phone: e.target.value })}
+                  placeholder="Enter your phone number"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Complete Address *
+                </label>
+                <textarea
+                  required
+                  value={addressFormData.address}
+                  onChange={(e) => setAddressFormData({ ...addressFormData, address: e.target.value })}
+                  placeholder="Enter your complete address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#228b22] min-h-[100px]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City *
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    value={addressFormData.city}
+                    onChange={(e) => setAddressFormData({ ...addressFormData, city: e.target.value })}
+                    placeholder="Enter city"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    State *
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    value={addressFormData.state}
+                    onChange={(e) => setAddressFormData({ ...addressFormData, state: e.target.value })}
+                    placeholder="Enter state"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pincode *
+                </label>
+                <Input
+                  type="text"
+                  required
+                  value={addressFormData.pincode}
+                  onChange={(e) => setAddressFormData({ ...addressFormData, pincode: e.target.value })}
+                  placeholder="Enter pincode"
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-[#228b22] hover:bg-[#1e7a1e] text-white"
+                  size="lg"
+                >
+                  Proceed to Payment
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddressForm(false)}
+                  className="flex-1"
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
       )}
     </div>
   );
