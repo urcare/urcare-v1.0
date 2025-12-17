@@ -355,7 +355,7 @@ const LandingDiabetes = () => {
                           id: 1,
                           title: "Easy Reversal Activation Plan",
                           description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                          price: "₹1,500",
+                          price: "₹2,000",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
@@ -364,7 +364,7 @@ const LandingDiabetes = () => {
                             "Unlimited revision & request",
                             "Pause & Cancel anytime"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=%2Bof50LC3jfrWvfxkua9IsQ%3D%3D",
+                          paymentLink: "https://razorpay.me/@urcare?amount=HjoMTke9guKygQD1nQQJPw%3D%3D",
                           badge: "30% off"
                         },
                         {
@@ -817,7 +817,7 @@ const LandingDiabetes = () => {
                       id: 1,
                       title: "Easy Reversal Activation Plan",
                       description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                      price: "₹1,500",
+                      price: "₹2,000",
                       features: [
                         "Root Cause Diagnosis",
                         "Hyper-Personalised Protocol",
@@ -826,7 +826,7 @@ const LandingDiabetes = () => {
                         "Unlimited revision & request",
                         "Pause & Cancel anytime"
                       ],
-                      paymentLink: "https://razorpay.me/@urcare?amount=%2Bof50LC3jfrWvfxkua9IsQ%3D%3D",
+                      paymentLink: "https://razorpay.me/@urcare?amount=HjoMTke9guKygQD1nQQJPw%3D%3D",
                       badge: "30% off"
                     },
                     {
