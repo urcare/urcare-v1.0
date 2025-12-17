@@ -739,7 +739,7 @@ const LandingDiabetes = () => {
                             {product.price}
                           </div>
                           <p className="text-gray-600 text-sm">
-                            Per bottle
+                            Per pack
                           </p>
                         </div>
                         
