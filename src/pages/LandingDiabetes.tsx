@@ -479,7 +479,7 @@ const LandingDiabetes = () => {
                                 {plan.price}
                               </div>
                               <p className="text-white/70 text-sm">
-                                Per user / billed yearly
+                                Per user / billed monthly
                               </p>
                             </div>
                             
@@ -813,7 +813,7 @@ const LandingDiabetes = () => {
             className="bg-gradient-to-r from-[#228b22]/10 to-[#1e7a1e]/10 border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mb-12 max-w-4xl mx-auto"
           >
             <p className="text-center text-gray-800 text-base md:text-lg leading-relaxed">
-              <strong>Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
+              <strong>**Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
             </p>
           </motion.div>
           
@@ -1097,7 +1097,7 @@ const LandingDiabetes = () => {
                             {plan.price}
                           </div>
                           <p className="text-white/70 text-base">
-                            Per user / billed yearly
+                            Per user / billed monthly
                           </p>
                         </div>
                         
@@ -1259,7 +1259,7 @@ const LandingDiabetes = () => {
                         ₹15,999
           </div>
                       <p className="text-white/80 text-sm md:text-base">
-                        Per user / billed yearly
+                        Per user / billed monthly
                       </p>
                     </div>
                     
