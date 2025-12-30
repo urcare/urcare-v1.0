@@ -1929,6 +1929,7 @@ const LandingDiabetes = () => {
 
           <div className="border-t border-gray-200 pt-8 text-center text-gray-600">
             <p>&copy; 2024 UrCare. All rights reserved.</p>
+            <p className="text-xs text-gray-400 mt-2 opacity-60">Refund Policy: No refunds available for incorrect plan enrollment. Please ensure you select the appropriate treatment plan before payment.</p>
           </div>
         </div>
       </footer>
