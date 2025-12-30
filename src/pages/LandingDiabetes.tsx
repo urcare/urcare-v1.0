@@ -582,6 +582,27 @@ const LandingDiabetes = () => {
                 </div>
               </div>
               
+              {/* WhatsApp Section - Between Plans and Image */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
+              >
+                <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
+                  📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
+                </p>
+                <div className="flex items-center justify-center">
+                  <button
+                    onClick={handleWhatsAppClick}
+                    className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    WhatsApp: +91 8218741693
+                  </button>
+                </div>
+              </motion.div>
+              
               {/* Image Below Plan Cards */}
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
@@ -1661,31 +1682,6 @@ const LandingDiabetes = () => {
           </motion.div>
           </div>
 
-        </div>
-      </section>
-
-      {/* WhatsApp Section - Moved below plans */}
-      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
-          >
-            <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
-              📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
-            </p>
-            <div className="flex items-center justify-center">
-              <button
-                onClick={handleWhatsAppClick}
-                className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
-              >
-                <MessageCircle className="w-5 h-5" />
-                WhatsApp: +91 8218741693
-              </button>
-            </div>
-          </motion.div>
         </div>
       </section>
 
