@@ -381,31 +381,14 @@ const LandingDiabetes = () => {
                 {/* Slider Container */}
                 <div className="relative overflow-hidden rounded-3xl">
                   <AnimatePresence mode="wait">
-                    {[0, 1, 2].map((planIndex) => {
+                    {[0, 1].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
                       
                       const plans = [
                         {
-                          id: 1,
-                          title: "Easy Reversal Activation Plan",
-                          description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                          price: "₹2,000",
-                          features: [
-                            "Root Cause Diagnosis",
-                            "Hyper-Personalised Protocol",
-                            "Custom Traditional Medication",
-                            "Doctor's Supervision",
-                            "Unlimited revision & request",
-                            "Pause & Cancel anytime"
-                          ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=HjoMTke9guKygQD1nQQJPw%3D%3D",
-                          badge: "30% off"
-                        },
-                        {
                           id: 2,
-                          title: "Advanced Diabetes Reversal Plan",
+                          title: "Advanced Diabetes Reversal Treatment",
                           description: "For diabetes under 10 years",
-                          price: "₹5,000",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
@@ -417,13 +400,13 @@ const LandingDiabetes = () => {
                             "Unlimited revision & request",
                             "Pause & Cancel anytime"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D"
+                          paymentLink: "https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D",
+                          slotsLeft: "Only 6 slots left"
                         },
                         {
                           id: 3,
-                          title: "Severe Diabetes Reversal Plan",
+                          title: "Severe Diabetes Reversal Treatment",
                           description: "For diabetics above 10+ years",
-                          price: "₹10,000",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
@@ -437,7 +420,8 @@ const LandingDiabetes = () => {
                             "Pause & Cancel anytime"
                           ],
                           paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
-                          warning: "For Severe Cases Only"
+                          warning: "For Severe Cases Only",
+                          slotsLeft: "Only 4 slots left"
                         }
                       ];
                       
@@ -452,6 +436,25 @@ const LandingDiabetes = () => {
                           transition={{ duration: 0.5 }}
                           className="bg-gradient-to-br from-[#1a5a1a] via-[#228b22] to-[#1a3d1a] rounded-3xl shadow-2xl overflow-hidden"
                         >
+                          {/* Slots Left Banner - Animated */}
+                          {plan.slotsLeft && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.5 }}
+                              className="bg-yellow-500 text-black p-3 text-center font-bold text-lg md:text-xl"
+                            >
+                              <motion.div
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="flex items-center justify-center gap-2"
+                              >
+                                <AlertCircle className="w-5 h-5" />
+                                <p>{plan.slotsLeft}</p>
+                              </motion.div>
+                            </motion.div>
+                          )}
+                          
                           {/* Warning Banner for Plan 3 */}
                           {plan.warning && (
                             <div className="bg-red-600 text-white p-3 text-center">
@@ -464,7 +467,7 @@ const LandingDiabetes = () => {
                           
                           <div className="p-6 md:p-8">
                             {/* Title */}
-                            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                            <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
                               {plan.title}
                             </h3>
                             
@@ -472,16 +475,6 @@ const LandingDiabetes = () => {
                             <p className="text-white/80 mb-6 text-base">
                               {plan.description}
                             </p>
-                            
-                            {/* Price */}
-                            <div className="mb-6">
-                              <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                                {plan.price}
-                              </div>
-                              <p className="text-white/70 text-sm">
-                                Per user / billed monthly
-                              </p>
-                            </div>
                             
                             {/* Features List */}
                             <div className="space-y-3 mb-6">
@@ -556,16 +549,16 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 1 : prev - 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                    aria-label="Previous plan"
+                    aria-label="Previous treatment"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   
                   {/* Slider Dots */}
                   <div className="flex items-center gap-2">
-                    {[0, 1, 2].map((index) => (
+                    {[0, 1].map((index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentPlanIndex(index)}
@@ -574,15 +567,15 @@ const LandingDiabetes = () => {
                             ? "w-3 h-3 bg-[#228b22]"
                             : "w-2 h-2 bg-gray-300 hover:bg-[#228b22]/50"
                         }`}
-                        aria-label={`Go to plan ${index + 1}`}
+                        aria-label={`Go to treatment ${index + 1}`}
                       />
                     ))}
                   </div>
                   
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 1 ? 0 : prev + 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                    aria-label="Next plan"
+                    aria-label="Next treatment"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -813,7 +806,7 @@ const LandingDiabetes = () => {
             className="bg-gradient-to-r from-[#228b22]/10 to-[#1e7a1e]/10 border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mb-12 max-w-4xl mx-auto"
           >
             <p className="text-center text-gray-800 text-base md:text-lg leading-relaxed">
-              <strong>**Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
+              <strong>Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
             </p>
           </motion.div>
           
@@ -1668,12 +1661,17 @@ const LandingDiabetes = () => {
           </motion.div>
           </div>
 
-          {/* Important Note */}
+        </div>
+      </section>
+
+      {/* WhatsApp Section - Moved below plans */}
+      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
+        <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mt-8"
+            className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
           >
             <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
               📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
