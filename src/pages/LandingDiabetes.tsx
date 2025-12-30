@@ -582,7 +582,7 @@ const LandingDiabetes = () => {
                 </div>
               </div>
               
-              {/* WhatsApp Section - Between Plans and Image */}
+              {/* WhatsApp Section - Right after plan cards end */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
