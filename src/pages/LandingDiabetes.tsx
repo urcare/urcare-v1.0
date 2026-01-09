@@ -381,7 +381,7 @@ const LandingDiabetes = () => {
                 {/* Slider Container */}
                 <div className="relative overflow-hidden rounded-3xl">
                   <AnimatePresence mode="wait">
-                    {[0, 1].map((planIndex) => {
+                    {[0, 1, 2].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
                       
                       const plans = [
@@ -422,6 +422,25 @@ const LandingDiabetes = () => {
                           paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
                           warning: "For Severe Cases Only",
                           slotsLeft: "Only 4 slots left"
+                        },
+                        {
+                          id: 4,
+                          title: "Doctor Guided Complete Personalised Reversal Treatment",
+                          description: "120–135 Day Treatment for International & Multi-Complex, High-Risk Cases",
+                          features: [
+                            "Deep-dive root cause diagnosis (Genetic & Metabolic analysis)",
+                            "Hyper-personalized reversal protocol for your specific body type",
+                            "Custom-compounded \"True Ayurveda\" medication (Shipped globally)",
+                            "Complete micronutrient & deficiency restoration",
+                            "Multi-condition management (BP, Cholesterol & Thyroid together)",
+                            "24/7 care team access + senior doctors involvement",
+                            "Expert supervision & continuous progress tracking",
+                            "One-time investment – No subscriptions, no hidden costs",
+                            "No-results money-back guarantee, no questions asked",
+                            "High-supervision: Very limited international patients accepted"
+                          ],
+                          warning: "High-Supervision: Limited International Cases Only",
+                          slotsLeft: "1 International Slot / Week"
                         }
                       ];
                       
@@ -510,34 +529,66 @@ const LandingDiabetes = () => {
                                 className="overflow-hidden bg-black/20"
                               >
                                 <div className="p-6 space-y-4">
-                                  {/* Payment Section */}
-                                  <div>
-                                    <button
-                                      onClick={() => handlePaymentClick(plan.paymentLink)}
-                                      className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
-                                    >
-                                      Step 1 - Pay the Treatment Fee
-                                    </button>
-                                  </div>
-                                  
-                                  {/* Assessment Section */}
-                                  <div className="bg-white/10 rounded-xl p-4">
-                                    <div className="flex items-center justify-center gap-2 mb-3">
-                                      <Activity className="w-5 h-5 text-white" />
-                                      <h4 className="text-lg md:text-xl font-bold text-white">Medical Assessment</h4>
-                                    </div>
-                                    <p className="text-center text-white/90 mb-3 text-xs md:text-sm">
-                                      Complete your medical form to receive personalized treatment plan
-                                    </p>
-                                    <button
-                                      onClick={handleAssessmentClick}
-                                      className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-2 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
-                                    >
-                                      Step 2 - Submit the Medical Form
-                                    </button>
-                                  </div>
+                                  {plan.id !== 4 ? (
+                                    <>
+                                      {/* Payment Section */}
+                                      <div>
+                                        <button
+                                          onClick={() => handlePaymentClick(plan.paymentLink)}
+                                          className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                        >
+                                          Step 1 - Pay the Treatment Fee
+                                        </button>
+                                      </div>
+                                      
+                                      {/* Assessment Section */}
+                                      <div className="bg-white/10 rounded-xl p-4">
+                                        <div className="flex items-center justify-center gap-2 mb-3">
+                                          <Activity className="w-5 h-5 text-white" />
+                                          <h4 className="text-lg md:text-xl font-bold text-white">Medical Assessment</h4>
+                                        </div>
+                                        <p className="text-center text-white/90 mb-3 text-xs md:text-sm">
+                                          Complete your medical form to receive personalized treatment plan
+                                        </p>
+                                        <button
+                                          onClick={handleAssessmentClick}
+                                          className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-2 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                        >
+                                          Step 2 - Submit the Medical Form
+                                        </button>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="bg-white/10 rounded-xl p-4 space-y-3">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                          <Shield className="w-5 h-5 text-white" />
+                                          <h4 className="text-lg md:text-xl font-bold text-white text-center">
+                                            120–135 Day International Reversal Program
+                                          </h4>
+                                        </div>
+                                        <p className="text-center text-white/90 text-xs md:text-sm">
+                                          One-time investment. No subscriptions, no hidden costs. No-results money-back guarantee, no questions asked.
+                                        </p>
+                                      </div>
+                                      <div className="space-y-3">
+                                        <button
+                                          onClick={handleAssessmentClick}
+                                          className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                        >
+                                          ✅ Check Eligibility & Apply (Assessment Form)
+                                        </button>
+                                        <button
+                                          onClick={handleWhatsAppClick}
+                                          className="w-full bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
+                                        >
+                                          🍀 Confirm Your Slot on WhatsApp (1 Slot / Week)
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
                                 </div>
-        </motion.div>
+                              </motion.div>
                             )}
                           </AnimatePresence>
                         </motion.div>
@@ -549,7 +600,7 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 1 : prev - 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Previous treatment"
                   >
@@ -558,7 +609,7 @@ const LandingDiabetes = () => {
                   
                   {/* Slider Dots */}
                   <div className="flex items-center gap-2">
-                    {[0, 1].map((index) => (
+                    {[0, 1, 2].map((index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentPlanIndex(index)}
@@ -573,7 +624,7 @@ const LandingDiabetes = () => {
                   </div>
                   
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 1 ? 0 : prev + 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Next treatment"
                   >
