@@ -426,7 +426,7 @@ const LandingDiabetes = () => {
                         {
                           id: 4,
                           title: "Doctor Guided Complete Personalised Reversal Treatment",
-                          description: "120–135 Day Treatment for International & Multi-Complex, High-Risk Cases",
+                          description: "90+60 Day Treatment for Multi-Complex, High-Risk Cases",
                           features: [
                             "Deep-dive root cause diagnosis (Genetic & Metabolic analysis)",
                             "Hyper-personalized reversal protocol for your specific body type",
@@ -437,10 +437,10 @@ const LandingDiabetes = () => {
                             "Expert supervision & continuous progress tracking",
                             "One-time investment – No subscriptions, no hidden costs",
                             "No-results money-back guarantee, no questions asked",
-                            "High-supervision: Very limited international patients accepted"
+                            "High-supervision: Very limited patients accepted"
                           ],
-                          warning: "High-Supervision: Limited International Cases Only",
-                          slotsLeft: "1 International Slot / Week"
+                          warning: "High-Supervision: Limited Cases Only",
+                          slotsLeft: "1 Slot / Week"
                         }
                       ];
                       
@@ -564,7 +564,7 @@ const LandingDiabetes = () => {
                                         <div className="flex items-center justify-center gap-2 mb-1">
                                           <Shield className="w-5 h-5 text-white" />
                                           <h4 className="text-lg md:text-xl font-bold text-white text-center">
-                                            120–135 Day International Reversal Program
+                                            90+60 Day Complete Reversal Program
                                           </h4>
                                         </div>
                                         <p className="text-center text-white/90 text-xs md:text-sm">
@@ -798,15 +798,7 @@ const LandingDiabetes = () => {
                           {product.tagline}
                         </p>
                         
-                        {/* Price */}
-                        <div className="mb-6 text-center">
-                          <div className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                            {product.price}
-                          </div>
-                          <p className="text-gray-600 text-sm">
-                            Per pack
-                          </p>
-                        </div>
+                        {/* Price removed as requested */}
                         
                         {/* Features List */}
                         <div className="space-y-4 mb-6">
