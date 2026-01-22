@@ -379,14 +379,18 @@ const LandingDiabetes = () => {
                   transition={{ duration: 0.8, delay: 0.6 }}
                   className="relative mt-8"
                 >
-                  <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                  <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-100">
                     <img 
                       src="/gg.PNG" 
-                      alt="Diabetes Treatment Plan" 
-                      className="w-full h-auto object-cover"
-                      loading="lazy"
+                      alt="UrCare Diabetes Reversal Kit" 
+                      className="w-full h-auto object-contain"
+                      loading="eager"
                       onError={(e) => {
                         console.error('Image failed to load:', e.currentTarget.src);
+                        // Try lowercase extension as fallback
+                        if (e.currentTarget.src.includes('.PNG')) {
+                          e.currentTarget.src = '/gg.png';
+                        }
                       }}
                     />
                     {/* Newly Launched Badge */}
