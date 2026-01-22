@@ -381,7 +381,7 @@ const LandingDiabetes = () => {
                 >
                   <div className="relative rounded-2xl overflow-hidden shadow-xl">
                     <img 
-                      src="/diabetes-treatment-image.jpg" 
+                      src="/gg.PNG" 
                       alt="Diabetes Treatment Plan" 
                       className="w-full h-auto object-cover"
                       loading="lazy"
