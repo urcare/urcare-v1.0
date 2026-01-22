@@ -371,6 +371,66 @@ const LandingDiabetes = () => {
                   <p className="mb-2">Everything is done FOR the patient.</p>
                   <p>You don't think ~ You just follow.</p>
                 </motion.div>
+                
+                {/* Image Section with Buy Now Button */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                  className="relative mt-8"
+                >
+                  <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                    <img 
+                      src="/diabetes-treatment-image.jpg" 
+                      alt="Diabetes Treatment Plan" 
+                      className="w-full h-auto object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        console.error('Image failed to load:', e.currentTarget.src);
+                      }}
+                    />
+                    {/* Newly Launched Badge */}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 10,
+                        delay: 0.8
+                      }}
+                      className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
+                    >
+                      <motion.span
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{ 
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        🎉 NEWLY LAUNCHED
+                      </motion.span>
+                    </motion.div>
+                  </div>
+                  
+                  {/* Buy Now Button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                    className="mt-6"
+                  >
+                    <button
+                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D")}
+                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white hover:from-[#1e7a1e] hover:to-[#228b22] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-lg"
+                    >
+                      Buy Now
+                    </button>
+                  </motion.div>
+                </motion.div>
               </motion.div>
           </div>
             
@@ -388,7 +448,7 @@ const LandingDiabetes = () => {
                         {
                           id: 2,
                           title: "Advanced Diabetes Reversal Treatment",
-                          description: "For diabetes under 10 years",
+                          description: "For simple cases",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
@@ -406,7 +466,7 @@ const LandingDiabetes = () => {
                         {
                           id: 3,
                           title: "Severe Diabetes Reversal Treatment",
-                          description: "For diabetics above 10+ years",
+                          description: "Only for Complex and severe cases",
                           features: [
                             "Root Cause Diagnosis",
                             "Hyper-Personalised Protocol",
