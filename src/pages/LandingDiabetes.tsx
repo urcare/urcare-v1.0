@@ -379,79 +379,82 @@ const LandingDiabetes = () => {
                   transition={{ duration: 0.8, delay: 0.6 }}
                   className="relative mt-8"
                 >
-                  <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-100">
-                    <img 
-                      src="/hh.JPG" 
-                      alt="UrCare Diabetes Reversal Kit" 
-                      className="w-full h-auto object-contain"
-                      loading="eager"
-                      onError={(e) => {
-                        console.error('Image failed to load:', e.currentTarget.src);
-                      }}
-                    />
-                    {/* Newly Launched Badge */}
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ 
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 10,
-                        delay: 0.8
-                      }}
-                      className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
-                    >
-                      <motion.span
-                        animate={{ 
-                          scale: [1, 1.1, 1],
+                  <div className="rounded-2xl overflow-hidden shadow-xl bg-white/70 backdrop-blur-xl border border-white/30">
+                    {/* Image */}
+                    <div className="relative bg-gray-100">
+                      <img 
+                        src="/hh.JPG" 
+                        alt="UrCare Diabetes Reversal Kit" 
+                        className="w-full h-auto object-contain"
+                        loading="eager"
+                        onError={(e) => {
+                          console.error('Image failed to load:', e.currentTarget.src);
                         }}
+                      />
+                      {/* Newly Launched Badge */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
                         transition={{ 
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut"
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 10,
+                          delay: 0.8
                         }}
+                        className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
                       >
-                        🎉 NEWLY LAUNCHED
-                      </motion.span>
-                    </motion.div>
-                  </div>
-                  
-                  {/* Buy Now Button */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.9 }}
-                    className="mt-6"
-                  >
-                    <button
-                      onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D")}
-                      className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white hover:from-[#1e7a1e] hover:to-[#228b22] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-lg"
-                    >
-                      Buy Now
-                    </button>
-                  </motion.div>
+                        <motion.span
+                          animate={{ 
+                            scale: [1, 1.1, 1],
+                          }}
+                          transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          🎉 NEWLY LAUNCHED
+                        </motion.span>
+                      </motion.div>
+                    </div>
 
-                  {/* Under-image subtitle + description */}
-                  <div className="mt-6 rounded-2xl border border-[#228b22]/20 bg-white/70 backdrop-blur-xl shadow-lg p-5 md:p-6">
-                    <p className="text-center text-gray-900 font-extrabold tracking-wide uppercase text-sm md:text-base">
-                      [FOR EARLY STAGE TYPE 2 CASES]
-                    </p>
-                    <div className="mt-4 space-y-3">
-                      {[
-                        "UrCare PancreReViV",
-                        "UrCare Glucolow",
-                        "UrCare advance Type 2 Diabetes Reversal Treatment Protocol",
-                        "Doctors Supervision",
-                        "24/7 team Support",
-                        "Only for 25 patients",
-                      ].map((item) => (
-                        <div key={item} className="flex items-start gap-3">
-                          <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                    {/* Description + CTA */}
+                    <div className="p-5 md:p-6">
+                      <p className="text-center text-gray-900 font-extrabold tracking-wide uppercase text-sm md:text-base">
+                        [FOR EARLY STAGE TYPE 2 CASES]
+                      </p>
+                      <div className="mt-4 space-y-3">
+                        {[
+                          "UrCare PancreReViV",
+                          "UrCare GlucoLow",
+                          "UrCare advance Type 2 Diabetes Reversal Treatment Protocol",
+                          "Doctors Supervision",
+                          "24/7 team Support",
+                          "Only for 25 patients",
+                        ].map((item) => (
+                          <div key={item} className="flex items-start gap-3">
+                            <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <p className="text-gray-700 font-medium leading-snug">{item}</p>
                           </div>
-                          <p className="text-gray-700 font-medium leading-snug">{item}</p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+
+                      {/* Buy Now Button */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.9 }}
+                        className="mt-6"
+                      >
+                        <button
+                          onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D")}
+                          className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white hover:from-[#1e7a1e] hover:to-[#228b22] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-lg"
+                        >
+                          Buy Now
+                        </button>
+                      </motion.div>
                     </div>
                   </div>
                 </motion.div>
