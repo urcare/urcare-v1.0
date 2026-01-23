@@ -279,7 +279,7 @@ const LandingDiabetes = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-[#228b22]/20">
       {/* Header - Modern Translucent Design */}
-      <header className="sticky top-0 z-50 pt-0 px-4 sm:px-6 lg:px-8">
+      <header className="z-50 pt-0 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Translucent Rounded Header Bar */}
           <div className="bg-white/80 backdrop-blur-2xl rounded-full border border-white/30 shadow-xl px-6 py-4">
@@ -428,7 +428,6 @@ const LandingDiabetes = () => {
                           "UrCare PancreReViV",
                           "UrCare GlucoLow",
                           "UrCare Advanced Type 2 Diabetes Reversal Treatment Protocol",
-                          "2 Ayurvedic medicines included in both the plans",
                           "Doctors Supervision",
                           "24/7 team Support",
                           "Only for 25 patients",
@@ -486,6 +485,7 @@ const LandingDiabetes = () => {
                             "Type 1.5 Diabetes (LADA)",
                             "Long-Term Type 2",
                             "Hyper-personalized protocols",
+                            "2 Ayurvedic medicines are included",
                             "Unlimited revision & request",
                             "Pause & Cancel anytime"
                           ],
@@ -507,6 +507,7 @@ const LandingDiabetes = () => {
                             "Expert supervision & continuous progress tracking",
                             "One-time investment – No subscriptions, no hidden costs",
                             "No-results money-back guarantee, no questions asked",
+                            "2 Ayurvedic medicines are included",
                             "High-supervision: Very limited patients accepted"
                           ],
                           warning: "High-Supervision: Limited Cases Only",
@@ -701,11 +702,6 @@ const LandingDiabetes = () => {
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
-                
-                {/* Note about Ayurvedic medicines */}
-                <p className="mt-3 text-center text-xs md:text-sm text-white/90">
-                  2 Ayurvedic medicines are included in both these treatment plans.
-                </p>
               </div>
               
               {/* WhatsApp Section - Right after plan cards end */}
