@@ -209,7 +209,7 @@ const LandingDiabetes = () => {
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent(
-      `Hi, I'm interested in the Diabetes Reversal Program. Please share more details.`
+      `Hi, I'm interested in the Diabetes Reversal Treatment. Please share more details.`
     );
     window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
   };
@@ -381,16 +381,12 @@ const LandingDiabetes = () => {
                 >
                   <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-100">
                     <img 
-                      src="/gg.PNG" 
+                      src="/hh.JPG" 
                       alt="UrCare Diabetes Reversal Kit" 
                       className="w-full h-auto object-contain"
                       loading="eager"
                       onError={(e) => {
                         console.error('Image failed to load:', e.currentTarget.src);
-                        // Try lowercase extension as fallback
-                        if (e.currentTarget.src.includes('.PNG')) {
-                          e.currentTarget.src = '/gg.png';
-                        }
                       }}
                     />
                     {/* Newly Launched Badge */}
@@ -434,6 +430,30 @@ const LandingDiabetes = () => {
                       Buy Now
                     </button>
                   </motion.div>
+
+                  {/* Under-image subtitle + description */}
+                  <div className="mt-6 rounded-2xl border border-[#228b22]/20 bg-white/70 backdrop-blur-xl shadow-lg p-5 md:p-6">
+                    <p className="text-center text-gray-900 font-extrabold tracking-wide uppercase text-sm md:text-base">
+                      [FOR EARLY STAGE TYPE 2 CASES]
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {[
+                        "UrCare PancreReViV",
+                        "UrCare Glucolow",
+                        "UrCare advance Type 2 Diabetes Reversal Treatment Protocol",
+                        "Doctors Supervision",
+                        "24/7 team Support",
+                        "Only for 25 patients",
+                      ].map((item) => (
+                        <div key={item} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <p className="text-gray-700 font-medium leading-snug">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               </motion.div>
           </div>
@@ -445,28 +465,10 @@ const LandingDiabetes = () => {
                 {/* Slider Container */}
                 <div className="relative overflow-hidden rounded-3xl">
                   <AnimatePresence mode="wait">
-                    {[0, 1, 2].map((planIndex) => {
+                    {[0, 1].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
                       
                       const plans = [
-                        {
-                          id: 2,
-                          title: "Advanced Diabetes Reversal Treatment",
-                          description: "For simple cases",
-                          features: [
-                            "Root Cause Diagnosis",
-                            "Hyper-Personalised Protocol",
-                            "Custom Traditional Medication",
-                            "Doctor's Supervision",
-                            "Custom Protocol",
-                            "Expert Supervision",
-                            "Progress Tracking",
-                            "Unlimited revision & request",
-                            "Pause & Cancel anytime"
-                          ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=Hrc9gAOPjYioEfEfn0m7SA%3D%3D",
-                          slotsLeft: "Only 6 slots left"
-                        },
                         {
                           id: 3,
                           title: "Severe Diabetes Reversal Treatment",
@@ -664,7 +666,7 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 1 : prev - 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Previous treatment"
                   >
@@ -673,7 +675,7 @@ const LandingDiabetes = () => {
                   
                   {/* Slider Dots */}
                   <div className="flex items-center gap-2">
-                    {[0, 1, 2].map((index) => (
+                    {[0, 1].map((index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentPlanIndex(index)}
@@ -688,7 +690,7 @@ const LandingDiabetes = () => {
                   </div>
                   
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 1 ? 0 : prev + 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Next treatment"
                   >
@@ -1129,26 +1131,10 @@ const LandingDiabetes = () => {
             {/* Slider Container */}
             <div className="relative overflow-hidden rounded-3xl">
               <AnimatePresence mode="wait">
-                {[0, 1, 2].map((planIndex) => {
+                {[0, 1].map((planIndex) => {
                   if (planIndex !== currentPlanIndex) return null;
                   
                   const plans = [
-                    {
-                      id: 1,
-                      title: "Easy Reversal Activation Plan",
-                      description: "For Type 2 diabetes under 5 years (easy/moderate cases)",
-                      price: "₹2,000",
-                      features: [
-                        "Root Cause Diagnosis",
-                        "Hyper-Personalised Protocol",
-                        "Custom Traditional Medication",
-                        "Doctor's Supervision",
-                        "Unlimited revision & request",
-                        "Pause & Cancel anytime"
-                      ],
-                      paymentLink: "https://razorpay.me/@urcare?amount=HjoMTke9guKygQD1nQQJPw%3D%3D",
-                      badge: "30% off"
-                    },
                     {
                       id: 2,
                       title: "Advanced Diabetes Reversal Plan",
@@ -1256,23 +1242,6 @@ const LandingDiabetes = () => {
                             className="overflow-hidden bg-black/20"
                           >
                             <div className="p-8 space-y-6">
-                              {/* Additional Details for Plan 1 */}
-                              {plan.id === 1 && (
-                                <>
-                                  <div className="bg-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-sm md:text-base font-semibold text-white">
-                                      <Clock className="w-4 h-4 inline mr-2" />
-                                      Patience 2-4 weeks minimum for visible results
-                                    </p>
-                                  </div>
-                                  <div className="bg-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-sm md:text-base font-semibold text-white">
-                                      Only 14 enrolments maximum accepted per week to maintain medical quality
-                                    </p>
-                </div>
-                                </>
-                              )}
-                              
                               {/* Payment Section */}
                 <div>
                                 <button
@@ -1312,7 +1281,7 @@ const LandingDiabetes = () => {
             {/* Slider Navigation */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <button
-                onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 1 : prev - 1))}
                 className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                 aria-label="Previous plan"
               >
@@ -1321,7 +1290,7 @@ const LandingDiabetes = () => {
               
               {/* Slider Dots */}
               <div className="flex items-center gap-2">
-                {[0, 1, 2].map((index) => (
+                {[0, 1].map((index) => (
                   <button
               key={index}
                     onClick={() => setCurrentPlanIndex(index)}
@@ -1336,7 +1305,7 @@ const LandingDiabetes = () => {
         </div>
 
               <button
-                onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                onClick={() => setCurrentPlanIndex((prev) => (prev === 1 ? 0 : prev + 1))}
                 className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                 aria-label="Next plan"
               >
