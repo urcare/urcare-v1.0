@@ -279,7 +279,7 @@ const LandingDiabetes = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-[#228b22]/20">
       {/* Header - Modern Translucent Design */}
-      <header className="sticky top-0 z-50 pt-4 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 pt-0 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Translucent Rounded Header Bar */}
           <div className="bg-white/80 backdrop-blur-2xl rounded-full border border-white/30 shadow-xl px-6 py-4">
@@ -427,13 +427,14 @@ const LandingDiabetes = () => {
                         {[
                           "UrCare PancreReViV",
                           "UrCare GlucoLow",
-                          "UrCare advance Type 2 Diabetes Reversal Treatment Protocol",
+                          "UrCare Advanced Type 2 Diabetes Reversal Treatment Protocol",
+                          "2 Ayurvedic medicines included in both the plans",
                           "Doctors Supervision",
                           "24/7 team Support",
                           "Only for 25 patients",
                         ].map((item) => (
                           <div key={item} className="flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0">
                               <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                             </div>
                             <p className="text-gray-700 font-medium leading-snug">{item}</p>
@@ -700,6 +701,11 @@ const LandingDiabetes = () => {
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
+                
+                {/* Note about Ayurvedic medicines */}
+                <p className="mt-3 text-center text-xs md:text-sm text-white/90">
+                  2 Ayurvedic medicines are included in both these treatment plans.
+                </p>
               </div>
               
               {/* WhatsApp Section - Right after plan cards end */}
