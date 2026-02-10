@@ -214,6 +214,13 @@ const LandingDiabetes = () => {
     window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
   };
 
+  const handleWhatsAppScreenshotClick = () => {
+    const message = encodeURIComponent(
+      `Hi, I’ve completed the payment. Sharing the fee screenshot + the Gmail I used in the form.`
+    );
+    window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
+  };
+
   const handlePaymentClick = (paymentLink: string) => {
     window.open(paymentLink, "_blank");
   };
@@ -366,7 +373,7 @@ const LandingDiabetes = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  <p className="mb-2">If you follow the Treatment plan and</p>
+                  <p className="mb-2">If you follow the Treatment and</p>
                   <p className="mb-2">don't improve → you get 200% back.</p>
                   <p className="mb-2">Everything is done FOR the patient.</p>
                   <p>You don't think ~ You just follow.</p>
@@ -451,10 +458,18 @@ const LandingDiabetes = () => {
                         className="mt-6"
                       >
                         <button
-                          onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D")}
+                          onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D")}
                           className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white hover:from-[#1e7a1e] hover:to-[#228b22] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-lg"
                         >
                           Buy Now
+                        </button>
+
+                        <button
+                          onClick={handleWhatsAppScreenshotClick}
+                          className="w-full mt-3 bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-base flex items-center justify-center gap-2"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          WhatsApp: Send Payment Screenshot
                         </button>
                       </motion.div>
                     </div>
@@ -487,7 +502,7 @@ const LandingDiabetes = () => {
                             "Type 1.5 Diabetes (LADA)",
                             "Long-Term Type 2",
                             "Hyper-personalized protocols",
-                            "2 Ayurvedic medicines are included",
+                            "2 Ayurvedic medicines are excluded",
                             "Unlimited revision & request",
                             "Pause & Cancel anytime"
                           ],
@@ -509,7 +524,7 @@ const LandingDiabetes = () => {
                             "Expert supervision & continuous progress tracking",
                             "One-time investment – No subscriptions, no hidden costs",
                             "No-results money-back guarantee, no questions asked",
-                            "2 Ayurvedic medicines are included",
+                            "2 Ayurvedic medicines are excluded",
                             "High-supervision: Very limited patients accepted"
                           ],
                           warning: "High-Supervision: Limited Cases Only",
