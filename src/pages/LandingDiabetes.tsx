@@ -729,7 +729,7 @@ const LandingDiabetes = () => {
                 className="bg-[#fff9e6] border-2 border-[#228b22] rounded-2xl p-6 md:p-8"
               >
                 <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
-                  📝 Note: After payment, share Fee Screenshot & Gmail used in form with us 💚
+                  Start Your Free Diabetes Assessment 💚
                 </p>
                 <div className="flex items-center justify-center">
                   <button
