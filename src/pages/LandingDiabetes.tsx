@@ -216,7 +216,7 @@ const LandingDiabetes = () => {
 
   const handleWhatsAppScreenshotClick = () => {
     const message = encodeURIComponent(
-      `Hi, I’ve completed the payment. Sharing the fee screenshot + the Gmail I used in the form.`
+      `Hi, I want to start the UrCare Diabetes Reversal Treatment . Please review my case and assist me on the process.`
     );
     window.open(`https://wa.me/917983143151?text=${message}`, "_blank");
   };
