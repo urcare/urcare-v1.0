@@ -209,16 +209,16 @@ const LandingDiabetes = () => {
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent(
-      `Hi, I'm interested in the Diabetes Reversal Treatment. Please share more details.`
+      `Hi, I want to start the UrCare Diabetes Reversal Treatment . Please review my case and assist me on the process.`
     );
-    window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
+    window.open(`https://wa.me/917983143151?text=${message}`, "_blank");
   };
 
   const handleWhatsAppScreenshotClick = () => {
     const message = encodeURIComponent(
       `Hi, I’ve completed the payment. Sharing the fee screenshot + the Gmail I used in the form.`
     );
-    window.open(`https://wa.me/918218741693?text=${message}`, "_blank");
+    window.open(`https://wa.me/917983143151?text=${message}`, "_blank");
   };
 
   const handlePaymentClick = (paymentLink: string) => {
@@ -408,7 +408,7 @@ const LandingDiabetes = () => {
                           damping: 10,
                           delay: 0.8
                         }}
-                        className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
+                        className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
                       >
                         <motion.span
                           animate={{ 
@@ -469,7 +469,7 @@ const LandingDiabetes = () => {
                           className="w-full mt-3 bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-base flex items-center justify-center gap-2"
                         >
                           <MessageCircle className="w-5 h-5" />
-                          WhatsApp: Send Payment Screenshot
+                          Start Your Free Diabetes Assessment
                         </button>
                       </motion.div>
                     </div>
@@ -670,7 +670,7 @@ const LandingDiabetes = () => {
                                           onClick={handleWhatsAppClick}
                                           className="w-full bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
                                         >
-                                          🍀 Confirm Your Slot on WhatsApp (1 Slot / Week)
+                                          Start Your Free Diabetes Assessment
                                         </button>
                                       </div>
                                     </>
@@ -737,7 +737,7 @@ const LandingDiabetes = () => {
                     className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    WhatsApp: +91 8218741693
+                    WhatsApp: +91 79-83143151
                   </button>
                 </div>
               </motion.div>
@@ -2002,7 +2002,7 @@ const LandingDiabetes = () => {
               <h4 className="font-bold text-gray-900 mb-4">Contact Info</h4>
               <ul className="space-y-2 text-gray-600">
                 <li>India</li>
-                <li>+91 8218741693</li>
+                <li>+91 79-83143151</li>
                 <li>support@urcare.com</li>
               </ul>
               <div className="flex items-center gap-3 mt-4">
