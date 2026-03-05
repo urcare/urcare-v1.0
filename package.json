@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:force": "rm -rf dist && vite build",
+    "build:shopify:landing-diabetes": "vite build --config vite.shopify.landing-diabetes.config.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
