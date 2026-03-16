@@ -208,17 +208,11 @@ const LandingDiabetes = () => {
   ];
 
   const handleWhatsAppClick = () => {
-    const message = encodeURIComponent(
-      `Hi, I want to start the UrCare Diabetes Reversal Treatment . Please review my case and assist me on the process.`
-    );
-    window.open(`https://wa.me/917983143151?text=${message}`, "_blank");
+    window.open("https://wa.aisensy.com/aabax0", "_blank");
   };
 
   const handleWhatsAppScreenshotClick = () => {
-    const message = encodeURIComponent(
-      `Hi, I want to start the UrCare Diabetes Reversal Treatment . Please review my case and assist me on the process.`
-    );
-    window.open(`https://wa.me/917983143151?text=${message}`, "_blank");
+    window.open("https://wa.aisensy.com/aabax0", "_blank");
   };
 
   const handlePaymentClick = (paymentLink: string) => {
@@ -313,7 +307,13 @@ const LandingDiabetes = () => {
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-6">
-                <a href="#about" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">About Us</a>
+                <button
+                  type="button"
+                  onClick={() => navigate("/about-us")}
+                  className="text-gray-700 hover:text-[#228b22] transition-colors font-medium"
+                >
+                  About Us
+                </button>
                 <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Reviews</a>
                 <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Program</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Pricing</a>
@@ -338,7 +338,16 @@ const LandingDiabetes = () => {
               className="md:hidden mt-4 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/20 shadow-lg p-6"
             >
               <nav className="flex flex-col gap-4">
-                <a href="#about" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>About Us</a>
+                <button
+                  type="button"
+                  className="text-left text-gray-700 hover:text-[#228b22] font-medium transition-colors"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate("/about-us");
+                  }}
+                >
+                  About Us
+                </button>
                 <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
                 <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Program</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
