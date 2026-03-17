@@ -8,7 +8,6 @@ import {
   CheckCircle2, 
   ArrowRight, 
   Phone, 
-  MessageCircle,
   Calendar,
   TrendingUp,
   Heart,
@@ -35,6 +34,15 @@ import {
   Activity
 } from "lucide-react";
 import { toast } from "sonner";
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 32 32" role="img" aria-label="WhatsApp" {...props}>
+    <path
+      fill="currentColor"
+      d="M19.11 17.52c-.26-.13-1.53-.75-1.77-.84-.24-.09-.41-.13-.58.13-.17.26-.67.84-.82 1.02-.15.17-.3.19-.56.06-.26-.13-1.09-.4-2.08-1.28-.77-.68-1.29-1.52-1.44-1.78-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.39-.79-1.9-.21-.5-.42-.43-.58-.44h-.5c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14 0 1.26.92 2.48 1.05 2.65.13.17 1.81 2.77 4.39 3.88.61.26 1.08.42 1.45.54.61.19 1.17.16 1.61.1.49-.07 1.53-.62 1.74-1.22.21-.6.21-1.12.15-1.22-.06-.1-.24-.17-.5-.3Zm-3.07 11.08h-.01a12.9 12.9 0 0 1-6.55-1.79l-.47-.28-4.86 1.27 1.3-4.73-.31-.49a12.86 12.86 0 0 1-1.97-6.82C3.18 8.74 8.56 3.4 15.92 3.4c3.57 0 6.92 1.39 9.45 3.92a12.46 12.46 0 0 1 3.9 9.09c0 7.11-5.79 12.19-13.23 12.19ZM15.92 5.47c-6.22 0-11.29 5.02-11.29 11.19 0 2.33.73 4.6 2.12 6.48l.36.49-.77 2.8 2.88-.75.47.28a11.02 11.02 0 0 0 6.34 1.99h.01c6.31 0 11.4-4.34 11.4-10.12 0-2.98-1.17-5.78-3.29-7.89a11.2 11.2 0 0 0-7.93-3.47Z"
+    />
+  </svg>
+);
 
 const LandingDiabetes = () => {
   const navigate = useNavigate();
@@ -477,7 +485,7 @@ const LandingDiabetes = () => {
                           onClick={handleWhatsAppScreenshotClick}
                           className="w-full mt-3 bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-base flex items-center justify-center gap-2"
                         >
-                          <MessageCircle className="w-5 h-5" />
+                          <WhatsAppIcon className="w-5 h-5" />
                           Start Your Free Diabetes Assessment
                         </button>
                       </motion.div>
@@ -745,8 +753,8 @@ const LandingDiabetes = () => {
                     onClick={handleWhatsAppClick}
                     className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    WhatsApp: +91 79-83143151
+                    <WhatsAppIcon className="w-5 h-5" />
+                    WhatsApp: +91 63973 07025
                   </button>
                 </div>
               </motion.div>
@@ -2011,7 +2019,7 @@ const LandingDiabetes = () => {
               <h4 className="font-bold text-gray-900 mb-4">Contact Info</h4>
               <ul className="space-y-2 text-gray-600">
                 <li>India</li>
-                <li>+91 79-83143151</li>
+                <li>+91 63973 07025</li>
                 <li>support@urcare.com</li>
               </ul>
               <div className="flex items-center gap-3 mt-4">
@@ -2028,7 +2036,7 @@ const LandingDiabetes = () => {
                   onClick={handleWhatsAppClick}
                   className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-[#228b22]/10 transition-colors"
                 >
-                  <MessageCircle className="w-5 h-5 text-gray-600" />
+                  <WhatsAppIcon className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
             </div>
