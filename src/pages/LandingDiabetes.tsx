@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,6 @@ const LandingDiabetes = () => {
   const navigate = useNavigate();
   const [showMedicalForm, setShowMedicalForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
@@ -74,79 +73,6 @@ const LandingDiabetes = () => {
     age: "",
   });
 
-  // All 10 testimonials with images - organized to match names with appropriate images
-  const testimonials = [
-    {
-      name: "Alice",
-      location: "Australia 🇦🇺",
-      text: "Today, Alice feels lighter, healthier💚",
-      rating: 5,
-      image: "/landing/Alice.JPG",
-    },
-    {
-      name: "Arjun",
-      location: "Pune 🇮🇳",
-      text: "Reversed in 67 days! Arjun's journey to freedom.",
-      rating: 5,
-      image: "/landing/Arjun.JPG",
-    },
-    {
-      name: "Himani",
-      location: "Mumbai 🇮🇳",
-      text: "Himani transformed her health in just 90 days!",
-      rating: 5,
-      image: "/landing/Himani.JPG",
-    },
-    {
-      name: "Jacob",
-      location: "Goa",
-      text: "Jacob's diabetes reversed completely. Thank you UrCare!",
-      rating: 5,
-      image: "/landing/Jacob.JPG",
-    },
-    {
-      name: "Jamie",
-      location: "Canada 🇨🇦",
-      text: "Jamie reversed diabetes and found peace 🌸",
-      rating: 5,
-      image: "/landing/Jamie.JPG",
-    },
-    {
-      name: "Kajal",
-      location: "Ahmedabad",
-      text: "Kajal achieved normal reports within 90 days!",
-      rating: 5,
-      image: "/landing/Kajal.JPG",
-    },
-    {
-      name: "Mukesh",
-      location: "Hyderabad",
-      text: "Mukesh's diagnosis reversed. A1c level now 5.4.",
-      rating: 5,
-      image: "/landing/Mukesh.JPG",
-    },
-    {
-      name: "Priyank",
-      location: "Bangalore",
-      text: "Priyank's best decision - feeling healthier every day!",
-      rating: 5,
-      image: "/landing/Priyank.JPG",
-    },
-    {
-      name: "Shreya",
-      location: "Chennai",
-      text: "Shreya's amazing results - sugar levels stable now!",
-      rating: 5,
-      image: "/landing/Shreya.JPG",
-    },
-    {
-      name: "Smriti",
-      location: "Mumbai 🇮🇳",
-      text: "Smriti went from high pre-diabetes to normal markers 💚",
-      rating: 5,
-      image: "/landing/Smriti.JPG",
-    },
-  ];
 
   const bonuses = [
     {
@@ -219,9 +145,6 @@ const LandingDiabetes = () => {
     window.open("https://wa.aisensy.com/aabax0", "_blank");
   };
 
-  const handleWhatsAppScreenshotClick = () => {
-    window.open("https://wa.aisensy.com/aabax0", "_blank");
-  };
 
   const handlePaymentClick = (paymentLink: string) => {
     window.open(paymentLink, "_blank");
@@ -241,15 +164,6 @@ const LandingDiabetes = () => {
   const handleStartNow = () => {
     setShowMedicalForm(true);
   };
-
-  // Auto-scroll testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
 
   const toggleFAQ = (index: number) => {
     setExpandedFAQ(expandedFAQ === index ? null : index);
@@ -322,7 +236,7 @@ const LandingDiabetes = () => {
                 >
                   About Us
                 </button>
-                <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Reviews</a>
+                <a href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Testimonials</a>
                 <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Pricing</a>
               </nav>
@@ -356,7 +270,7 @@ const LandingDiabetes = () => {
                 >
                   About Us
                 </button>
-                <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
+                <a href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Testimonials</a>
                 <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               </nav>
@@ -396,102 +310,6 @@ const LandingDiabetes = () => {
                   <p>You don't think ~ You just follow.</p>
                 </motion.div>
                 
-                {/* Image Section with Buy Now Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="relative mt-8"
-                >
-                  <div className="rounded-2xl overflow-hidden shadow-xl bg-white/70 backdrop-blur-xl border border-white/30">
-                    {/* Image */}
-                    <div className="relative bg-gray-100">
-                      <img 
-                        src="/hh.JPG" 
-                        alt="UrCare Diabetes Reversal Kit" 
-                        className="w-full h-auto object-contain"
-                        loading="eager"
-                        onError={(e) => {
-                          console.error('Image failed to load:', e.currentTarget.src);
-                        }}
-                      />
-                      {/* Newly Launched Badge */}
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ 
-                          type: "spring",
-                          stiffness: 200,
-                          damping: 10,
-                          delay: 0.8
-                        }}
-                        className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg"
-                      >
-                        <motion.span
-                          animate={{ 
-                            scale: [1, 1.1, 1],
-                          }}
-                          transition={{ 
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        >
-                          🎉 NEWLY LAUNCHED
-                        </motion.span>
-                      </motion.div>
-                    </div>
-
-                    {/* Description + CTA */}
-                    <div className="p-5 md:p-6">
-                      <p className="text-center text-gray-900 font-extrabold tracking-wide uppercase text-sm md:text-base">
-                        [FOR EARLY STAGE TYPE 2 CASES]
-                      </p>
-                      <div className="mt-4 space-y-3">
-                        {[
-                          "UrCare PancreReViV",
-                          "UrCare GlucoLow",
-                          "UrCare Advanced Type 2 Diabetes Reversal Treatment Protocol",
-                          "Doctors Supervision",
-                          "24/7 team Support",
-                          "Only for 25 patients",
-                        ].map((item) => (
-                          <div key={item} className="flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-[#228b22] flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <p className="flex-1 text-left text-gray-700 font-medium leading-snug">
-                              {item}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Buy Now Button */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.9 }}
-                        className="mt-6"
-                      >
-                        <button
-                          onClick={() => handlePaymentClick("https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D")}
-                          className="w-full bg-gradient-to-r from-[#228b22] to-[#1e7a1e] text-white hover:from-[#1e7a1e] hover:to-[#228b22] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-lg"
-                        >
-                          Buy Now
-                        </button>
-
-                        <button
-                          onClick={handleWhatsAppScreenshotClick}
-                          className="w-full mt-3 bg-[#25D366] text-white hover:bg-[#20BA5A] font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg text-base flex items-center justify-center gap-2"
-                        >
-                          <WhatsAppIcon className="w-5 h-5" />
-                          Start Your Free Diabetes Assessment
-                        </button>
-                      </motion.div>
-                    </div>
-                  </div>
-                </motion.div>
               </motion.div>
           </div>
             
@@ -521,9 +339,9 @@ const LandingDiabetes = () => {
                             "Weekly + monthly modifications",
                             "20% off coupon",
                             "Lifetime access + on-request updates and add-ons",
-                            "Price: ₹19,000 -> ₹6,500 (one-time)"
+                            "Price: ₹19,000 -> ₹10,500 (one-time)"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
+                          paymentLink: "https://razorpay.me/@urcare",
                           warning: "Kit 1",
                           slotsLeft: "Limited slots per batch"
                         },
@@ -540,15 +358,15 @@ const LandingDiabetes = () => {
                             "20% discount coupon",
                             "Upgrade anytime to personalised treatment",
                             "On-request updates and add-ons",
-                            "Price: ₹25,000 -> ₹9,500"
+                            "Price: ₹25,000 -> ₹10,500"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
+                          paymentLink: "https://razorpay.me/@urcare",
                           warning: "Kit 2",
                           slotsLeft: "Price increases next batch"
                         },
                         {
                           id: 4,
-                          title: "UrCare TOTAL REVERSAL* — Type 1 / 1.5 / 2",
+                          title: "UrCare Complete Personalised Reversal Treatment With Any Other Conditions ( Type 1 / 1.5 / 2 )",
                           description: "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
                             "Root cause diagnosis",
@@ -999,18 +817,6 @@ const LandingDiabetes = () => {
             </div>
           </div>
 
-          {/* Important Note about Products */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-r from-[#228b22]/10 to-[#1e7a1e]/10 border-2 border-[#228b22] rounded-2xl p-6 md:p-8 mb-12 max-w-4xl mx-auto"
-          >
-            <p className="text-center text-gray-800 text-base md:text-lg leading-relaxed">
-              <strong>Most products only lower sugar temporarily. UrCare acts as a 'Fireman' (GlucoLow) to put out the immediate fire, and a 'Builder' (PancreReViv) to repair the house (Pancreas) simultaneously. This is not just management; this is the path to Reversal.</strong>
-            </p>
-          </motion.div>
-          
           <motion.div 
           className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -1856,117 +1662,31 @@ const LandingDiabetes = () => {
         </div>
       </section>
 
-      {/* Testimonials Section with Orange Curve */}
+      {/* Testimonials Section */}
       <section id="testimonials" className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-transparent overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center mb-12"
+            className="text-center bg-white rounded-2xl shadow-xl p-8 md:p-10"
           >
-            <motion.h2 
-              className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
-            initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Patient Testimonials
-            </motion.h2>
-            <motion.p 
-              className="text-lg text-gray-600"
-          initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+            </h2>
+            <p className="text-lg text-gray-600 mb-6">
+              View real patient testimonial document here.
+            </p>
+            <a
+              href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center bg-[#228b22] text-white hover:bg-[#1e7a1e] text-base px-8 py-3 rounded-xl font-bold transition-all"
             >
-              See how our patients have reversed their diabetes and enhanced their well-being with our support and guidance.
-            </motion.p>
+              Open Testimonial PDF
+            </a>
           </motion.div>
-
-          {/* Testimonial Card */}
-          <div className="relative max-w-2xl mx-auto mb-12">
-            <AnimatePresence mode="wait">
-          <motion.div
-                key={currentTestimonial}
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -30, scale: 0.95 }}
-                transition={{ 
-                  duration: 0.6,
-                  type: "spring",
-                  stiffness: 100
-                }}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden"
-              >
-                {/* Top Section - Image (2/3 of card) */}
-                <div className="relative h-80 md:h-[500px] overflow-hidden">
-                  <img
-                    src={testimonials[currentTestimonial].image}
-                    alt={testimonials[currentTestimonial].name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    style={{ objectPosition: 'center top' }}
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='384'%3E%3Crect fill='%23374151' width='400' height='384'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white' font-weight='bold'%3E${testimonials[currentTestimonial].name[0]}%3C/text%3E%3C/svg%3E`;
-                    }}
-                  />
-                  {/* Dark Overlay only at bottom of image - smaller overlay to show more image */}
-                  <div className="absolute bottom-0 left-0 right-0 h-20 md:h-28 bg-gradient-to-t from-black/85 via-black/70 to-transparent pointer-events-none"></div>
-                  
-                  {/* Name and Location on Dark Overlay - refined positioning */}
-                  <div className="absolute bottom-2 md:bottom-4 left-4 md:left-6 right-4 md:right-6 z-10">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-0.5 drop-shadow-lg leading-tight">
-                      {testimonials[currentTestimonial].name}
-                    </h3>
-                    <p className="text-sm md:text-base text-white drop-shadow-md font-medium">
-                      {testimonials[currentTestimonial].location || "UrCare Patient"}
-                    </p>
-            </div>
-                </div>
-
-                {/* Bottom Section - Quote (1/3 of card) */}
-                <div className="bg-white p-6 md:p-10 relative">
-                  {/* Quotation Mark Icon - More visible */}
-                  <div className="absolute top-4 md:top-5 left-4 md:left-6">
-                    <svg
-                      className="w-10 h-10 md:w-12 md:h-12 text-gray-800"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                    </svg>
-            </div>
-                  
-                  {/* Testimonial Quote - More visible text */}
-                  <div className="pl-12 md:pl-16 pr-4">
-                    <p className="text-base md:text-lg text-gray-900 leading-relaxed font-medium">
-                      {testimonials[currentTestimonial].text}
-                    </p>
-                  </div>
-                </div>
-          </motion.div>
-            </AnimatePresence>
-
-            {/* Navigation Dots */}
-            <div className="flex justify-center items-center gap-2 mt-8">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentTestimonial
-                      ? "w-3 h-3 bg-[#228b22]"
-                      : "w-2 h-2 bg-gray-300 hover:bg-[#228b22]/50"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -2076,7 +1796,7 @@ const LandingDiabetes = () => {
               <ul className="space-y-2 text-gray-600">
                 <li>India</li>
                 <li>+91 63973 07025</li>
-                <li>support@urcare.com</li>
+                <li>urcarein@gmail.com</li>
               </ul>
               <div className="flex items-center gap-3 mt-4">
                 <a href="#" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-[#228b22]/10 transition-colors">

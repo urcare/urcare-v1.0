@@ -61,6 +61,18 @@ const AboutUs = () => {
               Welcome to UrCare ~ True Healthcare 💚
             </h1>
 
+            <div className="mt-6 rounded-2xl overflow-hidden bg-gray-100">
+              <img
+                src="/huhu.PNG"
+                alt="UrCare medical team"
+                className="w-full h-auto object-contain"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = "/hh.JPG";
+                }}
+              />
+            </div>
+
             <p className="mt-5 text-gray-700 leading-relaxed">
               You are now under the care of a specialised, multi-disciplinary
               diabetes treatment team focused on personalised, root-cause-based
@@ -72,25 +84,32 @@ const AboutUs = () => {
             </h2>
 
             <ul className="mt-4 space-y-2 text-gray-800">
-              <li>• Dr. VK Verma (MBBS) – Diabetologist</li>
-              <li>• Vaidya Narendra Saini (BAMS) – Ayurvedic Therapeutics</li>
-              <li>• Dr. Aakarshakk (BAMS) – Endocrine-Focused Practice</li>
-              <li>• DNT , Sejal – Diabetic Nutritionist</li>
-              <li>
-                • Mrs Archana Arya , Yogacharya - Therapeutic Exercises
-              </li>
+              <li>• Dr. V.K. Verma (M.B.B.S., C.C.E.B.D.M.) - Senior Diabetologist</li>
+              <li>• Vaidya Narendra Saini (B.A.M.S.) - Ayurvedic Physician (26+ years of practice)</li>
+              <li>• Dr. Aakarshakk (B.A.M.S., CEO) - Endocrine-Focused Practice</li>
+              <li>• Dt. Sejal - Diabetic Nutritionist & CMO</li>
+              <li>• Mrs. Archana Arya - Yogacharya (Therapeutic Exercise Specialist)</li>
             </ul>
 
             <p className="mt-8 text-gray-700 leading-relaxed">
-              Dr. Aakarshakk BAMS , CEO personally oversees every case, with
-              continuous support from our medical professionals and Protocol
+              Dr. Aakarshakk (BAMS, CEO) personally oversees every case, with
+              continuous support from our medical professionals and protocol
               team throughout your treatment journey.
             </p>
 
             <p className="mt-4 text-gray-700 leading-relaxed">
               We are committed to guiding you with clarity, precision, and
-              consistent medical supervision every step of the way to the Cure
-              .💚
+              consistent medical supervision, every step of the way toward healing.
+              Feel free to connect and start your reversal journey now on WhatsApp{" "}
+              <a
+                href="https://wa.aisensy.com/aaba7s"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#228b22] font-semibold underline"
+              >
+                https://wa.aisensy.com/aaba7s
+              </a>
+              .
             </p>
           </motion.div>
         </div>
