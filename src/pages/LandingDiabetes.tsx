@@ -206,8 +206,8 @@ const LandingDiabetes = () => {
       answer: "We specialize in Type 1 (SIDD, MOD, MARD), Type 1.5 (LADA), and Long-Term Type 2 diabetes. Each case receives hyper-personalized treatment.",
     },
     {
-      question: "How early should I start the program?",
-      answer: "The sooner you start, the better. Our program begins working from Day 1, with visible improvements within the first week.",
+      question: "How early should I start the treatment plan?",
+      answer: "The sooner you start, the better. Our treatment plan begins working from Day 1, with visible improvements within the first week.",
     },
     {
       question: "What if I have complications or other health conditions?",
@@ -323,7 +323,7 @@ const LandingDiabetes = () => {
                   About Us
                 </button>
                 <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Reviews</a>
-                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Program</a>
+                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Pricing</a>
               </nav>
 
@@ -357,7 +357,7 @@ const LandingDiabetes = () => {
                   About Us
                 </button>
                 <a href="#testimonials" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
-                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Program</a>
+                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               </nav>
             </motion.div>
@@ -497,55 +497,73 @@ const LandingDiabetes = () => {
             
             {/* Right Side - Plan Cards Above Image */}
             <div className="space-y-6">
+              <p className="text-center text-gray-700 font-semibold">
+                Pricing: Select your offer in this treatment plan
+              </p>
               {/* Plans Slider - Dark Card Style */}
               <div className="relative">
                 {/* Slider Container */}
                 <div className="relative overflow-hidden rounded-3xl">
                   <AnimatePresence mode="wait">
-                    {[0, 1].map((planIndex) => {
+                    {[0, 1, 2].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
                       
                       const plans = [
                         {
-                          id: 3,
-                          title: "Severe Diabetes Reversal Treatment",
-                          description: "Only for Complex and severe cases",
+                          id: 2,
+                          title: "UrCare Type 2 Diabetes Reversal Kit",
+                          description: "Normalise your HbA1c levels. Reduce medicines. Move toward true reversal.",
                           features: [
-                            "Root Cause Diagnosis",
-                            "Hyper-Personalised Protocol",
-                            "Custom Traditional Medication",
-                            "Doctor's Supervision",
-                            "Type 1 Diabetes (SIDD, MOD, MARD)",
-                            "Type 1.5 Diabetes (LADA)",
-                            "Long-Term Type 2",
-                            "Hyper-personalized protocols",
-                            "2 Ayurvedic medicines are excluded",
-                            "Unlimited revision & request",
-                            "Pause & Cancel anytime"
+                            "Complete 3-Phase Reversal Treatment Plan (step-by-step)",
+                            "2 treatment plans included",
+                            "PancreReViV + GlucoLow FREE (1st month)",
+                            "Unlimited diabetes-friendly meal list",
+                            "Weekly + monthly modifications",
+                            "20% off coupon",
+                            "Lifetime access + on-request updates and add-ons",
+                            "Price: ₹19,000 -> ₹6,500 (one-time)"
+                          ],
+                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
+                          warning: "Kit 1",
+                          slotsLeft: "Limited slots per batch"
+                        },
+                        {
+                          id: 3,
+                          title: "UrCare Type 1 / 1.5 Remission/Reversal Kit",
+                          description: "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
+                          features: [
+                            "Full 3-6 phase delayed remission treatment plan",
+                            "2 plans included for autoimmune patients",
+                            "All 3 medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
+                            "Special meals designed for insulin users",
+                            "Weekly + monthly modifications",
+                            "20% discount coupon",
+                            "Upgrade anytime to personalised treatment",
+                            "On-request updates and add-ons",
+                            "Price: ₹25,000 -> ₹9,500"
                           ],
                           paymentLink: "https://razorpay.me/@urcare?amount=63ChVqAv5sivdj%2BvL2t%2F4A%3D%3D",
-                          warning: "For Severe Cases Only",
-                          slotsLeft: "Only 4 slots left"
+                          warning: "Kit 2",
+                          slotsLeft: "Price increases next batch"
                         },
                         {
                           id: 4,
-                          title: "Doctor Guided Complete Personalised Reversal Treatment",
-                          description: "90+60 Day Treatment for Multi-Complex, High-Risk Cases",
+                          title: "UrCare TOTAL REVERSAL* — Type 1 / 1.5 / 2",
+                          description: "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
-                            "Deep-dive root cause diagnosis (Genetic & Metabolic analysis)",
-                            "Hyper-personalized reversal protocol for your specific body type",
-                            "Custom-compounded \"True Ayurveda\" medication (Shipped globally)",
-                            "Complete micronutrient & deficiency restoration",
-                            "Multi-condition management (BP, Cholesterol & Thyroid together)",
-                            "24/7 care team access + senior doctors involvement",
-                            "Expert supervision & continuous progress tracking",
-                            "One-time investment – No subscriptions, no hidden costs",
-                            "No-results money-back guarantee, no questions asked",
-                            "2 Ayurvedic medicines are excluded",
-                            "High-supervision: Very limited patients accepted"
+                            "Root cause diagnosis",
+                            "Fully hyper-personalised treatment plan",
+                            "All 3 medicines customised to your body",
+                            "Nutrition fulfilment",
+                            "Weekly modifications + monthly deep reviews",
+                            "4 months treatment (3 + 1 free)",
+                            "Extra plan for other conditions if needed",
+                            "Lifetime access to treatment files",
+                            "Recommended updates and add-ons",
+                            "1 month FREE medication + treatment support"
                           ],
-                          warning: "High-Supervision: Limited Cases Only",
-                          slotsLeft: "1 Slot / Week"
+                          warning: "MOST POPULAR",
+                          slotsLeft: "Doctor-guided: limited onboarding per month"
                         }
                       ];
                       
@@ -611,6 +629,20 @@ const LandingDiabetes = () => {
                                 </div>
                               ))}
                             </div>
+                            <p className="text-white/90 text-xs md:text-sm mb-2">
+                              Patient testimonial:{" "}
+                              <a
+                                href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline"
+                              >
+                                View now
+                              </a>
+                            </p>
+                            <p className="text-white/90 text-xs md:text-sm mb-6">
+                              Share Screenshot in the Under the offers.
+                            </p>
                             
                             {/* CTA Button */}
                             <button
@@ -669,11 +701,11 @@ const LandingDiabetes = () => {
                                         <div className="flex items-center justify-center gap-2 mb-1">
                                           <Shield className="w-5 h-5 text-white" />
                                           <h4 className="text-lg md:text-xl font-bold text-white text-center">
-                                            90+60 Day Complete Reversal Program
+                                            Hyper-Personalised Reversal Treatment
                                           </h4>
                                         </div>
                                         <p className="text-center text-white/90 text-xs md:text-sm">
-                                          One-time investment. No subscriptions, no hidden costs. No-results money-back guarantee, no questions asked.
+                                          If reports don't improve, support continues free. If the plan does not fit, we rebuild it free.
                                         </p>
                                       </div>
                                       <div className="space-y-3">
@@ -705,7 +737,7 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 1 : prev - 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Previous treatment"
                   >
@@ -714,7 +746,7 @@ const LandingDiabetes = () => {
                   
                   {/* Slider Dots */}
                   <div className="flex items-center gap-2">
-                    {[0, 1].map((index) => (
+                    {[0, 1, 2].map((index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentPlanIndex(index)}
@@ -729,7 +761,7 @@ const LandingDiabetes = () => {
                   </div>
                   
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 1 ? 0 : prev + 1))}
+                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Next treatment"
                   >
@@ -1020,15 +1052,39 @@ const LandingDiabetes = () => {
                       ]
                     },
                     {
-                      title: "Type 1.5",
+                      title: "UrCare Team",
                       items: [
                         {
-                          storyTitle: "3-Year LADA Remission Story",
-                          description: "A patient with LADA enjoyed three full years of stable remission."
+                          storyTitle: "Dr. V.K. Verma (M.B.B.S., C.C.E.B.D.M.)",
+                          description: "Senior Diabetologist."
                         },
                         {
-                          storyTitle: "Up to 13-Year LADA Story",
-                          description: "Cases show honeymoon phases lasting from one month up to thirteen years."
+                          storyTitle: "Vaidya Narendra Saini (B.A.M.S.)",
+                          description: "Ayurvedic Physician (26+ years of practice)."
+                        },
+                        {
+                          storyTitle: "Dr. Aakarshakk (B.A.M.S., CEO)",
+                          description: "Endocrine-Focused Practice."
+                        },
+                        {
+                          storyTitle: "Dt. Sejal",
+                          description: "Diabetic Nutritionist & CMO."
+                        },
+                        {
+                          storyTitle: "Mrs. Archana Arya",
+                          description: "Yogacharya (Therapeutic Exercise Specialist)."
+                        },
+                        {
+                          storyTitle: "Continuous Medical Supervision",
+                          description: "Dr. Aakarshakk (BAMS, CEO) personally oversees every case, with continuous support from our medical professionals and protocol team throughout your treatment journey."
+                        },
+                        {
+                          storyTitle: "Our Commitment",
+                          description: "We are committed to guiding you with clarity, precision, and consistent medical supervision every step of the way toward healing."
+                        },
+                        {
+                          storyTitle: "Start Now on WhatsApp",
+                          description: "Feel free to connect and start your reversal journey now on WhatsApp: https://wa.aisensy.com/aaba7s"
                         }
                       ]
                     },
@@ -1991,9 +2047,9 @@ const LandingDiabetes = () => {
               </div>
             </div>
 
-            {/* Programs */}
+            {/* Treatment Plans */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-4">Programs</h4>
+              <h4 className="font-bold text-gray-900 mb-4">Treatment Plans</h4>
               <ul className="space-y-2 text-gray-600">
                 <li><a href="#" className="hover:text-[#228b22]">90-Day Reversal</a></li>
                 <li><a href="#" className="hover:text-[#228b22]">Type 1 Treatment</a></li>
