@@ -237,7 +237,7 @@ const LandingDiabetes = () => {
                   About Us
                 </button>
                 <a href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Testimonials</a>
-                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Treatment Plan</a>
+                <a href="#treatment-offers" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] transition-colors font-medium">Pricing</a>
               </nav>
 
@@ -271,7 +271,7 @@ const LandingDiabetes = () => {
                   About Us
                 </button>
                 <a href="https://drive.google.com/file/d/1HKgNkKOSCN4aDwKgBHoNpstTuucTtsLC/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Testimonials</a>
-                <a href="#roadmap" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Treatment Plan</a>
+                <a href="#treatment-offers" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Treatment Plan</a>
                 <a href="#pricing" className="text-gray-700 hover:text-[#228b22] font-medium transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
               </nav>
             </motion.div>
@@ -280,7 +280,7 @@ const LandingDiabetes = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-12 md:py-20 px-4 sm:px-6 lg:px-8 bg-transparent">
+      <section id="treatment-offers" className="relative py-12 md:py-20 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Left Side - Content */}
@@ -341,7 +341,7 @@ const LandingDiabetes = () => {
                             "Lifetime access + on-request updates and add-ons",
                             "Price: ₹19,000 -> ₹10,500 (one-time)"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare",
+                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
                           warning: "Kit 1",
                           slotsLeft: "Limited slots per batch"
                         },
@@ -360,7 +360,7 @@ const LandingDiabetes = () => {
                             "On-request updates and add-ons",
                             "Price: ₹25,000 -> ₹10,500"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare",
+                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
                           warning: "Kit 2",
                           slotsLeft: "Price increases next batch"
                         },
@@ -609,23 +609,6 @@ const LandingDiabetes = () => {
                 </div>
               </motion.div>
               
-              {/* Image Below Plan Cards */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="relative rounded-2xl overflow-hidden shadow-xl"
-              >
-                <img 
-                  src="/IMG_8141.JPG" 
-                  alt="UrCare Diabetes Treatment" 
-                  className="w-full h-auto object-contain"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error('Image failed to load:', e.currentTarget.src);
-                  }}
-                />
-              </motion.div>
             </div>
           </div>
         </div>
@@ -634,44 +617,6 @@ const LandingDiabetes = () => {
       {/* 90-Day Roadmap Section */}
       <section id="roadmap" className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-6xl mx-auto">
-          {/* Second Image - Below 90-Day Reversal Text */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
-          >
-            <img 
-              src="/IMG_9404.JPG" 
-              alt="Diabetes Treatment" 
-              className="w-full h-auto object-contain"
-              loading="lazy"
-              onError={(e) => {
-                console.error('Image failed to load:', e.currentTarget.src);
-              }}
-            />
-          </motion.div>
-          
-          {/* Third Image - Below Second Image */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative rounded-2xl overflow-hidden shadow-xl mb-12 max-w-3xl mx-auto"
-          >
-            <img 
-              src="/IMG_9696.JPG" 
-              alt="Diabetes Treatment" 
-              className="w-full h-auto object-contain"
-              loading="lazy"
-              onError={(e) => {
-                console.error('Image failed to load:', e.currentTarget.src);
-              }}
-            />
-          </motion.div>
-          
           {/* Products Section */}
           <motion.div 
             className="text-center mb-8"
@@ -688,7 +633,7 @@ const LandingDiabetes = () => {
             {/* Slider Container */}
             <div className="relative overflow-hidden rounded-3xl">
               <AnimatePresence mode="wait">
-                {[0, 1].map((productIndex) => {
+                {[0, 1, 2].map((productIndex) => {
                   if (productIndex !== currentProductIndex) return null;
                   
                   const products = [
@@ -696,7 +641,7 @@ const LandingDiabetes = () => {
                       id: 1,
                       name: "PancreReViv",
                       tagline: "The Beta-Cell Builder",
-                      image: "/Pancrereviv.JPG",
+                      image: "/pancreviv.png",
                       price: "₹3,000",
                       features: [
                         'The "Sugar Destroyer" Molecule (Gymnemic Acids)',
@@ -708,14 +653,26 @@ const LandingDiabetes = () => {
                       id: 2,
                       name: "GlucoLow",
                       tagline: "Nature's Metformin",
-                      image: "/Glucolow.JPG",
+                      image: "/Glucolow.png",
                       price: "₹3,000",
                       features: [
                         "AMPK Activation (Metabolism Switch)",
                         "2x Insulin Sensitivity",
                         'The "Carb-Blocker" Effect'
                       ]
-                    }
+                    },
+                    {
+                      id: 3,
+                      name: "BetaReviv",
+                      tagline: "The Insulin Support Partner",
+                      image: "/betareviv.png",
+                      price: "₹3,000",
+                      features: [
+                        "Supports beta-cell resilience",
+                        "Helps improve glycemic control",
+                        "Complements Type 1/1.5 treatment plans"
+                      ]
+                    },
                   ];
                   
                   const product = products[productIndex];
@@ -784,7 +741,7 @@ const LandingDiabetes = () => {
             {/* Slider Navigation */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <button
-                onClick={() => setCurrentProductIndex((prev) => (prev === 0 ? 1 : 0))}
+                onClick={() => setCurrentProductIndex((prev) => (prev === 0 ? 2 : prev - 1))}
                 className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                 aria-label="Previous product"
               >
@@ -793,7 +750,7 @@ const LandingDiabetes = () => {
               
               {/* Slider Dots */}
               <div className="flex items-center gap-2">
-                {[0, 1].map((index) => (
+                {[0, 1, 2].map((index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentProductIndex(index)}
@@ -808,7 +765,7 @@ const LandingDiabetes = () => {
               </div>
               
               <button
-                onClick={() => setCurrentProductIndex((prev) => (prev === 1 ? 0 : 1))}
+                onClick={() => setCurrentProductIndex((prev) => (prev === 2 ? 0 : prev + 1))}
                 className="w-12 h-12 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                 aria-label="Next product"
               >
