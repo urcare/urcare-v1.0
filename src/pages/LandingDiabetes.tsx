@@ -328,7 +328,8 @@ const LandingDiabetes = () => {
                       
                       const plans: Array<{
                         id: number;
-                        title: string;
+                        title?: string;
+                        titleLines?: string[];
                         description: string;
                         features: string[];
                         paymentLink?: string;
@@ -347,9 +348,8 @@ const LandingDiabetes = () => {
                             "PancreReViV + GlucoLow FREE",
                             "Unlimited diabetes-friendly meal list",
                             "Weekly + monthly modifications",
-                            "20% discount coupon",
-                            "Upgrade anytime to personalised treatment",
-                            "Original ₹19,000 ➡️ Now @ ₹6,500",
+                            "20% discount coupon; upgrade anytime to personalised treatment",
+                            "Original ₹19,000 → Now @ ₹6,500",
                           ],
                           paymentLink:
                             "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
@@ -369,8 +369,7 @@ const LandingDiabetes = () => {
                             "All 3 Medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
                             "Special meals designed for insulin users",
                             "Weekly + monthly modifications",
-                            "20% discount coupon",
-                            "Upgrade anytime to personalised treatment",
+                            "20% discount coupon; upgrade anytime to personalised treatment",
                             "On-request updates and add-ons",
                             "Price: ₹25,000 → ₹10,500",
                           ],
@@ -381,7 +380,13 @@ const LandingDiabetes = () => {
                         },
                         {
                           id: 4,
-                          title: "Treatment offer for (Type 1.5 / 2)",
+                          titleLines: [
+                            "UrCare Complete",
+                            "Personalised",
+                            "Reversal Treatment",
+                            "With Any Other Conditions (Type 1/",
+                            "1.5 / 2)",
+                          ],
                           description:
                             "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
@@ -450,8 +455,16 @@ const LandingDiabetes = () => {
                           
                           <div className="p-6 md:p-8">
                             {/* Title */}
-                            <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                              {plan.title}
+                            <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                              {plan.titleLines ? (
+                                plan.titleLines.map((line, li) => (
+                                  <span key={li} className="block">
+                                    {line}
+                                  </span>
+                                ))
+                              ) : (
+                                plan.title
+                              )}
                             </h3>
                             
                             {/* Description */}
@@ -868,41 +881,34 @@ const LandingDiabetes = () => {
                       ]
                     },
                     {
-                      title: "UrCare Team",
+                      title: "Type 1.5",
                       items: [
                         {
-                          storyTitle: "Dr. V.K. Verma (M.B.B.S., C.C.E.B.D.M.)",
-                          description: "Senior Diabetologist."
+                          storyTitle: "6-Year Complete LADA Remission",
+                          description:
+                            "Full six-year honeymoon with restored beta-cell function and reduced insulin needs.",
                         },
                         {
-                          storyTitle: "Vaidya Narendra Saini (B.A.M.S.)",
-                          description: "Ayurvedic Physician (26+ years of practice)."
+                          storyTitle: "9-Year Remission — HbA1c 5.3%",
+                          description:
+                            "LADA patient hit normal HbA1c of 5.3% with positive anti-GAD antibodies still present; improved insulin resistance was the key.",
                         },
                         {
-                          storyTitle: "Dr. Aakarshakk (B.A.M.S., CEO)",
-                          description: "Endocrine-Focused Practice."
+                          storyTitle: "Up to 13-Year Honeymoon Phase",
+                          description:
+                            "LADA honeymoon phases documented from as short as 1 month to as long as 13 years.",
                         },
                         {
-                          storyTitle: "Dt. Sejal",
-                          description: "Diabetic Nutritionist & CMO."
+                          storyTitle: "Low-Carb Slows Autoimmune Destruction",
+                          description:
+                            "Strict low-carb diet significantly delayed insulin dependence after a LADA diagnosis at age 35.",
                         },
                         {
-                          storyTitle: "Mrs. Archana Arya",
-                          description: "Yogacharya (Therapeutic Exercise Specialist)."
+                          storyTitle: "Misdiagnosis to Controlled LADA (Anna's Story)",
+                          description:
+                            "Corrected from Type 2 to LADA via antibody panel — right treatment halted beta-cell loss and improved control.",
                         },
-                        {
-                          storyTitle: "Continuous Medical Supervision",
-                          description: "Dr. Aakarshakk (BAMS, CEO) personally oversees every case, with continuous support from our medical professionals and protocol team throughout your treatment journey."
-                        },
-                        {
-                          storyTitle: "Our Commitment",
-                          description: "We are committed to guiding you with clarity, precision, and consistent medical supervision every step of the way toward healing."
-                        },
-                        {
-                          storyTitle: "Start Now on WhatsApp",
-                          description: "Feel free to connect and start your reversal journey now on WhatsApp: https://wa.aisensy.com/aaba7s"
-                        }
-                      ]
+                      ],
                     },
                     {
                       title: "Type 2",
