@@ -332,16 +332,17 @@ const LandingDiabetes = () => {
                           title: "UrCare Type 2 Diabetes Reversal Kit",
                           description: "Normalise your HbA1c levels. Reduce medicines. Move toward true reversal.",
                           features: [
+                            "Payment of ₹6500 requested by Urcare. Click the link to pay securely via Razorpay: https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
                             "Complete 3-Phase Reversal Treatment Plan (step-by-step)",
-                            "2 treatment plans included",
-                            "PancreReViV + GlucoLow FREE (1st month)",
+                            "2 plans included",
+                            "PancreReViV + GlucoLow FREE",
                             "Unlimited diabetes-friendly meal list",
                             "Weekly + monthly modifications",
-                            "20% off coupon",
-                            "Lifetime access + on-request updates and add-ons",
-                            "Price: ₹19,000 -> ₹10,500 (one-time)"
+                            "20% discount coupon",
+                            "Upgrade anytime to personalised treatment",
+                            "Price: Original ₹19,000 -> Now @ ₹6500"
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
+                          paymentLink: "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
                           warning: "Kit 1",
                           slotsLeft: "Limited slots per batch"
                         },
@@ -350,7 +351,7 @@ const LandingDiabetes = () => {
                           title: "UrCare Type 1 / 1.5 Remission/Reversal Kit",
                           description: "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
                           features: [
-                            "Full 3-6 phase delayed remission treatment plan",
+                            "Full delayed remission treatment plan",
                             "2 plans included for autoimmune patients",
                             "All 3 medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
                             "Special meals designed for insulin users",
@@ -366,19 +367,21 @@ const LandingDiabetes = () => {
                         },
                         {
                           id: 4,
-                          title: "UrCare Complete Personalised Reversal Treatment With Any Other Conditions ( Type 1 / 1.5 / 2 )",
+                          title: "UrCare Treatment Offer (Type 1.5 / 2)",
                           description: "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
                             "Root cause diagnosis",
-                            "Fully hyper-personalised treatment plan",
+                            "Fully hyper-personalised treatment plan for each phase",
                             "All 3 medicines customised to your body",
-                            "Nutrition fulfilment",
+                            "Nutrition deficiency fulfilment",
                             "Weekly modifications + monthly deep reviews",
-                            "4 months treatment (3 + 1 free)",
+                            "4-month treatment (3 + 1 FREE)",
                             "Extra plan for other conditions if needed",
-                            "Lifetime access to treatment files",
-                            "Recommended updates and add-ons",
-                            "1 month FREE medication + treatment support"
+                            "Lifetime access to treatment files for prevention after treatment",
+                            "Recommended modifications, updates and add-ons in the treatment",
+                            "All 3 UrCare medications FREE + treatment support for 1 month",
+                            "BONUS: All 3 UrCare medicines",
+                            "BONUS: 1 month extra treatment support"
                           ],
                           warning: "MOST POPULAR",
                           slotsLeft: "Doctor-guided: limited onboarding per month"
