@@ -326,66 +326,86 @@ const LandingDiabetes = () => {
                     {[0, 1, 2].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
                       
-                      const plans = [
+                      const plans: Array<{
+                        id: number;
+                        title: string;
+                        description: string;
+                        features: string[];
+                        paymentLink?: string;
+                        paymentCaption?: string;
+                        bonus?: { title: string; items: string[] };
+                        warning?: string;
+                        slotsLeft?: string;
+                      }> = [
                         {
                           id: 2,
                           title: "UrCare Type 2 Diabetes Reversal Kit",
                           description: "Normalise your HbA1c levels. Reduce medicines. Move toward true reversal.",
                           features: [
-                            "Payment of ₹6500 requested by Urcare. Click the link to pay securely via Razorpay: https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
                             "Complete 3-Phase Reversal Treatment Plan (step-by-step)",
-                            "2 plans included",
+                            "2 treatment plans included",
                             "PancreReViV + GlucoLow FREE",
                             "Unlimited diabetes-friendly meal list",
                             "Weekly + monthly modifications",
                             "20% discount coupon",
                             "Upgrade anytime to personalised treatment",
-                            "Price: Original ₹19,000 -> Now @ ₹6500"
+                            "Original ₹19,000 ➡️ Now @ ₹6,500",
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
+                          paymentLink:
+                            "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
+                          paymentCaption:
+                            "Payment of ₹6,500 requested by UrCare. Use the button below to pay securely via Razorpay.",
                           warning: "Kit 1",
-                          slotsLeft: "Limited slots per batch"
+                          slotsLeft: "Limited slots per batch",
                         },
                         {
                           id: 3,
                           title: "UrCare Type 1 / 1.5 Remission/Reversal Kit",
-                          description: "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
+                          description:
+                            "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
                           features: [
-                            "Full delayed remission treatment plan",
+                            "Full Delayed Remission Treatment Plan",
                             "2 plans included for autoimmune patients",
-                            "All 3 medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
+                            "All 3 Medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
                             "Special meals designed for insulin users",
                             "Weekly + monthly modifications",
                             "20% discount coupon",
                             "Upgrade anytime to personalised treatment",
                             "On-request updates and add-ons",
-                            "Price: ₹25,000 -> ₹10,500"
+                            "Price: ₹25,000 → ₹10,500",
                           ],
-                          paymentLink: "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
+                          paymentLink:
+                            "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
                           warning: "Kit 2",
-                          slotsLeft: "Price increases next batch"
+                          slotsLeft: "Price increases next batch",
                         },
                         {
                           id: 4,
-                          title: "UrCare Treatment Offer (Type 1.5 / 2)",
-                          description: "Fully customised treatment for diabetes plus any other conditions.",
+                          title: "Treatment offer for (Type 1.5 / 2)",
+                          description:
+                            "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
                             "Root cause diagnosis",
                             "Fully hyper-personalised treatment plan for each phase",
                             "All 3 medicines customised to your body",
                             "Nutrition deficiency fulfilment",
                             "Weekly modifications + monthly deep reviews",
-                            "4-month treatment (3 + 1 FREE)",
+                            "4-Month Treatment (3 + 1 FREE)",
                             "Extra plan for other conditions if needed",
                             "Lifetime access to treatment files for prevention after treatment",
                             "Recommended modifications, updates and add-ons in the treatment",
-                            "All 3 UrCare medications FREE + treatment support for 1 month",
-                            "BONUS: All 3 UrCare medicines",
-                            "BONUS: 1 month extra treatment support"
+                            "All 3 UrCare Medications Free + Treatment Support for 1 Month",
                           ],
+                          bonus: {
+                            title: "BONUS",
+                            items: [
+                              "All 3 UrCare medicines",
+                              "1 month extra treatment support",
+                            ],
+                          },
                           warning: "MOST POPULAR",
-                          slotsLeft: "Doctor-guided: limited onboarding per month"
-                        }
+                          slotsLeft: "Doctor-guided: limited onboarding per month",
+                        },
                       ];
                       
                       const plan = plans[planIndex];
@@ -450,6 +470,27 @@ const LandingDiabetes = () => {
                                 </div>
                               ))}
                             </div>
+                            {plan.bonus && (
+                              <div className="mb-6 rounded-2xl border border-white/20 bg-white/10 p-4">
+                                <div className="mb-3 flex items-center gap-2 text-white">
+                                  <Gift className="h-5 w-5 shrink-0 text-yellow-300" />
+                                  <span className="text-lg font-bold tracking-wide">
+                                    {plan.bonus.title}
+                                  </span>
+                                </div>
+                                <ul className="space-y-2">
+                                  {plan.bonus.items.map((line, bidx) => (
+                                    <li
+                                      key={bidx}
+                                      className="flex items-start gap-3 text-white/95 text-sm md:text-base"
+                                    >
+                                      <span className="mt-0.5 text-yellow-300">•</span>
+                                      <span>{line}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                             <p className="text-white/90 text-xs md:text-sm mb-2">
                               Patient testimonial:{" "}
                               <a
@@ -491,8 +532,17 @@ const LandingDiabetes = () => {
                                     <>
                                       {/* Payment Section */}
                                       <div>
+                                        {plan.paymentCaption && (
+                                          <p className="mb-3 text-center text-xs text-white/90 md:text-sm">
+                                            {plan.paymentCaption}
+                                          </p>
+                                        )}
                                         <button
-                                          onClick={() => handlePaymentClick(plan.paymentLink)}
+                                          onClick={() => {
+                                            if (plan.paymentLink) {
+                                              handlePaymentClick(plan.paymentLink);
+                                            }
+                                          }}
                                           className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
                                         >
                                           Step 1 - Pay the Treatment Fee
