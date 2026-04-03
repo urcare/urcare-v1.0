@@ -330,6 +330,7 @@ const LandingDiabetes = () => {
                         id: number;
                         title?: string;
                         titleLines?: string[];
+                        subtitle?: string;
                         description: string;
                         features: string[];
                         paymentLink?: string;
@@ -384,9 +385,9 @@ const LandingDiabetes = () => {
                             "UrCare Complete",
                             "Personalised",
                             "Reversal Treatment",
-                            "With Any Other Conditions (Type 1/",
-                            "1.5 / 2 / International patients)",
                           ],
+                          subtitle:
+                            "With Any Other Conditions (Type 1 / 1.5 / 2 / International patients / Busy professionals also)",
                           description:
                             "Fully customised treatment for diabetes plus any other conditions.",
                           features: [
@@ -466,6 +467,11 @@ const LandingDiabetes = () => {
                                 plan.title
                               )}
                             </h3>
+                            {plan.subtitle && (
+                              <p className="text-white/85 mb-3 text-sm md:text-base leading-relaxed">
+                                {plan.subtitle}
+                              </p>
+                            )}
                             
                             {/* Description */}
                             <p className="text-white/80 mb-6 text-base">
