@@ -51,6 +51,7 @@ const LandingDiabetes = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [expandedPlans, setExpandedPlans] = useState<{ [key: number]: boolean }>({});
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
+  const [planAutoplayPaused, setPlanAutoplayPaused] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -74,16 +75,22 @@ const LandingDiabetes = () => {
   });
 
   const PLAN_SLIDE_COUNT = 3;
-  const PLAN_AUTO_ADVANCE_MS = 4500;
+  const PLAN_AUTO_ADVANCE_MS = 9000;
+
+  const goToTreatmentSlide = (index: number) => {
+    setPlanAutoplayPaused(true);
+    setCurrentPlanIndex(index);
+  };
 
   useEffect(() => {
+    if (planAutoplayPaused) return;
     const id = window.setInterval(() => {
       setCurrentPlanIndex((prev) =>
         prev === PLAN_SLIDE_COUNT - 1 ? 0 : prev + 1
       );
     }, PLAN_AUTO_ADVANCE_MS);
     return () => window.clearInterval(id);
-  }, []);
+  }, [planAutoplayPaused]);
 
   const bonuses = [
     {
@@ -499,33 +506,6 @@ const LandingDiabetes = () => {
                                 </div>
                               ))}
                             </div>
-                            {plan.showDeliveryNotes && (
-                              <div className="mb-6 rounded-xl border border-white/20 bg-black/25 p-4 text-sm text-white/90">
-                                <p className="mb-2 font-semibold text-white">
-                                  Delivery Note:
-                                </p>
-                                <ul className="list-disc space-y-2 pl-5 marker:text-white/80">
-                                  <li>
-                                    This kit is available for Pan India delivery
-                                    only
-                                  </li>
-                                  <li>
-                                    International shipping is available only
-                                    under{" "}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setCurrentPlanIndex(0)
-                                      }
-                                      className="font-semibold text-white underline decoration-white/50 underline-offset-2 hover:decoration-white"
-                                    >
-                                      Complete personalised reversal treatment
-                                    </button>{" "}
-                                    only →
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
                             {plan.bonus && (
                               <div className="mb-6 rounded-2xl border border-white/20 bg-white/10 p-4">
                                 <div className="mb-3 flex items-center gap-2 text-white">
@@ -558,13 +538,37 @@ const LandingDiabetes = () => {
                                 View now
                               </a>
                             </p>
-                            <p className="text-white/90 text-xs md:text-sm mb-6">
+                            <p className="text-white/90 text-xs md:text-sm mb-3">
                               Share Screenshot in the Under the offers.
                             </p>
+                            {plan.showDeliveryNotes && (
+                              <div className="mb-6 space-y-2 text-white/90 text-xs md:text-sm leading-relaxed">
+                                <p className="font-medium text-white/90">
+                                  Delivery Note:
+                                </p>
+                                <p>
+                                  • This kit is available for Pan India
+                                  delivery only
+                                </p>
+                                <p>
+                                  • International shipping is available only
+                                  under&nbsp;
+                                  <button
+                                    type="button"
+                                    onClick={() => goToTreatmentSlide(0)}
+                                    className="inline border-0 bg-transparent p-0 align-baseline font-semibold text-white underline decoration-white/50 underline-offset-2 hover:decoration-white"
+                                  >
+                                    Complete personalised reversal treatment
+                                  </button>
+                                  &nbsp;only →
+                                </p>
+                              </div>
+                            )}
                             
                             {/* CTA Button */}
                             <button
                               onClick={() => {
+                                setPlanAutoplayPaused(true);
                                 togglePlan(plan.id);
                               }}
                               className="w-full bg-white/10 border-2 border-[#228b22] text-white hover:bg-white/20 font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wide text-sm"
@@ -664,11 +668,12 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      setPlanAutoplayPaused(true);
                       setCurrentPlanIndex((prev) =>
                         prev === 0 ? PLAN_SLIDE_COUNT - 1 : prev - 1
-                      )
-                    }
+                      );
+                    }}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Previous treatment"
                   >
@@ -680,7 +685,7 @@ const LandingDiabetes = () => {
                     {[0, 1, 2].map((index) => (
                       <button
                         key={index}
-                        onClick={() => setCurrentPlanIndex(index)}
+                        onClick={() => goToTreatmentSlide(index)}
                         className={`transition-all rounded-full ${
                           currentPlanIndex === index
                             ? "w-3 h-3 bg-[#228b22]"
@@ -692,11 +697,12 @@ const LandingDiabetes = () => {
                   </div>
                   
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      setPlanAutoplayPaused(true);
                       setCurrentPlanIndex((prev) =>
                         prev === PLAN_SLIDE_COUNT - 1 ? 0 : prev + 1
-                      )
-                    }
+                      );
+                    }}
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Next treatment"
                   >
