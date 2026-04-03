@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,17 @@ const LandingDiabetes = () => {
     age: "",
   });
 
+  const PLAN_SLIDE_COUNT = 3;
+  const PLAN_AUTO_ADVANCE_MS = 4500;
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setCurrentPlanIndex((prev) =>
+        prev === PLAN_SLIDE_COUNT - 1 ? 0 : prev + 1
+      );
+    }, PLAN_AUTO_ADVANCE_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   const bonuses = [
     {
@@ -198,6 +209,93 @@ const LandingDiabetes = () => {
       pincode: "",
     });
   };
+
+  type TreatmentPlan = {
+    id: number;
+    title?: string;
+    titleLines?: string[];
+    subtitle?: string;
+    description: string;
+    features: string[];
+    paymentLink?: string;
+    paymentCaption?: string;
+    bonus?: { title: string; items: string[] };
+    warning?: string;
+    slotsLeft?: string;
+    showDeliveryNotes?: boolean;
+  };
+
+  const treatmentPlans: TreatmentPlan[] = [
+    {
+      id: 4,
+      titleLines: ["UrCare Complete", "Personalised", "Reversal Treatment"],
+      subtitle:
+        "With Any Other Conditions (Type 1 / 1.5 / 2 / International patients / Busy professionals also)",
+      description:
+        "Fully customised treatment for diabetes plus any other conditions.",
+      features: [
+        "Root cause diagnosis",
+        "Fully hyper-personalised treatment plan for each phase",
+        "All 3 medicines customised to your body",
+        "Nutrition deficiency fulfilment",
+        "Weekly modifications + monthly deep reviews",
+        "4-Month Treatment (3 + 1 FREE)",
+        "Extra plan for other conditions if needed",
+        "Lifetime access to treatment files for prevention after treatment",
+        "Recommended modifications, updates and add-ons in the treatment",
+        "All 3 UrCare Medications Free + Treatment Support for 1 Month",
+      ],
+      bonus: {
+        title: "BONUS",
+        items: ["All 3 UrCare medicines", "1 month extra treatment support"],
+      },
+      warning: "MOST POPULAR",
+      slotsLeft: "Doctor-guided: limited onboarding per month",
+    },
+    {
+      id: 2,
+      title: "UrCare Type 2 Diabetes Reversal Kit",
+      description:
+        "Normalise your HbA1c levels. Reduce medicines. Move toward true reversal.",
+      features: [
+        "Complete 3-Phase Reversal Treatment Plan (step-by-step)",
+        "2 treatment plans included",
+        "PancreReViV + GlucoLow FREE",
+        "Unlimited diabetes-friendly meal list",
+        "Weekly + monthly modifications",
+        "20% discount coupon; upgrade anytime to personalised treatment",
+        "Original ₹19,000 → Now @ ₹6,500",
+      ],
+      paymentLink:
+        "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
+      paymentCaption:
+        "Payment of ₹6,500 requested by UrCare. Use the button below to pay securely via Razorpay.",
+      warning: "Kit 1",
+      slotsLeft: "Limited slots per batch",
+      showDeliveryNotes: true,
+    },
+    {
+      id: 3,
+      title: "UrCare Type 1 / 1.5 Remission/Reversal Kit",
+      description:
+        "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
+      features: [
+        "Full Delayed Remission Treatment Plan",
+        "2 plans included for autoimmune patients",
+        "All 3 Medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
+        "Special meals designed for insulin users",
+        "Weekly + monthly modifications",
+        "20% discount coupon; upgrade anytime to personalised treatment",
+        "On-request updates and add-ons",
+        "Price: ₹25,000 → ₹10,500",
+      ],
+      paymentLink:
+        "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
+      warning: "Kit 2",
+      slotsLeft: "Price increases next batch",
+      showDeliveryNotes: true,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-[#228b22]/20">
@@ -325,100 +423,12 @@ const LandingDiabetes = () => {
                   <AnimatePresence mode="wait">
                     {[0, 1, 2].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
-                      
-                      const plans: Array<{
-                        id: number;
-                        title?: string;
-                        titleLines?: string[];
-                        subtitle?: string;
-                        description: string;
-                        features: string[];
-                        paymentLink?: string;
-                        paymentCaption?: string;
-                        bonus?: { title: string; items: string[] };
-                        warning?: string;
-                        slotsLeft?: string;
-                      }> = [
-                        {
-                          id: 2,
-                          title: "UrCare Type 2 Diabetes Reversal Kit",
-                          description: "Normalise your HbA1c levels. Reduce medicines. Move toward true reversal.",
-                          features: [
-                            "Complete 3-Phase Reversal Treatment Plan (step-by-step)",
-                            "2 treatment plans included",
-                            "PancreReViV + GlucoLow FREE",
-                            "Unlimited diabetes-friendly meal list",
-                            "Weekly + monthly modifications",
-                            "20% discount coupon; upgrade anytime to personalised treatment",
-                            "Original ₹19,000 → Now @ ₹6,500",
-                          ],
-                          paymentLink:
-                            "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
-                          paymentCaption:
-                            "Payment of ₹6,500 requested by UrCare. Use the button below to pay securely via Razorpay.",
-                          warning: "Kit 1",
-                          slotsLeft: "Limited slots per batch",
-                        },
-                        {
-                          id: 3,
-                          title: "UrCare Type 1 / 1.5 Remission/Reversal Kit",
-                          description:
-                            "Protect and regenerate beta cells. Reduce insulin dependency. Delay progression.",
-                          features: [
-                            "Full Delayed Remission Treatment Plan",
-                            "2 plans included for autoimmune patients",
-                            "All 3 Medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
-                            "Special meals designed for insulin users",
-                            "Weekly + monthly modifications",
-                            "20% discount coupon; upgrade anytime to personalised treatment",
-                            "On-request updates and add-ons",
-                            "Price: ₹25,000 → ₹10,500",
-                          ],
-                          paymentLink:
-                            "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
-                          warning: "Kit 2",
-                          slotsLeft: "Price increases next batch",
-                        },
-                        {
-                          id: 4,
-                          titleLines: [
-                            "UrCare Complete",
-                            "Personalised",
-                            "Reversal Treatment",
-                          ],
-                          subtitle:
-                            "With Any Other Conditions (Type 1 / 1.5 / 2 / International patients / Busy professionals also)",
-                          description:
-                            "Fully customised treatment for diabetes plus any other conditions.",
-                          features: [
-                            "Root cause diagnosis",
-                            "Fully hyper-personalised treatment plan for each phase",
-                            "All 3 medicines customised to your body",
-                            "Nutrition deficiency fulfilment",
-                            "Weekly modifications + monthly deep reviews",
-                            "4-Month Treatment (3 + 1 FREE)",
-                            "Extra plan for other conditions if needed",
-                            "Lifetime access to treatment files for prevention after treatment",
-                            "Recommended modifications, updates and add-ons in the treatment",
-                            "All 3 UrCare Medications Free + Treatment Support for 1 Month",
-                          ],
-                          bonus: {
-                            title: "BONUS",
-                            items: [
-                              "All 3 UrCare medicines",
-                              "1 month extra treatment support",
-                            ],
-                          },
-                          warning: "MOST POPULAR",
-                          slotsLeft: "Doctor-guided: limited onboarding per month",
-                        },
-                      ];
-                      
-                      const plan = plans[planIndex];
-                      
+
+                      const plan = treatmentPlans[planIndex];
+
                       return (
                         <motion.div
-                          key={planIndex}
+                          key={plan.id}
                           initial={{ opacity: 0, x: 100 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -100 }}
@@ -489,6 +499,33 @@ const LandingDiabetes = () => {
                                 </div>
                               ))}
                             </div>
+                            {plan.showDeliveryNotes && (
+                              <div className="mb-6 rounded-xl border border-white/20 bg-black/25 p-4 text-sm text-white/90">
+                                <p className="mb-2 font-semibold text-white">
+                                  Delivery Note:
+                                </p>
+                                <ul className="list-disc space-y-2 pl-5 marker:text-white/80">
+                                  <li>
+                                    This kit is available for Pan India delivery
+                                    only
+                                  </li>
+                                  <li>
+                                    International shipping is available only
+                                    under{" "}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setCurrentPlanIndex(0)
+                                      }
+                                      className="font-semibold text-white underline decoration-white/50 underline-offset-2 hover:decoration-white"
+                                    >
+                                      Complete personalised reversal treatment
+                                    </button>{" "}
+                                    only →
+                                  </li>
+                                </ul>
+                              </div>
+                            )}
                             {plan.bonus && (
                               <div className="mb-6 rounded-2xl border border-white/20 bg-white/10 p-4">
                                 <div className="mb-3 flex items-center gap-2 text-white">
@@ -627,7 +664,11 @@ const LandingDiabetes = () => {
                 {/* Slider Navigation */}
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 0 ? 2 : prev - 1))}
+                    onClick={() =>
+                      setCurrentPlanIndex((prev) =>
+                        prev === 0 ? PLAN_SLIDE_COUNT - 1 : prev - 1
+                      )
+                    }
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Previous treatment"
                   >
@@ -651,7 +692,11 @@ const LandingDiabetes = () => {
                   </div>
                   
                   <button
-                    onClick={() => setCurrentPlanIndex((prev) => (prev === 2 ? 0 : prev + 1))}
+                    onClick={() =>
+                      setCurrentPlanIndex((prev) =>
+                        prev === PLAN_SLIDE_COUNT - 1 ? 0 : prev + 1
+                      )
+                    }
                     className="w-10 h-10 rounded-full bg-[#228b22] hover:bg-[#1e7a1e] text-white flex items-center justify-center transition-all shadow-lg hover:scale-110"
                     aria-label="Next treatment"
                   >
