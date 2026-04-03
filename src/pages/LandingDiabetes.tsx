@@ -385,7 +385,7 @@ const LandingDiabetes = () => {
                             "Personalised",
                             "Reversal Treatment",
                             "With Any Other Conditions (Type 1/",
-                            "1.5 / 2)",
+                            "1.5 / 2 / International patients)",
                           ],
                           description:
                             "Fully customised treatment for diabetes plus any other conditions.",
