@@ -159,8 +159,11 @@ const LandingDiabetes = () => {
     },
   ];
 
+  const WHATSAPP_CHAT_URL = "https://wa.me/918218741693";
+  const CALL_STATUS_TEL = "tel:+917983143151";
+
   const handleWhatsAppClick = () => {
-    window.open("https://wa.aisensy.com/aabax0", "_blank");
+    window.open(WHATSAPP_CHAT_URL, "_blank", "noopener,noreferrer");
   };
 
 
@@ -246,7 +249,7 @@ const LandingDiabetes = () => {
         "All 3 medicines customised to your body",
         "Nutrition deficiency fulfilment",
         "Weekly modifications + monthly deep reviews",
-        "Phase By Phase Updates Until Desired Results Achieved",
+        "Structured phase-by-phase updates until your desired results are achieved.",
         "4-Month Treatment (3 + 1 FREE)",
         "Extra plan for other conditions if needed",
         "Lifetime access to treatment files for prevention after treatment",
@@ -258,7 +261,7 @@ const LandingDiabetes = () => {
         items: ["All 3 UrCare medicines", "1 month extra treatment support"],
       },
       warning: "MOST POPULAR",
-      slotsLeft: "Doctor-guided: limited onboarding per month",
+      slotsLeft: "Doctor-guided: limited onboarding per week",
     },
     {
       id: 2,
@@ -271,7 +274,7 @@ const LandingDiabetes = () => {
         "PancreReViV + GlucoLow FREE",
         "Unlimited diabetes-friendly meal list",
         "Weekly + monthly modifications",
-        "Phase By Phase Updates Until Desired Results Achieved",
+        "Structured phase-by-phase updates until your desired results are achieved.",
         "20% discount coupon; upgrade anytime to personalised treatment",
         "Original ₹19,000 → Now @ ₹6,500",
       ],
@@ -294,7 +297,7 @@ const LandingDiabetes = () => {
         "All 3 Medicines FREE (PancreReViV + GlucoLow + BetaReviv)",
         "Special meals designed for insulin users",
         "Weekly + monthly modifications",
-        "Phase By Phase Updates Until Desired Results Achieved",
+        "Structured phase-by-phase updates until your desired results are achieved.",
         "20% discount coupon; upgrade anytime to personalised treatment",
         "On-request updates and add-ons",
         "Price: ₹25,000 → ₹10,500",
@@ -724,14 +727,32 @@ const LandingDiabetes = () => {
                 <p className="text-center text-gray-800 text-base md:text-lg font-semibold mb-4">
                   Start Your Free Diabetes Assessment 💚
                 </p>
-                <div className="flex items-center justify-center">
+                <div className="flex flex-col items-center justify-center gap-3">
                   <button
+                    type="button"
                     onClick={handleWhatsAppClick}
-                    className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
+                    className="flex w-full max-w-md items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-[1.02]"
                   >
-                    <WhatsAppIcon className="w-5 h-5" />
-                    WhatsApp: +91 63973 07025
+                    <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                    <span className="text-center text-sm sm:text-base leading-snug">
+                      <span className="block">+91 821-8741693</span>
+                      <span className="block font-normal opacity-95">
+                        For WhatsApp Chats
+                      </span>
+                    </span>
                   </button>
+                  <a
+                    href={CALL_STATUS_TEL}
+                    className="flex w-full max-w-md items-center justify-center gap-2 border-2 border-[#228b22] bg-white px-6 py-3 rounded-xl font-semibold text-[#228b22] transition-all hover:bg-[#228b22]/5 transform hover:scale-[1.02]"
+                  >
+                    <Phone className="w-5 h-5 shrink-0" />
+                    <span className="text-center text-sm sm:text-base leading-snug">
+                      <span className="block">+91 79-83143151</span>
+                      <span className="block font-normal text-gray-700">
+                        For Calls &amp; Status Updates
+                      </span>
+                    </span>
+                  </a>
                 </div>
               </motion.div>
               
@@ -982,7 +1003,7 @@ const LandingDiabetes = () => {
                           description: "PMC3593165 (Same study, gold-standard testing)"
                         },
                         {
-                          storyTitle: "3-Month Complete Remission:",
+                          storyTitle: "3-Month Complete Reversal:",
                           description: "PMC9480679 (Individual case, HbA1c 14.9%→5.1%)"
                         },
                         {
@@ -1871,7 +1892,21 @@ const LandingDiabetes = () => {
               <h4 className="font-bold text-gray-900 mb-4">Contact Info</h4>
               <ul className="space-y-2 text-gray-600">
                 <li>India</li>
-                <li>+91 63973 07025</li>
+                <li>
+                  <a
+                    href={WHATSAPP_CHAT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#228b22]"
+                  >
+                    +91 821-8741693 — WhatsApp chats
+                  </a>
+                </li>
+                <li>
+                  <a href={CALL_STATUS_TEL} className="hover:text-[#228b22]">
+                    +91 79-83143151 — Calls &amp; status updates
+                  </a>
+                </li>
                 <li>urcarein@gmail.com</li>
               </ul>
               <div className="flex items-center gap-3 mt-4">
@@ -1884,12 +1919,22 @@ const LandingDiabetes = () => {
                 <a href="#" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-[#228b22]/10 transition-colors">
                   <Twitter className="w-5 h-5 text-gray-600" />
                 </a>
-                <button
-                  onClick={handleWhatsAppClick}
+                <a
+                  href={CALL_STATUS_TEL}
                   className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-[#228b22]/10 transition-colors"
+                  aria-label="Call for status updates"
+                >
+                  <Phone className="w-5 h-5 text-gray-600" />
+                </a>
+                <a
+                  href={WHATSAPP_CHAT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-[#228b22]/10 transition-colors"
+                  aria-label="WhatsApp chat"
                 >
                   <WhatsAppIcon className="w-5 h-5 text-gray-600" />
-                </button>
+                </a>
               </div>
             </div>
           </div>
