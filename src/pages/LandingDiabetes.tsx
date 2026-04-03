@@ -427,7 +427,7 @@ const LandingDiabetes = () => {
             {/* Right Side - Plan Cards Above Image */}
             <div className="space-y-6">
               <p className="text-center text-gray-700 font-semibold">
-                Pricing: Select your offer in this treatment plan
+              Choose Your Treatment Plan Below
               </p>
               {/* Plans Slider - Dark Card Style */}
               <div className="relative">

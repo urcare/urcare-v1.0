@@ -1,0 +1,38 @@
+{{ 'urcare-landing-diabetes.css' | asset_url | stylesheet_tag }}
+
+<div id="urcare-landing-diabetes-root"></div>
+
+<script>
+  window.URCARE_LANDING_ASSET_MAP = {
+    "/brand.png": {{ 'brand.png' | asset_url | json }},
+    "/hh.JPG": {{ 'hh.JPG' | asset_url | json }},
+    "/IMG_8141.JPG": {{ 'IMG_8141.JPG' | asset_url | json }},
+    "/IMG_9404.JPG": {{ 'IMG_9404.JPG' | asset_url | json }},
+    "/IMG_9696.JPG": {{ 'IMG_9696.JPG' | asset_url | json }},
+    "/IMG_9439.JPG": {{ 'IMG_9439.JPG' | asset_url | json }},
+    "/Pancrereviv.JPG": {{ 'Pancrereviv.JPG' | asset_url | json }},
+    "/Glucolow.JPG": {{ 'Glucolow.JPG' | asset_url | json }},
+    "/landing/Alice.JPG": {{ 'Alice.JPG' | asset_url | json }},
+    "/landing/Arjun.JPG": {{ 'Arjun.JPG' | asset_url | json }},
+    "/landing/Himani.JPG": {{ 'Himani.JPG' | asset_url | json }},
+    "/landing/Jacob.JPG": {{ 'Jacob.JPG' | asset_url | json }},
+    "/landing/Jamie.JPG": {{ 'Jamie.JPG' | asset_url | json }},
+    "/landing/Kajal.JPG": {{ 'Kajal.JPG' | asset_url | json }},
+    "/landing/Mukesh.JPG": {{ 'Mukesh.JPG' | asset_url | json }},
+    "/landing/Priyank.JPG": {{ 'Priyank.JPG' | asset_url | json }},
+    "/landing/Shreya.JPG": {{ 'Shreya.JPG' | asset_url | json }},
+    "/landing/Smriti.JPG": {{ 'Smriti.JPG' | asset_url | json }}
+  };
+</script>
+
+{{ 'urcare-landing-diabetes.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "UrCare Landing (Diabetes)",
+  "settings": [],
+  "presets": [
+    { "name": "UrCare Landing (Diabetes)" }
+  ]
+}
+{% endschema %}

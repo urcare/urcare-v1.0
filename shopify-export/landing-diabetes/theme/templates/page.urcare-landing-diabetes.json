@@ -1,0 +1,11 @@
+{
+  "name": "UrCare Landing (Diabetes)",
+  "layout": "urcare-landing-diabetes",
+  "sections": {
+    "main": {
+      "type": "urcare-landing-diabetes",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

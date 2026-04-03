@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green heart background -->
+  <path d="M256 448C256 448 64 320 64 192C64 128 115.2 76.8 179.2 76.8C217.6 76.8 249.6 96 256 128C262.4 96 294.4 76.8 332.8 76.8C396.8 76.8 448 128 448 192C448 320 256 448 256 448Z" 
+        fill="#22c55e" 
+        stroke="#15803d" 
+        stroke-width="4"/>
+  
+  <!-- Medical cross in top right -->
+  <rect x="360" y="128" width="16" height="48" fill="white" rx="4"/>
+  <rect x="348" y="140" width="40" height="16" fill="white" rx="4"/>
+  
+  <!-- Circuit pattern on the left side -->
+  <!-- Circuit nodes -->
+  <circle cx="140" cy="180" r="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+  <circle cx="140" cy="220" r="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+  <circle cx="180" cy="200" r="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+  
+  <!-- Circuit connections -->
+  <line x1="140" y1="188" x2="140" y2="212" stroke="white" stroke-width="3"/>
+  <line x1="148" y1="180" x2="172" y2="200" stroke="white" stroke-width="3"/>
+  <line x1="148" y1="220" x2="172" y2="200" stroke="white" stroke-width="3"/>
+  
+  <!-- Additional circuit elements -->
+  <circle cx="168" cy="248" r="4" fill="white"/>
+  <circle cx="192" cy="264" r="4" fill="white"/>
+  <circle cx="216" cy="248" r="4" fill="white"/>
+  <line x1="168" y1="248" x2="192" y2="264" stroke="white" stroke-width="2"/>
+  <line x1="192" y1="264" x2="216" y2="248" stroke="white" stroke-width="2"/>
+  
+  <!-- Highlight effects -->
+  <ellipse cx="200" cy="180" rx="40" ry="20" fill="white" opacity="0.2" transform="rotate(-30 200 180)"/>
+  <ellipse cx="320" cy="280" rx="30" ry="15" fill="white" opacity="0.15" transform="rotate(45 320 280)"/>
+</svg> 
