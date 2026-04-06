@@ -75,7 +75,7 @@ const LandingDiabetes = () => {
   });
 
   const PLAN_SLIDE_COUNT = 3;
-  const PLAN_AUTO_ADVANCE_MS = 9000;
+  const PLAN_AUTO_ADVANCE_MS = 4000;
 
   const goToTreatmentSlide = (index: number) => {
     setPlanAutoplayPaused(true);
@@ -159,7 +159,7 @@ const LandingDiabetes = () => {
     },
   ];
 
-  const WHATSAPP_CHAT_URL = "https://wa.me/918218741693";
+  const WHATSAPP_CHAT_URL = "https://wa.aisensy.com/aaba7s";
   const CALL_STATUS_TEL = "tel:+917983143151";
 
   const handleWhatsAppClick = () => {
@@ -282,7 +282,7 @@ const LandingDiabetes = () => {
         "https://razorpay.me/@urcare?amount=JJPKz8CZWxf%2FoBwbIHA9BA%3D%3D",
       paymentCaption:
         "Payment of ₹6,500 requested by UrCare. Use the button below to pay securely via Razorpay.",
-      warning: "Kit 1",
+      warning: "Kit 2",
       slotsLeft: "Limited slots per batch",
       showDeliveryNotes: true,
     },
@@ -304,7 +304,7 @@ const LandingDiabetes = () => {
       ],
       paymentLink:
         "https://razorpay.me/@urcare?amount=TwAVRxGzgZzFZG7zBVsHRg%3D%3D",
-      warning: "Kit 2",
+      warning: "Kit 1",
       slotsLeft: "Price increases next batch",
       showDeliveryNotes: true,
     },
@@ -735,7 +735,7 @@ const LandingDiabetes = () => {
                   >
                     <WhatsAppIcon className="w-5 h-5 shrink-0" />
                     <span className="text-center text-sm sm:text-base leading-snug">
-                      <span className="block">+91 821-8741693</span>
+                      <span className="block">+91 6397307025</span>
                       <span className="block font-normal opacity-95">
                         For WhatsApp Chats
                       </span>
@@ -1899,7 +1899,7 @@ const LandingDiabetes = () => {
                     rel="noopener noreferrer"
                     className="hover:text-[#228b22]"
                   >
-                    +91 821-8741693 — WhatsApp chats
+                    +91 6397307025 — WhatsApp chats
                   </a>
                 </li>
                 <li>
