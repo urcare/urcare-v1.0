@@ -432,7 +432,13 @@ const LandingDiabetes = () => {
               {/* Plans Slider - Dark Card Style */}
               <div className="relative">
                 {/* Slider Container */}
-                <div className="relative overflow-hidden rounded-3xl">
+                <div
+                  className="relative overflow-hidden rounded-3xl"
+                  onPointerDownCapture={() => setPlanAutoplayPaused(true)}
+                  onKeyDownCapture={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setPlanAutoplayPaused(true);
+                  }}
+                >
                   <AnimatePresence mode="wait">
                     {[0, 1, 2].map((planIndex) => {
                       if (planIndex !== currentPlanIndex) return null;
