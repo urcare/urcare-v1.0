@@ -172,13 +172,13 @@ const LandingDiabetes = () => {
   };
 
   const handleAssessmentClick = () => {
-    window.open("https://docs.google.com/forms/d/e/1FAIpQLSduyQ2J7cZnH1jsZcfxYovDvUoobILZZkv8sd3-AgmZ_DrCHw/viewform", "_blank");
+    window.open("https://forms.gle/kYEE2D6gSWz56HSD6", "_blank");
   };
 
   const handleMedicalFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Redirect to Google Form
-    window.open("https://docs.google.com/forms/d/e/1FAIpQLSduyQ2J7cZnH1jsZcfxYovDvUoobILZZkv8sd3-AgmZ_DrCHw/viewform", "_blank");
+    window.open("https://forms.gle/kYEE2D6gSWz56HSD6", "_blank");
     setShowMedicalForm(false);
   };
 
