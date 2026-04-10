@@ -172,6 +172,15 @@ const LandingDiabetes = () => {
   };
 
   const handleAssessmentClick = () => {
+    // Eligibility / assessment flow (old form)
+    window.open(
+      "https://docs.google.com/forms/d/e/1FAIpQLSduyQ2J7cZnH1jsZcfxYovDvUoobILZZkv8sd3-AgmZ_DrCHw/viewform",
+      "_blank"
+    );
+  };
+
+  const handleMedicalAssessmentClick = () => {
+    // Kit medical form flow (new form)
     window.open("https://forms.gle/kYEE2D6gSWz56HSD6", "_blank");
   };
 
@@ -631,7 +640,7 @@ const LandingDiabetes = () => {
                                           Complete your medical form to receive personalized treatment plan
                                         </p>
                                         <button
-                                          onClick={handleAssessmentClick}
+                                          onClick={handleMedicalAssessmentClick}
                                           className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-2 rounded-xl transition-all transform hover:scale-[1.02] text-sm"
                                         >
                                           Step 2 - Submit the Medical Form
@@ -1266,7 +1275,7 @@ const LandingDiabetes = () => {
                                   Complete your medical form to receive personalized treatment plan
                                 </p>
                                 <button
-                                  onClick={handleAssessmentClick}
+                                  onClick={handleMedicalAssessmentClick}
                                   className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                                 >
                                   Step 2 - Submit the Medical Form
@@ -1455,7 +1464,7 @@ const LandingDiabetes = () => {
                               Complete your medical form to receive personalized treatment plan
                             </p>
                             <button
-                              onClick={handleAssessmentClick}
+                              onClick={handleMedicalAssessmentClick}
                               className="w-full bg-white text-[#228b22] hover:bg-gray-100 font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                             >
                               Step 2 - Submit the Medical Form
@@ -1594,7 +1603,7 @@ const LandingDiabetes = () => {
                               Complete your medical form to receive personalized treatment plan
                             </p>
                             <button
-                              onClick={handleAssessmentClick}
+                              onClick={handleMedicalAssessmentClick}
                               className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                             >
                               Step 2 - Submit the Medical Form
@@ -1749,7 +1758,7 @@ const LandingDiabetes = () => {
                               Complete your medical form to receive personalized treatment plan
                             </p>
                             <button
-                              onClick={handleAssessmentClick}
+                              onClick={handleMedicalAssessmentClick}
                               className="w-full bg-[#228b22] hover:bg-[#1e7a1e] text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                             >
                               Step 2 - Submit the Medical Form
